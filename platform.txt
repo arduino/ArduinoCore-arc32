@@ -1,0 +1,81 @@
+
+name=Arduino arc32 Boards
+version=0.0.1
+
+# arc32 compile variables
+# --------------------- 
+
+compiler.toolchain.path={runtime.ide.path}/hardware/tools/arc32
+compiler.path={compiler.toolchain.path}/bin/
+#compiler.path.linux={compiler.toolchain.path}/sysroots/pokysdk/usr/bin/i586-poky-linux/
+#compiler.sysroot={compiler.toolchain.path}/core2-32-poky-linux
+#compiler.sysroot.linux={compiler.toolchain.path}/sysroots/core2-32-poky-linux
+compiler.prefix=arc-elf32
+compiler.c.cmd={compiler.prefix}-gcc
+compiler.c.flags=-Wall -c
+compiler.c.elf.cmd={compiler.prefix}-g++
+compiler.c.elf.flags=-Os 
+compiler.S.flags=
+compiler.cpp.cmd={compiler.prefix}-g++
+compiler.cpp.flags=-Wall -c
+compiler.ar.cmd={compiler.prefix}-ar
+compiler.ar.flags=rcs
+compiler.objcopy.cmd={compiler.prefix}-objcopy
+#compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+#compiler.elf2hex.flags=-O ihex -R .eeprom
+#compiler.elf2hex.cmd={compiler.prefix}-objcopy
+#compiler.ldflags=
+compiler.size.cmd={compiler.prefix}-size
+#compiler.strip.cmd={compiler.prefix}-strip
+compiler.strip.cmd=
+# this can be overriden in boards.txt
+build.extra_flags=
+
+# X86 compile patterns
+# --------------------
+
+## Compile c files
+#recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -march={build.mcu} {build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+## Compile c++ files
+#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -march={build.mcu} {build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" "{source_file}"
+
+## Create archives
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} "{build.path}/{archive_file}" "{object_file}"
+
+## Combine gc-sections, archives, and objects
+#recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -march={build.mcu} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm -lpthread
+#recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm -lpthread
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}"
+
+## Create eeprom
+#recipe.objcopy.eep.pattern="{compiler.path}{compiler.strip.cmd}" "{build.path}/{build.project_name}.elf"
+recipe.objcopy.eep.pattern="ls"
+
+## Create hex
+recipe.objcopy.hex.pattern=
+
+## Compute size
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=Total\s+([0-9]+).*
+
+
+# X86 Uploader/Programmers tools
+# -------------------
+tools.izmirdl.cmd.path={runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_osx.sh
+tools.izmirdl.cmd.path.linux="{runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_linux.sh"
+tools.izmirdl.cmd.path.windows={runtime.ide.path}/hardware/tools/x86/bin/bash.exe
+tools.izmirdl.cmd.script.windows={runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_win.sh
+tools.izmirdl.cmd.bin.windows={runtime.ide.path}\hardware\tools\x86\bin
+
+
+tools.izmirdl.upload.params.verbose=-vvvvvv
+tools.izmirdl.upload.params.quiet=-q
+
+tools.izmirdl.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.ide.path}/hardware/tools/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.izmirdl.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.ide.path}/hardware/tools" {build.path}/{build.project_name}.elf {serial.port}
+tools.izmirdl.upload.elf.windows={build.path}/{build.project_name}.elf
+tools.izmirdl.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"
