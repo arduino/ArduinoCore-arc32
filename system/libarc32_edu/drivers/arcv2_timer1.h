@@ -1,4 +1,12 @@
+/* arcv2_timer1.c - ARC timer 1 device driver */
 
+/*
+ * Copyright (c) 2014 Wind River Systems, Inc.
+ *
+ * The right to copy, distribute, modify or otherwise make use
+ * of this software may be licensed only pursuant to the terms
+ * of an applicable Wind River license agreement.
+ */
 
 #ifndef _ARCV2_TIMER1__H_
 #define _ARCV2_TIMER1__H_

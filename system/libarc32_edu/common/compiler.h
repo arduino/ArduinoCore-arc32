@@ -1,3 +1,13 @@
+/* aux_regs.h - ARCv2 auxiliary registers definitions */
+
+/*
+ * Copyright (c) 2014 Wind River Systems, Inc.
+ *
+ * The right to copy, distribute or otherwise make use of this software
+ * may be licensed only pursuant to the terms of an applicable Wind River
+ * license agreement.
+ */
+
 #ifndef _COMPILER_H__
 #define _COMPILER_H__
 
