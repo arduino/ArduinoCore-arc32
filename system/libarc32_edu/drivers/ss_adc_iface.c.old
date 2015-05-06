@@ -1,0 +1,382 @@
+/** INTEL CONFIDENTIAL Copyright 2015 Intel Corporation All Rights Reserved.
+  *
+  * The source code contained or described herein and all documents related to
+  * the source code ("Material") are owned by Intel Corporation or its suppliers
+  * or licensors.
+  * Title to the Material remains with Intel Corporation or its suppliers and
+  * licensors.
+  * The Material contains trade secrets and proprietary and confidential information
+  * of Intel or its suppliers and licensors. The Material is protected by worldwide
+  * copyright and trade secret laws and treaty provisions.
+  * No part of the Material may be used, copied, reproduced, modified, published,
+  * uploaded, posted, transmitted, distributed, or disclosed in any way without
+  * Intel’s prior express written permission.
+  *
+  * No license under any patent, copyright, trade secret or other intellectual
+  * property right is granted to or conferred upon you by disclosure or delivery
+  * of the Materials, either expressly, by implication, inducement, estoppel or
+  * otherwise.
+  *
+  * Any license under such intellectual property rights must be express and
+  * approved by Intel in writing
+  *
+  ******************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "data_type.h"
+#include "ss_adc_iface.h"
+#include "soc_register.h"
+#include "io_config.h"
+#include "eiaextensions.h"
+#include "adc_priv.h"
+#include "ss_dw_adc.h"
+#include "portable.h"
+
+#define ADC_MAX_CNT (1)
+#define ADC_SS_NUM_CONTROLLERS  (1)
+
+#define ADC_CLOCK_GATE          (1 << 31)
+#define ADC_STANDBY             ( 0x02 )
+#define ADC_NORMAL_WO_CALIB     ( 0x04 )
+#define ADC_MODE_MASK           ( 0x07 )
+
+#define ONE_BIT_SET     (0x1)
+#define FIVE_BITS_SET   (0x1f)
+#define SIX_BITS_SET    (0x3f)
+#define ELEVEN_BITS_SET (0x7ff)
+
+#define INPUT_MODE_POS      (5)
+#define CAPTURE_MODE_POS    (6)
+#define OUTPUT_MODE_POS     (7)
+#define SERIAL_DELAY_POS    (8)
+#define SEQUENCE_MODE_POS   (13)
+#define SEQ_ENTRIES_POS     (16)
+#define THRESHOLD_POS       (24)
+
+#define SEQ_DELAY_EVEN_POS  (5)
+#define SEQ_MUX_ODD_POS     (16)
+#define SEQ_DELAY_ODD_POS   (21)
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+static void copy_config_data(ss_adc_cfg_data_t *cfg);
+static void adc_goto_normal_mode_wo_calibration(void);
+static void adc_goto_deep_power_down(void);
+
+DECLARE_INTERRUPT_HANDLER static void adc0_rx_ISR();
+DECLARE_INTERRUPT_HANDLER static void adc0_err_ISR();
+
+/* ADC devices private data structures */
+adc_info_pt adc_handles[ADC_MAX_CNT] = { 0 };
+
+adc_info_t   adc_devs[] = {
+    { .instID = 0,
+      .reg_base = AR_IO_ADC0_SET,
+      .rx_vector = IO_ADC0_INT_IRQ,
+      .err_vector = IO_ADC0_INT_ERR,
+      .rx_isr = adc0_rx_ISR,
+      .err_isr = adc0_err_ISR,
+      .fifo_tld = IO_ADC0_FS/2,
+      .adc_irq_mask = SCSS_REGISTER_BASE + INT_SS_ADC_IRQ_MASK,
+      .adc_err_mask = SCSS_REGISTER_BASE + INT_SS_ADC_ERR_MASK },
+       { .instID = ADC_MAX_CNT }
+    };
+
+DECLARE_INTERRUPT_HANDLER static void adc0_rx_ISR()
+{
+    adc_rx_ISR_proc(adc_handles[0]);
+}
+DECLARE_INTERRUPT_HANDLER static void adc0_err_ISR()
+{
+    adc_err_ISR_proc(adc_handles[0]);
+}
+
+ss_adc_cfg_data_t drv_config[ADC_SS_NUM_CONTROLLERS];
+
+/*! \fn     void ss_adc_set_config(ss_adc_cfg_data_t *config)
+*
+*  \brief   Function to configure specified ADC controller
+*
+*  \param   config          : pointer to configuration structure
+*
+*/
+void ss_adc_set_config(ss_adc_cfg_data_t *config)
+{
+    adc_info_pt                 dev = &adc_devs[0];
+    uint32_t                    reg_val = 0, val = 0, ctrl = 0;
+    ss_adc_cfg_data_t    *cfg = &drv_config[0];
+
+    adc_handles[0] = dev;
+
+    copy_config_data(config);
+
+    ctrl = ADC_INT_DSB|ADC_CLK_ENABLE;
+    REG_WRITE( ADC_CTRL, ctrl );
+
+    /* set sample width, input mode, output mode and serial delay */
+    reg_val = READ_ARC_REG(dev->reg_base+ ADC_SET );
+    reg_val &= ADC_CONFIG_SET_MASK;
+    val = (cfg->sample_width) & FIVE_BITS_SET;
+    val |= ((cfg->in_mode & ONE_BIT_SET)        << INPUT_MODE_POS);
+    val |= ((cfg->capture_mode & ONE_BIT_SET)   << CAPTURE_MODE_POS);
+    val |= ((cfg->out_mode & ONE_BIT_SET)       << OUTPUT_MODE_POS);
+    val |= ((cfg->serial_dly & FIVE_BITS_SET)   << SERIAL_DELAY_POS);
+    /* TODO: add cfg->seq_mode on next line when we'll support it */
+    val |= ((0x0 & ONE_BIT_SET)       << SEQUENCE_MODE_POS);
+    REG_WRITE( ADC_SET, reg_val|val );
+
+    dev->rx_len = 0;
+    /* TODO: add IO_ADC_SEQ_MODE_REPETITIVE support here later and adjust
+     * seq_size accordingly. */
+    dev->seq_mode = IO_ADC_SEQ_MODE_SINGLESHOT;
+    dev->seq_size = 1;
+    dev->state = ADC_STATE_IDLE;
+
+    /* set  clock ratio */
+    REG_WRITE( ADC_DIVSEQSTAT, cfg->clock_ratio & ADC_CLK_RATIO_MASK );
+
+    /* user callbacks */
+    dev->err_cb = cfg->cb_err;
+    dev->rx_cb  = cfg->cb_rx;
+
+
+    /* disable clock once setup done */
+    REG_WRITE( ADC_CTRL, ADC_INT_ENABLE & ~(ADC_CLK_ENABLE) );
+
+    /* set interrupt vector, mid/high priority */
+    SET_INTERRUPT_HANDLER( dev->rx_vector, dev->rx_isr );
+    SET_INTERRUPT_HANDLER( dev->err_vector, dev->err_isr );
+
+    /*
+     * SoC ADC config
+     */
+    /* Setup ADC Interrupt Routing Mask Registers to allow interrupts through */
+    MMIO_REG_VAL(dev->adc_irq_mask) &= ENABLE_SSS_INTERRUPTS;
+    MMIO_REG_VAL(dev->adc_err_mask) &= ENABLE_SSS_INTERRUPTS;
+}
+
+/*! \fn     void ss_adc_enable(void)
+*
+*  \brief   Function to enable the specified ADC controller
+*           Upon success, the specified ADC interface is no longer clock gated in hardware, it is now
+*           capable of sampling channel data and of generating interrupts.
+*/
+void ss_adc_enable(void)
+{
+    adc_info_pt     dev = &adc_devs[0];
+
+    adc_goto_normal_mode_wo_calibration();
+    /* Enable adc clock and reset sequence pointer */
+    REG_WRITE( ADC_CTRL, ADC_INT_ENABLE | ADC_CLK_ENABLE | ADC_SEQ_TABLE_RST );
+    dev->state = ADC_STATE_IDLE;
+
+}
+
+/*! \fn     void ss_adc_disable(void)
+*
+*  \brief   Function to disable the specified ADC controller.
+*
+*/
+void ss_adc_disable(void)
+{
+    adc_info_pt     dev = &adc_devs[0];
+    uint32_t saved;
+
+    adc_goto_deep_power_down();
+    REG_WRITE( ADC_CTRL, ADC_INT_DSB|ADC_SEQ_PTR_RST );
+
+    /* Protect ADC_SET using lock and unlock of interruptions */
+    saved = interrupt_lock();
+    /* TODO sak should we do this on disable ?? */
+    WRITE_ARC_REG(READ_ARC_REG(dev->reg_base+ADC_SET) | ADC_FLUSH_RX,
+                                   dev->reg_base+ADC_SET);
+    interrupt_unlock(saved);
+
+    dev->state = ADC_STATE_DISABLED;
+}
+
+
+/*! \fn     void ss_adc_read(io_adc_seq_table_t *seq_tbl,
+ *                                  uint8_t *data, uint32_t data_len,
+ *                                  uint32_t *actual_data_len,
+ *                                  uint32_t *status_code)
+*
+*  \brief   Read samples from ADC according to sequence table config
+*  \param   data            : pointer to buffer to store data
+*  \param   data_len        : length of data to read
+*  \param   actual_data_len : pointer to value that is updated with actual length of data read
+*  \param   status_code     : if DRV_RC_FAIL is returned - this holds the status/reason code
+*
+*/
+
+DRIVER_API_RC ss_adc_read(io_adc_seq_table_t *seq_tbl, uint32_t *data,
+                        uint32_t data_len, uint32_t *actual_data_len,
+                        uint32_t *status_code)
+{
+    adc_info_pt         dev = &adc_devs[0];
+    uint32_t            ctrl = 0, reg_val = 0;
+    uint32_t            i = 0, num_iters = 0;
+    io_adc_seq_entry_t  *entry = NULL;
+    uint32_t saved;
+
+    if( ADC_STATE_IDLE != dev->state )
+        return DRV_RC_CONTROLLER_IN_USE;
+
+
+    /* Protect ADC_SET and ADC_CTRL using lock and unlock of interruptions */
+    saved = interrupt_lock();
+
+    /* Reset Sequence Pointer */
+    ctrl = READ_ARC_REG(dev->reg_base+ADC_CTRL);
+    ctrl |= ADC_SEQ_PTR_RST;
+    WRITE_ARC_REG(ctrl, (dev->reg_base+ADC_CTRL));
+
+    /* Setup sequence table */
+    dev->seq_size = seq_tbl->num_entries;
+
+    reg_val = READ_ARC_REG(dev->reg_base+ADC_SET);
+    reg_val &= ADC_SEQ_SIZE_SET_MASK;
+    reg_val |= ( ((seq_tbl->num_entries - 1) & SIX_BITS_SET) << SEQ_ENTRIES_POS );
+    reg_val |= ((dev->seq_size - 1) << THRESHOLD_POS );
+    WRITE_ARC_REG(reg_val, dev->reg_base+ADC_SET);
+
+    interrupt_unlock(saved);
+
+    num_iters = seq_tbl->num_entries/2;
+
+    for( i = 0, entry = seq_tbl->entries;
+         i < num_iters;
+         i++, entry += 2 )
+    {
+        reg_val = ((entry[1].sample_dly & ELEVEN_BITS_SET) << SEQ_DELAY_ODD_POS);
+        reg_val |= ((entry[1].channel_id & FIVE_BITS_SET) << SEQ_MUX_ODD_POS);
+        reg_val |= ((entry[0].sample_dly & ELEVEN_BITS_SET) << SEQ_DELAY_EVEN_POS);
+        reg_val |= (entry[0].channel_id & FIVE_BITS_SET);
+        REG_WRITE( ADC_SEQ, reg_val );
+    }
+    if( 0 != (seq_tbl->num_entries % 2) )
+    {
+        reg_val = ((entry[0].sample_dly & ELEVEN_BITS_SET) << SEQ_DELAY_EVEN_POS);
+        reg_val |= (entry[0].channel_id & FIVE_BITS_SET);
+        REG_WRITE( ADC_SEQ, reg_val );
+    }
+    REG_WRITE( ADC_CTRL, ctrl | ADC_SEQ_PTR_RST );
+
+    if( ADC_STATE_IDLE == dev->state )
+    {
+        for( i = 0; i < BUFS_NUM; i++ )
+        {
+            dev->rx_buf[i] = NULL;
+        }
+        dev->rx_buf[0] = data;
+        dev->rx_len =  data_len;
+        dev->res_size[0] = actual_data_len;
+        *( dev->res_size[0] ) = 0;
+        dev->index = 0;
+        dev->state = ADC_STATE_SAMPLING;
+        /* enable AD converter, start sequencer */
+        REG_WRITE( ADC_CTRL, ADC_SEQ_START|ADC_ENABLE|ADC_CLK_ENABLE );
+    }
+    else if( IO_ADC_SEQ_MODE_REPETITIVE == dev->seq_mode )
+    {
+        uint32_t    idx = dev->index;
+
+        if( NULL == dev->rx_buf[idx] )
+        {
+            dev->rx_buf[idx] = data;
+            dev->rx_len = data_len;
+            dev->res_size[idx] = actual_data_len;
+           *( dev->res_size[idx] ) = 0;
+        }
+    }
+    return DRV_RC_OK;
+}
+/*
+ * Function to put the ADC controller into a working state.
+ */
+
+static void adc_goto_normal_mode_wo_calibration(void)
+{
+    uint32_t creg;
+    uint32_t saved;
+
+    // read creg slave to get current Power Mode
+    creg = _lr(AR_IO_CREG_SLV0_OBSR);
+
+    // perform power up to "Normal mode w/o calibration" cycle if not already there
+    if( (creg & ADC_MODE_MASK) != ADC_NORMAL_WO_CALIB){
+
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        saved = interrupt_lock();
+        // Read current CREG master
+        creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
+        creg &= ~(ADC_MODE_MASK);
+        // request ADC to go to Standby mode
+        creg |= ADC_STANDBY | ADC_CLOCK_GATE;
+        WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
+        interrupt_unlock(saved);
+
+        // Poll CREG Slave 0 for Power Mode status = requested status
+        while ( (creg = _lr(AR_IO_CREG_SLV0_OBSR) & 0x8) == 0);
+
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        saved = interrupt_lock();
+        creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
+        creg &= ~(ADC_MODE_MASK);
+        // request ADC to go to Normal mode w/o calibration
+        creg |= ADC_NORMAL_WO_CALIB | ADC_CLOCK_GATE;
+        WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
+        interrupt_unlock(saved);
+
+        // Poll CREG Slave 0 for Power Mode status = requested status
+        while ( ((creg = _lr(AR_IO_CREG_SLV0_OBSR)) & 0x8) == 0);
+    }
+}
+static void adc_goto_deep_power_down(void)
+{
+    uint32_t creg;
+    uint32_t saved;
+
+    // read creg slave to get current Power Mode
+    creg = _lr(AR_IO_CREG_SLV0_OBSR);
+    // perform cycle down to "Deep Power Down mode" if not already there
+    if( (creg & ADC_MODE_MASK) != 0){
+
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        saved = interrupt_lock();
+
+        // Read current CREG master
+        creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
+        creg &= ~(ADC_MODE_MASK);
+        // request ADC to go to Deep Power Down mode
+        creg |= 0 | ADC_CLOCK_GATE;
+        WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
+        interrupt_unlock(saved);
+
+        // Poll CREG Slave 0 for Power Mode status = requested status
+        while ( ((creg = _lr(AR_IO_CREG_SLV0_OBSR)) & 0x8) == 0);
+    }
+}
+
+
+static void copy_config_data(ss_adc_cfg_data_t *cfg)
+{
+    /* copy passed in config data locally */
+    drv_config[0].capture_mode = cfg->capture_mode;
+    drv_config[0].cb_err       = cfg->cb_err;
+    drv_config[0].cb_err_data  = cfg->cb_err_data;
+    drv_config[0].cb_rx        = cfg->cb_rx;
+    drv_config[0].cb_rx_data   = cfg->cb_rx_data;
+    drv_config[0].in_mode      = cfg->in_mode;
+    drv_config[0].out_mode     = cfg->out_mode;
+    drv_config[0].sample_width = cfg->sample_width;
+    drv_config[0].serial_dly   = cfg->serial_dly;
+    drv_config[0].clock_ratio  = cfg->clock_ratio;
+}
+
+#ifdef __cplusplus
+}
+#endif

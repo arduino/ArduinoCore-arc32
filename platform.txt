@@ -1,81 +1,96 @@
 
-name=Arduino arc32 Boards
-version=0.0.1
+# Intel EDU Core and platform.
+#
+# For more info:
+# https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
-# arc32 compile variables
-# --------------------- 
+name=Intel Curie (32-bit) Boards
+version=1.6.2
 
-compiler.toolchain.path={runtime.ide.path}/hardware/tools/arc32
-compiler.path={compiler.toolchain.path}/bin/
-#compiler.path.linux={compiler.toolchain.path}/sysroots/pokysdk/usr/bin/i586-poky-linux/
-#compiler.sysroot={compiler.toolchain.path}/core2-32-poky-linux
-#compiler.sysroot.linux={compiler.toolchain.path}/sysroots/core2-32-poky-linux
+# SAM3 compile variables
+# ----------------------
+
 compiler.prefix=arc-elf32
-compiler.c.cmd={compiler.prefix}-gcc
-compiler.c.flags=-Wall -c
-compiler.c.elf.cmd={compiler.prefix}-g++
-compiler.c.elf.flags=-Os 
-compiler.S.flags=
-compiler.cpp.cmd={compiler.prefix}-g++
-compiler.cpp.flags=-Wall -c
-compiler.ar.cmd={compiler.prefix}-ar
+
+compiler.path={runtime.tools.arc-elf32.path}/bin/
+compiler.c.cmd=arc-elf32-gcc
+compiler.c.flags=-c -mARCv2EM -mav2em -mlittle-endian -g -Os -Wall -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections -MMD
+compiler.c.elf.cmd=arc-elf32-gcc
+compiler.c.elf.flags=-nostartfiles -nodefaultlibs -nostdlib -static -Wl,-X -Wl,-N -Wl,-mARCv2EM -Wl,-marcelf -Wl,--gc-sections
+compiler.S.flags=-c -g -x assembler-with-cpp
+#compiler.cpp.cmd=arc-elf32-g++
+compiler.cpp.cmd=arc-elf32-gcc
+compiler.cpp.flags=-c -mARCv2EM -mav2em -mlittle-endian -g -Os -Wall -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections -MMD
+compiler.ar.cmd=arc-elf32-ar
 compiler.ar.flags=rcs
-compiler.objcopy.cmd={compiler.prefix}-objcopy
-#compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
-#compiler.elf2hex.flags=-O ihex -R .eeprom
-#compiler.elf2hex.cmd={compiler.prefix}-objcopy
-#compiler.ldflags=
-compiler.size.cmd={compiler.prefix}-size
-#compiler.strip.cmd={compiler.prefix}-strip
-compiler.strip.cmd=
+compiler.objcopy.cmd=arc-elf32-objcopy
+compiler.objcopy.eep.flags=-O ihex
+compiler.elf2hex.flags=-S -O binary -R .note -R .comment -R COMMON -R .eh_frame
+compiler.elf2hex.cmd=arc-elf32-objcopy
+compiler.ldflags=
+compiler.size.cmd=arc-elf32-size
+compiler.define=-DARDUINO=
+compiler.strip.cmd={compiler.prefix}-strip
+
 # this can be overriden in boards.txt
 build.extra_flags=
 
-# X86 compile patterns
-# --------------------
+# These can be overridden in platform.local.txt
+compiler.c.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode"
+compiler.c.elf.extra_flags=
+compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode"
+compiler.ar.extra_flags=
+compiler.elf2hex.extra_flags=
+
+
+#compiler.libsam.c.flags="-I{build.system.path}/libsam" "-I{build.system.path}/CMSIS/CMSIS/Include/" "-I{build.system.path}/CMSIS/Device/ATMEL/"
+
+# USB Flags
+# ---------
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} -DUSBCON '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+
+# Default usb manufacturer will be replaced at compile time using
+# numeric vendor ID if available or by board's specific value. 
+build.usb_manufacturer="Unknown"
+
+
+# Intel EDU compile patterns
+# ---------------------
 
 ## Compile c files
-#recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -march={build.mcu} {build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
-recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+
 ## Compile c++ files
-#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -march={build.mcu} {build.f_cpu} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
-recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -D{software}={runtime.ide.version} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
-#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
-#recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" "{source_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Create archives
-recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} "{build.path}/{archive_file}" "{object_file}"
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{build.path}/{archive_file}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-#recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -march={build.mcu} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm -lpthread
-#recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm -lpthread
-recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
-## Create eeprom
-#recipe.objcopy.eep.pattern="{compiler.path}{compiler.strip.cmd}" "{build.path}/{build.project_name}.elf"
-recipe.objcopy.eep.pattern="ls"
+## Create output (.bin file)
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 
-## Create hex
-recipe.objcopy.hex.pattern=
+## Create output (.elf file)
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.strip.cmd}" "{build.path}/{build.project_name}.elf"
 
 ## Compute size
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
 recipe.size.regex=Total\s+([0-9]+).*
 
-
-# X86 Uploader/Programmers tools
+# Arc Uploader/Programmers tools
 # -------------------
-tools.izmirdl.cmd.path={runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_osx.sh
-tools.izmirdl.cmd.path.linux="{runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_linux.sh"
-tools.izmirdl.cmd.path.windows={runtime.ide.path}/hardware/tools/x86/bin/bash.exe
-tools.izmirdl.cmd.script.windows={runtime.ide.path}/hardware/intel/i686/tools/izmir/clupload_win.sh
-tools.izmirdl.cmd.bin.windows={runtime.ide.path}\hardware\tools\x86\bin
+tools.eduload.cmd.path={runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_osx.sh
+tools.eduload.cmd.path.linux="{runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_linux.sh"
+tools.eduload.cmd.path.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin/bash.exe
+tools.eduload.cmd.script.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_win.sh
+tools.eduload.cmd.bin.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin
 
+tools.eduload.upload.params.verbose=-vvvvvv
+tools.eduload.upload.params.quiet=-q
 
-tools.izmirdl.upload.params.verbose=-vvvvvv
-tools.izmirdl.upload.params.quiet=-q
-
-tools.izmirdl.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.ide.path}/hardware/tools/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
-tools.izmirdl.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.ide.path}/hardware/tools" {build.path}/{build.project_name}.elf {serial.port}
-tools.izmirdl.upload.elf.windows={build.path}/{build.project_name}.elf
-tools.izmirdl.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"
+tools.eduload.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.eduload.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.eduload.upload.elf.windows={build.path}/{build.project_name}.elf
+tools.eduload.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"

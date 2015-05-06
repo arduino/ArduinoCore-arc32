@@ -1,5 +1,5 @@
 /*
-main.cpp userspace main loop for Intel Galileo family boards
+main.cpp userspace main loop for Intel EDU family boards
 Copyright (C) 2014 Intel Corporation
 
 This library is free software; you can redistribute it and/or
@@ -16,23 +16,38 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
- */
+*/
 // Arduino hooks
-#include <Arduino.h>
-#include <stdio.h>
+#include "Arduino.h"
+#include "arcv2_timer1.h"
 
-/************************ Static *************************/
+// Weak empty variant initialization function.
+// May be redefined by variant files.
+void initVariant() __attribute__((weak));
+void initVariant() { }
 
-
-/************************ Global *************************/
-int main(int argc, char * argv[])
+/*
+ * \brief Main entry point of Arduino application
+ */
+int main( void )
 {
-	printf("!!!Hello ARC World!!!\n\r");
+	//init();
+
+	initVariant();
+
+	// delay(1);
+
+#if defined(USBCON)
+	USBDevice.attach();
+#endif
+
 	setup();
-	for (;;) {
+
+	for (;;)
+	{
 		loop();
 		//if (serialEventRun) serialEventRun();
 	}
+
 	return 0;
 }
-
