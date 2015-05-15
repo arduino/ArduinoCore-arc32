@@ -19,9 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __INTERRUPT_H__
 #define __INTERRUPT_H__
 
-extern void interrupt_connect(unsigned int irq,
-			      void (*isr)(void *arg),
-			      void *arg);
+extern void interrupt_connect(unsigned int irq, void (*isr)(void), void *arg);
 extern void interrupt_disconnect(unsigned int irq);
 extern void interrupt_enable(unsigned int irq);
 extern void interrupt_disable(unsigned int irq);

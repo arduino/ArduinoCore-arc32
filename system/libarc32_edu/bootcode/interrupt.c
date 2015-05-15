@@ -23,19 +23,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 struct _IsrTableEntry
 {
     void *arg;
-    void (*isr)(void *);
+    void (*isr)(void);
 };
 
 struct _IsrTableEntry __attribute__((section(".data"))) _IsrTable[_WRS_CONFIG_NUM_IRQS];
 
-static void _dummy_isr(void *arg)
+static void _dummy_isr(void)
 {
+    __asm__ ("flag 0x01"); /* Set the halt flag => halt the CPU  */
     for(;;);
 }
 
-void interrupt_connect(unsigned int irq,
-		       void (*isr)(void *arg),
-		       void *arg)
+/*
+ * The default, generic hardware IRQ handler.
+ * It only decodes the source of IRQ and calls the appropriate handler
+ *
+ * We need this because the Interrupt Vector Table is located in the flash
+ * memory and cannot modify it at run time.*/
+__attribute__ ((interrupt ("ilink")))
+void _do_isr(void)
+{
+    unsigned int irq_cause = aux_reg_read(ARC_V2_ICAUSE) - 16;
+    if (_IsrTable[irq_cause].isr != 0x00)
+        _IsrTable[irq_cause].isr();
+    else 
+	_dummy_isr();    
+}
+
+void interrupt_connect(unsigned int irq, void (*isr)(void), void *arg)
 {
     int index = irq - 16;
     unsigned int flags = interrupt_lock();
