@@ -32,14 +32,7 @@ conjunction with a microkernel.
 #include "conf.h"
 #include "interrupt.h"
 
-#define ARCV2_TIMER0_CLOCK_FREQ   32000000      /* 32MHz reference clock */
-
 /* defines */
-
-#define ARC_V2_TMR_CTRL_IE      0x1             /* interrupt enable */
-#define ARC_V2_TMR_CTRL_NH      0x2             /* count only while not halted */
-#define ARC_V2_TMR_CTRL_W       0x4             /* watchdog mode enable */
-#define ARC_V2_TMR_CTRL_IP      0x8             /* interrupt pending flag */
 
 
 #define ONE_MILLISECOND	    ARCV2_TIMER0_CLOCK_FREQ/1000
