@@ -4,6 +4,12 @@ ASM_SRC+=$(wildcard $(PWD)/common/*.S)
 C_SRC+=$(wildcard $(PWD)/bootcode/*.c)
 C_SRC+=$(wildcard $(PWD)/drivers/*.c)
 C_SRC+=$(wildcard $(PWD)/common/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/services/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/cfw/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/infra/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/util/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/os/*.c)
 
 ARCH=ARC
 CC=arc-elf32-gcc
@@ -25,13 +31,14 @@ TARGET_ELF=$(TARGET).elf
 TARGET_BIN=$(TARGET).bin
 
 HWFLAGS=-mARCv2EM -mav2em -mlittle-endian
-CFGFLAGS=-DCONFIG_SOC_GPIO_32
+
+CFGFLAGS=-DCONFIG_SOC_GPIO_32 -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM
 OPTFLAGS=-g -Os -Wall
-INCLUDES=-Icommon -Ibootcode
+INCLUDES=-Icommon -Ibootcode -Iframework/include
 EXTRA_CFLAGS=-D__CPU_ARC__ -DCLOCK_SPEED=32 -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections 
 CFLAGS=$(HWFLAGS) $(OPTFLAGS) $(EXTRA_CFLAGS) $(CFGFLAGS) $(INCLUDES)
 
-LDFLAGS=-nostartfiles -nodefaultlibs -nostdlib -static \
+LDFLAGS=-nostartfiles -static \
 -Wl,-X -Wl,-N -Wl,-mARCv2EM -Wl,-marcelf -Wl,--gc-sections \
 -Wl,-Map,$(TARGET_ELF).map \
 -Wl,--whole-archive $(TARGET_LIB) -Wl,--no-whole-archive \
