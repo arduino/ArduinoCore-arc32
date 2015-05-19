@@ -61,7 +61,7 @@ typedef void* T_MUTEX;
 typedef void* T_QUEUE;
 typedef void* T_QUEUE_MESSAGE;
 typedef void* T_TIMER;
-typedef void (* T_ENTRY_POINT) (void* ) ;
+//typedef void (* T_ENTRY_POINT) (void* ) ;
 typedef void* T_TASK ;
 typedef uint8_t T_TASK_PRIO ;
 #define HIGHEST_TASK_PRIO   OS_SPECIFIC_HIGHEST_PRIO

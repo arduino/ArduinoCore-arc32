@@ -59,9 +59,10 @@ INCLUDE FILES: drivers/uart.h
 /* includes */
 
 #include <stdint.h>
-#include <irq.h>
-#include <board.h>
-#include <uart.h>
+
+#include "board.h"
+#include "interrupt.h"
+#include "uart.h"
 
 /* defines */
 
@@ -249,7 +250,7 @@ void uart_init(int which, /* UART channel to initialize */
 	       const struct uart_init_info * const init_info
 	       )
 {
-	int oldLevel;     /* old interrupt lock level */
+	unsigned int oldLevel;     /* old interrupt lock level */
 	uint32_t divisor; /* baud rate divisor */
 
 	uart[which].port = init_info->regs;
@@ -257,7 +258,7 @@ void uart_init(int which, /* UART channel to initialize */
 	uart[which].intPri = init_info->int_pri;
 	uart[which].iirCache = 0;
 
-	oldLevel = irq_lock_inline();
+	oldLevel = interrupt_lock();
 
 	/* calculate baud rate divisor */
 	divisor = (init_info->sys_clk_freq / init_info->baud_rate) >> 4;
@@ -286,7 +287,7 @@ void uart_init(int which, /* UART channel to initialize */
 	/* disable interrupts  */
 	OUTBYTE(IER(which), 0x00);
 
-	irq_unlock_inline(oldLevel);
+	interrupt_unlock(oldLevel);
 }
 
 /*******************************************************************************

@@ -311,7 +311,7 @@ static void soc_pwm_unmask_interrupt(uint8_t channel)
  *
  *  \brief   PWM ISR, if specified calls a user defined callback
  */
-DECLARE_INTERRUPT_HANDLER void pwm_isr(void *arg)
+DECLARE_INTERRUPT_HANDLER void pwm_isr(void)
 {
     uint32_t pending = 0, pwm = 0;
 

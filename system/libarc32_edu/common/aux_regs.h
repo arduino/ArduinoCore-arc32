@@ -53,6 +53,7 @@ Definitions for auxiliary registers.
 #define ARC_V2_IRQ_PENDING      0x416
 
 #define ARC_V2_TMR0_CONTROL_IP_MASK	(0x01 << 3)
+#define AUX_IRQ_CTRL_SAVE_ALL		(0x1F | (0x01 << 9) | (0x01 << 10))
 
 /* STATUS32/STATUS32_P0 bits */
 #define ARC_V2_STATUS32_H     (1 <<  0)

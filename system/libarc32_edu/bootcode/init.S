@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "aux_regs.h"
 
+.globl _do_isr
+.type _do_isr,%function
+
 .section .int_vector_table
 .balign 4
 _start:
@@ -40,10 +43,11 @@ _do_reset:
     /* Set up stack pointer */
 //    mov sp, @_DefaultStack + STACK_SIZE
     mov sp, @__stack_start
-    mov gp, @__SDATA_BEGIN__
+    /* Setup automatic (hardware) context saving feature */
+    sr AUX_IRQ_CTRL_SAVE_ALL, [ARC_V2_AUX_IRQ_CTRL]
     /* Enable instruction cache */
-    mov r0, 0
-    sr r0, [ARC_V2_IC_CTRL]
+//    mov r0, 0
+//    sr r0, [ARC_V2_IC_CTRL]
     /* Configure the interrupt priority threshold of the ARC core to 3 */
     seti 0x23
     /* Jump to C init function */

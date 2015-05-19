@@ -135,45 +135,6 @@ extern void queue_get_message (T_QUEUE queue, T_QUEUE_MESSAGE* message, int time
 extern void queue_send_message(T_QUEUE queue, T_QUEUE_MESSAGE message, OS_ERR_TYPE* err );
 
 /**
- * \brief Attach an ISR to an IRQ
- *
- *    Attach/connect an interrupt service routing to an interrupt request line.
- *    Specifying a NULL pointer, as isr parameter, will detach a previous ISR from
- *    the IRQ.
- *    This service may panic if err parameter is null and:
- *        irq parameter is invalid, or
- *        when called from an ISR.
- *  Authorized execution levels:  task, fiber.
- *
- *
- *  - VIPER does not provide an API to detach an ISR from an IRQ.
- *     When isr parameter is NULL, this function disables the IRQ (if valid)
- *     instead of replacing the ISR pointer with zeros.
- *
- * \param irq:       interrupt request line number.
- * \param isr:       pointer on the interrupt service routine
- * \param isrData:   pointer to the data passed as an argument to isr
- * \param priority:  requested priority of interrupt
- * \param err (out): execution status:
- *        E_OS_OK : ISR was attached or detached to IRQ
- *        E_OS_ERR: irq parameter is invalid
- *        E_OS_ERR_NOT_ALLOWED: service cannot be executed from ISR context.
- *
- *  NB: IRQ priority is not a parameter used in lakemont context, as it is inferred from the IRQ number:
- *     Priority = IRQ number / 16 ( rounded down )
- *     --> \ref loApicIntr.c
- */
-static inline __attribute__((always_inline))
-void interrupt_set_isr (int irq, T_ENTRY_POINT isr, void* isrData , int priority, OS_ERR_TYPE* err)
-{
-    unsigned key = interrupt_lock();
-    interrupt_connect(irq, isr, isrData);
-    interrupt_priority_set(irq, priority);
-    interrupt_unlock(key);
-    *err = E_OS_OK;
-}
-
-/**
  * \brief Get the current tick in ms
  *
  *     Return the current tick converted in milliseconds

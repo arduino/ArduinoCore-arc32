@@ -92,9 +92,8 @@ uint32_t arcv2_timer1_count_get(void)
 *
 * \NOMANUAL
 */
-void _arcv2_timer1_int_handler(void *notused)
+void _arcv2_timer1_int_handler(void)
 {
-    (void)(notused);
     /* clear the interrupt (by writing 0 to IP bit of the control register) */
     aux_reg_write(ARC_V2_TMR1_CONTROL, ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
     /* execute callback specified by the user */

@@ -86,4 +86,4 @@ lib_install: lib
 	fi \
 
 clean:
-	-$(RM) $(C_OBJ) $(ASM_OBJ) $(TARGET_LIB) $(TARGET_ELF) $(TARGET_BIN) $(TARGET_ELF).map
+	-$(RM) $(C_OBJ) $(ASM_OBJ) $(TARGET_LIB) $(TARGET_ELF) $(TARGET_BIN) $(TARGET_ELF).map main.o
