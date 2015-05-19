@@ -169,12 +169,6 @@ void timer1_driver_init(void(*int_handler)(void), uint32_t ticktime_ms)
 
 	/* Everything has been configured. It is now safe to enable the interrupt */
 	interrupt_enable(ARCV2_IRQ_TIMER1);
-	/* Enable global ARC interrupts */
-//	interrupt_unlock(ARCV2_SETI_IRQ_LVL_2);
-	interrupt_unlock(0);
-#if 0
-	nanoCpuIntEnable (_WRS_CONFIG_ARCV2_TIMER1_INT_LVL);
-#endif
 }
 
 /*******************************************************************************

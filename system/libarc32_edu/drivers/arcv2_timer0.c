@@ -150,7 +150,6 @@ void _arcv2_timer0_int_handler(void)
 */
 void timer0_driver_init(void)
 {
-
     /* ensure that the timer will not generate interrupts */
     aux_reg_write(ARC_V2_TMR0_CONTROL, 0);
     aux_reg_write(ARC_V2_TMR0_COUNT, 0);	/* clear the count value */
@@ -163,6 +162,4 @@ void timer0_driver_init(void)
 
     /* Everything has been configured. It is now safe to enable the interrupt */
     interrupt_enable(ARCV2_IRQ_TIMER0);
-    /* Enable ARC's global interrupts */
-    interrupt_unlock(0);
 }

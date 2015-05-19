@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "aux_regs.h"
 #include "interrupt.h"
 
+#define INTERRUPT_ENABLE    (1 << 4)
+#define INTERRUPT_THRESHOLD (3)
+
 struct _IsrTableEntry
 {
     void *arg;
@@ -101,4 +104,7 @@ void interrupt_unit_device_init(void)
         aux_reg_write(ARC_V2_IRQ_ENABLE, ARC_V2_INT_DISABLE);
         aux_reg_write(ARC_V2_IRQ_TRIGGER, ARC_V2_INT_LEVEL);
     }
+
+    /* Configure the interrupt priority threshold and enable interrupts */
+    __builtin_arc_seti(INTERRUPT_ENABLE | INTERRUPT_THRESHOLD);
 }
