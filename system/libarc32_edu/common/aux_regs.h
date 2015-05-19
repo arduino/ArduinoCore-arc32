@@ -52,6 +52,8 @@ Definitions for auxiliary registers.
 #define ARC_V2_IRQ_PULSE_CANCEL 0x415
 #define ARC_V2_IRQ_PENDING      0x416
 
+#define ARC_V2_TMR0_CONTROL_IP_MASK	(0x01 << 3)
+
 /* STATUS32/STATUS32_P0 bits */
 #define ARC_V2_STATUS32_H     (1 <<  0)
 #define ARC_V2_STATUS32_E(x)  ((x) << 1)

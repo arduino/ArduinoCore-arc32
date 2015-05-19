@@ -31,5 +31,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ARCV2_IRQ_TIMER0		16
 #define ARCV2_IRQ_TIMER1		17
 
+#define ARCV2_TIMER0_CLOCK_FREQ   32000000	/* 32MHz reference clock */
+#define ARCV2_TIMER1_CLOCK_FREQ   32000000	/* 32MHz reference clock */
+
+#define ARC_V2_TMR_CTRL_IE	0x1		/* interrupt enable */
+#define ARC_V2_TMR_CTRL_NH	0x2		/* count only while not halted */
+#define ARC_V2_TMR_CTRL_W	0x4		/* watchdog mode enable */
+#define ARC_V2_TMR_CTRL_IP	0x8		/* interrupt pending flag */
+
+
 
 #endif /* _ARCV2_CONF__H_ */
