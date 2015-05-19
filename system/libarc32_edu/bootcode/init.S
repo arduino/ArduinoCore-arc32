@@ -46,10 +46,8 @@ _do_reset:
     /* Setup automatic (hardware) context saving feature */
     sr AUX_IRQ_CTRL_SAVE_ALL, [ARC_V2_AUX_IRQ_CTRL]
     /* Enable instruction cache */
-//    mov r0, 0
-//    sr r0, [ARC_V2_IC_CTRL]
-    /* Configure the interrupt priority threshold of the ARC core to 3 */
-    seti 0x23
+    mov r0, 0
+    sr r0, [ARC_V2_IC_CTRL]
     /* Jump to C init function */
     j @_main
 
