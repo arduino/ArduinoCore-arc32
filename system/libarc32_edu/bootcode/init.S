@@ -40,6 +40,7 @@ _do_reset:
     /* Set up stack pointer */
 //    mov sp, @_DefaultStack + STACK_SIZE
     mov sp, @__stack_start
+    mov gp, @__SDATA_BEGIN__
     /* Enable instruction cache */
     mov r0, 0
     sr r0, [ARC_V2_IC_CTRL]

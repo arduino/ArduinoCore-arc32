@@ -86,15 +86,19 @@ PinDescription g_APinDescription[]=
 
 uint32_t sizeof_g_APinDescription;
 
-#ifdef OUT
 
 /*
  * UART objects
  */
 RingBuffer rx_buffer1;
 RingBuffer tx_buffer1;
+uart_init_info info1;
 
-UARTClass Serial(UART, UART_IRQn, ID_UART, &rx_buffer1, &tx_buffer1);
+UARTClass Serial(&info1, &rx_buffer1, &tx_buffer1);
+
+
+#ifdef OUT
+
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
 

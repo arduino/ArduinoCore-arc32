@@ -110,6 +110,8 @@ int main(void)
     soc_gpio_enable(SOC_GPIO_32);
     SET_PIN_MODE(2, QRK_PMUX_SEL_MODEA);
 
+    uart_init(0);
+
     setup();
     for(;;)
 	    __asm__("nop");

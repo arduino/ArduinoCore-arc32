@@ -35,10 +35,10 @@
 #include "Arduino.h"
 #include "wiring_digital.h"
 #include "pins_arduino.h"
-//#ifdef __cplusplus
-//#include "UARTClass.h"
+#ifdef __cplusplus
+#include "UARTClass.h"
 //#include "USARTClass.h"
-//#endif
+#endif
 
 #ifdef __cplusplus
 extern "C"{
@@ -65,6 +65,9 @@ extern "C"{
  */
 #define GPIO_MUX_MODE       QRK_PMUX_SEL_MODEA
 
+#define SS_GPIO  1
+#define SOC_GPIO 2
+
 /*
  * PWM
  */
@@ -77,6 +80,12 @@ extern "C"{
 #define PWM_SCALE_490HZ     0 /* "Standard" Arduino PWM frequency is 490Hz */
 #define PWM_SCALE_980HZ     1 /* Some pins on Arduino boards emit 980Hz PWM */
 
+/*
+ * UART
+ */
+
+#define UART_MUX_MODE       QRK_PMUX_SEL_MODEC
+
 #ifdef __cplusplus
 }
 #endif
@@ -87,7 +96,7 @@ extern "C"{
 
 #ifdef __cplusplus
 
-//extern UARTClass Serial;
+extern UARTClass Serial;
 //extern USARTClass Serial1;
 
 #endif
@@ -112,9 +121,6 @@ extern "C"{
 #define SERIAL_PORT_HARDWARE_OPEN   Serial1
 #define SERIAL_PORT_HARDWARE        Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
-
-#define SS_GPIO  1
-#define SOC_GPIO 2
 
 extern uint32_t sizeof_g_APinDescription;
 
