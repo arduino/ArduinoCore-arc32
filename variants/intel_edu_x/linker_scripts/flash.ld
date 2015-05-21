@@ -97,12 +97,6 @@ SECTIONS
 	*(".data.*")
 	} > SRAM
 
-    sdata :
-        {
-         __SDATA_BEGIN__ = .;
-        *(.sdata .sdata.* .gnu.linkonce.s.*)
-        } > SRAM
-
     __data_ram_end = .;
 
     bss (NOLOAD) :
