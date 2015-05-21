@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 #include "drivers/soc_gpio.h"
-#include "drivers/arcv2_timer1.h"
+#include "arcv2_timer1.h"
 #include "scss_registers.h"
 
 #include "infra/ipc.h"

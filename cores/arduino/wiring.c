@@ -1,6 +1,23 @@
 /*
- * TODO: Copyright header
- * */
+Copyright (c) 2015 Intel Corporation.  All right reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+*/
+
+#include "Arduino.h"
 
 #include "wiring.h"
 #include "arcv2_timer0.h"
@@ -15,17 +32,18 @@ void delay(uint32_t msec)
 {
     if(0 == msec)
 	    return;
-    uint32_t no_of_irqs = timer0_overflows;
-    uint32_t microseconds = arcv2_timer0_count_get() / FREQ_MHZ;
+    uint32_t no_of_irqs = timer0_overflows + msec;
+    uint32_t microseconds = arcv2_timer0_count_get();
 
-    while(timer0_overflows - no_of_irqs < msec){
-//        yield();
+    while(timer0_overflows < no_of_irqs){
+        yield();
       /* Enter sleep and enable interrupts and sets interrupts threshold to 3 */
-        __asm__ volatile ("sleep 0x13"); 
+        __asm__ volatile ("sleep 0x13");
     }
    /* For the last fraction of millisecond don't go to sleep - you'll wake up
     * too late - just spin */
-    while (arcv2_timer0_count_get() / FREQ_MHZ < microseconds);
+    while ((arcv2_timer0_count_get() < microseconds) &&
+		    (timer0_overflows ==  no_of_irqs));
 }
 
 

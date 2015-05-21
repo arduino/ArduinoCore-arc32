@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 #include "interrupt.h"
-#include "../drivers/arcv2_timer0.h"
+#include "arcv2_timer0.h"
 
 /* Application main() function prototype */
 extern int main (void);

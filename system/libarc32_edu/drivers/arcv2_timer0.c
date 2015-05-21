@@ -28,7 +28,6 @@ conjunction with a microkernel.
 */
 
 #include "arcv2_timer0.h"
-#include "aux_regs.h"
 #include "conf.h"
 #include "interrupt.h"
 
@@ -59,49 +58,18 @@ uint32_t volatile timer0_overflows_us = 0x00;
 * \NOMANUAL
 */
 
-static inline __attribute__((always_inline)) void arcv2_timer0_enable
-    (
-    uint32_t count    /* count to which timer is to increment to */
-    )
+static inline __attribute__((always_inline))
+void arcv2_timer0_enable(uint32_t count)
 {
-    aux_reg_write(ARC_V2_TMR0_LIMIT, count);	/* write the limit value */
+    /* ensure that the timer will not generate interrupts */
+    aux_reg_write(ARC_V2_TMR0_CONTROL, 0);
+    /* write the limit value */
+    aux_reg_write(ARC_V2_TMR0_LIMIT, count);
     /* count only when not halted for debug and enable interrupts */
     aux_reg_write(ARC_V2_TMR0_CONTROL,
                   ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
-    //aux_reg_write(ARC_V2_TMR0_COUNT, 0);	    /* write the start value */
-}
-
-/*******************************************************************************
-*
-* arcv2_timer0_count_get - get the current counter value
-*
-* This routine gets the value from the timer's count register.  This
-* value is the 'time' elapsed from the starting count (assumed to be 0).
-*
-* RETURNS: the current counter value
-*
-* \NOMANUAL
-*/
-inline __attribute__((always_inline))
-uint32_t arcv2_timer0_count_get(void)
-{
-    return (aux_reg_read(ARC_V2_TMR0_COUNT));
-}
-
-/*******************************************************************************
-*
-* arcv2_timer0_control_get - get the value of CONTROL0 aux register
-*
-* This routine gets the value from the timer's control register.
-*
-* RETURNS: the value of CONTROL0 auxiliary register.
-*
-* \NOMANUAL
-*/
-inline __attribute__((always_inline))
-uint32_t arcv2_timer0_control_get(void)
-{
-	return (aux_reg_read(ARC_V2_TMR0_CONTROL));
+    /* clear the count value */
+    aux_reg_write(ARC_V2_TMR0_COUNT, 0);
 }
 
 /*******************************************************************************
@@ -140,16 +108,10 @@ void _arcv2_timer0_int_handler(void)
 */
 void timer0_driver_init(void)
 {
-    /* ensure that the timer will not generate interrupts */
-    aux_reg_write(ARC_V2_TMR0_CONTROL, 0);
-    aux_reg_write(ARC_V2_TMR0_COUNT, 0);	/* clear the count value */
-
     /* connect specified routine/parameter to the timer 0 interrupt vector */
     interrupt_connect(ARCV2_IRQ_TIMER0, _arcv2_timer0_int_handler, 0);
-
     /* configure timer to overflow and fire an IRQ every 1 ms */
     arcv2_timer0_enable(ONE_MILLISECOND);
-
     /* Everything has been configured. It is now safe to enable the interrupt */
     interrupt_enable(ARCV2_IRQ_TIMER0);
 }

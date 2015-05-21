@@ -135,28 +135,6 @@ extern void queue_get_message (T_QUEUE queue, T_QUEUE_MESSAGE* message, int time
 extern void queue_send_message(T_QUEUE queue, T_QUEUE_MESSAGE message, OS_ERR_TYPE* err );
 
 /**
- * \brief Get the current tick in ms
- *
- *     Return the current tick converted in milliseconds
- *
- *     Authorized execution levels:  task, fiber, ISR
- *
- * \return current tick converted in milliseconds
- */
-extern uint32_t get_time_ms (void);
-
-/**
- * \brief Get the current tick in us
- *
- *     Return the current tick converted in microseconds
- *
- *     Authorized execution levels:  task, fiber, ISR
- *
- * \return current tick converted in microseconds
- */
-extern uint64_t get_time_us (void);
-
-/**
  * \brief Reserves a block of memory
  *
  * Authorized execution levels:  task, fiber, ISR
@@ -208,12 +186,6 @@ extern void* balloc (uint32_t size, OS_ERR_TYPE* err);
  *        any reserved block
  */
 extern OS_ERR_TYPE bfree(void* buffer);
-
-/**
- * \brief Initialize the OS abstraction layer
- *
- */
-extern void os_init (void);
 
 #endif
 

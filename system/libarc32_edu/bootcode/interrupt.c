@@ -105,6 +105,9 @@ void interrupt_unit_device_init(void)
         aux_reg_write(ARC_V2_IRQ_TRIGGER, ARC_V2_INT_LEVEL);
     }
 
+    /* Setup automatic (hardware) context saving feature */
+    aux_reg_write(ARC_V2_AUX_IRQ_CTRL,AUX_IRQ_CTRL_SAVE_ALL); 
+
     /* Configure the interrupt priority threshold and enable interrupts */
     __builtin_arc_seti(INTERRUPT_ENABLE | INTERRUPT_THRESHOLD);
 }
