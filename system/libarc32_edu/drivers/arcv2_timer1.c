@@ -32,28 +32,15 @@ conjunction with a microkernel.
 #include "conf.h"
 #include "../bootcode/interrupt.h"
 
-#define ARCV2_TIMER1_CLOCK_FREQ   32000000	/* 32MHz reference clock */
-
-/* defines */
-
-#define ARC_V2_TMR_CTRL_IE	0x1		/* interrupt enable */
-#define ARC_V2_TMR_CTRL_NH	0x2		/* count only while not halted */
-#define ARC_V2_TMR_CTRL_W	0x4		/* watchdog mode enable */
-#define ARC_V2_TMR_CTRL_IP	0x8		/* interrupt pending flag */
 
 /* globals */
 
 void (* timer1_user_int_handler)(void) = 0x00;
 
-/* locals */
-
-/* forward declarations */
-
-uint32_t timer1_read(void);
 
 /*******************************************************************************
 *
-* arcv2_timer_enable - enable the timer with the given limit/countup value
+* arcv2_timer1_enable - enable the timer with the given limit/countup value
 *
 * This routine sets up the timer for operation by:
 * - setting value to which the timer will count up to;
@@ -66,7 +53,7 @@ uint32_t timer1_read(void);
 */
 
 static inline __attribute__((always_inline))
-void arcv2_timer_enable
+void arcv2_timer1_enable
     (
     uint32_t count    /* count to which timer is to increment to */
     )
@@ -79,7 +66,7 @@ void arcv2_timer_enable
 
 /*******************************************************************************
 *
-* arcv2_timer_count_get - get the current counter value
+* arcv2_timer1_count_get - get the current counter value
 *
 * This routine gets the value from the timer's count register.  This
 * value is the 'time' elapsed from the starting count (assumed to be 0).
@@ -88,43 +75,25 @@ void arcv2_timer_enable
 *
 * \NOMANUAL
 */
-static inline __attribute__((always_inline))
+inline __attribute__((always_inline))
 uint32_t arcv2_timer1_count_get(void)
 {
     return (aux_reg_read(ARC_V2_TMR1_COUNT));
 }
 
 /*******************************************************************************
- *
- * arcv2_timer_limit_get - get the limit/countup value
- *
- * This routine gets the value from the timer's limit register, which is the
- * value to which the timer will count up to.
- *
- * RETURNS: the current counter value
- *
- * \NOMANUAL
- */
-static inline __attribute__((always_inline))
-uint32_t arcv2_timer1_limit_get(void)
-{
-    return (aux_reg_read(ARC_V2_TMR1_LIMIT));
-}
-
-/*******************************************************************************
 *
-* _arcv2_timer_int_handler - system clock periodic tick handler
+* _arcv2_timer1_int_handler - Timer1 configured tick handler 
 *
-* This routine handles the system clock periodic tick interrupt.  A TICK_EVENT
-* event is pushed onto the microkernel stack.
+* This routine handles the Timer1 overflow interrupt.
+* It clears Timer1 IRQ and executes the user's interrupt handler. 
 *
 * RETURNS: N/A
 *
 * \NOMANUAL
 */
-void _arcv2_timer1_int_handler(void *notused)
+void _arcv2_timer1_int_handler(void)
 {
-    (void)(notused);
     /* clear the interrupt (by writing 0 to IP bit of the control register) */
     aux_reg_write(ARC_V2_TMR1_CONTROL, ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
     /* execute callback specified by the user */
@@ -135,7 +104,7 @@ void _arcv2_timer1_int_handler(void *notused)
 
 /*******************************************************************************
 *
-* timer_driver - initialize timer1 and enable interrupt
+* timer1_driver_init - initialize timer1 and enable interrupt
 *
 * RETURNS: N/A
 */
@@ -151,11 +120,6 @@ void timer1_driver_init(void(*int_handler)(void), uint32_t ticktime_ms)
 	/* connect specified routine/parameter to the timer 0 interrupt vector */
 	interrupt_connect(ARCV2_IRQ_TIMER1, _arcv2_timer1_int_handler, 0);
 	timer1_user_int_handler = int_handler;
-#if 0
-	(void) nanoCpuIntConnect(_WRS_CONFIG_ARCV2_TIMER1_INT_LVL,
-			_WRS_CONFIG_ARCV2_TIMER1_INT_PRI,
-			_arcv2_timer1_int_handler, 0);
-#endif
 
 	tickunit = (ARCV2_TIMER1_CLOCK_FREQ / 1000) * ticktime_ms;
 
@@ -166,43 +130,21 @@ void timer1_driver_init(void(*int_handler)(void), uint32_t ticktime_ms)
 	 * The global variable 'tickunit' represents the #cycles/tick.
 	 */
 
-	arcv2_timer_enable(tickunit);
+	arcv2_timer1_enable(tickunit);
 
 	/* Everything has been configured. It is now safe to enable the interrupt */
 	interrupt_enable(ARCV2_IRQ_TIMER1);
-	/* Enable global ARC interrupts */
-//	interrupt_unlock(ARCV2_SETI_IRQ_LVL_2);
-	interrupt_unlock(0);
-#if 0
-	nanoCpuIntEnable (_WRS_CONFIG_ARCV2_TIMER1_INT_LVL);
-#endif
 }
 
 /*******************************************************************************
 *
-* timer_read - read the BSP timer hardware
-*
-* This routine returns the current time in terms of timer hardware clock cycles.
-*
-* RETURNS: up counter of elapsed clock cycles
-*/
-
-uint32_t timer1_read(void)
-{
-    return arcv2_timer1_count_get();
-}
-
-
-/*******************************************************************************
-*
-* timer_disable - stop announcing ticks into the kernel
+* timer1_disable - Disables Timer1 interrupt generation.
 *
 * This routine disables timer interrupt generation and delivery.
 * Note that the timer's counting cannot be stopped by software.
 *
 * RETURNS: N/A
 */
-
 void timer1_disable(void)
 {
     uint32_t saved;
@@ -218,7 +160,4 @@ void timer1_disable(void)
 
     /* disable interrupt in the interrupt controller */
     interrupt_disable(ARCV2_IRQ_TIMER1);
-#if 0
-    nanoCpuIntDisable (ARCV2_IRQ_TIMER1);
-#endif
 }

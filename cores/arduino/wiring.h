@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+#include "wiring_constants.h"
+
 /**
  *
  */
@@ -57,28 +60,8 @@ extern uint32_t micros( void ) ;
  *
  * \param dwMs the number of milliseconds to pause (uint32_t)
  */
-#if 0
 extern void delay( uint32_t dwMs ) ;
 
-#else
-
-#include "arcv2_timer1.h"
-
-static volatile boolean_t expired = true;
-
-static void timer1_user_isr(void)
-{
-    expired = true;
-}
-
-static inline void delay(uint32_t) __attribute__((always_inline));
-static inline void delay(uint32_t msec){
-    /* TODO */
-    expired = false;
-    timer1_driver_init(timer1_user_isr, msec);
-    while(!expired);
-}
-#endif
 
 /**
  * \brief Pauses the program for the amount of time (in microseconds) specified as parameter.

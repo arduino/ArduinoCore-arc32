@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 #include "interrupt.h"
+#include "arcv2_timer0.h"
 
 /* Application main() function prototype */
 extern int main (void);
@@ -57,6 +58,8 @@ static void _exec_ctors (void)
     /* Init the the interrupt unit device - disable all the interrupts; The
      * default value of IRQ_ENABLE is 0x01 for all configured interrupts */
     interrupt_unit_device_init();
+    /* Start the system 1 millisecond tick */
+    timer0_driver_init();
     /* Jump to application main() */
     main ();
     /* Never reached */

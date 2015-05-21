@@ -123,11 +123,11 @@ void soc_pwm_stop(uint8_t channel);
 DRIVER_API_RC soc_pwm_block_init(void);
 
 
-/*! \fn     void pwm_isr(void*)
+/*! \fn     void pwm_isr(void)
  *
  *  \brief   PWM ISR, if specified calls a user defined callback
  */
-void pwm_isr(void*);
+void pwm_isr(void);
 
 #ifdef __cplusplus
 }

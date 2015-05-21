@@ -25,12 +25,15 @@ OUTPUT_FORMAT("elf32-littlearc", "elf32-bigarc", "elf32-littlearc")
 MEMORY
     {
     FLASH                 (rx) : ORIGIN = 0x40000000, LENGTH = 192K
-    SRAM                  (wx) : ORIGIN = 0xa8010000, LENGTH = 16K
+    SRAM                  (wx) : ORIGIN = 0xa800e000, LENGTH = 24K
     DCCM                  (wx) : ORIGIN = 0x80000000, LENGTH = 8K
     }
 
 /* Putting stack at end of SRAM for now */
 __stack_start = ORIGIN(SRAM)+LENGTH(SRAM);
+
+/* Allocating heap size of 2048 bytes for now */
+__HEAP_SIZE = 2048;
 
 SECTIONS
     {
@@ -131,6 +134,14 @@ SECTIONS
 	*(.seg_rxtx)
 	*(".seg_rxtx.*")
         } > SRAM
+
+    heap (NOLOAD) :
+    {
+        . = ALIGN(4);
+        __start_heap = . ;
+        . = . + __HEAP_SIZE ;
+        __end_heap = . ;
+    } > SRAM
 
     /* Define linker symbols */
 

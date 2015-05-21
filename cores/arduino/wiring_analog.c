@@ -26,10 +26,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Standard Arduino PWM resolution */
 static int _writeResolution = 8;
+static int _readResolution = 10;
 
-void analogResolution(int res)
+
+void analogWriteResolution(int res)
 {
     _writeResolution = res;
+}
+
+void analogReadResolution(int res)
+{
+    _readResolution = res;
 }
 
 static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
