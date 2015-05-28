@@ -36,3 +36,7 @@ void __cxa_deleted_virtual(void) {
     ;
 }
 
+extern "C"
+{
+void *__dso_handle = NULL;
+}
