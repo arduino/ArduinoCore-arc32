@@ -96,17 +96,17 @@ uart_init_info info1;
 
 UARTClass Serial(&info1, &rx_buffer1, &tx_buffer1);
 
-
-#ifdef OUT
-
-void serialEvent() __attribute__((weak));
-void serialEvent() { }
-
 // IT handlers
 void UART_Handler(void)
 {
   Serial.IrqHandler();
 }
+
+
+#ifdef OUT
+
+void serialEvent() __attribute__((weak));
+void serialEvent() { }
 
 // ----------------------------------------------------------------------------
 /*

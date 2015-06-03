@@ -63,6 +63,7 @@ INCLUDE FILES: drivers/uart.h
 #include "board.h"
 #include "interrupt.h"
 #include "uart.h"
+#include "scss_registers.h"
 
 /* defines */
 
@@ -205,24 +206,6 @@ INCLUDE FILES: drivers/uart.h
 #define INBYTE(x) inByte(x)
 #define OUTBYTE(x, d) outByte(d, x)
 
-#if defined(VXMICRO_ARCH_Intel)
-#define INT_CONNECT(which, isr, arg, stub)                  \
-	irq_connect((unsigned int)uart[which].irq,    \
-			  (unsigned int)uart[which].intPri, \
-			  isr,                              \
-			  arg,                              \
-			  stub)
-#else
-#define INT_CONNECT(which, isr, arg, stub)                          \
-	do {                                                        \
-		ARG_UNUSED(stub);                                   \
-		irq_connect((unsigned int)uart[which].irq,    \
-				  (unsigned int)uart[which].intPri, \
-				  isr,                              \
-				  arg);                             \
-	} while (0)
-#endif /* VXMICRO_ARCH_Intel */
-
 /* typedefs */
 
 struct ns16550 {
@@ -259,6 +242,9 @@ void uart_init(int which, /* UART channel to initialize */
 	uart[which].iirCache = 0;
 
 	oldLevel = interrupt_lock();
+
+	/* set the Host Processor Interrupt Routing Mask */
+	SOC_UNMASK_INTERRUPTS(INT_UART_1_MASK);
 
 	/* calculate baud rate divisor */
 	divisor = (init_info->sys_clk_freq / init_info->baud_rate) >> 4;
@@ -336,7 +322,6 @@ unsigned char uart_poll_out(
 	return outChar;
 }
 
-#if CONFIG_UART_INTERRUPT_DRIVEN
 /*******************************************************************************
 *
 * uart_fifo_fill - fill FIFO with data
@@ -524,19 +509,11 @@ int uart_irq_update(int which /* UART to update */
 */
 
 void uart_int_connect(int which,	   /* UART to which to connect */
-		      void (*isr)(void *), /* interrupt handler */
+		      void (*isr)(void), /* interrupt handler */
 		      void *arg,	   /* argument to pass to handler */
 		      void *stub	   /* ptr to interrupt stub code */
 		      )
 {
-#if !defined(CONFIG_DYNAMIC_INT_STUBS)
-	ARG_UNUSED(isr);
-	ARG_UNUSED(arg);
-	ARG_UNUSED(stub);
-#else
-	INT_CONNECT(which, isr, arg, stub);
-#endif /* CONFIG_DYNAMIC_INT_STUBS */
-
-	irq_enable((unsigned int)uart[which].irq);
+	interrupt_connect((unsigned int)uart[which].irq, isr, arg);
+	interrupt_enable((unsigned int)uart[which].irq);
 }
-#endif /* CONFIG_UART_INTERRUPT_DRIVEN */
