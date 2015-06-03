@@ -98,3 +98,43 @@ void analogWrite(uint8_t pin, int val)
         }
     }
 }
+uint32_t analogRead(uint32_t pin)
+{
+
+    uint32_t val = 0;
+    uint32_t value;
+
+    /* allow for channel or pin numbers */
+    if (pin < 6) pin += 14;
+
+    PinDescription *p = &g_APinDescription[pin];
+
+    /* Disable pull-up and set pin mux for ADC output */
+    SET_PIN_PULLUP(p->ulSocPin,0);
+    if (p->ulPinMode != ADC_MUX_MODE) {
+       SET_PIN_MODE(p->ulSocPin, ADC_MUX_MODE);
+       p->ulPinMode = ADC_MUX_MODE;
+    }
+
+    /* Reset sequence pointer */
+    SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST);
+    /* Update sequence table */
+    WRITE_ARC_REG(p->ulAdcChan, ADC_SEQ);
+    /* Reset sequence pointer & start sequencer */
+    SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST | ADC_SEQ_START | ADC_ENABLE);
+    /* Poll for ADC data ready status (DATA_A) */
+    while((READ_ARC_REG(ADC_INTSTAT) & ADC_INT_DATA_A) == 0);
+    /* Pop the data sample from FIFO to sample register */
+    SET_ARC_MASK(ADC_SET, ADC_POP_SAMPLE);
+    /* Read sample from sample register */
+    val = READ_ARC_REG( ADC_SAMPLE);
+    /* Clear the DATA_A status bit */
+    SET_ARC_MASK( ADC_CTRL, ADC_CLR_DATA_A);
+
+    return value = mapResolution(val, ADC_RESOLUTION, _readResolution);
+
+}
+
+#ifdef __cplusplus
+}
+#endif

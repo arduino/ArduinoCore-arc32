@@ -41,6 +41,20 @@
     interrupt_unlock(saved); \
  } while(0)
 
+#define CLEAR_ARC_MASK(reg, mask) \
+ do { \
+    uint32_t saved = interrupt_lock(); \
+    WRITE_ARC_REG(READ_ARC_REG(reg) & ~(mask), reg); \
+    interrupt_unlock(saved); \
+ } while(0)
+
+#define SET_ARC_MASK(reg, mask) \
+ do { \
+    uint32_t saved = interrupt_lock(); \
+    WRITE_ARC_REG(READ_ARC_REG(reg) | (mask), reg); \
+    interrupt_unlock(saved); \
+ } while(0)
+
 #define CLEAR_MMIO_BIT(reg, bit) \
  do { \
     uint32_t saved = interrupt_lock(); \

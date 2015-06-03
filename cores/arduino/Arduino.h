@@ -63,6 +63,7 @@ typedef struct _PinDescription
         uint32_t                ulPinMode;              // Current SoC pin mux mode
         uint32_t                ulPwmChan;              // PWM channel
         uint32_t                ulPwmScale;             // PWM frequency scaler
+        uint32_t                ulAdcChan;              // ADC channel
 } PinDescription;
 
 #ifdef OUT
