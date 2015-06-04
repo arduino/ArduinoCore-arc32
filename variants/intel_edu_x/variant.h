@@ -86,6 +86,43 @@ extern "C"{
 
 #define UART_MUX_MODE       QRK_PMUX_SEL_MODEC
 
+/*
+ * ADC
+ */
+
+/* EAI ADC device registers */
+#define ADC_SET                    (0x80015000)
+#define ADC_DIVSEQSTAT             (0x80015001)
+#define ADC_SEQ                    (0x80015002)
+#define ADC_CTRL                   (0x80015003)
+#define ADC_INTSTAT                (0x80015004)
+#define ADC_SAMPLE                 (0x80015005)
+#define AR_IO_CREG_MST0_CTRL       (0x80018000)
+#define AR_IO_CREG_SLV0_OBSR       (0x80018080)
+
+/* ADC Specific macros */
+#define ADC_POP_SAMPLE             (0x80000000)
+#define ADC_CLR_DATA_A             (1 << 16)
+#define ADC_SEQ_TABLE_RST          (0x0040)
+#define ADC_SEQ_PTR_RST            (0x0020)
+#define ADC_SEQ_START              (0x0010)
+#define ADC_INT_DATA_A             (0x1)
+#define ADC_CLK_RATIO_MASK         (0x1fffff)
+#define ADC_INT_DSB                (0x0F00)
+#define ADC_CLK_ENABLE             (0x0004)
+#define ADC_ENABLE                 (0x0002)
+#define ADC_INT_ENABLE             (0x0000)
+#define ADC_MUX_MODE	           QRK_PMUX_SEL_MODEB
+#define ADC_STANDBY	           (0x02)
+#define ADC_NORMAL_WO_CALIB        (0x04)
+#define ADC_MODE_MASK              (0x07)
+#define ADC_CLOCK_RATIO             1024
+/* Set sample width = 12 bits, input mode = single-ended, output mode = parallel & sequencer mode = single-shot. */
+#define ADC_CONFIG_SETUP           (0x0B)
+#define ADC_CONFIG_SEQ_TBL         (0x0A)
+#define ADC_RESOLUTION               12
+#define ADC_CLOCK_GATE             (1 << 31)
+
 #ifdef __cplusplus
 }
 #endif

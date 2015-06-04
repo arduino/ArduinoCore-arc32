@@ -56,27 +56,27 @@ extern "C" {
 PinDescription g_APinDescription[]=
 {
 
-//     gpio port          type       base                   soc pin mux mode       pwm chan pwm scale
-    {  1,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 17,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO0
-    {  0,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 16,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO1
-    { 18,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    52,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO2
-    {  2,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 63,     GPIO_MUX_MODE, 0,       PWM_SCALE_490HZ }, // Arduino IO3
-    { 19,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    53,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO4
-    {  3,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 64,     GPIO_MUX_MODE, 1,       PWM_SCALE_980HZ }, // Arduino IO5
-    {  4,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 65,     GPIO_MUX_MODE, 2,       PWM_SCALE_980HZ }, // Arduino IO6
-    { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO7
-    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO8
-    {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ }, // Arduino IO9
-    {  0,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     0,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO10
-    {  3,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     3,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO11
-    {  1,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     1,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO12
-    {  2,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     2,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO13
-    {  2,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 10,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO14
-    {  3,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 11,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO15
-    {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO16
-    {  5,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 13,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO17
-    {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO18
-    {  7,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 15,     GPIO_MUX_MODE, INVALID, INVALID         }, // Arduino IO19
+//     gpio port          type       base                   soc pin mux mode       pwm chan pwm scale        adc channel
+    {  1,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 17,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO0
+    {  0,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 16,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO1
+    { 18,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    52,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO2
+    {  2,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 63,     GPIO_MUX_MODE, 0,       PWM_SCALE_490HZ, INVALID }, // Arduino IO3
+    { 19,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    53,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO4
+    {  3,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 64,     GPIO_MUX_MODE, 1,       PWM_SCALE_980HZ, INVALID }, // Arduino IO5
+    {  4,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 65,     GPIO_MUX_MODE, 2,       PWM_SCALE_980HZ, INVALID }, // Arduino IO6
+    { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO7
+    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO8
+    {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ, INVALID }, // Arduino IO9
+    {  0,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     0,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO10
+    {  3,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     3,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO11
+    {  1,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     1,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO12
+    {  2,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     2,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO13
+    {  2,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 10,     GPIO_MUX_MODE, INVALID, INVALID,              10 }, // Arduino IO14
+    {  3,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 11,     GPIO_MUX_MODE, INVALID, INVALID,              11 }, // Arduino IO15
+    {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID,              12 }, // Arduino IO16
+    {  5,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 13,     GPIO_MUX_MODE, INVALID, INVALID,              13 }, // Arduino IO17
+    {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID,              14 }, // Arduino IO18
+    {  7,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 15,     GPIO_MUX_MODE, INVALID, INVALID,              15 }, // Arduino IO19
 
 } ;
 
@@ -173,6 +173,47 @@ void variantPwmInit(void)
     }
 }
 
+void variantAdcInit(void)
+{
+    uint32_t creg;
+    uint32_t saved;
+
+    /* read creg slave to get current Power Mode */
+    creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR);
+
+    /* perform power up to "Normal mode w/o calibration" cycle if not already there */
+    if( (creg & ADC_MODE_MASK) != ADC_NORMAL_WO_CALIB){
+
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        saved = interrupt_lock();
+        /* Read current CREG master */
+        creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
+        creg &= ~(ADC_MODE_MASK);
+        /* request ADC to go to Standby mode */
+        creg |= ADC_STANDBY | ADC_CLOCK_GATE;
+        WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
+        interrupt_unlock(saved);
+        /* Poll CREG Slave 0 for Power Mode status = requested status */
+        while ( (creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR) & 0x8) == 0);
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        saved = interrupt_lock();
+        creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
+        creg &= ~(ADC_MODE_MASK);
+        /* request ADC to go to Normal mode w/o calibration */
+        creg |= ADC_NORMAL_WO_CALIB | ADC_CLOCK_GATE;
+        WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
+        interrupt_unlock(saved);
+        /* Poll CREG Slave 0 for Power Mode status = requested status */
+        while ( ((creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR)) & 0x8) == 0);
+    }
+
+    WRITE_ARC_REG(ADC_CLK_ENABLE | ADC_INT_DSB, ADC_CTRL);
+    WRITE_ARC_REG(ADC_CONFIG_SETUP, ADC_SET);
+    WRITE_ARC_REG(ADC_CLOCK_RATIO & ADC_CLK_RATIO_MASK, ADC_DIVSEQSTAT);
+
+}
+
+
 void initVariant( void )
 {
     /* For now, lets enable clocks for all interfaces we need
@@ -180,9 +221,9 @@ void initVariant( void )
      */
     variantGpioInit();
     variantPwmInit();
+    variantAdcInit();
 }
 
 #ifdef __cplusplus
 }
 #endif
-
