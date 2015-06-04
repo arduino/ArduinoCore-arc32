@@ -25,9 +25,10 @@
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 
+extern void UART_Handler(void);
+
 // Constructors ////////////////////////////////////////////////////////////////
 
-//UARTClass::UARTClass( Uart *pUart, IRQn_Type dwIrq, uint32_t dwId, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
 UARTClass::UARTClass( uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
 {
    this->info = info;
@@ -50,13 +51,13 @@ void UARTClass::begin(const uint32_t dwBaudRate, const int config)
 
 void UARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg)
 {
+  uint8_t c;
   // Make sure both ring buffers are initialized back to empty.
   _rx_buffer->_iHead = _rx_buffer->_iTail = 0;
   _tx_buffer->_iHead = _tx_buffer->_iTail = 0;
 
-
-  SET_PIN_MODE(17, UART_MUX_MODE); // Rdx SOC PIN
-  SET_PIN_MODE(16, UART_MUX_MODE); // Txd SOC PIN
+  SET_PIN_MODE(17, UART_MUX_MODE); // Rdx SOC PIN (Arduino header pin 0)
+  SET_PIN_MODE(16, UART_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
 
   info->options = 0;
   info->sys_clk_freq = 32000000;
@@ -66,6 +67,21 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg)
   info->int_pri = 0;
 
   uart_init(0, info);
+
+  uart_irq_rx_disable(0);
+  uart_irq_tx_disable(0);
+
+  uart_int_connect(0,           /* UART to which to connect */
+                   UART_Handler, /* interrupt handler */
+                   NULL,           /* argument to pass to handler */
+                   NULL           /* ptr to interrupt stub code */
+                   );
+
+  while (uart_irq_rx_ready(0))
+      uart_fifo_read(0, &c, 1);
+
+
+  uart_irq_rx_enable(0);
 
 }
 
@@ -91,8 +107,7 @@ uint32_t UARTClass::getInterruptPriority()
 
 int UARTClass::available( void )
 {
-  //return (uint32_t)(SERIAL_BUFFER_SIZE + _rx_buffer->_iHead - _rx_buffer->_iTail) % SERIAL_BUFFER_SIZE;
-  return 0;
+  return (uint32_t)(SERIAL_BUFFER_SIZE + _rx_buffer->_iHead - _rx_buffer->_iTail) % SERIAL_BUFFER_SIZE;
 }
 
 int UARTClass::availableForWrite(void)
@@ -113,14 +128,6 @@ int UARTClass::peek( void )
 
 int UARTClass::read( void )
 {
-  uint8_t uc_data;
-  int ret;
-  ret = uart_poll_in(0, &uc_data);
-  if  ( ret==-1 )
-    return -1;
-  else 
-    return uc_data;
-#if 0
   // if the head isn't ahead of the tail, we don't have any characters
   if ( _rx_buffer->_iHead == _rx_buffer->_iTail )
     return -1;
@@ -128,21 +135,17 @@ int UARTClass::read( void )
   uint8_t uc = _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
   _rx_buffer->_iTail = (unsigned int)(_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
   return uc;
-#endif
 }
 
 void UARTClass::flush( void )
 {
   while (_tx_buffer->_iHead != _tx_buffer->_iTail); //wait for transmit data to be sent
   // Wait for transmission to complete
-  //while ((_pUart->UART_SR & UART_SR_TXRDY) != UART_SR_TXRDY);
+  while (uart_irq_tx_ready(0));
 }
 
 size_t UARTClass::write( const uint8_t uc_data )
 {
-
-  uart_poll_out(0, uc_data);
-#if 0
   // Is the hardware currently busy?
   if (_tx_buffer->_iTail != _tx_buffer->_iHead)
   {
@@ -154,46 +157,39 @@ size_t UARTClass::write( const uint8_t uc_data )
     _tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
     _tx_buffer->_iHead = l;
     // Make sure TX interrupt is enabled
-    //_pUart->UART_IER = UART_IER_TXRDY;
+    uart_irq_tx_enable(0);
   }
   else 
   {
      // Bypass buffering and send character directly
-     //_pUart->UART_THR = uc_data;
+     uart_poll_out(0, uc_data);
   }
-#endif
   return 1;
 }
 
 void UARTClass::IrqHandler( void )
 {
-#if 0
-  uint32_t status = _pUart->UART_SR;
-
-  // Did we receive data?
-  if ((status & UART_SR_RXRDY) == UART_SR_RXRDY)
-    _rx_buffer->store_char(_pUart->UART_RHR);
+  uint8_t uc_data;
+  int ret;
+  ret = uart_poll_in(0, &uc_data);
+  
+  while ( ret != -1 ) {
+    _rx_buffer->store_char(uc_data);
+    ret = uart_poll_in(0, &uc_data);
+  }
 
   // Do we need to keep sending data?
-  if ((status & UART_SR_TXRDY) == UART_SR_TXRDY) 
+  if (!uart_irq_tx_ready(0)) 
   {
     if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-      _pUart->UART_THR = _tx_buffer->_aucBuffer[_tx_buffer->_iTail];
+      uart_poll_out(0, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
       _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
     }
     else
     {
       // Mask off transmit interrupt so we don't get it anymore
-      _pUart->UART_IDR = UART_IDR_TXRDY;
+      uart_irq_tx_disable(0);
     }
   }
-
-  // Acknowledge errors
-  if ((status & UART_SR_OVRE) == UART_SR_OVRE || (status & UART_SR_FRAME) == UART_SR_FRAME)
-  {
-    // TODO: error reporting outside ISR
-    _pUart->UART_CR |= UART_CR_RSTSTA;
-  }
-#endif
 }
 

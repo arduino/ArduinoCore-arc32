@@ -67,7 +67,7 @@ void uart_irq_err_enable(int port);
 void uart_irq_err_disable(int port);
 int uart_irq_is_pending(int port);
 int uart_irq_update(int port);
-void uart_int_connect(int port, void (*isr)(void *), void *arg, void *stub);
+void uart_int_connect(int port, void (*isr)(void), void *arg, void *stub);
 
 #ifdef __cplusplus
 }
