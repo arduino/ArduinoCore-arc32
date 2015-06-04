@@ -186,33 +186,31 @@ void variantAdcInit(void)
     /* perform power up to "Normal mode w/o calibration" cycle if not already there */
     if( (creg & ADC_MODE_MASK) != ADC_NORMAL_WO_CALIB){
 
-    /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
         saved = interrupt_lock();
-    /* Read current CREG master */
+        /* Read current CREG master */
         creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
         creg &= ~(ADC_MODE_MASK);
-    /* request ADC to go to Standby mode */
+        /* request ADC to go to Standby mode */
         creg |= ADC_STANDBY | ADC_CLOCK_GATE;
         WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
         interrupt_unlock(saved);
-    /* Poll CREG Slave 0 for Power Mode status = requested status */
-       while ( (creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR) & 0x8) == 0);
-    /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
+        /* Poll CREG Slave 0 for Power Mode status = requested status */
+        while ( (creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR) & 0x8) == 0);
+        /* Protect AR_IO_CREG_MST0_CTRL using lock and unlock of interruptions */
         saved = interrupt_lock();
         creg = READ_ARC_REG(AR_IO_CREG_MST0_CTRL);
         creg &= ~(ADC_MODE_MASK);
-    /* request ADC to go to Normal mode w/o calibration */
+        /* request ADC to go to Normal mode w/o calibration */
         creg |= ADC_NORMAL_WO_CALIB | ADC_CLOCK_GATE;
         WRITE_ARC_REG(creg, AR_IO_CREG_MST0_CTRL);
         interrupt_unlock(saved);
-    /* Poll CREG Slave 0 for Power Mode status = requested status */
+        /* Poll CREG Slave 0 for Power Mode status = requested status */
         while ( ((creg = READ_ARC_REG(AR_IO_CREG_SLV0_OBSR)) & 0x8) == 0);
     }
 
     WRITE_ARC_REG(ADC_CLK_ENABLE | ADC_INT_DSB, ADC_CTRL);
-    /* Set sample width = 12 bits, input mode = single-ended, output mode = parallel & sequencer mode = single-shot. */
     WRITE_ARC_REG(ADC_CONFIG_SETUP, ADC_SET);
-    /* Set clock ratio currently 1024 */
     WRITE_ARC_REG(ADC_CLOCK_RATIO & ADC_CLK_RATIO_MASK, ADC_DIVSEQSTAT);
 
 }

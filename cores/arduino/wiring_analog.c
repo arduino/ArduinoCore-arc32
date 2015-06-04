@@ -102,18 +102,17 @@ uint32_t analogRead(uint32_t pin)
 {
 
     uint32_t val = 0;
-    uint32_t value;
 
     /* allow for channel or pin numbers */
-    if (pin < 6) pin += 14;
+    if (pin < 6) pin += A0;
 
     PinDescription *p = &g_APinDescription[pin];
 
     /* Disable pull-up and set pin mux for ADC output */
-    SET_PIN_PULLUP(p->ulSocPin,0);
     if (p->ulPinMode != ADC_MUX_MODE) {
        SET_PIN_MODE(p->ulSocPin, ADC_MUX_MODE);
        p->ulPinMode = ADC_MUX_MODE;
+       SET_PIN_PULLUP(p->ulSocPin,0);
     }
 
     /* Reset sequence pointer */
@@ -131,7 +130,7 @@ uint32_t analogRead(uint32_t pin)
     /* Clear the DATA_A status bit */
     SET_ARC_MASK( ADC_CTRL, ADC_CLR_DATA_A);
 
-    return value = mapResolution(val, ADC_RESOLUTION, _readResolution);
+    return = mapResolution(val, ADC_RESOLUTION, _readResolution);
 
 }
 

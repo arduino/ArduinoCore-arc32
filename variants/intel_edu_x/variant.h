@@ -117,9 +117,10 @@ extern "C"{
 #define ADC_NORMAL_WO_CALIB        (0x04)
 #define ADC_MODE_MASK              (0x07)
 #define ADC_CLOCK_RATIO             1024
+/* Set sample width = 12 bits, input mode = single-ended, output mode = parallel & sequencer mode = single-shot. */
 #define ADC_CONFIG_SETUP           (0x0B)
 #define ADC_CONFIG_SEQ_TBL         (0x0A)
-#define ADC_RESOLUTION                12
+#define ADC_RESOLUTION               12
 #define ADC_CLOCK_GATE             (1 << 31)
 
 #ifdef __cplusplus
