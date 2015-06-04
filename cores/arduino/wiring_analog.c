@@ -130,7 +130,7 @@ uint32_t analogRead(uint32_t pin)
     /* Clear the DATA_A status bit */
     SET_ARC_MASK( ADC_CTRL, ADC_CLR_DATA_A);
 
-    return = mapResolution(val, ADC_RESOLUTION, _readResolution);
+    return mapResolution(val, ADC_RESOLUTION, _readResolution);
 
 }
 
