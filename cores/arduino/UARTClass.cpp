@@ -29,7 +29,6 @@ extern void UART_Handler(void);
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-//UARTClass::UARTClass( Uart *pUart, IRQn_Type dwIrq, uint32_t dwId, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
 UARTClass::UARTClass( uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
 {
    this->info = info;
@@ -129,8 +128,6 @@ int UARTClass::peek( void )
 
 int UARTClass::read( void )
 {
-  uint8_t uc_data;
-  int ret;
   // if the head isn't ahead of the tail, we don't have any characters
   if ( _rx_buffer->_iHead == _rx_buffer->_iTail )
     return -1;
@@ -176,7 +173,7 @@ void UARTClass::IrqHandler( void )
   int ret;
   ret = uart_poll_in(0, &uc_data);
   
-  while ( ret !=-1 ) {
+  while ( ret != -1 ) {
     _rx_buffer->store_char(uc_data);
     ret = uart_poll_in(0, &uc_data);
   }
@@ -194,15 +191,5 @@ void UARTClass::IrqHandler( void )
       uart_irq_tx_disable(0);
     }
   }
-
-#if 0
-  // TODO
-  // Acknowledge errors
-  if ((status & UART_SR_OVRE) == UART_SR_OVRE || (status & UART_SR_FRAME) == UART_SR_FRAME)
-  {
-    // TODO: error reporting outside ISR
-    _pUart->UART_CR |= UART_CR_RSTSTA;
-  }
-#endif
 }
 

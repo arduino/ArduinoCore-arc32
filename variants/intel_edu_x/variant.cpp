@@ -102,12 +102,10 @@ void UART_Handler(void)
   Serial.IrqHandler();
 }
 
-
-#ifdef OUT
-
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
 
+#ifdef OUT
 // ----------------------------------------------------------------------------
 /*
  * USART objects
