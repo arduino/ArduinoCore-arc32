@@ -361,10 +361,10 @@
 #define SCSS_GPS3                       0x10C
 
 /* SCSS Mailbox Interrupt masking/unmasking */
-#ifdef __CPU_LMT__
+#if defined(__CPU_LMT__)
 /* First byte of the register is for the Lakemont */
 #define SCSS_INT_MAILBOX_START_CHANNEL  0x00
-#elif __CPU__ARC__
+#elif defined(__CPU_ARC__)
 /* Second byte is for ARC */
 #define SCSS_INT_MAILBOX_START_CHANNEL  0x10
 #endif
@@ -404,6 +404,7 @@
 #define SOC_UART1_INTERRUPT            (42)
 #define SOC_GPIO_INTERRUPT             (44)
 #define SOC_PWM_INTERRUPT              (45)
+#define SOC_MBOX_INTERRUPT             (57)
 #define SOC_GPIO_AON_INTERRUPT         (67)
 
 #define SOC_UNMASK_INTERRUPTS(_driver_) (MMIO_REG_VAL_FROM_BASE(SCSS_REGISTER_BASE, _driver_) &= ENABLE_SSS_INTERRUPTS)

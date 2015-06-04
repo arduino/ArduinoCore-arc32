@@ -18,6 +18,7 @@
 
 #include "variant.h"
 #include "portable.h"
+#include "cfw_platform.h"
 
 
 /*
@@ -222,6 +223,7 @@ void initVariant( void )
     variantGpioInit();
     variantPwmInit();
     variantAdcInit();
+    cfw_platform_init(true /* irq_enable */);
 }
 
 #ifdef __cplusplus
