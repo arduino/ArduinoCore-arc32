@@ -1,6 +1,7 @@
 /*
-  Arduino.h - Main include file for the Arduino SDK
-  Copyright (c) 2005-2013 Arduino Team.  All right reserved.
+  wiring_shift.c - shiftOut() function
+  Part of Arduino - http://www.arduino.cc/
+  Copyright (c) 2005-2006 David A. Mellis"
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
