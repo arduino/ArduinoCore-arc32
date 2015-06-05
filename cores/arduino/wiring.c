@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "conf.h"
 #include "interrupt.h"
 #include "aux_regs.h"
+#include "board.h"
 
 #define FREQ_MHZ    ((ARCV2_TIMER0_CLOCK_FREQ)/1000000)
 
@@ -37,8 +38,8 @@ void delay(uint32_t msec)
 
     while(timer0_overflows < no_of_irqs){
         yield();
-      /* Enter sleep and enable interrupts and sets interrupts threshold to 3 */
-        __asm__ volatile ("sleep 0x13");
+      /* Enable interrupts, sets interrupts threshold to 2 and go to sleep. */
+	__asm__ volatile ("sleep %0" :: "i" (INTERRUPT_ENABLE | INTERRUPT_THRESHOLD));
     }
    /* For the last fraction of millisecond don't go to sleep - you'll wake up
     * too late - just spin */

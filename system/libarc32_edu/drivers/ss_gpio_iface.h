@@ -52,6 +52,20 @@ typedef enum {
  extern "C" {
 #endif
 
+/*! \fn 
+*
+*  \brief   Function to deconfig a GPIO previously configured as an interrupt.
+*
+*  \param   port_id         : GPIO port identifier
+*  \param   bit             : bit in port to configure
+*
+*  \return  DRV_RC_OK on success\n
+*           DRV_RC_DEVICE_TYPE_NOT_SUPPORTED    - if port id is not supported by this controller\n
+*           DRV_RC_CONTROLLER_NOT_ACCESSIBLE      if port/bit is not accessible from this core\n
+*           DRV_RC_FAIL otherwise
+*/
+DRIVER_API_RC ss_gpio_deconfig(SS_GPIO_PORT port_id, uint8_t bit);
+
 /*! \fn     DRIVER_API_RC ss_gpio_set_config(SS_GPIO_PORT port_id, uint8_t bit, gpio_cfg_data_t *config)
 *
 *  \brief   Function to configure specified GPIO bit in specified GPIO port
@@ -70,17 +84,6 @@ typedef enum {
 */
 DRIVER_API_RC ss_gpio_set_config(SS_GPIO_PORT port_id, uint8_t bit, gpio_cfg_data_t *config);
 
-/*! \fn     void* ss_gpio_get_callback_arg(SS_GPIO_PORT port_id, uint8_t pin)
-*
-*  \brief   Function to get callback argument pointer for a specific pin
-*
-*  \param   port_id         : GPIO port identifier
-*  \param   bit             : pin in port to configure
-*  \param   config          : configuration data to apply
-*
-*  \return  ptr if success else NULL
-*/
-void* ss_gpio_get_callback_arg(SS_GPIO_PORT port_id, uint8_t pin);
 
 /*! \fn     DRIVER_API_RC ss_gpio_enable(SS_GPIO_PORT port_id)
 *

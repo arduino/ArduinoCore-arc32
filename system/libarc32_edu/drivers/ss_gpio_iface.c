@@ -86,15 +86,12 @@ typedef struct gpio_info_struct
     ISR                gpio_isr;       /*!< GPIO ISR */
     uint32_t           gpio_int_mask;  /*!< SSS Interrupt Routing Mask Registers */
     gpio_callback_fn  *gpio_cb;        /*!< Array of user callback functions for user */
-    void             **gpio_cb_arg;    /*!< Array of user priv data for callbacks */
     uint8_t            is_init;        /*!< Init state of GPIO port */
 } gpio_info_t, *gpio_info_pt;
 
 static gpio_callback_fn ss_gpio0_cb[SS_GPIO_8B0_BITS] = {NULL};
 static gpio_callback_fn ss_gpio1_cb[SS_GPIO_8B1_BITS] = {NULL};
 
-static void* ss_gpio0_arg[SS_GPIO_8B0_BITS] = {NULL};
-static void* ss_gpio1_arg[SS_GPIO_8B1_BITS] = {NULL};
 
 static gpio_info_t   gpio_ports_devs[] = {
         { .is_init = 0,
@@ -103,7 +100,6 @@ static gpio_info_t   gpio_ports_devs[] = {
           .gpio_int_mask = INT_SS_GPIO_0_INTR_MASK,
           .vector = IO_GPIO_8B0_INT_INTR_FLAG,
           .gpio_cb = ss_gpio0_cb,
-          .gpio_cb_arg = ss_gpio0_arg,
           .gpio_isr = ss_gpio_8b0_ISR },
         { .is_init = 0,
           .reg_base = AR_IO_GPIO_8B1_SWPORTA_DR,
@@ -111,26 +107,33 @@ static gpio_info_t   gpio_ports_devs[] = {
           .gpio_int_mask = INT_SS_GPIO_1_INTR_MASK,
           .vector = IO_GPIO_8B1_INT_INTR_FLAG,
           .gpio_cb = ss_gpio1_cb,
-          .gpio_cb_arg = ss_gpio1_arg,
           .gpio_isr = ss_gpio_8b1_ISR }
         };
 
 /* configuration for each GPIO */
 static uint16_t gpio_cfg[SS_GPIO_8B0_BITS+SS_GPIO_8B1_BITS] = { 0 };
 
-void* ss_gpio_get_callback_arg(SS_GPIO_PORT port_id, uint8_t pin)
+
+DRIVER_API_RC ss_gpio_deconfig(SS_GPIO_PORT port_id, uint8_t bit)
 {
-    // check port id
-    if(port_id >= SS_PORT_COUNT) {
-        return NULL;
-    }
-    gpio_info_pt dev = &gpio_ports_devs[port_id];
+    gpio_info_pt dev;
 
-    if (pin >= dev->no_bits) {
-        return NULL;
-    }
+    /* Check port id */
+    if(port_id >= SS_PORT_COUNT)
+        return DRV_RC_INVALID_OPERATION;
+    dev = &gpio_ports_devs[port_id];
+    /* Check pin index */
+    if (bit >= dev->no_bits)
+        return DRV_RC_CONTROLLER_NOT_ACCESSIBLE;
 
-    return dev->gpio_cb_arg[pin];
+    /* Disable Interrupts from this bit */
+    CLEAR_ARC_BIT((volatile uint32_t *)(dev->reg_base+INTEN), bit);
+    /* De-Configure interrupt handler */
+    dev->gpio_cb[bit] = NULL;
+    /* Configure as input */
+    CLEAR_ARC_BIT((volatile uint32_t *)(dev->reg_base+SWPORTA_DDR), bit);
+
+    return DRV_RC_OK;
 }
 
 DRIVER_API_RC ss_gpio_set_config(SS_GPIO_PORT port_id, uint8_t bit, gpio_cfg_data_t *config)
@@ -189,58 +192,40 @@ DRIVER_API_RC ss_gpio_set_config(SS_GPIO_PORT port_id, uint8_t bit, gpio_cfg_dat
 
     // Configure interrupt handler
     dev->gpio_cb[bit] = config->gpio_cb;
-    dev->gpio_cb_arg[bit] = config->gpio_cb_arg;
 
     switch(config->gpio_type)
     {
     case GPIO_INPUT:
-        /* configure as input */
+        /* Configure as input */
         CLEAR_ARC_BIT((volatile uint32_t *)(dev->reg_base+SWPORTA_DDR), bit);
         break;
     case GPIO_OUTPUT:
-        /* configure as input */
+        /* Configure as output */
         SET_ARC_BIT((volatile uint32_t *)(dev->reg_base+SWPORTA_DDR), bit);
         break;
     case GPIO_INTERRUPT:
         saved = interrupt_lock();
         /* Set as  input */
-        WRITE_ARC_REG(READ_ARC_REG((volatile uint32_t)(dev->reg_base+SWPORTA_DDR)) & ~(1 << bit),
-                                   (volatile uint32_t)(dev->reg_base+SWPORTA_DDR));
-
+	REG_WRITE(SWPORTA_DDR, REG_READ(SWPORTA_DDR) & ~(1 << bit));
         /* Set Level or Edge */
-        if(config->int_type == LEVEL) {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INTTYPE_LEVEL))) & ~(1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+INTTYPE_LEVEL));
-        } else {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INTTYPE_LEVEL))) | (1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+INTTYPE_LEVEL));
-        }
-
+        if(config->int_type == LEVEL)
+	    REG_WRITE(INTTYPE_LEVEL, REG_READ(INTTYPE_LEVEL) & ~(1 << bit));
+        else
+	    REG_WRITE(INTTYPE_LEVEL, REG_READ(INTTYPE_LEVEL) | (1 << bit));
         /* Set Polarity - Active Low / High */
-        if(ACTIVE_LOW == config->int_polarity) {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INT_POLARITY))) & ~(1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+INT_POLARITY));
-        } else {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INT_POLARITY))) | (1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+INT_POLARITY));
-        }
-
+        if(ACTIVE_LOW == config->int_polarity)
+	    REG_WRITE(INT_POLARITY, REG_READ(INT_POLARITY) & ~(1 << bit));
+        else
+	    REG_WRITE(INT_POLARITY, REG_READ(INT_POLARITY) | (1 << bit));
         /* Set Debounce - On / Off */
-        if(config->int_debounce == DEBOUNCE_OFF) {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+DEBOUNCE))) & ~(1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+DEBOUNCE));
-        } else {
-            WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+DEBOUNCE))) | (1 << bit),
-                                       (volatile uint32_t)(dev->reg_base+DEBOUNCE));
-        }
-
+        if(config->int_debounce == DEBOUNCE_OFF)
+	    REG_WRITE(DEBOUNCE, REG_READ(DEBOUNCE) & ~(1 << bit));
+        else
+	    REG_WRITE(DEBOUNCE, REG_READ(DEBOUNCE) | (1 << bit));
         /* Enable as Interrupt */
-        WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INTEN))) | (1 << bit),
-                                   (volatile uint32_t)(dev->reg_base+INTEN));
-
+        REG_WRITE(INTEN, (REG_READ(INTEN)) | (1 << bit));
         /* Unmask Interrupt */
-        WRITE_ARC_REG((READ_ARC_REG((volatile uint32_t)(dev->reg_base+INTMASK))) & ~(1 << bit),
-                                   (volatile uint32_t)(dev->reg_base+INTMASK));
+        REG_WRITE(INTMASK, (REG_READ(INTMASK)) & ~(1 << bit));
 
         interrupt_unlock(saved);
 
@@ -359,17 +344,22 @@ static void ss_gpio_ISR_proc( uint32_t dev_id )
 {
     unsigned int i;
     gpio_info_pt dev = &gpio_ports_devs[dev_id];
-    
+
     // Save interrupt status
     uint32_t status = REG_READ( INTSTATUS );
+    /* Mask the pending IRQ in order to avoid a storm of interrupts */
+    REG_WRITE(INTMASK, REG_READ(INTMASK) | status);
     // Clear interrupt flag (write 1 to clear)
     REG_WRITE( PORTA_EOI, status );
 
+
     for (i=0; i<dev->no_bits; i++) {
         if ((status & (1 << i)) && (dev->gpio_cb[i])) {
-            (dev->gpio_cb[i])(status, dev->gpio_cb_arg[i]);
+	    dev->gpio_cb[i]();
         }
     }
+    /* Unmask the handled IRQs */
+    REG_WRITE(INTMASK, REG_READ(INTMASK) & ~(status));
 }
 
 #ifdef __cplusplus

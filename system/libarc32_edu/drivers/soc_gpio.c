@@ -46,7 +46,6 @@ DECLARE_INTERRUPT_HANDLER void gpio_isr()
     soc_gpio_ISR_proc(SOC_GPIO_32);
 }
 static gpio_callback_fn soc_gpio_32_cb[SOC_GPIO_32_BITS] = {NULL};
-static void* soc_gpio_32_arg[SOC_GPIO_32_BITS] = {NULL};
 #endif
 
 #if defined(CONFIG_SOC_GPIO_AON)
@@ -72,7 +71,6 @@ typedef struct gpio_info_struct
     ISR                gpio_isr;       /*!< GPIO ISR */
     uint32_t           gpio_int_mask;  /*!< SSS Interrupt Routing Mask Registers */
     gpio_callback_fn  *gpio_cb;        /*!< Array of user callback functions for user */
-    void             **gpio_cb_arg;    /*!< Array of user priv data for callbacks */
     uint8_t            is_init;        /*!< Init state of GPIO port */
 } gpio_info_t, *gpio_info_pt;
 
@@ -84,7 +82,6 @@ static gpio_info_t gpio_ports_devs[] = {
           .gpio_int_mask = INT_GPIO_MASK,
           .vector = SOC_GPIO_INTERRUPT,
           .gpio_cb = soc_gpio_32_cb,
-          .gpio_cb_arg = soc_gpio_32_arg,
           .gpio_isr = gpio_isr },
 #endif
 #if defined(CONFIG_SOC_GPIO_AON)
@@ -94,25 +91,10 @@ static gpio_info_t gpio_ports_devs[] = {
           .gpio_int_mask = INT_AON_GPIO_MASK,
           .vector = SOC_GPIO_AON_INTERRUPT,
           .gpio_cb = soc_gpio_aon_cb,
-          .gpio_cb_arg = soc_gpio_aon_arg,
           .gpio_isr = gpio_aon_isr },
 #endif
         };
 
-void* soc_gpio_get_callback_arg(SOC_GPIO_PORT port_id, uint8_t pin)
-{
-    // check port id
-    if(port_id >= SOC_PORT_COUNT) {
-        return NULL;
-    }
-    gpio_info_pt dev = &gpio_ports_devs[port_id];
-
-    if (pin >= dev->no_bits) {
-        return NULL;
-    }
-
-    return dev->gpio_cb_arg[pin];
-}
 
 DRIVER_API_RC soc_gpio_set_config(SOC_GPIO_PORT port_id, uint8_t bit, gpio_cfg_data_t *config)
 {
@@ -157,7 +139,6 @@ DRIVER_API_RC soc_gpio_set_config(SOC_GPIO_PORT port_id, uint8_t bit, gpio_cfg_d
 
     // Set interrupt handler to NULL
     dev->gpio_cb[bit] = NULL;
-    dev->gpio_cb_arg[bit] = NULL;
 
     switch(config->gpio_type)
     {
@@ -173,7 +154,6 @@ DRIVER_API_RC soc_gpio_set_config(SOC_GPIO_PORT port_id, uint8_t bit, gpio_cfg_d
         saved = interrupt_lock();
         // Configure interrupt handler
         dev->gpio_cb[bit] = config->gpio_cb;
-        dev->gpio_cb_arg[bit] = config->gpio_cb_arg;
 
         /* Set as  input */
         MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_SWPORTA_DDR) &= ~(1 << bit);
@@ -240,7 +220,6 @@ DRIVER_API_RC soc_gpio_set_port_config(SOC_GPIO_PORT port_id, gpio_port_cfg_data
 
     for(i=0; i<dev->no_bits; i++) {
         dev->gpio_cb[i] = config->gpio_cb[i];
-        dev->gpio_cb_arg[i] = config->gpio_cb_arg[i];
     }
 
     // Set gpio direction
@@ -263,17 +242,26 @@ DRIVER_API_RC soc_gpio_set_port_config(SOC_GPIO_PORT port_id, gpio_port_cfg_data
 
 DRIVER_API_RC soc_gpio_deconfig(SOC_GPIO_PORT port_id, uint8_t bit)
 {
-    gpio_cfg_data_t config;
-    // Default configuration (input pin without interrupt)
-    config.gpio_type = GPIO_INPUT;
-    config.int_type = EDGE;
-    config.int_polarity = ACTIVE_LOW;
-    config.int_debounce = DEBOUNCE_OFF;
-    config.int_ls_sync = LS_SYNC_OFF;
-    config.gpio_cb = NULL;
-    config.gpio_cb_arg = NULL;
+    gpio_info_pt dev;
 
-    return soc_gpio_set_config(port_id, bit, &config);
+    /* Check port id */
+    if(port_id >= SOC_PORT_COUNT)
+        return DRV_RC_INVALID_OPERATION;
+    dev = &gpio_ports_devs[port_id];
+    /* Check pin index */
+    if (bit >= dev->no_bits)
+        return DRV_RC_CONTROLLER_NOT_ACCESSIBLE;
+
+    /* Disable interrupts from this pin */
+    CLEAR_MMIO_BIT((volatile uint32_t *)(dev->reg_base + SOC_GPIO_INTEN),
+		    (uint32_t)bit);
+    /* De-configure the interrupt handler */
+    dev->gpio_cb[bit] = NULL;
+    /* Make sure the pin is left as input */
+    CLEAR_MMIO_BIT((volatile uint32_t *)(dev->reg_base + SOC_GPIO_SWPORTA_DDR),
+		    (uint32_t)bit);
+
+    return DRV_RC_OK;
 }
 
 DRIVER_API_RC soc_gpio_port_deconfig(SOC_GPIO_PORT port_id)
@@ -300,7 +288,6 @@ DRIVER_API_RC soc_gpio_port_deconfig(SOC_GPIO_PORT port_id)
     // TODO: use memset
     for(i=0; i<dev->no_bits; i++) {
         config.gpio_cb[i] = NULL;
-        config.gpio_cb_arg[i] = NULL;
     }
 
     return soc_gpio_set_port_config(port_id, &config);
@@ -421,14 +408,17 @@ static void soc_gpio_ISR_proc( uint32_t dev_id )
 
     // Save interrupt status
     uint32_t status = MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTSTATUS);
+    // Mask the pending interrupts
+    MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTMASK) |= status;
     // Clear interrupt flag (write 1 to clear)
     MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_PORTA_EOI) = status;
 
     for (i=0; i<dev->no_bits; i++) {
-        if ((status & (1 << i)) && (dev->gpio_cb[i])) {
-            (dev->gpio_cb[i])(status, dev->gpio_cb_arg[i]);
-        }
+        if ((status & (1 << i)) && (dev->gpio_cb[i]))
+	    dev->gpio_cb[i]();
     }
+    // Unmask the handled interrupts
+    MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTMASK) &= ~status;
 }
 
 #ifdef __cplusplus

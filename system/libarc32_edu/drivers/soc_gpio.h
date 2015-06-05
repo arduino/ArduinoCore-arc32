@@ -123,21 +123,10 @@ DRIVER_API_RC soc_gpio_deconfig(SOC_GPIO_PORT port_id, uint8_t bit);
 *
 *  \param   port_id :        GPIO port identifier
 *
-*  \return  RC_OK on success
-*           RC_FAIL otherwise
+*  \return  DRV_RC_OK on success
+*           DRV_RC_FAIL otherwise
 */
 DRIVER_API_RC soc_gpio_port_deconfig(SOC_GPIO_PORT port_id);
-
-/*! \fn     void* soc_gpio_get_callback_arg(SOC_GPIO_PORT port_id, uint8_t pin)
-*
-*  \brief   Function to get callback argument pointer for a specific pin
-*
-*  \param   port_id         : GPIO port identifier
-*  \param   bit             : pin in port to configure
-*
-*  \return  ptr if success else NULL
-*/
-void* soc_gpio_get_callback_arg(SOC_GPIO_PORT port_id, uint8_t pin);
 
 /*! \fn     DRIVER_API_RC soc_gpio_enable(SOC_GPIO_PORT port_id)
 *
