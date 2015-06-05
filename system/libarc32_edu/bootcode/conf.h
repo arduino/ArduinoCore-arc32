@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define _ARCV2_CONF__H_
 
 
-#define _WRS_CONFIG_NUM_IRQS	64
+#define SS_NUM_IRQS		53
+#define SS_NUM_EXCEPTIONS	16
 
 #define _RAM_END		(0xa8010000 + 0x4000)
 

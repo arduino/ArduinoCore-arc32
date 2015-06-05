@@ -40,6 +40,7 @@ This header file is used to specify and describe board-level aspects for the
 #define _BOARD__H_
 
 #include <misc/util.h>
+#include <stdint.h>
 
 /* default system clock */
 

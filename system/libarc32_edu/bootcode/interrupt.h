@@ -19,6 +19,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __INTERRUPT_H__
 #define __INTERRUPT_H__
 
+#define INTERRUPT_ENABLE    (1 << 4)
+ /* According to IRQ_BUILD register the ARC core has only 2 interrupt priority
+  * levels (0 and 1).
+  * */
+#define INTERRUPT_THRESHOLD (2)
+
+
 extern void interrupt_connect(unsigned int irq, void (*isr)(void), void *arg);
 extern void interrupt_disconnect(unsigned int irq);
 extern void interrupt_enable(unsigned int irq);
