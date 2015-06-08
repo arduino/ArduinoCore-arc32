@@ -26,6 +26,17 @@
 #include "wiring_digital.h"
 
 extern void UART_Handler(void);
+extern void serialEventRun(void) __attribute__((weak));
+extern void serialEvent(void) __attribute__((weak));
+
+bool Serial0_available() {
+  return Serial.available();
+}
+
+void serialEventRun(void)
+{
+  if (Serial0_available()) serialEvent();
+}
 
 // Constructors ////////////////////////////////////////////////////////////////
 
