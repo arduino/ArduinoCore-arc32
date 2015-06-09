@@ -281,7 +281,7 @@
 /* Read current pull-up reg, Zero pin bit, OR new mode into these bits, write reg - thereby preserving other pin mode settings */
 #define SET_PULLUP_REG( mux_reg, enable, pin ) MMIO_REG_VAL(mux_reg) = ( MMIO_REG_VAL(mux_reg) & ~( 1 << (pin) ) ) | ( enable << (pin) )
 /* Calculate mux register address from pin number and calculate pin number within that register - call SET_MUX_REG */
-#define SET_PIN_PULLUP( pin_no, enable) SET_PULLUP_REG( (((pin_no/32)*4 )+ MUX_BASE), enable, pin_no % 32)
+#define SET_PIN_PULLUP( pin_no, enable) SET_PULLUP_REG( (((pin_no/32)*4 )+ PULLUP_BASE), enable, pin_no % 32)
 
 #define MUX_BASE    QRK_PMUX_SELECT_0
 /* Read current Mux reg, Zero pin bits, OR new mode into these bits, write reg - thereby preserving other pin mode settings */
