@@ -1,23 +1,31 @@
-/*
-* 
-* CONFIDENTIAL AND PROPRIETARY INFORMATION
-* 
-* Copyright (c) 2013 Synopsys, Inc. All rights reserved.
-* This software and documentation contain confidential and
-* proprietary information that is the property of
-* Synopsys, Inc. The software and documentation are
-* furnished under a license agreement and may be used
-* or copied only in accordance with the terms of the license
-* agreement. No part of the software and documentation
-* may be reproduced, transmitted, or translated, in any
-* form or by any means, electronic, mechanical, manual,
-* optical, or otherwise, without prior written permission
-* of Synopsys, Inc., or as expressly provided by the license agreement.
-* Reverse engineering is prohibited, and reproduction,
-* disclosure or use without specific written authorization
-* of Synopsys Inc. is strictly forbidden.
-*/
-
+/* ==========================================================================
+* Synopsys DesignWare Sensor and Control IP Subsystem IO Software Driver and
+* documentation (hereinafter, "Software") is an Unsupported proprietary work
+* of Synopsys, Inc. unless otherwise expressly agreed to in writing between
+* Synopsys and you.
+*
+* The Software IS NOT an item of Licensed Software or Licensed Product under
+* any End User Software License Agreement or Agreement for Licensed Product
+* with Synopsys or any supplement thereto. You are permitted to use and
+* redistribute this Software in source and binary forms, with or without
+* modification, provided that redistributions of source code must retain this
+* notice. You may not view, use, disclose, copy or distribute this file or
+* any information contained herein except pursuant to this license grant from
+* Synopsys. If you do not agree with this notice, including the disclaimer
+* below, then you are not authorized to use the Software.
+*
+* THIS SOFTWARE IS BEING DISTRIBUTED BY SYNOPSYS SOLELY ON AN "AS IS" BASIS
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE HEREBY DISCLAIMED. IN NO EVENT SHALL SYNOPSYS BE LIABLE FOR ANY DIRECT,
+* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+* DAMAGE.
+* ========================================================================== */
 
 #ifndef I2C_PRIV_H_
 #define I2C_PRIV_H_
