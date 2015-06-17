@@ -113,11 +113,11 @@ extern "C"{
 #define ADC_CLK_ENABLE             (0x0004)
 #define ADC_ENABLE                 (0x0002)
 #define ADC_INT_ENABLE             (0x0000)
-#define ADC_MUX_MODE	           QRK_PMUX_SEL_MODEB
-#define ADC_STANDBY	           (0x02)
+#define ADC_MUX_MODE               QRK_PMUX_SEL_MODEB
+#define ADC_STANDBY                (0x02)
 #define ADC_NORMAL_WO_CALIB        (0x04)
 #define ADC_MODE_MASK              (0x07)
-#define ADC_CLOCK_RATIO             1024
+#define ADC_CLOCK_RATIO              32
 /* Set sample width = 12 bits, input mode = single-ended, output mode = parallel & sequencer mode = single-shot. */
 #define ADC_CONFIG_SETUP           (0x0B)
 #define ADC_CONFIG_SEQ_TBL         (0x0A)
