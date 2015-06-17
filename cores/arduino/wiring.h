@@ -64,16 +64,20 @@ extern void delay( uint32_t dwMs ) ;
 
 
 /**
- * \brief Pauses the program for the amount of time (in microseconds) specified as parameter.
+ * \brief Pauses the program for the amount of time (in microseconds) specified
+ *  as parameter.
+ *  Theoretically it works pretty accurate in the range 1 microsecond and up.
+ *  The precision should be +- 0.15 microseconds.
+ *  The above statements are based on measurements done when the function was
+ *  most likely executed from cache.
+ *  The accuracy for values <= 4 microseconds is impacted by cache miss, Timer
+ *  or external interrupts.
+ *  It doesn't disable the interrupts.
+ *  It doesn't use CPU's power management features.
  *
- * \param dwUs the number of microseconds to pause (uint32_t)
+ * \param usec the number of microseconds to pause (uint32_t)
  */
-#ifdef OUT
-static inline void delayMicroseconds(uint32_t) __attribute__((always_inline, unused));
-static inline void delayMicroseconds(uint32_t usec){
-    /* TODO */
-}
-#endif
+void delayMicroseconds(uint32_t dwMs);
 
 #ifdef __cplusplus
 }

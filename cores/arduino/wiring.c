@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void delay(uint32_t msec)
 {
-    if(0 == msec)
-	    return;
     uint32_t no_of_irqs = timer0_overflows + msec;
     uint32_t microseconds = arcv2_timer0_count_get();
 
@@ -88,3 +86,34 @@ uint32_t micros(void)
 
     return microsecs;
 }
+
+void delayMicroseconds(uint32_t usec)
+{
+    /* Function parameter is stored in R0 register */
+    __asm__ __volatile__ (
+    "mpy.f r0, r0, 32	    \n\t" /* delay_ticks = delay_usec * 32 */
+    "bz.d _end		    \n\t" /* if usec == 0 goto end */
+    /* Subtract the function call overhead and the time spent by the previous
+     * instructions of the function.
+     * T function_call = 4 clks
+     * T mpy + T bz = 3 + 3 = 6 clks
+     * T exit_function + loop_precision ~ 5 clks
+     * The above described timings were computed using a scope and infinite
+     * loops in the code, meaning the instructions were most likely executed
+     * from ICACHE. 
+     * */
+    "sub r0, r0, 15	    \n\t"
+    /* Minimum value of r0 = 32 => the above subtraction cannot overflow */
+    "_repeat:		    \n\t"
+    /* T sub.f = 1 clk; T bnc.nd = 3 clks */
+    "sub.f r0, r0, 4	    \n\t"
+    /* Repeat above subtraction until carry flag is set */
+    "bnc.nd _repeat	    \n\t"
+    "_end:		    \n\t"
+    : /* output parameters of ASM instructions */
+    : /* input parameters */
+    : "r0" /* registers killed by above ASM instructions. */
+    );
+}
+
+
