@@ -28,6 +28,7 @@ Definitions for auxiliary registers.
 #define ARC_V2_STATUS32         0x00a
 #define ARC_V2_STATUS32_P0      0x00b
 #define ARC_V2_AUX_IRQ_CTRL     0x00e
+#define ARC_V2_IC_IVIC		0x010
 #define ARC_V2_IC_CTRL          0x011
 #define ARC_V2_TMR0_COUNT       0x021
 #define ARC_V2_TMR0_CONTROL     0x022

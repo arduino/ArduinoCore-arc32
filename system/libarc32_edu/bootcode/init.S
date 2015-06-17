@@ -44,8 +44,8 @@ _do_reset:
 //    mov sp, @_DefaultStack + STACK_SIZE
     mov sp, @__stack_start
     /* Enable instruction cache */
-    //mov r0, 0
-    //sr r0, [ARC_V2_IC_CTRL]
+    mov r0, 0x20
+    sr r0, [ARC_V2_IC_CTRL]
     /* Jump to C init function */
     j @_main
 

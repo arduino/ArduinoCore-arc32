@@ -108,4 +108,10 @@ void interrupt_unit_device_init(void)
     aux_reg_write(ARC_V2_AUX_IRQ_CTRL, AUX_IRQ_CTRL_SAVE_ALL);
     /* Configure the interrupt priority threshold and enable interrupts */
     __builtin_arc_seti(INTERRUPT_ENABLE | INTERRUPT_THRESHOLD);
+    /* Invalidate I_CACHE */
+    __builtin_arc_sr(0x0, ARC_V2_IC_IVIC);
+    __builtin_arc_nop();
+    __builtin_arc_nop();
+    __builtin_arc_nop();
 }
+
