@@ -59,6 +59,7 @@ extern "C"{
  * Wire Interfaces
  */
 #define WIRE_INTERFACES_COUNT 1
+#define I2C_MUX_MODE       QRK_PMUX_SEL_MODEA
 
 /*
  * GPIO
