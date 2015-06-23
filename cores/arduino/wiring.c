@@ -54,37 +54,37 @@ uint32_t millis(void)
 
 uint32_t micros(void)
 {
-    uint32_t tmr0_ctrl_reg;
-    uint32_t microsecs;
-
-    uint32_t flags = interrupt_lock();
-
-    tmr0_ctrl_reg = arcv2_timer0_control_get();
-    if(tmr0_ctrl_reg && ARC_V2_TMR0_CONTROL_IP_MASK){
-	/* The IP bit is set, means the timer overflowed but the IRQ handler
-	 * hasn't updated the timer0_overflows value because the IRQs are
-	 * disabled; it is manually incremented here  */
-        microsecs = arcv2_timer0_count_get();
-	microsecs = (timer0_overflows + 1) * 1000 + microsecs;
-    }else{
-	/* The timer hasn't reached LIMIT from the point where we disabled the
-	 * interrupts until here => read COUNT0 and check again the overflow
-	 * condition */
-	microsecs = arcv2_timer0_count_get();
-	tmr0_ctrl_reg = arcv2_timer0_control_get();
-	if(tmr0_ctrl_reg && ARC_V2_TMR0_CONTROL_IP_MASK){
-	    /* The COUNT0 reached LIMIT0 while reading COUNT0 value and
-	     * possibly overflowed */
-	    microsecs = arcv2_timer0_count_get();
-	    microsecs = (timer0_overflows + 1) * 1000 + microsecs;
-	}else{
-	    microsecs = timer0_overflows * 1000 + microsecs;
-	}
-    }
-
-    interrupt_unlock(flags);
-
-    return microsecs;
+   __asm__ __volatile__ (
+   /* Disable interrupts - we don't want to be disturbed */
+   "clri r2			    \n\t"
+   /* Load in r3 value of timer0_overflows_us */
+   "ld r3, %0			    \n\t"
+   /* Read COUNT0 register */
+   "lr r0, [0x21]		    \n\t"
+   /* Read CONTORL0 register */
+   "lr r1, [0x22]		    \n\t"
+   /* If CONTROL0.IP is set COUNT0 reached LIMIT0 => r0 value might not be
+    * accurate => read COUNT0 again */
+   "bbit0.nt r1, 3, continue	    \n\t"
+   /* Read COUNT0 again*/
+   "lr r0, [0x21]		    \n\t"
+   /* Timer0 overflowed => timer0_overflows_us++ */
+   "add r3, r3, 1		    \n\t"
+   /***/
+   "continue:			    \n\t"
+	   /* Compute microseconds time-stamp */
+   /* Transform milliseconds in microseconds */
+   "mpy r3, r3, 1000		    \n\t"
+   /* Transform ticks in microseconds */
+   "div r0, r0, 32		    \n\t"
+   /* Store the final result in R0 register.
+    * The function returns the result in R0 register. */
+   "add r0, r0, r3		    \n\t"
+   "seti r2			    \n\t"
+   :	    /* Output parameters and their constraints */
+   : "m"(timer0_overflows_us)   /* Input parameters and their constraints */
+   : "r0", "r1", "r2", "r3" /* Killed registers */
+			);
 }
 
 void delayMicroseconds(uint32_t usec)
