@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   * */
 #define INTERRUPT_THRESHOLD (2)
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 extern void interrupt_connect(unsigned int irq, void (*isr)(void), void *arg);
 extern void interrupt_disconnect(unsigned int irq);
@@ -48,5 +51,8 @@ void interrupt_unlock(unsigned int key)
 {
     __asm__ volatile ("seti %0" :: "ir" (key));
 }
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __INTERRUPT_H__ */
