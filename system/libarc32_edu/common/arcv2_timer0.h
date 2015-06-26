@@ -18,14 +18,16 @@
 extern "C" {
 #endif
 
+
+/* Maxim number of Timer0 overflows used to compute micros()
+ * It overflows at 70 minutes = 70*60 sec = 70*60*1000 millis = 4200000 */
+#define MAX_OVERFLOWS_US    4200000UL
+
 /* Increments every Timer0 overflow.
  * Timer0 is configured to overflow and fire an IRQ every 1 millisecond
  */
 extern uint32_t volatile timer0_overflows;
 
-/* It is incremented every ms by Timer0 IRQ handler but it overflows at
- * MAX_OVERFLOWS_US */
-extern uint32_t volatile timer0_overflows_us;
 
 /*******************************************************************************
 *

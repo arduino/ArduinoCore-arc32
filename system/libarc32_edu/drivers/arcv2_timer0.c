@@ -33,15 +33,10 @@ conjunction with a microkernel.
 
 #define ONE_MILLISECOND	    ARCV2_TIMER0_CLOCK_FREQ/1000
 
-/* Maxim number of Timer0 overflows used to compute micros()
- * It overflows at 70 minutes = 70*60 sec = 70*60*1000 millis = 4200000 */
-#define MAX_OVERFLOWS_US    4200000
-
 
 /* globals */
 
 uint32_t volatile timer0_overflows = 0x00;
-uint32_t volatile timer0_overflows_us = 0x00;
 
 
 /*******************************************************************************
@@ -91,10 +86,6 @@ void _arcv2_timer0_int_handler(void)
                   ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
     /* Increment number of Timer0 overflows */
     timer0_overflows++;
-    /* Increment number of Timer0 overflows used to compute micros() */
-    timer0_overflows_us++;
-    if (timer0_overflows_us > MAX_OVERFLOWS_US)
-        timer0_overflows_us = 0;
 }
 
 /*******************************************************************************
