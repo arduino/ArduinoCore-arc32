@@ -57,8 +57,10 @@ uint32_t micros(void)
    __asm__ __volatile__ (
    /* Disable interrupts - we don't want to be disturbed */
    "clri r2			    \n\t"
-   /* Load in r3 value of timer0_overflows_us */
+   /* Load in r3 value of timer0_overflows */
    "ld r3, %0			    \n\t"
+   /* Use only the least-significant 22 bits of timer0_overflows */
+   "and r3, r3, 0x3FFFFF	    \n\t"
    /* Read COUNT0 register */
    "lr r0, [0x21]		    \n\t"
    /* Read CONTORL0 register */
@@ -68,7 +70,7 @@ uint32_t micros(void)
    "bbit0.nt r1, 3, continue	    \n\t"
    /* Read COUNT0 again*/
    "lr r0, [0x21]		    \n\t"
-   /* Timer0 overflowed => timer0_overflows_us++ */
+   /* Timer0 overflowed => timer0_overflows++ */
    "add r3, r3, 1		    \n\t"
    /***/
    "continue:			    \n\t"
@@ -82,7 +84,7 @@ uint32_t micros(void)
    "add r0, r0, r3		    \n\t"
    "seti r2			    \n\t"
    :	    /* Output parameters and their constraints */
-   : "m"(timer0_overflows_us)   /* Input parameters and their constraints */
+   : "m"(timer0_overflows)   /* Input parameters and their constraints */
    : "r0", "r1", "r2", "r3" /* Killed registers */
 			);
 }
