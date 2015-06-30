@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 #include "drivers/soc_gpio.h"
-#include "arcv2_timer1.h"
 #include "scss_registers.h"
 #include "cfw_platform.h"
 
@@ -85,21 +84,13 @@ void digitalWrite(uint8_t pin, uint8_t state)
     soc_gpio_write(SOC_GPIO_32, bit, state);
 }
 
-#define TIMER1_TICK	1000
-void timer1_user_isr(void)
-{
-    pin_state = !pin_state;
-}
 
 void setup(void)
 {
-    pinMode(13, OUTPUT);
-    timer1_driver_init(timer1_user_isr, TIMER1_TICK);
 }
 
 void loop(void)
 {
-    digitalWrite(13, pin_state);
 }
 
 int main(void)

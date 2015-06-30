@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // Arduino hooks
 #include "Arduino.h"
-#include "arcv2_timer1.h"
 
 // Weak empty variant initialization function.
 // May be redefined by variant files.
