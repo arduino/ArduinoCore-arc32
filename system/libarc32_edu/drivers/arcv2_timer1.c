@@ -83,10 +83,10 @@ uint32_t arcv2_timer1_count_get(void)
 
 /*******************************************************************************
 *
-* _arcv2_timer1_int_handler - Timer1 configured tick handler 
+* _arcv2_timer1_int_handler - Timer1 configured tick handler
 *
 * This routine handles the Timer1 overflow interrupt.
-* It clears Timer1 IRQ and executes the user's interrupt handler. 
+* It clears Timer1 IRQ and executes the user's interrupt handler.
 *
 * RETURNS: N/A
 *
@@ -153,8 +153,8 @@ void timer1_disable(void)
     saved = interrupt_lock();
 
     /* disable interrupt generation */
-    ctrl_val = aux_reg_read(ARC_V2_TMR0_CONTROL);
-    aux_reg_write(ARC_V2_TMR0_CONTROL, ctrl_val & ~ARC_V2_TMR_CTRL_IE);
+    ctrl_val = aux_reg_read(ARC_V2_TMR1_CONTROL);
+    aux_reg_write(ARC_V2_TMR1_CONTROL, ctrl_val & ~ARC_V2_TMR_CTRL_IE);
 
     interrupt_unlock(saved);
 

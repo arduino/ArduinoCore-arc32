@@ -8,7 +8,7 @@
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
@@ -16,8 +16,24 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _WIRING_TONE_
-#define _WIRING_TONE_
+#ifndef _Tone_h
+#define _Tone_h
 
+#include <stdint.h>
 
-#endif /* _WIRING_TONE_ */
+/*
+ * \brief Generates a square wave of the specified frequency (and 50% duty cycle) on a pin.
+ *        A duration can be specified, otherwise the wave continues until a call to noTone()
+ * \param pin
+ * \param val
+ */
+extern void tone( uint32_t _pin, unsigned int frequency, unsigned long duration = 0);
+/*
+ * \brief Stops the generation of a square wave triggered by tone(). Has no effect if no tone is being generated.
+ *
+ * \param pin
+ */
+
+extern void noTone( uint32_t _pin ) ;
+
+#endif
