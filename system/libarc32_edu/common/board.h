@@ -45,7 +45,7 @@ This header file is used to specify and describe board-level aspects for the
 /* default system clock */
 
 #define SYSCLK_DEFAULT_IOSC_HZ MHZ(32)
-
+#define SYSTEM_CORE_CLOCK 32000000
 /* address bases */
 
 #define PERIPH_ADDR_BASE_ADC 0x80015000 /* ADC */
