@@ -62,6 +62,11 @@ extern "C"{
 #define I2C_MUX_MODE       QRK_PMUX_SEL_MODEA
 
 /*
+ * SPI
+ */
+#define SPI_MUX_MODE        QRK_PMUX_SEL_MODEB
+
+/*
  * GPIO
  */
 #define GPIO_MUX_MODE       QRK_PMUX_SEL_MODEA
@@ -84,7 +89,6 @@ extern "C"{
 /*
  * UART
  */
-
 #define UART_MUX_MODE       QRK_PMUX_SEL_MODEC
 
 /*

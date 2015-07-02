@@ -34,10 +34,10 @@
  *   7             |  GPIO[20]    | ""
  *   8             |  GPIO[16]    | ""
  *   9             |  GPIO_SS[13] | "PWM3"
- *  10             |  GPIO[0]     | ""
- *  11             |  GPIO[3]     | "MOSI"
- *  12             |  GPIO[1]     | "MISO"
- *  13             |  GPIO[2]     | "SCK"
+ *  10             |  GPIO[11]    | ""
+ *  11             |  GPIO[10]    | "MOSI"
+ *  12             |  GPIO[9]     | "MISO"
+ *  13             |  GPIO[8]     | "SCK"
  *  14             |  GPIO_SS[2]  | "A0"
  *  15             |  GPIO_SS[3]  | "A1"
  *  16             |  GPIO_SS[4]  | "A2"
@@ -68,10 +68,10 @@ PinDescription g_APinDescription[]=
     { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO7
     { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO8
     {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ, INVALID }, // Arduino IO9
-    {  0,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     0,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO10
-    {  3,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     3,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO11
-    {  1,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     1,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO12
-    {  2,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,     2,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO13
+    { 11,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    45,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO10
+    { 10,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    44,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO11
+    {  9,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO12
+    {  8,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    42,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO13
     {  2,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 10,     GPIO_MUX_MODE, INVALID, INVALID,              10 }, // Arduino IO14
     {  3,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 11,     GPIO_MUX_MODE, INVALID, INVALID,              11 }, // Arduino IO15
     {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID,              12 }, // Arduino IO16
