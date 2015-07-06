@@ -43,7 +43,7 @@
  *  16             |  GPIO_SS[4]  | "A2"
  *  17             |  GPIO_SS[5]  | "A3"
  *  18             |  GPIO_SS[6]  | "A4"
- *  19             |  GPIO_SS[7]  | "A5"
+ *  19             |  GPIO_SS[1]  | "A5"
 */
 
 
@@ -77,7 +77,7 @@ PinDescription g_APinDescription[]=
     {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID,              12 }, // Arduino IO16
     {  5,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 13,     GPIO_MUX_MODE, INVALID, INVALID,              13 }, // Arduino IO17
     {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID,              14 }, // Arduino IO18
-    {  7,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 15,     GPIO_MUX_MODE, INVALID, INVALID,              15 }, // Arduino IO19
+    {  1,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR,  9,     GPIO_MUX_MODE, INVALID, INVALID,               9 }, // Arduino IO19
 
 } ;
 
