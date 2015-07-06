@@ -36,8 +36,9 @@ void delay(uint32_t msec)
 
     while(timer0_overflows < no_of_irqs){
         yield();
-      /* Enable interrupts, sets interrupts threshold to 2 and go to sleep. */
-	__asm__ volatile ("sleep %0" :: "i" (INTERRUPT_ENABLE | INTERRUPT_THRESHOLD));
+      /* Go to sleep and wait to be awaken by Timer0 (or an external) 
+       * interrupt. */
+	__asm__ volatile ("sleep");
     }
    /* For the last fraction of millisecond don't go to sleep - you'll wake up
     * too late - just spin */
