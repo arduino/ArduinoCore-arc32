@@ -57,6 +57,7 @@ void UARTClass::begin(const uint32_t dwBaudRate)
 void UARTClass::begin(const uint32_t dwBaudRate, const int config)
 {
   init(dwBaudRate, config );
+  opened = true;
 }
 
 
@@ -98,11 +99,18 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg)
 
 void UARTClass::end( void )
 {
-  // Clear any received data
-  _rx_buffer->_iHead = _rx_buffer->_iTail;
-
+  int ret=0;
+  uint8_t uc_data;
   // Wait for any outstanding data to be sent
   flush();
+  uart_irq_rx_disable(0);
+  uart_irq_tx_disable(0);
+  while ( ret != -1 ) {
+    ret = uart_poll_in(0, &uc_data);
+  }
+  opened = false;
+  // Clear any received data
+  _rx_buffer->_iHead = _rx_buffer->_iTail;
 }
 
 void UARTClass::setInterruptPriority(uint32_t priority)
@@ -123,6 +131,8 @@ int UARTClass::available( void )
 
 int UARTClass::availableForWrite(void)
 {
+  if (!opened)
+    return(0);
   int head = _tx_buffer->_iHead;
   int tail = _tx_buffer->_iTail;
   if (head >= tail) return SERIAL_BUFFER_SIZE - 1 - head + tail;
@@ -157,6 +167,9 @@ void UARTClass::flush( void )
 
 size_t UARTClass::write( const uint8_t uc_data )
 {
+  if (!opened)
+    return(0);
+
   // Is the hardware currently busy?
   if (_tx_buffer->_iTail != _tx_buffer->_iHead)
   {
