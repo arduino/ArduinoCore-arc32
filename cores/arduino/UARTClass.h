@@ -60,6 +60,7 @@ class UARTClass : public HardwareSerial
     //Uart* _pUart;
     //IRQn_Type _dwIrq;
     uint32_t _dwId;
+    uint32_t opened;
 
 };
 
