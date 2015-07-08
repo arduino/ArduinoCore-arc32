@@ -72,7 +72,7 @@ void SPIClass::begin()
 
         /* Configure defaults for clock divider, frame size and data mode */
         SPI1_M_REG_VAL(BAUDR) = SPI_CLOCK_DIV4;
-        SPI1_M_REG_VAL(CTRL0) = (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT) | (1 << 11);
+        SPI1_M_REG_VAL(CTRL0) = (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT);
 
         /* Disable interrupts */
         SPI1_M_REG_VAL(IMR) = SPI_DISABLE_INT;
