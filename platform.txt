@@ -5,7 +5,7 @@
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
 name=Intel Curie (32-bit) Boards
-version=1.6.2
+version=1.6.4
 
 # SAM3 compile variables
 # ----------------------
@@ -80,16 +80,16 @@ recipe.size.regex=Total\s+([0-9]+).*
 
 # Arc Uploader/Programmers tools
 # -------------------
-tools.eduload.cmd.path={runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_osx.sh
-tools.eduload.cmd.path.linux="{runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_linux.sh"
-tools.eduload.cmd.path.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin/bash.exe
-tools.eduload.cmd.script.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/clupload/cluploadEDU_win.sh
-tools.eduload.cmd.bin.windows={runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin
+tools.eduload.cmd.path={runtime.tools.sketchUploader-1.6.4+1.0.path}/clupload/cluploadEDU_osx.sh
+tools.eduload.cmd.path.linux="{runtime.tools.sketchUploader-1.6.4+1.0.path}/clupload/cluploadEDU_linux.sh"
+tools.eduload.cmd.path.windows={runtime.tools.sketchUploader-1.6.4+1.0.path}/x86/bin/bash.exe
+tools.eduload.cmd.script.windows={runtime.tools.sketchUploader-1.6.4+1.0.path}/clupload/cluploadEDU_win.sh
+tools.eduload.cmd.bin.windows={runtime.tools.sketchUploader-1.6.4+1.0.path}/x86/bin
 
 tools.eduload.upload.params.verbose=-vvvvvv
 tools.eduload.upload.params.quiet=-q
 
-tools.eduload.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
-tools.eduload.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader-1.6.2+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.eduload.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader-1.6.4+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.eduload.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader-1.6.4+1.0.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
 tools.eduload.upload.elf.windows={build.path}/{build.project_name}.elf
 tools.eduload.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"

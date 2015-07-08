@@ -33,8 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define LOW  0
 #define HIGH 1
 
-static uint8_t pin_state;
-
 static void configure_soc_gpio(uint8_t pin, uint8_t mode)
 {
     gpio_cfg_data_t cfg;
