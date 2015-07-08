@@ -75,36 +75,10 @@ static void free_message_ipc(void * msg) {
 extern "C" {
 #endif
 
-#define TMP_SIZE 256
-static char tmp[TMP_SIZE];
-
 /* Sends a log message to LMT for display on a debug console */
 void cfw_log(char * fmt, ... )
 {
-    va_list args;
-    uint32_t timeout;
-    va_start(args, fmt);
-    unsigned int tstamp = SCSS_REG_VAL(SCSS_AONC_CNT);
-    int hours = tstamp / (32191 * 60 * 60);
-    tstamp -= hours * (32191 * 60 * 60);
-    int minutes = (tstamp) / (32191 * 60);
-    tstamp -= minutes * (32191 * 60);
-    int seconds = (tstamp) / 32191;
-    tstamp -= seconds * 32191;
-    int millis = (tstamp) / 32;
-    int it = interrupt_lock();
-
-    sprintf(tmp, "%03d:%02d:%02d.%03d  ", hours, minutes, seconds, millis);
-    vsnprintf(tmp + strlen(tmp) - 1, TMP_SIZE, fmt, args);
-    MBX_DAT0(4) = (unsigned int)tmp;
-    MBX_DAT1(4) = 0;
-    MBX_CTRL(4) = 0x80000000;
-    timeout = get_timestamp() + 10000;
-    while((MBX_STS(4) & 0x1) && (get_timestamp() < timeout))
-        ;
-
-    interrupt_unlock(it);
-    va_end(args);
+	// TODO this function will be depricated
 }
 
 /* Initialise the IPC framework */
