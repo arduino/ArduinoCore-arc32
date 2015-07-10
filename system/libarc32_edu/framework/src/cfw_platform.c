@@ -26,13 +26,17 @@
 #include <string.h>
 
 #include "portable.h"
+#include "os/os_types.h"
 #include "infra/ipc.h"
 #include "cfw/cfw.h"
 #include "cfw/cfw_service.h"
 #include "platform.h"
 #include "cfw_platform.h"
 
-#define IPC_QUEUE_DEPTH 10
+#include "cfw/cfw_messages.h"
+#include "services/test_service.h"
+
+#define IPC_QUEUE_DEPTH 64
 
 static T_QUEUE service_mgr_queue;
 
@@ -63,11 +67,11 @@ static void ipc_mbx_isr(void)
      */
 }
 
-static int send_message_ipc(struct cfw_message * msg) {
+static int send_message_ipc(struct message *msg) {
     return ipc_request_sync_int(IPC_MSG_TYPE_MESSAGE, 0, 0, msg);
 }
 
-static void free_message_ipc(void * msg) {
+static void free_message_ipc(struct message *msg) {
     ipc_request_sync_int(IPC_MSG_TYPE_FREE, 0, 0, msg);
 }
 
@@ -75,11 +79,60 @@ static void free_message_ipc(void * msg) {
 extern "C" {
 #endif
 
-/* Sends a log message to LMT for display on a debug console */
-void cfw_log(char * fmt, ... )
+#ifdef CONFIG_CFW_SERVICES_TEST
+
+svc_client_handle_t * test_service_handle = NULL;
+
+
+static void my_handle_message(struct cfw_message * msg, void * param)
 {
-	// TODO this function will be depricated
+    switch (CFW_MESSAGE_ID(msg)) {
+    case MSG_ID_CFW_OPEN_SERVICE: {
+        cfw_open_conn_rsp_msg_t * cnf = (cfw_open_conn_rsp_msg_t*)msg;
+        int events[1] = {MSG_ID_TEST_1_EVT};
+        test_service_handle = cnf->client_handle;
+        cfw_register_events(test_service_handle, events,
+                            1, CFW_MESSAGE_PRIV(msg));
+        }
+        break;
+
+    case MSG_ID_CFW_REGISTER_EVT:
+        if (!strcmp(msg->priv, "conn1")) {
+            test_service_test_1(test_service_handle, "Coucou");
+        }
+        break;
+
+    case MSG_ID_TEST_1_RSP: {
+        /* Light the COM LED */
+        SET_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DDR, 12);
+        CLEAR_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DR, 12);
+        test_service_test_2(test_service_handle, "Testing 2");
+        break;
+        }
+
+    case MSG_ID_TEST_2_RSP: {
+        /* Light the FAULT LED */
+        SET_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DDR, 26);
+        CLEAR_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DR, 26);
+        //test_service_test_1(test_service_handle, "Coucou");
+        break;
+        }
+
+    case MSG_ID_TEST_1_EVT: {
+        break;
+        }
+    }
+    cfw_msg_free(msg);
 }
+
+static void test_client_init(T_QUEUE queue)
+{
+    cfw_handle_t *h = cfw_init(service_mgr_queue, my_handle_message, "client");
+
+    cfw_open_service(h, TEST_SERVICE_ID, "conn1");
+}
+
+#endif
 
 /* Initialise the IPC framework */
 void cfw_platform_init(bool irq_enable)
@@ -88,22 +141,31 @@ void cfw_platform_init(bool irq_enable)
     ipc_init(ipc_tx_chan, ipc_rx_chan,
              ipc_tx_ack_chan, ipc_rx_ack_chan,
              ipc_remote_cpu);
-    service_mgr_queue = queue_create(IPC_QUEUE_DEPTH, NULL);
-    _cfw_init_proxy(service_mgr_queue, shared_data->ports,
-                    shared_data->services, shared_data->service_mgr_port_id);
-    set_cpu_id(CPU_ID_ARC);
-    set_cpu_message_sender(ipc_remote_cpu, send_message_ipc);
-    set_cpu_free_handler(ipc_remote_cpu, free_message_ipc);
 
     if (irq_enable) {
         /* Set up mailbox interrupt handler */
         interrupt_connect(SOC_MBOX_INTERRUPT, ipc_mbx_isr, NULL);
         interrupt_enable(SOC_MBOX_INTERRUPT);
-        SOC_UNMASK_INTERRUPTS(INT_MAILBOX_MASK);
         /* Enable interrupt for ARC IPC rx channel */
         SOC_MBX_INT_UNMASK(ipc_rx_chan);
     }
     ipc_irq_enabled = irq_enable;
+
+    set_cpu_id(CPU_ID_ARC);
+
+    /* Notify LMT that ARC started. */
+    shared_data->arc_ready = 1;
+
+    service_mgr_queue = queue_create(IPC_QUEUE_DEPTH, NULL);
+
+    _cfw_init_proxy(service_mgr_queue, shared_data->ports,
+                    shared_data->services, shared_data->service_mgr_port_id);
+    set_cpu_message_sender(ipc_remote_cpu, send_message_ipc);
+    set_cpu_free_handler(ipc_remote_cpu, free_message_ipc);
+
+#ifdef CONFIG_CFW_SERVICES_TEST
+    test_client_init(service_mgr_queue);
+#endif
 }
 
 /* Poll for new messages received via Mailbox from LMT */

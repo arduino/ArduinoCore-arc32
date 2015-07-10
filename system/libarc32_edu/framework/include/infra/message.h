@@ -1,4 +1,4 @@
-/** INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
+/* INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
  *
  * The source code contained or described herein and all documents related to
  * the source code ("Material") are owned by Intel Corporation or its suppliers
@@ -24,7 +24,7 @@
 #ifndef __INFRA_MESSAGE_H_
 #define __INFRA_MESSAGE_H_
 
-#include <stdint.h>
+#include "os/os_types.h"
 #include "util/list.h"
 
 /* Message ranges */
