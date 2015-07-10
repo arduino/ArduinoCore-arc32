@@ -28,6 +28,8 @@ typedef struct {
 	int service_id;
 	/** client side service handle */
 	void *client_handle;
+	/** client side cpu id, required for remote node services */
+	uint8_t client_cpu_id;
 } cfw_open_conn_req_msg_t;
 
 /**
@@ -40,7 +42,7 @@ typedef struct {
 	/** port to attain this service */
 	uint16_t port;
 	/** cpu_id of service */
-	int cpu_id;
+	uint8_t cpu_id;
 	/** service handle for accessing the service */
 	void * svc_server_handle;
 	/** client side service handle as passed in
@@ -55,6 +57,8 @@ typedef struct {
 typedef struct {
 	/** common message header */
 	struct cfw_message header;
+	/** service id to close */
+	int service_id;
 	/** service to open connection to */
 	void * inst;
 } cfw_close_conn_req_msg_t;
@@ -85,6 +89,11 @@ typedef struct {
 
 
 typedef struct {
+	struct cfw_message header;
+	int service_id;
+} cfw_register_svc_avail_req_msg_t;
+
+typedef struct {
 	/** common response message header */
 	struct cfw_rsp_message rsp_header;
 } cfw_register_svc_avail_rsp_msg_t;
@@ -99,4 +108,6 @@ typedef struct {
     /** Service id of the newly available service. */
     int service_id;
 } cfw_svc_available_evt_msg_t;
+
+
 #endif /* __CFW_MESSAGE_H__ */

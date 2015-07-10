@@ -366,7 +366,7 @@
 #define SCSS_INT_MAILBOX_START_CHANNEL  0x00
 #elif defined(__CPU_ARC__)
 /* Second byte is for ARC */
-#define SCSS_INT_MAILBOX_START_CHANNEL  0x10
+#define SCSS_INT_MAILBOX_START_CHANNEL  0x8
 #endif
 
 #define SOC_MBX_INT_UNMASK(channel) SCSS_REG_VAL(SCSS_INT_MAILBOX_MASK) &= \

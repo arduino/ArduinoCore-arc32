@@ -1,6 +1,17 @@
+#ifndef _CFW_H_
+#define _CFW_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "os/os.h"
+#include "util/list.h"
+#include "infra/port.h"
+#include "infra/message.h"
+
 /**
- * \defgroup cfw CFW: Component Framework
- * \brief The component framework is the main building block for a custom application.
+ * @defgroup cfw CFW: Component Framework
+ * The Component Framework is the main building block for custom applications.
  *
  * It consists of:
  *  - Service APIs
@@ -12,19 +23,9 @@
  * order to be interfaced with it.
  * It could have other threads for its specific need and would have to manage
  * communication with the framework thread for interface with the rest of the platform.
+ *
  * @{
  */
-
-#ifndef _CFW_H_
-#define _CFW_H_
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "os/os.h"
-#include "util/list.h"
-#include "infra/port.h"
-#include "infra/message.h"
 
 struct cfw_message {
 	struct message m;
@@ -74,6 +75,8 @@ typedef void * cfw_handle_t;
 typedef struct svc_client_handle_ {
 	/** Port to attain the service. */
 	uint16_t port;
+	/** Service id */
+	int service_id;
 	/** Framework handle. */
 	cfw_handle_t cfw_handle;
 	/** Pointer to store the server-side connection handle.
@@ -82,28 +85,6 @@ typedef struct svc_client_handle_ {
 	void * server_handle;
 } svc_client_handle_t;
 
-/**
- * Services id definitions
- *
- * Keep them numbered manually to avoid shifting on
- * removal/addition of services
- */
-enum {
-	FRAMEWORK_SERVICE_ID = 1,
-	TEST2_SERVICE_ID = 2,
-	TEST_SERVICE_ID = 3,
-	BLE_SERVICE_ID = 4,
-	BLE_CORE_SERVICE_ID = 5,
-};
-
-/**
- * Logging macro.
- */
-/*
- * Function Prototypes
- *
- */
-void cfw_log(char * fmt, ...);
 
 /**
  * \brief Allocate a memory buffer
@@ -176,27 +157,6 @@ int _find_service(int);
  */
 int _cfw_get_service_port(int);
 
-
-/*
- * Multi cpu APIs.
- */
-
-/**
- * \brief set the callback to be used to send a message to the given cpu.
- *
- * \param cpu_id the cpu id for which we want to set the handler.
- * \param handler the callback used to send a message to this cpu.
- */
-void set_cpu_message_sender(int cpu_id, int (*handler)(struct cfw_message * msg));
-
-/**
- * \brief set the callback to be used to request free a message to a cpu.
- *
- * \param cpu_id the cpu id for which we want to set the handler.
- * \param handler the callback used to request message free on.
- */
-void set_cpu_free_handler(int cpu_id, void (*free_handler)(void *));
+/** @} */
 
 #endif /* #ifndef _CFW_H_ */
-
-/**@}*/

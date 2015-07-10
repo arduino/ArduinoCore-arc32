@@ -1,4 +1,4 @@
-/** INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
+/* INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
   *
   * The source code contained or described herein and all documents related to
   * the source code ("Material") are owned by Intel Corporation or its suppliers
@@ -25,6 +25,7 @@
 #define __IPC_H__
 
 #include "infra/ipc_requests.h"
+#include "infra/message.h"
 
 /**
  * \brief initialize ipc component.
@@ -36,7 +37,7 @@
  * \param remote_cpu_id the remote cpu id of this IPC
  */
 void ipc_init(int tx_channel, int rx_channel, int tx_ack_channel,
-        int rx_ack_channel, int remote_cpu_id);
+        int rx_ack_channel, uint8_t remote_cpu_id);
 
 /**
  * \brief request a synchronous ipc call.
@@ -73,7 +74,34 @@ void ipc_handle_message();
  *
  * \return 0 if success, -1 otherwise
  */
-int ipc_sync_callback(int cpu_id, int request, int param1, int param2,
+int ipc_sync_callback(uint8_t cpu_id, int request, int param1, int param2,
 		void *ptr);
+
+/**
+ * \brief Called by port implementation when a message has to be sent to a
+ * CPU connected through the mailbox ipc mechanism.
+ *
+ * \param message the message to send to the other end
+ */
+int ipc_async_send_message(struct message *message);
+/**
+ * \brief Called by port implementation when a message that comes from a
+ * different CPU than ours has to be freed.
+ *
+ * \param message the message to be freed.
+ */
+void ipc_async_free_message(struct message *message);
+
+/**
+ * \brief initialize the async message sender / freeing mechanism for remote
+ * message sending and freeing.
+ *
+ * Async message sender / freeing is needed as message can be sent / freed in
+ * the context of interrupts. And in interrupt context, the ipc requests sync
+ * cannot be called.
+ *
+ * \param queue the queue on which context the ipc requests have to be called.
+ */
+void ipc_async_init(T_QUEUE queue);
 
 #endif

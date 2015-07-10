@@ -18,8 +18,8 @@
 
 #include "variant.h"
 #include "portable.h"
-#include "cfw_platform.h"
 
+#include "cfw_platform.h"
 
 /*
  * EDU Board pin   |     GPIO     | Label

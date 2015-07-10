@@ -22,59 +22,24 @@
  *
  ******************************************************************************/
 
-#ifndef __LOG_BACKENDS_H
-#define __LOG_BACKENDS_H
 
-
-/**
- * \addtogroup infra
- * @{
- * \defgroup infra_log_backend Logger backends management
- * @{
- * \brief Backends management
- *
- */
-
+#ifndef LOG_IMPL_H
+#define LOG_IMPL_H
 
 #include <stdint.h>
-#define LOG_BACKEND_CNT 3 /*!< Max number of backends (UART, USB, NVM) */
-
-/* backend callbacks typedefs */
-typedef void (*backend_puts)(const char *buffer, uint16_t len);
-typedef void (*backend_print)(const char *buffer);
 
 /**
- * Structure of backends.
- */
-typedef struct log_backend {
-    backend_print bprint; /*!< Backend print */
-    backend_puts bputs;   /*!< Backend puts */
-} log_backend_t;
-
-
-/**
+ * Creates and pushes a user's log message into the logging queue.
  *
- * Function to call logger backends.
- *
- * @param   s    Message
- * @param   len  Length of the message
+ * @retval Message's length if inserted, -1 if an error occurs, 0 if
+ * message was discarded.
  */
-void log_call_backends(const char *s, uint16_t len);
-
+uint32_t log_write_msg(uint8_t level, uint8_t module, const char *format,
+				va_list args);
 
 /**
- * Function to clear registered backends.
+ * Logger init for specific implementations.
  */
-void log_clear_backends(void);
+void log_impl_init();
 
-
-/**
- * Function to register backends.
- *
- * @param   bprint  Backend print
- * @param   bputs   Backend puts
- */
-uint8_t log_register_backend(backend_print bprint, backend_puts bputs);
-
-/* @}*/
-#endif /* __LOG_BACKENDS_H */
+#endif /* LOG_IMPL_H */

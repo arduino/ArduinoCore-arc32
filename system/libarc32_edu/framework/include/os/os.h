@@ -187,6 +187,12 @@ extern void* balloc (uint32_t size, OS_ERR_TYPE* err);
  */
 extern OS_ERR_TYPE bfree(void* buffer);
 
+/* MUTEX STUB FUNCTIONS */
+extern T_MUTEX mutex_create(OS_ERR_TYPE* err);
+extern void mutex_delete(T_MUTEX mutex, OS_ERR_TYPE* err );
+extern void mutex_unlock (T_MUTEX mutex, OS_ERR_TYPE* err);
+extern OS_ERR_TYPE mutex_lock (T_MUTEX mutex, int timeout);
+
 #endif
 
 /**@} @} @}*/
