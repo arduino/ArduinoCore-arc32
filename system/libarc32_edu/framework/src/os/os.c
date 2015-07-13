@@ -1,6 +1,8 @@
 #include "cfw/cfw.h"
 #include "os/os.h"
 
+/*************************    MEMORY   *************************/
+
 #ifdef TRACK_ALLOCS
 int alloc_count = 0;
 #endif
@@ -34,6 +36,8 @@ OS_ERR_TYPE bfree(void *ptr) {
 	cfw_free(ptr, NULL);
 	return E_OS_OK;
 }
+
+/*************************    QUEUES   *************************/
 
 typedef struct queue_ {
     list_head_t lh;
@@ -92,3 +96,25 @@ void queue_delete(T_QUEUE queue, OS_ERR_TYPE* err) {
     cfw_free(q, NULL);
 }
 
+/*************************    MUTEXES   *************************/
+T_MUTEX mutex_create(OS_ERR_TYPE* err)
+{
+    return (T_MUTEX) NULL;
+}
+
+void mutex_delete(T_MUTEX mutex, OS_ERR_TYPE* err)
+{
+    return;
+}
+
+/* Stub - not implemented */
+void mutex_unlock(T_MUTEX mutex, OS_ERR_TYPE* err)
+{
+    return;
+}
+
+/* Stub - not implemented */
+OS_ERR_TYPE mutex_lock(T_MUTEX mutex, int timeout)
+{
+    return E_OS_OK;
+}

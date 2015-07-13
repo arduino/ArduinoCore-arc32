@@ -2,11 +2,14 @@
 #include "os/os.h"
 #include "infra/message.h"
 #include "infra/port.h"
+#include "infra/log.h"
+
 #include "cfw/cfw.h"
 #include "cfw/cfw_debug.h"
 #include "cfw/cfw_messages.h"
 #include "cfw/cfw_internal.h"
 #include "cfw/cfw_service.h"
+#include "cfw_private.h"
 
 /**
  * \file service_api.c implementation of the service_manager API
@@ -18,15 +21,16 @@
 
 void cfw_port_set_handler(uint16_t port_id, void (*handler)(struct cfw_message*, void*), void * param) {
 #ifdef SVC_API_DEBUG
-    cfw_log("%s: port: %p h: %p\n", __func__, port, handler);
+    pr_debug(LOG_MODULE_CFW, "%s: port: %p h: %p", __func__, port, handler);
 #endif
 	port_set_handler(port_id, (void (*)(struct message*, void*))handler, param);
 }
 
 struct cfw_message * cfw_clone_message(struct cfw_message * msg) {
-    struct cfw_message * ret = cfw_alloc(CFW_MESSAGE_LEN(msg), NULL);
+    struct cfw_message * ret = (struct cfw_message *)
+            message_alloc(CFW_MESSAGE_LEN(msg), NULL);
     if (ret == NULL) {
-        cfw_log("%s: Error allocating message", __func__);
+        pr_error(LOG_MODULE_CFW, "%s: Error allocating message", __func__);
     } else {
 		memcpy(ret, msg, CFW_MESSAGE_LEN(msg));
     }
@@ -47,7 +51,7 @@ int cfw_deregister_service(cfw_handle_t handle, service_t * svc) {
 }
 
 struct cfw_rsp_message * cfw_alloc_rsp_msg(struct cfw_message *req, int msg_id, int size) {
-    struct cfw_rsp_message * rsp = (struct cfw_rsp_message *) cfw_alloc(size, NULL);
+    struct cfw_rsp_message * rsp = (struct cfw_rsp_message *) cfw_alloc_message(size, NULL);
     CFW_MESSAGE_TYPE(&rsp->header) = TYPE_RSP;
     CFW_MESSAGE_ID(&rsp->header) = msg_id;
     CFW_MESSAGE_LEN(&rsp->header) = size;
@@ -63,7 +67,7 @@ struct cfw_rsp_message * cfw_alloc_rsp_msg(struct cfw_message *req, int msg_id, 
 }
 
 struct cfw_message * cfw_alloc_evt_msg(service_t *svc, int msg_id, int size) {
-    struct cfw_message * evt = (struct cfw_message *) cfw_alloc(size, NULL);
+    struct cfw_message * evt = (struct cfw_message *) cfw_alloc_message(size, NULL);
     CFW_MESSAGE_TYPE(evt) = TYPE_EVT;
     CFW_MESSAGE_ID(evt) = msg_id;
     CFW_MESSAGE_LEN(evt) = size;
@@ -76,7 +80,7 @@ struct cfw_message * cfw_alloc_evt_msg(service_t *svc, int msg_id, int size) {
 }
 
 struct cfw_message * cfw_alloc_internal_msg(int msg_id, int size, void * priv) {
-    struct cfw_message * evt = (struct cfw_message *) cfw_alloc(size, NULL);
+    struct cfw_message * evt = (struct cfw_message *) cfw_alloc_message(size, NULL);
     CFW_MESSAGE_TYPE(evt) = TYPE_INT;
     CFW_MESSAGE_ID(evt) = msg_id;
     CFW_MESSAGE_LEN(evt) = size;
@@ -89,7 +93,7 @@ struct cfw_message * cfw_alloc_internal_msg(int msg_id, int size, void * priv) {
 }
 
 void default_msg_handler(struct cfw_message * msg, void *data) {
-    cfw_log("Bug: %s should not be called data: %p\n", __func__, data);
+    pr_error(LOG_MODULE_CFW, "Bug: %s should not be called data: %p", __func__, data);
     cfw_dump_message(msg);
 }
 

@@ -169,54 +169,6 @@ This header file is used to specify and describe board-level aspects for the
 
 #define UART_REG_ADDR_INTERVAL 4 /* for ns16550 driver */
 
-/*
- * Device drivers utilize the macros PLB_BYTE_REG_WRITE() and
- * PLB_BYTE_REG_READ() to access byte-wide registers on the processor
- * local bus (PLB), as opposed to a PCI bus, for example.  Boards are
- * expected to provide implementations of these macros.
- */
-
-#define PLB_BYTE_REG_WRITE(data, address) outByte(data, (unsigned int)address)
-#define PLB_BYTE_REG_READ(address) inByte((unsigned int)address)
-
-/*******************************************************************************
-*
-* outByte - output byte to memory location
-*
-* RETURNS: N/A
-*
-* NOMANUAL
-*/
-
-static inline void outByte(uint8_t data, uint32_t addr)
-{
-	*(volatile uint8_t *)addr = data;
-}
-
-/*******************************************************************************
-*
-* inByte - obtain byte value from memory location
-*
-* This function issues the 'move' instruction to read a byte from the specified
-* memory address.
-*
-* RETURNS: the byte read from the specified memory address
-*
-* NOMANUAL
-*/
-
-static inline uint8_t inByte(uint32_t addr)
-{
-	return *((volatile uint8_t *)addr);
-}
-
-/*
- * Device drivers utilize the macros PLB_WORD_REG_WRITE() and
- * PLB_WORD_REG_READ() to access shortword-wide registers on the processor
- * local bus (PLB), as opposed to a PCI bus, for example.  Boards are
- * expected to provide implementations of these macros.
- */
-
 #endif /* !_ASMLANGUAGE */
 
 #endif /* _BOARD__H_ */

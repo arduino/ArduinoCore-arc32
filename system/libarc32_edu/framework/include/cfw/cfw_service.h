@@ -1,13 +1,6 @@
-/**
- * \addtogroup cfw
- * @{
- * \defgroup cfw_service CFW Service API
- * @{
- * \brief Definition of the structure and functions used by CFW services implementation.
- */
-
 #ifndef __CFW_SERVICE_H_
 #define __CFW_SERVICE_H_
+
 #include "os/os.h"
 #include "cfw/cfw.h"
 #include "cfw/cfw_internal.h"
@@ -16,6 +9,13 @@
 
 struct service;
 struct _port;
+
+/**
+ * @defgroup cfw_service CFW Service API
+ * @brief CFW Service API.
+ * @ingroup cfw
+ * @{
+ */
 
 /**
  * \struct conn_handle_t
@@ -56,14 +56,17 @@ typedef struct service {
 	void (*registered_events_changed)(conn_handle_t *);
 } service_t;
 
-int _cfw_register_service(service_t * svc);
-int _cfw_deregister_service(cfw_handle_t handle, service_t * svc);
 #ifdef CFW_MULTI_CPU_SUPPORT
 void _cfw_init_proxy(T_QUEUE queue, void * p, service_t**s, uint16_t svc_mgr_port);
 #endif
 service_t * cfw_get_service(int service_id);
 
-
+/**
+ * Gets the service manager port id.
+ *
+ * \return service manager port id
+ */
+uint16_t cfw_get_service_mgr_port_id(void);
 
 /**
  * Allocate and build a response message for a specific request.
@@ -135,6 +138,6 @@ int cfw_unregister_service(service_t * service);
  */
 void cfw_send_event(struct cfw_message * msg);
 
-#endif /* __CFW_SERVICE_H_ */
+/** @} */
 
-/**@} @}*/
+#endif /* __CFW_SERVICE_H_ */

@@ -18,8 +18,8 @@
 
 #include "variant.h"
 #include "portable.h"
-#include "cfw_platform.h"
 
+#include "cfw_platform.h"
 
 /*
  * EDU Board pin   |     GPIO     | Label
@@ -66,7 +66,7 @@ PinDescription g_APinDescription[]=
     {  3,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 64,     GPIO_MUX_MODE, 1,       PWM_SCALE_980HZ, INVALID }, // Arduino IO5
     {  4,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 65,     GPIO_MUX_MODE, 2,       PWM_SCALE_980HZ, INVALID }, // Arduino IO6
     { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO7
-    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO8
+    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    50,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO8
     {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ, INVALID }, // Arduino IO9
     { 11,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    45,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO10
     { 10,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    44,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO11

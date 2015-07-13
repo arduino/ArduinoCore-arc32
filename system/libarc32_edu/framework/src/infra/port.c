@@ -26,6 +26,7 @@
 #include "infra/port.h"
 #include "infra/log.h"
 #include "infra/ipc.h"
+#include <string.h>
 
 //#define PORT_DEBUG
 
@@ -34,19 +35,19 @@
  * External usage is done with a port id integer.
  */
 struct port {
-    int id;
-    int cpu_id;
+    uint16_t id;
+    uint8_t cpu_id;
     void *handle_param;
     void * queue;
     void (*handle_message)(struct message *msg, void *param);
 };
 
-static int this_cpu_id = 0;
+static uint8_t this_cpu_id = 0;
 
 /* required by port_alloc() and other cfw APIs */
-int get_cpu_id(void)
+uint8_t get_cpu_id(void)
 {
-       return this_cpu_id;
+	return this_cpu_id;
 }
 
 #ifdef INFRA_IS_MASTER
@@ -54,6 +55,10 @@ static struct port ports[MAX_PORTS];
 static int registered_port_count = 0;
 #else
 static struct port * ports = NULL;
+#ifndef HAS_SHARED_MEM
+static int allocated_port_count = 0;
+static uint8_t port_id_to_port[MAX_PORTS] = { 0 };
+#endif
 void port_set_ports_table(void * ptbl)
 {
 	ports = (struct port *) ptbl;
@@ -61,7 +66,13 @@ void port_set_ports_table(void * ptbl)
 
 void * port_alloc_port_table(int numports)
 {
-	return ports = balloc(numports*sizeof(struct port), NULL);
+	int size = numports*sizeof(struct port);
+	ports = balloc(size, NULL);
+#ifndef HAS_SHARED_MEM
+	allocated_port_count = numports;
+	memset(ports, 0, size);
+#endif
+	return ports;
 }
 #endif
 
@@ -70,11 +81,43 @@ void * port_get_port_table()
 	return (void *)&ports[0];
 }
 
-static struct port * get_port(int port_id)
+#if (!defined HAS_SHARED_MEM && !defined INFRA_IS_MASTER)
+static struct port * get_port(uint16_t port_id)
 {
-    return &ports[port_id - 1];
-}
+	int i;
+	if (port_id == 0 || port_id > MAX_PORTS) {
+		panic(-1); /*TODO: replace with an assert */
+	}
 
+	if (port_id_to_port[port_id - 1] == 0) {
+		for (i=0; i < allocated_port_count; i++) {
+			int flags = interrupt_lock();
+			if (ports[i].id == 0) {
+				ports[i].id = port_id;
+				port_id_to_port[port_id-1] = i+1;
+				interrupt_unlock(flags);
+				return &ports[i];
+			}
+			interrupt_unlock(flags);
+		}
+		panic(E_OS_ERR_OVERFLOW);
+	} else {
+		return &ports[port_id_to_port[port_id - 1] - 1];
+	}
+
+	panic(-1); /*TODO: replace with an assert */
+	return NULL;
+}
+#else
+static struct port * get_port(uint16_t port_id)
+{
+	if (port_id == 0 || port_id > MAX_PORTS) {
+		pr_error(LOG_MODULE_MAIN, "Invalid port: %d", port_id);
+		panic(-1); /*TODO: replace with an assert */
+	}
+	return &ports[port_id - 1];
+}
+#endif
 void port_set_queue(uint16_t port_id, void * queue)
 {
 	struct port * p = get_port(port_id);
@@ -91,11 +134,13 @@ uint16_t port_alloc(void * queue)
         ports[registered_port_count].cpu_id = get_cpu_id(); /* is overwritten in case of ipc */
         ports[registered_port_count].queue = queue;
 #ifdef PORT_DEBUG
-        pr_info("%s: port: %p id: %d queue: %p\n", __func__,
+        pr_info(LOG_MODULE_MAIN, "%s: port: %p id: %d queue: %p", __func__,
                 &ports[registered_port_count], registered_port_count, queue);
 #endif
         ret = &ports[registered_port_count];
         registered_port_count++;
+    } else {
+        panic(E_OS_ERR_NO_MEMORY);
     }
     interrupt_unlock(flags);
     return ret->id;
@@ -124,7 +169,12 @@ void port_set_handler(uint16_t port_id, void (*handler)(struct message*, void*),
 
 struct message * message_alloc(int size, OS_ERR_TYPE * err)
 {
-	return (struct message *) balloc(size, err);
+    struct message * msg = (struct message *) balloc(size, err);
+    if (msg) {
+        memset(msg, 0, size);
+    }
+
+	return msg;
 }
 
 void port_process_message(struct message * msg)
@@ -135,7 +185,7 @@ void port_process_message(struct message * msg)
 	}
 }
 
-void port_set_cpu_id(uint16_t port_id, uint16_t cpu_id)
+void port_set_cpu_id(uint16_t port_id, uint8_t cpu_id)
 {
 	struct port * p = get_port(port_id);
 	p->cpu_id = cpu_id;
@@ -147,7 +197,7 @@ void port_set_port_id(uint16_t port_id)
 	p->id = port_id;
 }
 
-uint16_t port_get_cpu_id(uint16_t port_id)
+uint8_t port_get_cpu_id(uint16_t port_id)
 {
 	struct port * p = get_port(port_id);
 	return p->cpu_id;
@@ -160,25 +210,25 @@ typedef int (*send_msg_t)(struct message * m);
 
 struct ipc_handler {
     send_msg_t send_message;
-    void (*free)(void * ptr);
+    void (*free)(struct message * message);
 };
 
 struct ipc_handler ipc_handler[NUM_CPU];
 
-void set_cpu_id(int cpu_id)
+void set_cpu_id(uint8_t cpu_id)
 {
     this_cpu_id = cpu_id;
 }
 
-send_msg_t get_ipc_handler(int cpu_id) {
+send_msg_t get_ipc_handler(uint8_t cpu_id) {
     return ipc_handler[cpu_id].send_message;
 }
 
-void set_cpu_message_sender(int cpu_id, send_msg_t handler) {
+void set_cpu_message_sender(uint8_t cpu_id, send_msg_t handler) {
     ipc_handler[cpu_id].send_message = handler;
 }
 
-void set_cpu_free_handler(int cpu_id, void (*free_handler)(void *)) {
+void set_cpu_free_handler(uint8_t cpu_id, void (*free_handler)(struct message *)) {
     ipc_handler[cpu_id].free = free_handler;
 }
 
@@ -187,18 +237,18 @@ int port_send_message(struct message * message)
     OS_ERR_TYPE err = 0;
     struct port * port = get_port(MESSAGE_DST(message));
     if (port == NULL) {
-        pr_error(LOG_MODULE_MAIN, "Invalid destination port (%d)\n", MESSAGE_DST(message));
+        pr_error(LOG_MODULE_MAIN, "Invalid destination port (%d)", MESSAGE_DST(message));
         return E_OS_ERR;
     }
     if (port->cpu_id == get_cpu_id()) {
 #ifdef PORT_DEBUG
-        pr_info(LOG_MODULE_MAIN, "Sending message %p to port %p(q:%p) ret: %d\n", message, port, port->queue, err);
+        pr_info(LOG_MODULE_MAIN, "Sending message %p to port %p(q:%p) ret: %d", message, port, port->queue, err);
 #endif
         queue_send_message(port->queue, message, &err);
         return err;
     } else {
 #ifdef PORT_DEBUG
-        pr_info(LOG_MODULE_MAIN, "Remote port ! using: %p handler\n", ipc_handler[port->cpu_id].send_message);
+        pr_info(LOG_MODULE_MAIN, "Remote port ! using: %p handler", ipc_handler[port->cpu_id].send_message);
 #endif
         return ipc_handler[port->cpu_id].send_message(message);
     }
@@ -206,11 +256,9 @@ int port_send_message(struct message * message)
 
 void message_free(struct message * msg)
 {
-	struct port * port = get_port(MESSAGE_SRC(msg));
-#ifdef PORT_DEBUG
-    pr_info(LOG_MODULE_MAIN, "free message %p: port %p[%d] this %d id %d\n",
+    struct port * port = get_port(MESSAGE_SRC(msg));
+    pr_debug(LOG_MODULE_MAIN, "free message %p: port %p[%d] this %d id %d",
             msg, port, port->cpu_id, get_cpu_id(), MESSAGE_SRC(msg));
-#endif
     if (port->cpu_id == get_cpu_id()) {
         bfree(msg);
     } else {

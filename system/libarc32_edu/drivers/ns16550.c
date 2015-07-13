@@ -45,8 +45,8 @@ A board support package's board.h header must provide definitions for:
 
 - the following register access routines:
 
-  unsigned int inByte(unsigned int address);
-  void outByte(unsigned char data, unsigned int address);
+  unsigned int board_inByte(unsigned int address);
+  void board_outByte(unsigned char data, unsigned int address);
 
 - and the following macro for the number of bytes between register addresses:
 
@@ -203,8 +203,18 @@ INCLUDE FILES: drivers/uart.h
 
 #define IIRC(n) uart[n].iirCache
 
-#define INBYTE(x) inByte(x)
-#define OUTBYTE(x, d) outByte(d, x)
+static inline void board_outByte(uint8_t data, uint32_t addr)
+{
+    *(volatile uint8_t *)addr = data;
+}
+
+static inline uint8_t board_inByte(uint32_t addr)
+{
+    return *((volatile uint8_t *)addr);
+}
+
+#define INBYTE(x) board_inByte(x)
+#define OUTBYTE(x, d) board_outByte(d, x)
 
 /* typedefs */
 

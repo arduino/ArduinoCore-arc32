@@ -1,15 +1,14 @@
-/**
- * \addtogroup cfw
- * @{
- * \defgroup cfw_client CFW Client API
- * @{
- * \brief Definition of the structure and functions needed by CFW clients, i.e.
- * for users of services.
- */
-
 #ifndef __CFW_CLIENT_H__
 #define __CFW_CLIENT_H__
+
 #include "cfw/cfw.h"
+
+/**
+ * @defgroup cfw_client CFW Client API
+ * CFW Client API, i.e for users of services.
+ * @ingroup cfw
+ * @{
+ */
 
 /**
  * Create a handle to the component framework.
@@ -84,9 +83,8 @@ int cfw_register_events(svc_client_handle_t * handle, int * msg_ids, int size, v
  * \param handle the framework handle.
  * \param param the private param sent back with the response message.
  */
-int cfw_register_svc_available(cfw_handle_t handle, void *param);
+int cfw_register_svc_available(cfw_handle_t handle, int service_id, void *param);
+
+/** @} */
 
 #endif
-
-/**@} @}*/
-
