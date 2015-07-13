@@ -56,6 +56,7 @@ typedef enum {
 
 
 /** Types for kernel objects */
+typedef void* T_MUTEX;
 typedef void* T_QUEUE;
 typedef void* T_QUEUE_MESSAGE;
 

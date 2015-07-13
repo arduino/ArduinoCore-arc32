@@ -23,11 +23,10 @@
  */
 #ifndef __INFRA_PORT_H__
 #define __INFRA_PORT_H__
-
-#include <stdint.h>
+#include "os/os.h"
 #include "infra/message.h"
 
-#define MAX_PORTS       32
+#define MAX_PORTS       50
 
 
 #ifndef INFRA_IS_MASTER
@@ -90,7 +89,7 @@ void port_set_port_id(uint16_t port_id);
  * \param port_id the port_id to set cpu_id for
  * \param cpu_id the cpu_id to associate with the port
  */
-void port_set_cpu_id(uint16_t port_id, uint16_t cpu_id);
+void port_set_cpu_id(uint16_t port_id, uint8_t cpu_id);
 
 /**
  * get the cpu_id of the given port.
@@ -98,7 +97,7 @@ void port_set_cpu_id(uint16_t port_id, uint16_t cpu_id);
  * \param port_id the port to retrieve cpu_id from
  * \return the cpu_id associated with the port
  */
-uint16_t port_get_cpu_id(uint16_t port_id);
+uint8_t port_get_cpu_id(uint16_t port_id);
 
 /**
  * Retrieve the pointer to the global port table.
@@ -132,13 +131,33 @@ uint16_t queue_process_message(T_QUEUE queue);
  *
  * \param cpu_id the cpu id to set.
  */
-void set_cpu_id(int cpu_id);
+void set_cpu_id(uint8_t cpu_id);
 
 /**
  * Get the cpu id for this (port) instance.
  *
  * \return cpu_id of the instance.
  */
-int get_cpu_id(void);
+uint8_t get_cpu_id(void);
+
+/*
+ * Multi cpu APIs.
+ */
+
+/**
+ * \brief set the callback to be used to send a message to the given cpu.
+ *
+ * \param cpu_id the cpu id for which we want to set the handler.
+ * \param handler the callback used to send a message to this cpu.
+ */
+void set_cpu_message_sender(uint8_t cpu_id, int (*handler)(struct message * msg));
+
+/**
+ * \brief set the callback to be used to request free a message to a cpu.
+ *
+ * \param cpu_id the cpu id for which we want to set the handler.
+ * \param handler the callback used to request message free on.
+ */
+void set_cpu_free_handler(uint8_t cpu_id, void (*free_handler)(struct message *));
 
 #endif /* __INFRA_PORT_H_ */

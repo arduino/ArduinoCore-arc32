@@ -24,7 +24,7 @@ typedef struct {
  *
  * \return the value to be passed as response to the requestor
  */
-int handle_ipc_sync_request(int cpu_id, int request, int param1,
+int handle_ipc_sync_request(uint8_t cpu_id, int request, int param1,
         int param2, void * ptr);
 
 #endif /* __CFW_INTERNAL_H__ */

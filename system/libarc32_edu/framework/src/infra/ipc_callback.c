@@ -1,4 +1,4 @@
-/** INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
+/* INTEL CONFIDENTIAL Copyright 2014 Intel Corporation All Rights Reserved.
   *
   * The source code contained or described herein and all documents related to
   * the source code ("Material") are owned by Intel Corporation or its suppliers
@@ -24,14 +24,31 @@
 /* For the framework IPC message handler*/
 #include "cfw/cfw_internal.h"
 
+#ifdef CONFIG_TCMD_MASTER
+#include "tcmd/master.h"
+#endif /* CONFIG_TCMD_MASTER */
 #include "infra/port.h"
+#ifdef CONFIG_PANIC
+#include "infra/panic.h"
+#endif
+#ifdef CONFIG_LOG_MULTI_CPU_SUPPORT
+#include "infra/log_impl_cbuffer.h"
+#endif
 
-int ipc_sync_callback(int cpu_id, int request, int param1, int param2,
+int ipc_sync_callback(uint8_t cpu_id, int request, int param1, int param2,
 		void *ptr)
 {
 	int ret = 0;
 
 	switch (request) {
+#ifdef CONFIG_TCMD_MASTER
+		case IPC_REQUEST_REG_TCMD_ENGINE:
+		{
+			/* This is a Test Command engine registration message */
+			ret = tcmd_ipc_sync_callback(cpu_id, request, param1, param2, ptr);
+			break;
+		}
+#endif /* CONFIG_TCMD_MASTER */
 		case IPC_REQUEST_ALLOC_PORT:
 		{
 			uint16_t port_id = port_alloc(NULL);
@@ -42,6 +59,19 @@ int ipc_sync_callback(int cpu_id, int request, int param1, int param2,
 		case IPC_MSG_TYPE_FREE:
 			message_free(ptr);
 			break;
+#ifdef CONFIG_PANIC
+		case IPC_PANIC_NOTIFICATION:
+			// Handle panic notification of core id "param1"
+			handle_panic_notification(param1);
+			break;
+#endif
+#ifdef CONFIG_LOG_MULTI_CPU_SUPPORT
+		case IPC_REQUEST_LOGGER:
+		{
+			log_cb_ipc(cpu_id, ptr);
+			break;
+		}
+#endif
 		default:
 		{
 			/* This is a framework message */
