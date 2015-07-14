@@ -26,7 +26,7 @@
 /*
  * \brief Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
- * to 3 minutes in length, but must be called at least a few dozen microseconds
+ * to 5 minutes in length, but must be called at least a few dozen microseconds
  * before the start of the pulse.
  */
 extern uint32_t pulseIn( uint32_t ulPin, uint32_t ulState, uint32_t ulTimeout = 1000000UL ) ;
