@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011 Arduino.  All right reserved.
-  Copyright (c) 2013 by Paul Stoffregen <paul@pjrc.com> (delayMicroseconds)
+  Copyright (c) 2015 Intel Corporation.  All right reserved (delayMicroseconds).
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,8 @@ extern "C" {
 
 #include <stdint.h>
 #include "wiring_constants.h"
+#include "arcv2_timer0.h"
+
 
 /**
  *
@@ -34,31 +36,39 @@ extern void initVariant( void ) ;
 extern void init( void ) ;
 
 /**
- * \brief Returns the number of milliseconds since the Arduino board began running the current program.
+ * \brief Returns the number of milliseconds since the Intel EDU board began
+ * running the current program.
  *
- * This number will overflow (go back to zero), after approximately 50 days.
+ * This number will practically never overflow (go back to zero).
  *
- * \return Number of milliseconds since the program started (uint32_t)
+ * \return Number of milliseconds since the program started (uint64_t).
  */
-extern uint32_t millis( void ) ;
+extern uint64_t millis( void ) ;
 
 /**
- * \brief Returns the number of microseconds since the Arduino board began running the current program.
+ * \brief Returns the number of microseconds since the Intel EDU board began
+ * running the current program.
  *
- * This number will overflow (go back to zero), after approximately 70 minutes. On 16 MHz Arduino boards
- * (e.g. Duemilanove and Nano), this function has a resolution of four microseconds (i.e. the value returned is
- * always a multiple of four). On 8 MHz Arduino boards (e.g. the LilyPad), this function has a resolution
- * of eight microseconds.
+ * This number will practically never overflow (go back to zero).
+ * It will overflow after more than 18000 years.
+ * This function has a resolution of 2 microseconds.
  *
- * \note There are 1,000 microseconds in a millisecond and 1,000,000 microseconds in a second.
+ * \note There are 1,000 microseconds in a millisecond and 1,000,000
+ * microseconds in a second.
  */
-extern uint32_t micros( void ) ;
+extern uint64_t micros( void ) ;
 
 /**
- * \brief Pauses the program for the amount of time (in miliseconds) specified as parameter.
- * (There are 1000 milliseconds in a second.)
+ * \brief Pauses the program for the amount of time (in milliseconds) specified
+ *  as parameter.
+ *
+ *  This function relies on Timer0 interrupts, therefore it shouldn't be called
+ *  from a context with interrupts disabled.
+ *  It doesn't use CPU's power management features.
  *
  * \param dwMs the number of milliseconds to pause (uint32_t)
+ *
+ * \note There are 1000 milliseconds in a second.
  */
 extern void delay( uint32_t dwMs ) ;
 
@@ -66,18 +76,28 @@ extern void delay( uint32_t dwMs ) ;
 /**
  * \brief Pauses the program for the amount of time (in microseconds) specified
  *  as parameter.
- *  Theoretically it works pretty accurate in the range 1 microsecond and up.
- *  The precision should be +- 0.15 microseconds.
- *  The above statements are based on measurements done when the function was
- *  most likely executed from cache.
- *  The accuracy for values <= 4 microseconds is impacted by cache miss, Timer
- *  or external interrupts.
- *  It doesn't disable the interrupts.
+ *
+ *  The precision is +- 0.5 microsecond.
+ *  It doesn't disable the interrupts and it doesn't rely on interrupts,
+ *  meaning this function works reliable even if the interrupts are disabled.
  *  It doesn't use CPU's power management features.
  *
- * \param usec the number of microseconds to pause (uint32_t)
+ * \param dwUs the number of microseconds to pause (uint32_t)
+ *	Accepted range: from 1 microsecond up to 0x07FFFFFF microseconds.
+ *	If dwUs > above specifies threshold, the delay overflows.
+ *	E.g. If dwUs = 0x08000000 (0x07FFFFFF + 1), it actually means dwUs = 0
  */
-void delayMicroseconds(uint32_t dwMs);
+static inline __attribute__ ((always_inline))
+void delayMicroseconds(uint32_t dwUs)
+{
+    if (0 == dwUs) return;
+    uint32_t init_count = arcv2_timer0_count_get();
+    /* Multiply microseconds with FREQ_MHZ to transform them in clocks */
+    uint32_t clocks = dwUs << 5;
+
+    while (arcv2_timer0_count_get() - init_count < clocks);
+}
+
 
 #ifdef __cplusplus
 }

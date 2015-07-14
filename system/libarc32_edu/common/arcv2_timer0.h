@@ -42,12 +42,9 @@ extern "C" {
 #endif
 
 
-/* Maxim number of Timer0 overflows used to compute micros()
- * It overflows at 70 minutes = 70*60 sec = 70*60*1000 millis = 4200000 */
-#define MAX_OVERFLOWS_US    4200000UL
-
 /* Increments every Timer0 overflow.
- * Timer0 is configured to overflow and fire an IRQ every 1 millisecond
+ * Timer0 is configured as a free-run timer; it overflows every 0xFFFFFFFF
+ * clocks.
  */
 extern uint32_t volatile timer0_overflows;
 
@@ -56,8 +53,8 @@ extern uint32_t volatile timer0_overflows;
 *
 * timer0_driver_init - initialize and enable the system clock
 *
-* This routine is used to program the ARCv2 timer to deliver interrupts at the
-* 1 millisecond rate specified via the ONE_MILLISECOND macro.
+* This routine is used to program the ARCv2 Timer as a free-run timer.
+* It delivers interrupts every 0xFFFFFFFF clocks.
 *
 * RETURNS: N/A
 */

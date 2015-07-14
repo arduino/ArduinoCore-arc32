@@ -45,10 +45,6 @@ The ARCv2 processor timer provides a 32-bit incrementing, wrap-to-zero counter.
 #include "conf.h"
 #include "interrupt.h"
 
-#define ONE_MILLISECOND	    ARCV2_TIMER0_CLOCK_FREQ/1000
-
-
-/* globals */
 
 uint32_t volatile timer0_overflows = 0x00;
 
@@ -83,10 +79,12 @@ void arcv2_timer0_enable(uint32_t count)
 
 /*******************************************************************************
 *
-* _arcv2_timer0_int_handler - system clock periodic tick handler
+* _arcv2_timer0_int_handler - Timer0 ISR
 *
-* This routine handles the system clock periodic tick interrupt.
-* It increments number of milliseconds since sketch begun.
+* This routine handles the overflows of 32-bit free-run Timer0.
+* In this way a virtually 64-bit RTC is created:
+*   timer0_overflows = high double word of virtual RTC.
+*   COUNT0 of Tiemr0 = low double word of virtual RTC.
 *
 * RETURNS: N/A
 *
@@ -94,7 +92,6 @@ void arcv2_timer0_enable(uint32_t count)
 */
 void _arcv2_timer0_int_handler(void)
 {
-
     /* clear the interrupt (by writing 0 to IP bit of the control register) */
     aux_reg_write(ARC_V2_TMR0_CONTROL,
                   ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
@@ -106,8 +103,8 @@ void _arcv2_timer0_int_handler(void)
 *
 * timer0_driver_init - initialize and enable the system clock
 *
-* This routine is used to program the ARCv2 timer to deliver interrupts at the
-* 1 millisecond rate specified via the ONE_MILLISECOND macro.
+* This routine is used to the ARCv2 Timer as a free-run timer.
+* It delivers interrupts evry 0xFFFFFFFF clocks.
 *
 * RETURNS: N/A
 */
@@ -115,8 +112,9 @@ void timer0_driver_init(void)
 {
     /* connect specified routine/parameter to the timer 0 interrupt vector */
     interrupt_connect(ARCV2_IRQ_TIMER0, _arcv2_timer0_int_handler, 0);
-    /* configure timer to overflow and fire an IRQ every 1 ms */
-    arcv2_timer0_enable(ONE_MILLISECOND);
+    /* Enable Timer0 as a free-run timer. */
+    arcv2_timer0_enable(0xFFFFFFFF);
+
     /* Everything has been configured. It is now safe to enable the interrupt */
     interrupt_enable(ARCV2_IRQ_TIMER0);
 }
