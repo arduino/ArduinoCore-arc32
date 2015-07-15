@@ -40,9 +40,7 @@ class UARTClass : public HardwareSerial
     int read(void);
     void flush(void);
     size_t write(const uint8_t c);
-    //TODO implemtn Print
-    //using Print::write; // pull in write(str) and write(buf, size) from Print
-
+    using Print::write; // pull in write(str) and write(buf, size) from Print
     void setInterruptPriority(uint32_t priority);
     uint32_t getInterruptPriority();
 
