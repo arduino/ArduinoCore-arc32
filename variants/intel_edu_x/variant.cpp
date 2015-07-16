@@ -57,27 +57,27 @@ extern "C" {
 PinDescription g_APinDescription[]=
 {
 
-//     gpio port          type       base                   soc pin mux mode       pwm chan pwm scale        adc channel
-    {  1,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 17,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO0
-    {  0,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 16,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO1
-    { 18,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    52,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO2
-    {  2,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 63,     GPIO_MUX_MODE, 0,       PWM_SCALE_490HZ, INVALID }, // Arduino IO3
-    { 19,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    53,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO4
-    {  3,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 64,     GPIO_MUX_MODE, 1,       PWM_SCALE_980HZ, INVALID }, // Arduino IO5
-    {  4,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 65,     GPIO_MUX_MODE, 2,       PWM_SCALE_980HZ, INVALID }, // Arduino IO6
-    { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO7
-    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    50,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO8
-    {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ, INVALID }, // Arduino IO9
-    { 11,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    45,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO10
-    { 10,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    44,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO11
-    {  9,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO12
-    {  8,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    42,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID }, // Arduino IO13
-    {  2,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 10,     GPIO_MUX_MODE, INVALID, INVALID,              10 }, // Arduino IO14
-    {  3,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 11,     GPIO_MUX_MODE, INVALID, INVALID,              11 }, // Arduino IO15
-    {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID,              12 }, // Arduino IO16
-    {  5,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 13,     GPIO_MUX_MODE, INVALID, INVALID,              13 }, // Arduino IO17
-    {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID,              14 }, // Arduino IO18
-    {  1,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR,  9,     GPIO_MUX_MODE, INVALID, INVALID,               9 }, // Arduino IO19
+//     gpio port          type       base                   soc pin mux mode       pwm chan pwm scale        adc channel pin mode
+    {  1,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 17,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO0
+    {  0,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 16,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO1
+    { 18,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    52,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO2
+    {  2,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 63,     GPIO_MUX_MODE, 0,       PWM_SCALE_490HZ, INVALID, INPUT_MODE }, // Arduino IO3
+    { 19,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    53,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO4
+    {  3,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 64,     GPIO_MUX_MODE, 1,       PWM_SCALE_980HZ, INVALID, INPUT_MODE }, // Arduino IO5
+    {  4,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 65,     GPIO_MUX_MODE, 2,       PWM_SCALE_980HZ, INVALID, INPUT_MODE }, // Arduino IO6
+    { 20,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    54,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO7
+    { 16,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    50,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO8
+    {  5,   SS_GPIO_8B1,  SS_GPIO,   SS_GPIO_8B1_BASE_ADDR, 66,     GPIO_MUX_MODE, 3,       PWM_SCALE_490HZ, INVALID, INPUT_MODE }, // Arduino IO9
+    { 11,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    45,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO10
+    { 10,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    44,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO11
+    {  9,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    43,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO12
+    {  8,   SOC_GPIO_32,  SOC_GPIO,  SOC_GPIO_BASE_ADDR,    42,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO13
+    {  2,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 10,     GPIO_MUX_MODE, INVALID, INVALID,              10, INPUT_MODE }, // Arduino IO14
+    {  3,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 11,     GPIO_MUX_MODE, INVALID, INVALID,              11, INPUT_MODE }, // Arduino IO15
+    {  4,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 12,     GPIO_MUX_MODE, INVALID, INVALID,              12, INPUT_MODE }, // Arduino IO16
+    {  5,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 13,     GPIO_MUX_MODE, INVALID, INVALID,              13, INPUT_MODE }, // Arduino IO17
+    {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID,              14, INPUT_MODE }, // Arduino IO18
+    {  1,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR,  9,     GPIO_MUX_MODE, INVALID, INVALID,               9, INPUT_MODE }, // Arduino IO19
 
 } ;
 

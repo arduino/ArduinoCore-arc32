@@ -29,6 +29,7 @@ void pinMode( uint8_t pin, uint8_t mode )
     PinDescription *p = &g_APinDescription[pin];
 
     if (mode == OUTPUT) {
+        p->ulInputMode = OUTPUT_MODE;
         if (p->ulGPIOType == SS_GPIO) {
             uint32_t reg = p->ulGPIOBase + SS_GPIO_SWPORTA_DDR;
             SET_ARC_BIT(reg, p->ulGPIOId);
@@ -38,6 +39,7 @@ void pinMode( uint8_t pin, uint8_t mode )
             SET_MMIO_BIT(reg, p->ulGPIOId);
         }
     } else {
+        p->ulInputMode = INPUT_MODE;
         if (p->ulGPIOType == SS_GPIO) {
             uint32_t reg = p->ulGPIOBase + SS_GPIO_SWPORTA_DDR;
             CLEAR_ARC_BIT(reg, p->ulGPIOId);
@@ -62,21 +64,26 @@ void digitalWrite( uint8_t pin, uint8_t val )
 
     if (pin >= NUM_DIGITAL_PINS) return;
 
-    if (p->ulGPIOType == SS_GPIO)
-    {
-        uint32_t reg = p->ulGPIOBase + SS_GPIO_SWPORTA_DR;
+    if (!p->ulInputMode) {
+        if (p->ulGPIOType == SS_GPIO) {
+            uint32_t reg = p->ulGPIOBase + SS_GPIO_SWPORTA_DR;
+            if (val)
+                SET_ARC_BIT(reg, p->ulGPIOId);
+            else
+                CLEAR_ARC_BIT(reg, p->ulGPIOId);
+        }
+        else if (p->ulGPIOType == SOC_GPIO) {
+            uint32_t reg = p->ulGPIOBase + SOC_GPIO_SWPORTA_DR;
+            if (val)
+                SET_MMIO_BIT(reg, p->ulGPIOId);
+            else
+                CLEAR_MMIO_BIT(reg, p->ulGPIOId);
+        }
+    } else {
         if (val)
-            SET_ARC_BIT(reg, p->ulGPIOId);
+            SET_PIN_PULLUP(p->ulSocPin,1);
         else
-            CLEAR_ARC_BIT(reg, p->ulGPIOId);
-    }
-    else if (p->ulGPIOType == SOC_GPIO)
-    {
-        uint32_t reg = p->ulGPIOBase + SOC_GPIO_SWPORTA_DR;
-        if (val)
-            SET_MMIO_BIT(reg, p->ulGPIOId);
-        else
-            CLEAR_MMIO_BIT(reg, p->ulGPIOId);
+            SET_PIN_PULLUP(p->ulSocPin,0);
     }
 }
 

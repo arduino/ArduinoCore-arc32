@@ -73,7 +73,8 @@ extern "C"{
 
 #define SS_GPIO  1
 #define SOC_GPIO 2
-
+#define INPUT_MODE 1
+#define OUTPUT_MODE 0
 /*
  * PWM
  */
