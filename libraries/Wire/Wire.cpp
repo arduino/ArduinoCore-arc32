@@ -64,6 +64,7 @@ void TwoWire::begin(int address)
 
 uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop)
 {
+	int ret;
 	if (quantity > BUFFER_LENGTH)
 		quantity = BUFFER_LENGTH;
 
@@ -89,8 +90,10 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
 		} else
 			return 0;
 	}
-	if (i2c_readbytes(rxBuffer, quantity) < 0)
+	ret = i2c_readbytes(rxBuffer, quantity);
+	if (ret < 0) {
 		return 0;
+	}
 	// set rx buffer iterator vars
 	rxBufferIndex = 0;
 	rxBufferLength = quantity;
@@ -154,16 +157,18 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
 			err = i2c_writebytes(txBuffer, txBufferLength);
 		else if (txBufferLength == 1)
 			err = i2c_writebyte(*txBuffer);
-		else
+		else {
 			/* FIXME: A zero byte transmit is typically used to check for an
 			 * ACK from the slave device. I'm not sure if this is the
 			 * correct way to do this.
 			 */
 			err = i2c_readbyte();
+		}
 		// empty buffer
 		txBufferLength = 0;
-		if (err < 0)
+		if (err < 0) {
 			return 2;
+		}
 		return 0;
 	} else {
 		/* sendStop = false */

@@ -23,7 +23,7 @@
 #include "i2c.h"
 #include "variant.h"
 
-#define TIMEOUT 0xFFFFF
+#define TIMEOUT 16
 
 int i2c_getadapter(uint32_t i2c_bus_address)
 {
@@ -34,7 +34,7 @@ static volatile uint8_t i2c_tx_complete;
 static volatile uint8_t i2c_rx_complete;
 static volatile uint8_t i2c_err_detect;
 
-uint8_t i2c_slave = 0;
+static volatile uint8_t i2c_slave = 0;
 
 static void ss_i2c_rx(uint32_t dev_id)
 {
@@ -53,27 +53,29 @@ static void ss_i2c_err(uint32_t dev_id)
 
 static int wait_rx_or_err(){
 	uint64_t timeout = TIMEOUT;
-	while(timeout--)
-		if ((i2c_rx_complete) || (i2c_err_detect)) {
-			if (i2c_rx_complete)
-				return I2C_OK;
-			else if (i2c_err_detect)
-				return I2C_ERROR;
-			break;
+	while(timeout--) {
+		if (i2c_err_detect) {
+			return I2C_ERROR;
 		}
+		if (i2c_rx_complete) {
+			return I2C_OK;
+		}
+		delay(1);
+	}
 	return I2C_TIMEOUT;
 }
 
 static int wait_tx_or_err(){
 	uint64_t timeout = TIMEOUT;
-	while(timeout--)
-		if ((i2c_tx_complete) || (i2c_err_detect)) {
-			if (i2c_rx_complete)
-				return I2C_OK;
-			else if (i2c_err_detect)
-				return I2C_ERROR;
-			break;
+	while(timeout--) {
+		if (i2c_err_detect) {
+			return I2C_ERROR;
 		}
+		if (i2c_tx_complete) {
+			return I2C_OK;
+		}
+		delay(1);
+	}
 	return I2C_TIMEOUT;
 }
 
@@ -104,7 +106,7 @@ int i2c_openadapter(uint8_t i2c_adapter_nr)
 
 	i2c_cfg_data_t i2c_cfg;
 
-	i2c_cfg.speed = I2C_SLOW;
+	i2c_cfg.speed = I2C_FAST;
 	i2c_cfg.addressing_mode = I2C_7_Bit;
 	i2c_cfg.mode_type = I2C_MASTER;
 	i2c_cfg.cb_tx = ss_i2c_tx;
@@ -136,19 +138,20 @@ int i2c_writebyte(uint8_t byte)
 	i2c_tx_complete = 0;
 	i2c_err_detect = 0;
 	ss_i2c_write(I2C_SENSING_0, ch, 1,  i2c_slave);
+
 	ret = wait_tx_or_err();
 	if (ret)
 		return ret;
 
 	ret = wait_dev_ready(I2C_SENSING_0);
 	if (ret)
-		return I2C_ERROR;
+		return ret;
 	return 1; /* number of bytes */
 }
 
 int i2c_writebytes(uint8_t *bytes, uint8_t length)
 {
-	uint8_t ret;
+	int ret;
 
 	i2c_tx_complete = 0;
 	i2c_err_detect = 0;
@@ -165,7 +168,7 @@ int i2c_writebytes(uint8_t *bytes, uint8_t length)
 int i2c_readbyte()
 {
 	unsigned char byte;
-	uint8_t ret;
+	int ret;
 
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
@@ -181,7 +184,7 @@ int i2c_readbyte()
 
 int i2c_readbytes(uint8_t *buf, int length)
 {
-	uint8_t ret;
+	int ret;
 
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
@@ -197,7 +200,7 @@ int i2c_readbytes(uint8_t *buf, int length)
 
 int i2c_transferbytes(uint8_t *tx_buf, int tx_length, uint8_t *rx_buf, int rx_length)
 {
-	uint8_t ret;
+	int ret;
 
 	i2c_tx_complete = 0;
 	i2c_rx_complete = 0;
