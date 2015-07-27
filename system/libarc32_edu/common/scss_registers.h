@@ -70,6 +70,9 @@
 
 /* Interrupt masking */
 #define QRK_INT_UNMASK_IA               (~0x00000001)
+#define QRK_INT_MASK_IA                 (0x000000001)
+/* Set both HOST_HALT_MASK and SS_HALT_MASK bits */
+#define INT_HALT_MASK			((0x01 << 24) | (0x01 << 16))
 
 #define SCSS_INT_GPIO_MASK_OFFSET       0X46C
 #define SCSS_INT_PWM_TIMER_MASK_OFFSET  0X470
@@ -407,7 +410,12 @@
 #define SOC_MBOX_INTERRUPT             (57)
 #define SOC_GPIO_AON_INTERRUPT         (67)
 
-#define SOC_UNMASK_INTERRUPTS(_driver_) (MMIO_REG_VAL_FROM_BASE(SCSS_REGISTER_BASE, _driver_) &= ENABLE_SSS_INTERRUPTS)
+#define DRV_REG(_driver_)		(MMIO_REG_VAL_FROM_BASE(SCSS_REGISTER_BASE, _driver_))
+#define MASK_QRK_HALT			(QRK_INT_MASK_IA | INT_HALT_MASK)
+
+#define SOC_UNMASK_INTERRUPTS(_driver_) \
+		(DRV_REG(_driver_) = (DRV_REG(_driver_) & ENABLE_SSS_INTERRUPTS) | MASK_QRK_HALT)
+
 #endif
 
 #endif /* SCSS_REGISTERS_H_ */
