@@ -51,17 +51,17 @@ UARTClass::UARTClass( uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *
 
 void UARTClass::begin(const uint32_t dwBaudRate)
 {
-  begin(dwBaudRate, 0);
+  begin(dwBaudRate, SERIAL_8N1);
 }
 
-void UARTClass::begin(const uint32_t dwBaudRate, const int config)
+void UARTClass::begin(const uint32_t dwBaudRate, const uint8_t config)
 {
   init(dwBaudRate, config );
   opened = true;
 }
 
 
-void UARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg)
+void UARTClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
 {
   uint8_t c;
   // Make sure both ring buffers are initialized back to empty.
@@ -77,6 +77,7 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg)
   info->regs = PERIPH_ADDR_BASE_UART1;
   info->irq = IRQ_UART1_INTR;
   info->int_pri = 0;
+  info->async_format = modeReg;
 
   uart_init(0, info);
 

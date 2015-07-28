@@ -264,8 +264,8 @@ void uart_init(int which, /* UART channel to initialize */
 	OUTBYTE(BRDL(which), (unsigned char)(divisor & 0xff));
 	OUTBYTE(BRDH(which), (unsigned char)((divisor >> 8) & 0xff));
 
-	/* 8 data bits, 1 stop bit, no parity, clear DLAB */
-	OUTBYTE(LCR(which), LCR_CS8 | LCR_1_STB | LCR_PDIS);
+	/* specify the format of the asynchronous data communication exchange */
+	OUTBYTE(LCR(which), init_info->async_format);
 
 	OUTBYTE(MDC(which), MCR_OUT2 | MCR_RTS | MCR_DTR);
 

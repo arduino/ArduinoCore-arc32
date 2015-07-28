@@ -36,6 +36,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* constants for line control register */
+
+#define LCR_CS5 0x00   /* 5 bits data size */
+#define LCR_CS6 0x01   /* 6 bits data size */
+#define LCR_CS7 0x02   /* 7 bits data size */
+#define LCR_CS8 0x03   /* 8 bits data size */
+#define LCR_2_STB 0x04 /* 2 stop bits */
+#define LCR_1_STB 0x00 /* 1 stop bit */
+#define LCR_PEN 0x08   /* parity enable */
+#define LCR_PDIS 0x00  /* parity disable */
+#define LCR_EPS 0x10   /* even parity select */
+#define LCR_SP 0x20    /* stick parity select */
+#define LCR_SBRK 0x40  /* break control bit */
+#define LCR_DLAB 0x80  /* divisor latch access enable */
 
 /* generic UART info structure */
 struct uart_init_info {
@@ -45,6 +59,7 @@ struct uart_init_info {
 	uint8_t options; /* HW Flow Control option */
 	uint8_t irq; /* interrupt request number */
 	uint8_t int_pri; /* interrupt priority level */
+        uint8_t async_format; /* asynchronous data format */
 };
 /* UART driver has to configure the device to 8n1 */
 

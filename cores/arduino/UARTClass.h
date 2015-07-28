@@ -25,6 +25,31 @@
 #include <board.h>
 #include <uart.h>
 
+#define SERIAL_5N1      LCR_CS5 | LCR_PDIS | LCR_1_STB
+#define SERIAL_6N1      LCR_CS6 | LCR_PDIS | LCR_1_STB
+#define SERIAL_7N1      LCR_CS7 | LCR_PDIS | LCR_1_STB
+#define SERIAL_8N1      LCR_CS8 | LCR_PDIS | LCR_1_STB
+#define SERIAL_5N2      LCR_CS5 | LCR_PDIS | LCR_2_STB
+#define SERIAL_6N2      LCR_CS6 | LCR_PDIS | LCR_2_STB
+#define SERIAL_7N2      LCR_CS7 | LCR_PDIS | LCR_2_STB
+#define SERIAL_8N2      LCR_CS8 | LCR_PDIS | LCR_2_STB
+#define SERIAL_5E1      LCR_CS5 | LCR_PEN  | LCR_EPS | LCR_1_STB
+#define SERIAL_6E1      LCR_CS6 | LCR_PEN  | LCR_EPS | LCR_1_STB
+#define SERIAL_7E1      LCR_CS7 | LCR_PEN  | LCR_EPS | LCR_1_STB
+#define SERIAL_8E1      LCR_CS8 | LCR_PEN  | LCR_EPS | LCR_1_STB
+#define SERIAL_5E2      LCR_CS5 | LCR_PEN  | LCR_EPS | LCR_2_STB
+#define SERIAL_6E2      LCR_CS6 | LCR_PEN  | LCR_EPS | LCR_2_STB
+#define SERIAL_7E2      LCR_CS7 | LCR_PEN  | LCR_EPS | LCR_2_STB
+#define SERIAL_8E2      LCR_CS8 | LCR_PEN  | LCR_EPS | LCR_2_STB
+#define SERIAL_5O1      LCR_CS5 | LCR_PEN  | LCR_1_STB
+#define SERIAL_6O1      LCR_CS6 | LCR_PEN  | LCR_1_STB
+#define SERIAL_7O1      LCR_CS7 | LCR_PEN  | LCR_1_STB
+#define SERIAL_8O1      LCR_CS8 | LCR_PEN  | LCR_1_STB
+#define SERIAL_5O2      LCR_CS5 | LCR_PEN  | LCR_2_STB
+#define SERIAL_6O2      LCR_CS6 | LCR_PEN  | LCR_2_STB
+#define SERIAL_7O2      LCR_CS7 | LCR_PEN  | LCR_2_STB
+#define SERIAL_8O2      LCR_CS8 | LCR_PEN  | LCR_2_STB
+
 class UARTClass : public HardwareSerial
 {
   public:
@@ -32,7 +57,7 @@ class UARTClass : public HardwareSerial
     UARTClass(uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer );
 
     void begin(const uint32_t dwBaudRate);
-    void begin(const uint32_t dwBaudRate, const int config);
+    void begin(const uint32_t dwBaudRate, const uint8_t config);
     void end(void);
     int available(void);
     int availableForWrite(void);
@@ -49,7 +74,7 @@ class UARTClass : public HardwareSerial
     operator bool() { return true; }; // UART always active
 
   protected:
-    void init(const uint32_t dwBaudRate, const uint32_t config);
+    void init(const uint32_t dwBaudRate, const uint8_t config);
 
     RingBuffer *_rx_buffer;
     RingBuffer *_tx_buffer;
