@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 struct _IsrTableEntry
 {
-    void *arg;
     void (*isr)(void);
 };
 
@@ -36,28 +35,11 @@ static void _dummy_isr(void)
     for(;;);
 }
 
-/*
- * The default, generic hardware IRQ handler.
- * It only decodes the source of IRQ and calls the appropriate handler
- *
- * We need this because the Interrupt Vector Table is located in the flash
- * memory and cannot modify it at run time.*/
-__attribute__ ((interrupt ("ilink")))
-void _do_isr(void)
-{
-    unsigned int irq_cause = aux_reg_read(ARC_V2_ICAUSE) - SS_NUM_EXCEPTIONS;
-    if (_IsrTable[irq_cause].isr != 0x00)
-        _IsrTable[irq_cause].isr();
-    else
-	_dummy_isr();
-}
-
-void interrupt_connect(unsigned int irq, void (*isr)(void), void *arg)
+void interrupt_connect(unsigned int irq, void (*isr)(void))
 {
     int index = irq - SS_NUM_EXCEPTIONS;
     unsigned int flags = interrupt_lock();
     _IsrTable[index].isr = isr;
-    _IsrTable[index].arg = arg;
     interrupt_unlock(flags);
 }
 
@@ -100,7 +82,7 @@ void interrupt_unit_device_init(void)
     for (irq_index = min_irq_no; irq_index < max_irq_no; irq_index++)
     {
         aux_reg_write(ARC_V2_IRQ_SELECT, irq_index);
-        aux_reg_write(ARC_V2_IRQ_PRIORITY, 1);
+        aux_reg_write(ARC_V2_IRQ_PRIORITY, (INTERRUPT_THRESHOLD - 1) );
         aux_reg_write(ARC_V2_IRQ_ENABLE, ARC_V2_INT_DISABLE);
         aux_reg_write(ARC_V2_IRQ_TRIGGER, ARC_V2_INT_LEVEL);
     }

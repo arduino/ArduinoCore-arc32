@@ -7,7 +7,7 @@
 #define DECLARE_INTERRUPT_HANDLER
 #define SET_INTERRUPT_HANDLER(_vec_, _isr_) \
     do { \
-        interrupt_connect((_vec_), (_isr_), NULL); \
+        interrupt_connect((_vec_), (_isr_)); \
         interrupt_enable((_vec_)); \
     } while(0)
 

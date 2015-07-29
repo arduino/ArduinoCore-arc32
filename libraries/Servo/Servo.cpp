@@ -100,7 +100,7 @@ static void timer1_init_servo(uint32_t ticktime)
     aux_reg_write(ARC_V2_TMR1_COUNT, 0);    /* clear the count value */
 
     /* connect specified routine/parameter to the timer 0 interrupt vector */
-    interrupt_connect(ARCV2_IRQ_TIMER1, timer1_isr_servo, 0);
+    interrupt_connect(ARCV2_IRQ_TIMER1, timer1_isr_servo);
 
     /*
      * Set the reload value to achieve the configured tick rate, enable the

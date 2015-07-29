@@ -144,7 +144,7 @@ void cfw_platform_init(bool irq_enable)
 
     if (irq_enable) {
         /* Set up mailbox interrupt handler */
-        interrupt_connect(SOC_MBOX_INTERRUPT, ipc_mbx_isr, NULL);
+        interrupt_connect(SOC_MBOX_INTERRUPT, ipc_mbx_isr);
         interrupt_enable(SOC_MBOX_INTERRUPT);
         /* Enable interrupt for ARC IPC rx channel */
         SOC_MBX_INT_UNMASK(ipc_rx_chan);

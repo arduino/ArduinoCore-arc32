@@ -58,7 +58,7 @@ static void _exec_ctors (void)
     /* Init the the interrupt unit device - disable all the interrupts; The
      * default value of IRQ_ENABLE is 0x01 for all configured interrupts */
     interrupt_unit_device_init();
-    /* Start the system 1 millisecond tick */
+    /* Start the system's virtual 64-bit Real Time Counter */
     timer0_driver_init();
     /* Jump to application main() */
     main ();

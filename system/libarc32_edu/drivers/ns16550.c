@@ -524,6 +524,6 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 		      void *stub	   /* ptr to interrupt stub code */
 		      )
 {
-	interrupt_connect((unsigned int)uart[which].irq, isr, arg);
+	interrupt_connect((unsigned int)uart[which].irq, isr);
 	interrupt_enable((unsigned int)uart[which].irq);
 }

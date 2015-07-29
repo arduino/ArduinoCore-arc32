@@ -44,7 +44,6 @@ _do_reset:
     mov r0, @_start
     sr r0, [ARC_V2_IRQ_VECT_BASE]
     /* Set up stack pointer */
-//    mov sp, @_DefaultStack + STACK_SIZE
     mov sp, @__stack_start
     /* Enable instruction cache */
     mov r0, 0x20
@@ -52,6 +51,10 @@ _do_reset:
     /* Jump to C init function */
     j @_main
 
+/*
+ * Default, generic exception handler:
+ * Sets the halt flag and spins for ever.
+ */
 .balign 4
 _do_fault:
     /* Set halt flag */
@@ -62,3 +65,24 @@ _do_fault:
     /* loop forever */
     j @_do_fault
     nop
+
+/*
+ * The default, generic hardware IRQ handler.
+ * It only decodes the source of IRQ and calls the appropriate handler
+ */
+.balign 4
+_do_isr:
+     /* Init the SP for the FIRQ bank */
+     mov sp, @__firq_stack_start
+    /* Read IRQ Cause */
+    lr r0, [ARC_V2_ICAUSE]
+    sub r0, r0, 16
+
+    mov r1, _IsrTable
+    add2 r0, r1, r0   /* table entries are 4-bytes wide */
+
+    ld r1, [r0] /* ISR into r1 */
+    jl_s.d [r1]
+    nop
+
+    rtie

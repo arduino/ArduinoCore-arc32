@@ -85,7 +85,7 @@ static void timer1_init_tone(uint32_t ticktime_us)
     aux_reg_write(ARC_V2_TMR1_COUNT, 0);    /* clear the count value */
 
     /* connect specified routine/parameter to the timer 0 interrupt vector */
-    interrupt_connect(ARCV2_IRQ_TIMER1, timer1_isr, 0);
+    interrupt_connect(ARCV2_IRQ_TIMER1, timer1_isr);
 
     tickunit = 32 * ticktime_us;
 

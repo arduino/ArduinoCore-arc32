@@ -44,8 +44,11 @@ MEMORY
     DCCM                  (wx) : ORIGIN = 0x80000000, LENGTH = 8K
     }
 
-/* Putting stack at end of SRAM for now */
-__stack_start = ORIGIN(SRAM)+LENGTH(SRAM);
+/* Define default stack size and FIRQ stack size.
+ * See below stack section for __stack_start and __firq_stack_start
+ */
+__stack_size = 2048;
+__firq_stack_size = 512;
 
 /* Minimum heap size to allocate
  * Actual heap size might be bigger due to page size alignment */
@@ -159,6 +162,17 @@ SECTIONS
         __start_heap = .;
         . = . + __HEAP_SIZE_MIN;
         __end_heap = ALIGN(__PAGE_SIZE);
+    } > SRAM
+
+    stack :
+    {
+        . += __firq_stack_size;
+        . = ALIGN(4);
+        __firq_stack_start = .;
+
+        . += __stack_size;
+        . = ALIGN(4);
+        __stack_start = .;
     } > SRAM
 
     /* Define linker symbols */

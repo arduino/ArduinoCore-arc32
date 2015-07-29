@@ -111,7 +111,7 @@ void _arcv2_timer0_int_handler(void)
 void timer0_driver_init(void)
 {
     /* connect specified routine/parameter to the timer 0 interrupt vector */
-    interrupt_connect(ARCV2_IRQ_TIMER0, _arcv2_timer0_int_handler, 0);
+    interrupt_connect(ARCV2_IRQ_TIMER0, _arcv2_timer0_int_handler);
     /* Enable Timer0 as a free-run timer. */
     arcv2_timer0_enable(0xFFFFFFFF);
 
