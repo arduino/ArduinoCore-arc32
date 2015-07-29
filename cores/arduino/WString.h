@@ -108,26 +108,14 @@ public:
 	// if there's not enough memory for the concatenated value, the string
 	// will be left unchanged (but this isn't signalled in any way)
 	String & operator += (const String &rhs)	{concat(rhs); return (*this);}
-	String & operator += (const char *cstr)		{concat(cstr); return (*this);}
-	String & operator += (char c)			{concat(c); return (*this);}
+	String & operator += (const char *cstr)		{concat(cstr);return (*this);}
+	String & operator += (char c)			{concat(c);   return (*this);}
 	String & operator += (unsigned char num)       	{concat(num); return (*this);}
 	String & operator += (int num)			{concat(num); return (*this);}
 	String & operator += (unsigned int num)		{concat(num); return (*this);}
 	String & operator += (long num)			{concat(num); return (*this);}
 	String & operator += (unsigned long num)	{concat(num); return (*this);}
 
-
-	// Implement StringAdditionOperator per Arduino docs... String + __
-	String operator + (const String &rhs)	{return String(*this) += rhs;}
-	String operator + (const char *cstr)	{return String(*this) += cstr;}
-	String operator + (char c)		{return String(*this) += c;}
-	String operator + (unsigned char num)	{return String(*this) += num;}
-	String operator + (int num)		{return String(*this) += num;}
-	String operator + (unsigned int num)	{return String(*this) += num;}
-	String operator + (long num)		{return String(*this) += num;}
-	String operator + (unsigned long num)	{return String(*this) += num;}
-
-#if 0
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const String &rhs);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const char *cstr);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, char c);
@@ -136,7 +124,6 @@ public:
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned int num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, long num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long num);
-#endif
 
 	// comparison (only works w/ Strings and "strings")
 	operator StringIfHelperType() const { return buffer ? &String::StringIfHelper : 0; }
