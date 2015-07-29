@@ -37,6 +37,7 @@
 #include "pins_arduino.h"
 #ifdef __cplusplus
 #include "UARTClass.h"
+#include "CDCSerialClass.h"
 //#include "USARTClass.h"
 #endif
 
@@ -161,10 +162,13 @@ static inline uint32_t digitalPinToPort(uint32_t pin) {
 
 #ifdef __cplusplus
 
-extern UARTClass Serial;
-//extern USARTClass Serial1;
+extern CDCSerialClass Serial;
+extern UARTClass Serial1;
 
 #endif
+
+void CDCSerial_getByte(uint8_t uc_data);
+void CDCSerial_bytes_sent(uint32_t num);
 
 // These serial port names are intended to allow libraries and architecture-neutral
 // sketches to automatically default to the correct port name for a particular type
