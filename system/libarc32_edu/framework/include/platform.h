@@ -93,7 +93,8 @@ enum {
 	PROPERTIES_SERVICE_ID = 12,
 	ARC_SC_SVC_ID         = 13,
 	LMT_SS_SVC_ID         = 14,
-	AON_GPIO_SERVICE_ID   = 15
+	AON_GPIO_SERVICE_ID   = 15,
+	CDC_SERIAL_SERVICE_ID = 16
 };
 
 #define BLE_SERVICE_MSG_BASE      (BLE_SERVICE_ID << 10)
@@ -105,6 +106,7 @@ enum {
 #define MSG_ID_UI_SERVICE_BASE    (UI_SVC_SERVICE_ID << 10)
 #define MSG_ID_PROP_SERVICE_BASE  (PROPERTIES_SERVICE_ID << 10)
 #define MSG_ID_SS_SERVICE_BASE    (ARC_SC_SVC_ID << 10)
+#define MSG_ID_CDC_SERIAL_BASE    (CDC_SERIAL_SERVICE_ID << 10)
 
 #define ADC_VOLTAGE_CHANNEL                 4   /**< TODO arbitrary value. Looking for final decision*/
 #define ADC_TEMPERATURE_CHANNEL             5   /**< TODO arbitrary value. Looking for final decision*/

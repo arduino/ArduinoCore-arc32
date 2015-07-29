@@ -20,6 +20,7 @@
 #include "portable.h"
 
 #include "cfw_platform.h"
+#include "services/cdc_serial_service.h"
 
 /*
  * EDU Board pin   |     GPIO     | Label
@@ -93,49 +94,59 @@ uint32_t sizeof_g_APinDescription;
 /*
  * UART objects
  */
-RingBuffer rx_buffer1;
-RingBuffer tx_buffer1;
-uart_init_info info1;
 
-UARTClass Serial(&info1, &rx_buffer1, &tx_buffer1);
+// Serial - CDC-ACM port
 
-// IT handlers
-void UART_Handler(void)
+RingBuffer rx_buffer2;
+RingBuffer tx_buffer2;
+uart_init_info info2;
+
+CDCSerialClass Serial(&info2, &rx_buffer2, &tx_buffer2);
+
+void CDCSerial_Handler(void)
 {
   Serial.IrqHandler();
+}
+
+void CDCSerial_getByte(uint8_t uc_data)
+{
+  Serial.getByte(uc_data);
+}
+
+void CDCSerial_bytes_sent(uint32_t num)
+{
+  Serial.bytes_sent(num);
+}
+
+void CDCSerial_init_cb(uint32_t acm_open)
+{
+  Serial.init_cb(acm_open);
 }
 
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
 
-#ifdef OUT
-// ----------------------------------------------------------------------------
-/*
- * USART objects
- */
-RingBuffer rx_buffer2;
-RingBuffer tx_buffer2;
+// Serial1 - Arduino Header Pins 0 and 1
 
-USARTClass Serial1(USART0, USART0_IRQn, ID_USART0, &rx_buffer2, &tx_buffer2);
-void serialEvent1() __attribute__((weak));
-void serialEvent1() { }
+RingBuffer rx_buffer1;
+RingBuffer tx_buffer1;
+uart_init_info info1;
 
-// IT handlers
-void USART0_Handler(void)
+UARTClass Serial1(&info1, &rx_buffer1, &tx_buffer1);
+
+void UART_Handler(void)
 {
   Serial1.IrqHandler();
 }
 
-// ----------------------------------------------------------------------------
+void serialEvent1() __attribute__((weak));
+void serialEvent1() { }
 
 void serialEventRun(void)
 {
   if (Serial.available()) serialEvent();
   if (Serial1.available()) serialEvent1();
 }
-
-#endif
-
 
 // ----------------------------------------------------------------------------
 
@@ -226,6 +237,10 @@ void initVariant( void )
     variantPwmInit();
     variantAdcInit();
     cfw_platform_init(true /* irq_enable */);
+	cdc_register_byte_cb(CDCSerial_getByte);
+	cdc_register_sent_cb(CDCSerial_bytes_sent);
+	cdc_register_init_cb(CDCSerial_init_cb);
+	delay(500);
 }
 
 #ifdef __cplusplus
