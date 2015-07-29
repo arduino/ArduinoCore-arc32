@@ -111,11 +111,10 @@ static void timer1_init_tone(uint32_t ticktime_us)
 
 void tone(uint32_t _pin, unsigned int frequency, unsigned long duration)
 {
-    timer_interval = (CONVERT_US / frequency) >> 1;
-
-    if (timer_interval == 0) {
+    if(frequency != 0) {
+        timer_interval = (CONVERT_US / frequency) >> 1;
+    } else
         return;
-    }
 
     /* duration of tone is never-ending, until a noTone() is called, unless a non-zero duration is specified by the caller */
     if (duration > 0) {
