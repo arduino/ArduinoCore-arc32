@@ -26,8 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "aux_regs.h"
 #include "board.h"
 
-#define FREQ_MHZ    ((ARCV2_TIMER0_CLOCK_FREQ)/1000000)
-
+#define FREQ_MHZ	((ARCV2_TIMER0_CLOCK_FREQ)/1000000)
+static const uint64_t	 MS_TO_CLKS = (FREQ_MHZ * 1000);
 
 static uint64_t getTimeStampClks(void)
 {
@@ -56,11 +56,10 @@ static uint64_t getTimeStampClks(void)
    );
 }
 
-
 void delay(uint32_t msec)
 {
     uint64_t initial_timestamp = getTimeStampClks();
-    uint64_t delay_clks = msec * FREQ_MHZ * 1000;
+    uint64_t delay_clks = msec * MS_TO_CLKS;
 
     while (getTimeStampClks() - initial_timestamp < delay_clks) {
         yield();
