@@ -91,13 +91,13 @@ class Stream : public Print
   String readString();
   String readStringUntil(char terminator);
 
-  protected:
   long parseInt(char skipChar); // as above but the given skipChar is ignored
   // as above but the given skipChar is ignored
   // this allows format characters (typically commas) in values to be ignored
 
   float parseFloat(char skipChar);  // as above but the given skipChar is ignored
 
+  protected:
   struct MultiTarget {
     const char *str;  // string you're searching for
     size_t len;       // length of string you're searching for
