@@ -97,46 +97,30 @@ uint32_t sizeof_g_APinDescription;
 
 // Serial - CDC-ACM port
 
-RingBuffer rx_buffer2;
-RingBuffer tx_buffer2;
-uart_init_info info2;
+RingBuffer rx_buffer_cdc;
+RingBuffer tx_buffer_cdc;
+uart_init_info info_cdc;
 
-CDCSerialClass Serial(&info2, &rx_buffer2, &tx_buffer2);
-
-void CDCSerial_Handler(void)
-{
-  Serial.IrqHandler();
-}
-
-void CDCSerial_getByte(uint8_t uc_data)
-{
-  Serial.getByte(uc_data);
-}
-
-void CDCSerial_bytes_sent(uint32_t num)
-{
-  Serial.bytes_sent(num);
-}
-
-void CDCSerial_init_cb(uint32_t acm_open)
-{
-  Serial.init_cb(acm_open);
-}
+CDCSerialClass Serial(&info_cdc, &rx_buffer_cdc, &tx_buffer_cdc);
 
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
 
 // Serial1 - Arduino Header Pins 0 and 1
 
-RingBuffer rx_buffer1;
-RingBuffer tx_buffer1;
-uart_init_info info1;
+RingBuffer rx_buffer_uart;
+RingBuffer tx_buffer_uart;
+uart_init_info info_uart;
 
-UARTClass Serial1(&info1, &rx_buffer1, &tx_buffer1);
+UARTClass Serial1(&info_uart, &rx_buffer_uart, &tx_buffer_uart);
 
 void UART_Handler(void)
 {
   Serial1.IrqHandler();
+}
+
+bool Serial1_available() {
+  return Serial1.available();
 }
 
 void serialEvent1() __attribute__((weak));
@@ -148,6 +132,10 @@ void serialEventRun(void)
   if (Serial1.available()) serialEvent1();
 }
 
+void serialEventRun1(void)
+{
+  if (Serial1_available()) serialEvent1();
+}
 // ----------------------------------------------------------------------------
 
 #ifdef __cplusplus
@@ -237,10 +225,6 @@ void initVariant( void )
     variantPwmInit();
     variantAdcInit();
     cfw_platform_init(true /* irq_enable */);
-	cdc_register_byte_cb(CDCSerial_getByte);
-	cdc_register_sent_cb(CDCSerial_bytes_sent);
-	cdc_register_init_cb(CDCSerial_init_cb);
-	delay(500);
 }
 
 #ifdef __cplusplus

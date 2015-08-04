@@ -24,61 +24,42 @@
 #include "cfw/cfw_client.h"
 #include "platform.h"
 
-// Only goes from ARC to LMT. Setup of CDC-ACM port
-#define MSG_ID_CDC_SERIAL_INIT  MSG_ID_CDC_SERIAL_BASE + 2
+#define SERIAL_BUFFER_SIZE 256
+
 // Only goes from ARC to LMT. TX data out of CDC-ACM port
 #define MSG_ID_CDC_SERIAL_TX    MSG_ID_CDC_SERIAL_BASE + 3
 
-// Only goes from LMT to ARC. Ack in response to TX,init
-#define MSG_ID_CDC_SERIAL_INIT_ACK   MSG_ID_CDC_SERIAL_BASE + 0x82
+// Only goes from LMT to ARC. Ack in response to TX
 #define MSG_ID_CDC_SERIAL_TX_ACK     MSG_ID_CDC_SERIAL_BASE + 0x83
 
 // Only goes from LMT to ARC. Carries data RX'd from CDC-ACM port
-#define MSG_ID_CDC_SERIAL_1_EVT MSG_ID_CDC_SERIAL_BASE + 0x1001
+#define MSG_ID_CDC_SERIAL_RX_EVT MSG_ID_CDC_SERIAL_BASE + 0x1001
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void (*cdc_recvbyte_cb_t)(uint8_t uc_data);
-typedef void (*cdc_sentbytes_cb_t)(uint32_t num);
-typedef void (*cdc_init_cb_t)(uint32_t acm_open);
+typedef void (*cdc_recvbyte_cb_t)(uint8_t uc_data, void *arg);
+typedef void (*cdc_sentbytes_cb_t)(uint32_t num, void *arg);
 
-void cdc_register_byte_cb(cdc_recvbyte_cb_t cb);
-void cdc_register_sent_cb(cdc_sentbytes_cb_t cb);
-void cdc_register_init_cb(cdc_init_cb_t cb);
+void cdc_register_byte_cb(cdc_recvbyte_cb_t cb, void *arg);
+void cdc_register_sent_cb(cdc_sentbytes_cb_t cb, void *arg);
 
-void cdc_serial_service_init(uint32_t baud, uint8_t config);
 
 int cdc_serial_service_send(char * buff, int len, void * priv);
 int cdc_serial_service_sent(struct cfw_message *msg);
-int cdc_serial_service_receive_from_lmt(struct cfw_message *msg);
-int cdc_serial_service_receive_init_ack(struct cfw_message *msg);
-
-typedef struct cdc_serial_init_msg {
-	struct cfw_message header;
-	uint32_t baudrate;
-	uint32_t parity;
-	uint32_t databits;
-	uint32_t stopbits;
-} cdc_serial_init_msg_t;
+int cdc_serial_service_receive(struct cfw_message *msg);
 
 typedef struct cdc_serial_msg {
 	struct cfw_message header;
 	int len;
-	char data[256];
-	char *buff;
+	char data[SERIAL_BUFFER_SIZE];
 } cdc_serial_msg_t;
 
 typedef struct cdc_serial_tx_ack_msg {
 	struct cfw_rsp_message rsp_header;
 	int num;
 } cdc_serial_tx_ack_msg_t;
-
-typedef struct cdc_serial_init_ack_msg {
-	struct cfw_rsp_message rsp_header;
-	int acm_open;
-} cdc_serial_init_ack_msg_t;
 
 #ifdef __cplusplus
 }

@@ -27,77 +27,55 @@
 
 static cdc_recvbyte_cb_t byte_cb = NULL;
 static cdc_sentbytes_cb_t sent_cb = NULL;
-static cdc_init_cb_t init_cb = NULL;
+static void *byte_param = NULL;
+static void *send_param = NULL;
+
+extern volatile int cdc_service_available;
 
 /*
  *  allows registering of a callback to populate rx buffer in CDCSerial class.
  */
-void cdc_register_byte_cb(cdc_recvbyte_cb_t cb){
+void cdc_register_byte_cb(cdc_recvbyte_cb_t cb, void *arg){
 	byte_cb = cb;
+	byte_param = arg;
 }
 
-void cdc_register_sent_cb(cdc_sentbytes_cb_t cb){
+void cdc_register_sent_cb(cdc_sentbytes_cb_t cb, void *arg){
 	sent_cb = cb;
-}
-
-void cdc_register_init_cb(cdc_sentbytes_cb_t cb){
-	init_cb = cb;
+	send_param = arg;
 }
 
 extern svc_client_handle_t * cdc_serial_service_handle;
 
 int cdc_serial_service_send(char * buff, int len, void *priv) {
 	int i;
-    struct cfw_message * msg = cfw_alloc_message_for_service(cdc_serial_service_handle, MSG_ID_CDC_SERIAL_TX,
-            sizeof(cdc_serial_msg_t), priv);
-    cdc_serial_msg_t *req = (cdc_serial_msg_t*) msg;
-    req->len = len;
-	for (i=0;i<len;i++) {
-		req->data[i] = buff[i];
+	if (cdc_service_available) {
+		struct cfw_message * msg = cfw_alloc_message_for_service(cdc_serial_service_handle, MSG_ID_CDC_SERIAL_TX,
+				sizeof(cdc_serial_msg_t), priv);
+		cdc_serial_msg_t *req = (cdc_serial_msg_t*) msg;
+		req->len = len;
+		for (i=0;i<len;i++) {
+			req->data[i] = buff[i];
+		}
+		cfw_send_message(msg);
 	}
-    req->buff = buff;
-    cfw_send_message(msg);
-    return 0;
+	return 0;
 }
 
 int cdc_serial_service_sent(struct cfw_message *msg) {
-    cdc_serial_tx_ack_msg_t *req = (cdc_serial_tx_ack_msg_t*) msg;
-	sent_cb(req->num);
-    return 0;
+	cdc_serial_tx_ack_msg_t *req = (cdc_serial_tx_ack_msg_t*) msg;
+	sent_cb(req->num, send_param);
+	return 0;
 }
 
-int cdc_serial_service_receive_from_lmt(struct cfw_message *msg) {
+int cdc_serial_service_receive(struct cfw_message *msg) {
 	int i;
-    cdc_serial_msg_t *req = (cdc_serial_msg_t*) msg;
+	cdc_serial_msg_t *req = (cdc_serial_msg_t*) msg;
 
 	for (i=0;i<req->len;i++) {
-		// call the callback to populate the rx buffer in the CDCSerial class.
-		byte_cb(req->data[i]);
+		// call the callback to pass the data. 
+		byte_cb(req->data[i], byte_param);
 	}
 
-    return 0;
+	return 0;
 }
-int cdc_serial_service_receive_init_ack(struct cfw_message *msg) {
-
-    cdc_serial_init_ack_msg_t *req = (cdc_serial_init_ack_msg_t*) msg;
-
-	init_cb(req->acm_open);
-
-    return 0;
-
-}
-
-void cdc_serial_service_init(uint32_t baud, uint8_t config) {
-    struct cfw_message * msg = cfw_alloc_message_for_service(cdc_serial_service_handle, MSG_ID_CDC_SERIAL_INIT,
-            sizeof(cdc_serial_init_msg_t), NULL);
-    cdc_serial_init_msg_t *req = (cdc_serial_init_msg_t*) msg;
-	req->baudrate = 115200;
-	req->parity   = config;
-	req->databits = config;
-	req->stopbits = config;
-    cfw_send_message(msg);
-}
-
-
-
-
