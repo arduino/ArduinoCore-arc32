@@ -49,10 +49,7 @@ class CDCSerialClass : public HardwareSerial
 
 	void getByte(uint8_t uc_data);
 	void bytes_sent(uint32_t num);
-	void init_cb(uint32_t status);
 	bool in_flight;
-	int acm_open;
-    void IrqHandler(void);
 
     operator bool() { return true; }; // CDCSerial always active
 

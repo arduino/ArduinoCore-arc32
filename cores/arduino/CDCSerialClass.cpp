@@ -34,24 +34,26 @@
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
 extern void serialEvent1(void) __attribute__((weak));
-extern int acm_open;
 
-bool Serial1_available() {
-  return Serial1.available();
+void CDCSerial_getByte(uint8_t uc_data, void *arg)
+{
+  ((CDCSerialClass *)arg)->getByte(uc_data);
 }
 
-void serialEventRun1(void)
+void CDCSerial_bytes_sent(uint32_t num, void *arg)
 {
-  if (Serial1_available()) serialEvent1();
+  ((CDCSerialClass *)arg)->bytes_sent(num);
 }
 
 // Constructors ////////////////////////////////////////////////////////////////
 
 CDCSerialClass::CDCSerialClass( uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
 {
-   this->info = info;
-   this->_rx_buffer = pRx_buffer;
-   this->_tx_buffer = pTx_buffer;
+	this->info = info;
+	this->_rx_buffer = pRx_buffer;
+	this->_tx_buffer = pTx_buffer;
+	cdc_register_byte_cb(CDCSerial_getByte, this);
+	cdc_register_sent_cb(CDCSerial_bytes_sent, this);
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
@@ -70,22 +72,10 @@ void CDCSerialClass::begin(const uint32_t dwBaudRate, const uint8_t config)
 
 void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
 {
-  //uint8_t c;
-  // Make sure both ring buffers are initialized back to empty.
-  _rx_buffer->_iHead = _rx_buffer->_iTail = 0;
-  _tx_buffer->_iHead = _tx_buffer->_iTail = 0;
-  in_flight = false;
-
-	/*
-	 * Keep sending init messages through component framework until the acm device
-	 * comes up.
-	 */
-	cdc_serial_service_init(dwBaudRate, modeReg);
-	while(!acm_open)
-	{
-		delay(500);
-		cdc_serial_service_init(dwBaudRate, modeReg);
-	}
+	// Make sure both ring buffers are initialized back to empty.
+	_rx_buffer->_iHead = _rx_buffer->_iTail = 0;
+	_tx_buffer->_iHead = _tx_buffer->_iTail = 0;
+	in_flight = false;
 }
 
 void CDCSerialClass::end( void )
@@ -137,7 +127,7 @@ int CDCSerialClass::read( void )
   return uc;
 }
 
-char chars[SERIAL_BUFFER_SIZE];
+static char chars[SERIAL_BUFFER_SIZE];
 
 void CDCSerialClass::flush( void )
 {
@@ -184,40 +174,8 @@ void CDCSerialClass::getByte(uint8_t uc_data)
 	flush();
 }
 
-void CDCSerialClass::init_cb(uint32_t status)
-{
-	acm_open = status;
-}
-
 void CDCSerialClass::bytes_sent(uint32_t len)
 {
 	in_flight = false;
 	flush();
 }
-
-void CDCSerialClass::IrqHandler( void )
-{
-  uint8_t uc_data;
-  int ret;
-  ret = uart_poll_in(0, &uc_data);
-
-  while ( ret != -1 ) {
-    _rx_buffer->store_char(uc_data);
-    //ret = uart_poll_in(0, &uc_data);
-  }
-
-  // Do we need to keep sending data?
-  if (!uart_irq_tx_ready(0))
-  {
-    if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-      //uart_poll_out(0, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
-      _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
-    }
-    else
-    {
-      // Mask off transmit interrupt so we don't get it anymore
-      //uart_irq_tx_disable(0);
-    }
-  }
-}
-
