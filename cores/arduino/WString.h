@@ -72,6 +72,8 @@ public:
 	explicit String(unsigned int, unsigned char base=10);
 	explicit String(long, unsigned char base=10);
 	explicit String(unsigned long, unsigned char base=10);
+	explicit String(float, unsigned char decimalPlaces=2);
+	explicit String(double, unsigned char decimalPlaces=2);
 	~String(void);
 
 	// memory management
@@ -104,17 +106,21 @@ public:
 	unsigned char concat(unsigned int num);
 	unsigned char concat(long num);
 	unsigned char concat(unsigned long num);
+	unsigned char concat(float num);
+	unsigned char concat(double num);
 
 	// if there's not enough memory for the concatenated value, the string
 	// will be left unchanged (but this isn't signalled in any way)
 	String & operator += (const String &rhs)	{concat(rhs); return (*this);}
 	String & operator += (const char *cstr)		{concat(cstr);return (*this);}
 	String & operator += (char c)			{concat(c);   return (*this);}
-	String & operator += (unsigned char num)       	{concat(num); return (*this);}
+	String & operator += (unsigned char num)	{concat(num); return (*this);}
 	String & operator += (int num)			{concat(num); return (*this);}
 	String & operator += (unsigned int num)		{concat(num); return (*this);}
 	String & operator += (long num)			{concat(num); return (*this);}
 	String & operator += (unsigned long num)	{concat(num); return (*this);}
+	String & operator += (float num)	        {concat(num); return (*this);}
+	String & operator += (double num)               {concat(num); return (*this);}
 
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const String &rhs);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const char *cstr);
@@ -124,6 +130,8 @@ public:
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned int num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, long num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long num);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, float num);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, double num);
 
 	// comparison (only works w/ Strings and "strings")
 	operator StringIfHelperType() const { return buffer ? &String::StringIfHelper : 0; }
@@ -168,12 +176,15 @@ public:
 	// modification
 	void replace(char find, char replace);
 	void replace(const String& find, const String& replace);
+	void remove(unsigned int index);
+	void remove(unsigned int index, unsigned int count);
 	void toLowerCase(void);
 	void toUpperCase(void);
 	void trim(void);
 
 	// parsing/conversion
 	long toInt(void) const;
+	float toFloat(void) const;
 	char * getCSpec(int base, bool issigned, bool islong);
 
 	char *buffer;	        // the actual char array
@@ -204,6 +215,8 @@ public:
 	StringSumHelper(unsigned int num) : String(num) {}
 	StringSumHelper(long num) : String(num) {}
 	StringSumHelper(unsigned long num) : String(num) {}
+	StringSumHelper(float num) : String(num) {}
+	StringSumHelper(double num) : String(num) {}
 };
 
 #endif  // __cplusplus
