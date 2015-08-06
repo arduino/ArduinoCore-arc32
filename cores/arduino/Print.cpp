@@ -239,10 +239,10 @@ size_t Print::printNumber(unsigned long n, uint8_t base) {
   *str = '\0';
 
   switch(base) {
-    BIN:
-    OCT:
-    DEC:
-    HEX:
+    case BIN:
+    case OCT:
+    case DEC:
+    case HEX:
 	  break;
     default:
 	  base = DEC;
@@ -266,10 +266,10 @@ size_t Print::printLongLong(unsigned long long n, uint8_t base) {
   *str = '\0';
 
   switch(base) {
-    BIN:
-    OCT:
-    DEC:
-    HEX:
+    case BIN:
+    case OCT:
+    case DEC:
+    case HEX:
 	  break;
     default:
 	  base = DEC;
