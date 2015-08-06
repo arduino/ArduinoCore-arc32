@@ -45,6 +45,7 @@ The ARCv2 processor timer provides a 32-bit incrementing, wrap-to-zero counter.
 #include "conf.h"
 #include "interrupt.h"
 
+#define FREE_RUN_TIMER		0xFFFFFFFF
 
 uint32_t volatile timer0_overflows = 0x00;
 
@@ -104,7 +105,7 @@ void _arcv2_timer0_int_handler(void)
 * timer0_driver_init - initialize and enable the system clock
 *
 * This routine is used to the ARCv2 Timer as a free-run timer.
-* It delivers interrupts evry 0xFFFFFFFF clocks.
+* It delivers interrupts every 0xFFFFFFFF clocks.
 *
 * RETURNS: N/A
 */
@@ -113,7 +114,7 @@ void timer0_driver_init(void)
     /* connect specified routine/parameter to the timer 0 interrupt vector */
     interrupt_connect(ARCV2_IRQ_TIMER0, _arcv2_timer0_int_handler);
     /* Enable Timer0 as a free-run timer. */
-    arcv2_timer0_enable(0xFFFFFFFF);
+    arcv2_timer0_enable(FREE_RUN_TIMER);
 
     /* Everything has been configured. It is now safe to enable the interrupt */
     interrupt_enable(ARCV2_IRQ_TIMER0);
