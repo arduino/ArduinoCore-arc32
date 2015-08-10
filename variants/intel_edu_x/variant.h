@@ -129,6 +129,28 @@ extern "C"{
 #define ADC_RESOLUTION               12
 #define ADC_CLOCK_GATE             (1 << 31)
 
+#define digitalPinToBitMask(P)     (1 << g_APinDescription[P].ulGPIOId)
+
+//static uint8_t __unused_var_POR;
+#define portOutputRegister(port)  (uint32_t*)port
+#define portModeRegister(port)    (uint32_t*)port
+
+
+static inline uint32_t digitalPinToPort(uint32_t pin) {
+    uint32_t reg = 0;
+    PinDescription *p = &g_APinDescription[pin];
+
+    if (p->ulGPIOType == SS_GPIO)
+    {
+        reg = p->ulGPIOBase + SS_GPIO_SWPORTA_DR;
+    }
+    else if (p->ulGPIOType == SOC_GPIO)
+    {
+        reg = p->ulGPIOBase + SOC_GPIO_SWPORTA_DR;
+    }
+    return reg;
+}
+
 #ifdef __cplusplus
 }
 #endif
