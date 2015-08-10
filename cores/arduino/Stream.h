@@ -96,6 +96,7 @@ class Stream : public Print
   // this allows format characters (typically commas) in values to be ignored
 
   float parseFloat(char skipChar);  // as above but the given skipChar is ignored
+  protected:
 
   protected:
   struct MultiTarget {

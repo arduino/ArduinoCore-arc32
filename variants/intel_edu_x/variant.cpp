@@ -20,6 +20,7 @@
 #include "portable.h"
 
 #include "cfw_platform.h"
+#include "services/cdc_serial_service.h"
 
 /*
  * EDU Board pin   |     GPIO     | Label
@@ -91,40 +92,37 @@ uint32_t sizeof_g_APinDescription;
 /*
  * UART objects
  */
-RingBuffer rx_buffer1;
-RingBuffer tx_buffer1;
-uart_init_info info1;
 
-UARTClass Serial(&info1, &rx_buffer1, &tx_buffer1);
+// Serial - CDC-ACM port
 
-// IT handlers
-void UART_Handler(void)
-{
-  Serial.IrqHandler();
-}
+RingBuffer rx_buffer_cdc;
+RingBuffer tx_buffer_cdc;
+uart_init_info info_cdc;
+
+CDCSerialClass Serial(&info_cdc, &rx_buffer_cdc, &tx_buffer_cdc);
 
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
 
-#ifdef OUT
-// ----------------------------------------------------------------------------
-/*
- * USART objects
- */
-RingBuffer rx_buffer2;
-RingBuffer tx_buffer2;
+// Serial1 - Arduino Header Pins 0 and 1
 
-USARTClass Serial1(USART0, USART0_IRQn, ID_USART0, &rx_buffer2, &tx_buffer2);
-void serialEvent1() __attribute__((weak));
-void serialEvent1() { }
+RingBuffer rx_buffer_uart;
+RingBuffer tx_buffer_uart;
+uart_init_info info_uart;
 
-// IT handlers
-void USART0_Handler(void)
+UARTClass Serial1(&info_uart, &rx_buffer_uart, &tx_buffer_uart);
+
+void UART_Handler(void)
 {
   Serial1.IrqHandler();
 }
 
-// ----------------------------------------------------------------------------
+bool Serial1_available() {
+  return Serial1.available();
+}
+
+void serialEvent1() __attribute__((weak));
+void serialEvent1() { }
 
 void serialEventRun(void)
 {
@@ -132,9 +130,10 @@ void serialEventRun(void)
   if (Serial1.available()) serialEvent1();
 }
 
-#endif
-
-
+void serialEventRun1(void)
+{
+  if (Serial1_available()) serialEvent1();
+}
 // ----------------------------------------------------------------------------
 
 #ifdef __cplusplus

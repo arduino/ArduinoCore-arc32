@@ -28,13 +28,14 @@
 #include "portable.h"
 #include "os/os_types.h"
 #include "infra/ipc.h"
+#include "infra/log.h"
 #include "cfw/cfw.h"
 #include "cfw/cfw_service.h"
 #include "platform.h"
 #include "cfw_platform.h"
 
 #include "cfw/cfw_messages.h"
-#include "services/test_service.h"
+#include "services/cdc_serial_service.h"
 
 #define IPC_QUEUE_DEPTH 64
 
@@ -45,6 +46,10 @@ static const uint8_t ipc_rx_chan = 0;
 static const uint8_t ipc_tx_ack_chan = 6;
 static const uint8_t ipc_rx_ack_chan = 1;
 static const uint8_t ipc_remote_cpu = CPU_ID_LMT;
+
+static cfw_handle_t *cfw_handle;
+
+volatile int cdc_service_available = 0;
 
 static uint8_t ipc_irq_enabled;
 
@@ -79,60 +84,48 @@ static void free_message_ipc(struct message *msg) {
 extern "C" {
 #endif
 
-#ifdef CONFIG_CFW_SERVICES_TEST
-
-svc_client_handle_t * test_service_handle = NULL;
-
+svc_client_handle_t * cdc_serial_service_handle = NULL;
 
 static void my_handle_message(struct cfw_message * msg, void * param)
 {
+	cfw_open_conn_rsp_msg_t *cnf;
+	int events[1] = {MSG_ID_CDC_SERIAL_RX_EVT};
+
     switch (CFW_MESSAGE_ID(msg)) {
-    case MSG_ID_CFW_OPEN_SERVICE: {
-        cfw_open_conn_rsp_msg_t * cnf = (cfw_open_conn_rsp_msg_t*)msg;
-        int events[1] = {MSG_ID_TEST_1_EVT};
-        test_service_handle = cnf->client_handle;
-        cfw_register_events(test_service_handle, events,
-                            1, CFW_MESSAGE_PRIV(msg));
-        }
-        break;
+		case MSG_ID_CFW_OPEN_SERVICE:
+			cnf = (cfw_open_conn_rsp_msg_t*)msg;
+			cdc_serial_service_handle = cnf->client_handle;
+			cfw_register_events(cdc_serial_service_handle, events,
+								1, CFW_MESSAGE_PRIV(msg));
+			cdc_service_available = 1;
+			break;
 
-    case MSG_ID_CFW_REGISTER_EVT:
-        if (!strcmp(msg->priv, "conn1")) {
-            test_service_test_1(test_service_handle, "Coucou");
-        }
-        break;
+		case MSG_ID_CFW_REGISTER_EVT:
+			break;
 
-    case MSG_ID_TEST_1_RSP: {
-        /* Light the COM LED */
-        SET_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DDR, 12);
-        CLEAR_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DR, 12);
-        test_service_test_2(test_service_handle, "Testing 2");
-        break;
-        }
+		case MSG_ID_CFW_REGISTER_SVC_AVAIL:
+			cfw_open_service(cfw_handle, CDC_SERIAL_SERVICE_ID, "conn1");
+			break;
 
-    case MSG_ID_TEST_2_RSP: {
-        /* Light the FAULT LED */
-        SET_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DDR, 26);
-        CLEAR_MMIO_BIT(SOC_GPIO_BASE_ADDR + SOC_GPIO_SWPORTA_DR, 26);
-        //test_service_test_1(test_service_handle, "Coucou");
-        break;
-        }
+		case MSG_ID_CDC_SERIAL_TX_ACK:
+			// Tell the CDCSerialClass that the Tx has been done.
+			cdc_serial_service_sent(msg);
+			break;
 
-    case MSG_ID_TEST_1_EVT: {
-        break;
-        }
-    }
+		case MSG_ID_CDC_SERIAL_RX_EVT:
+			// Tell the CDCSerialClass that Rx has been done.
+			cdc_serial_service_receive(msg);
+			break;
+	}
     cfw_msg_free(msg);
 }
 
-static void test_client_init(T_QUEUE queue)
+static void cdc_serial_client_init(T_QUEUE queue)
 {
-    cfw_handle_t *h = cfw_init(service_mgr_queue, my_handle_message, "client");
+	cfw_handle = cfw_init(service_mgr_queue, my_handle_message, "client");
 
-    cfw_open_service(h, TEST_SERVICE_ID, "conn1");
 }
 
-#endif
 
 /* Initialise the IPC framework */
 void cfw_platform_init(bool irq_enable)
@@ -163,9 +156,8 @@ void cfw_platform_init(bool irq_enable)
     set_cpu_message_sender(ipc_remote_cpu, send_message_ipc);
     set_cpu_free_handler(ipc_remote_cpu, free_message_ipc);
 
-#ifdef CONFIG_CFW_SERVICES_TEST
-    test_client_init(service_mgr_queue);
-#endif
+    cdc_serial_client_init(service_mgr_queue);
+	cfw_register_svc_available(cfw_handle, CDC_SERIAL_SERVICE_ID, NULL);
 }
 
 /* Poll for new messages received via Mailbox from LMT */
