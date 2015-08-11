@@ -47,8 +47,8 @@ void cdc_register_sent_cb(cdc_sentbytes_cb_t cb, void *arg);
 
 
 int cdc_serial_service_send(char * buff, int len, void * priv);
-int cdc_serial_service_sent(struct cfw_message *msg);
-int cdc_serial_service_receive(struct cfw_message *msg);
+void cdc_serial_service_sent(struct cfw_message *msg);
+void cdc_serial_service_receive(struct cfw_message *msg);
 
 typedef struct cdc_serial_msg {
 	struct cfw_message header;

@@ -97,10 +97,10 @@ static void my_handle_message(struct cfw_message * msg, void * param)
 			cdc_serial_service_handle = cnf->client_handle;
 			cfw_register_events(cdc_serial_service_handle, events,
 								1, CFW_MESSAGE_PRIV(msg));
-			cdc_service_available = 1;
 			break;
 
 		case MSG_ID_CFW_REGISTER_EVT:
+			cdc_service_available = 1;
 			break;
 
 		case MSG_ID_CFW_REGISTER_SVC_AVAIL:

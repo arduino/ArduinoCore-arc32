@@ -49,6 +49,7 @@ extern svc_client_handle_t * cdc_serial_service_handle;
 
 int cdc_serial_service_send(char * buff, int len, void *priv) {
 	int i;
+	int ret=0;
 	if (cdc_service_available) {
 		struct cfw_message * msg = cfw_alloc_message_for_service(cdc_serial_service_handle, MSG_ID_CDC_SERIAL_TX,
 				sizeof(cdc_serial_msg_t), priv);
@@ -57,18 +58,17 @@ int cdc_serial_service_send(char * buff, int len, void *priv) {
 		for (i=0;i<len;i++) {
 			req->data[i] = buff[i];
 		}
-		cfw_send_message(msg);
+		ret = cfw_send_message(msg);
 	}
-	return 0;
+	return ret;
 }
 
-int cdc_serial_service_sent(struct cfw_message *msg) {
+void cdc_serial_service_sent(struct cfw_message *msg) {
 	cdc_serial_tx_ack_msg_t *req = (cdc_serial_tx_ack_msg_t*) msg;
 	sent_cb(req->num, send_param);
-	return 0;
 }
 
-int cdc_serial_service_receive(struct cfw_message *msg) {
+void cdc_serial_service_receive(struct cfw_message *msg) {
 	int i;
 	cdc_serial_msg_t *req = (cdc_serial_msg_t*) msg;
 
@@ -76,6 +76,4 @@ int cdc_serial_service_receive(struct cfw_message *msg) {
 		// call the callback to pass the data. 
 		byte_cb(req->data[i], byte_param);
 	}
-
-	return 0;
 }

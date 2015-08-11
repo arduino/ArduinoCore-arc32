@@ -225,6 +225,7 @@ void initVariant( void )
     variantPwmInit();
     variantAdcInit();
     cfw_platform_init(true /* irq_enable */);
+	delay(500);
 }
 
 #ifdef __cplusplus
