@@ -25,7 +25,7 @@
 #ifndef Pins_Arduino_h
 #define Pins_Arduino_h
 
-#define NUM_DIGITAL_PINS            20
+#define NUM_DIGITAL_PINS            21
 #define NUM_ANALOG_INPUTS           6
 #define NUM_PWM						4
 #define NUM_UARTS					1
@@ -51,7 +51,7 @@ static const uint8_t A2 = 16;
 static const uint8_t A3 = 17;
 static const uint8_t A4 = 18;
 static const uint8_t A5 = 19;
-static const uint8_t A6 = 20;
-static const uint8_t A7 = 21;
+
+static const uint8_t ATN = 20;
 
 #endif

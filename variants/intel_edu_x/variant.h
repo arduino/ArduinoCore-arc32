@@ -56,6 +56,11 @@ extern "C"{
 #define LED_BUILTIN          13
 
 /*
+ * Other Pins
+ */
+#define PIN_ATN              (20ul)
+ 
+/*
  * Wire Interfaces
  */
 #define WIRE_INTERFACES_COUNT 1
