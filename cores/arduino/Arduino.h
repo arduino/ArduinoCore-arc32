@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include "binary.h"
-#include "itoa.h"
+//#include "itoa.h"
 
 #ifdef __cplusplus
 extern "C"{
