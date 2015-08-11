@@ -72,6 +72,8 @@ public:
 	explicit String(unsigned int, unsigned char base=10);
 	explicit String(long, unsigned char base=10);
 	explicit String(unsigned long, unsigned char base=10);
+	explicit String(long long, unsigned char base=10);
+	explicit String(unsigned long long, unsigned char base=10);
 	explicit String(float, unsigned char decimalPlaces=2);
 	explicit String(double, unsigned char decimalPlaces=2);
 	~String(void);
@@ -106,6 +108,8 @@ public:
 	unsigned char concat(unsigned int num);
 	unsigned char concat(long num);
 	unsigned char concat(unsigned long num);
+	unsigned char concat(long long num);
+	unsigned char concat(unsigned long long num);
 	unsigned char concat(float num);
 	unsigned char concat(double num);
 
@@ -119,6 +123,8 @@ public:
 	String & operator += (unsigned int num)		{concat(num); return (*this);}
 	String & operator += (long num)			{concat(num); return (*this);}
 	String & operator += (unsigned long num)	{concat(num); return (*this);}
+	String & operator += (long long num)			{concat(num); return (*this);}
+	String & operator += (unsigned long long num)	{concat(num); return (*this);}
 	String & operator += (float num)	        {concat(num); return (*this);}
 	String & operator += (double num)               {concat(num); return (*this);}
 
@@ -130,6 +136,8 @@ public:
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned int num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, long num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long num);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, long long num);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long long num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, float num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, double num);
 

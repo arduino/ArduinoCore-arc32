@@ -125,7 +125,7 @@ char * String::getCSpec(int base, bool issigned, bool islong){
 String::String(unsigned char value, unsigned char base)
 {
 	init();
-	char buf[9];
+	char buf[1 + 8 * sizeof(unsigned char)];
 	//utoa(value, buf, base);
 	snprintf(buf, sizeof(buf), getCSpec(base, false, false), value);
 	*this = buf;
@@ -134,7 +134,7 @@ String::String(unsigned char value, unsigned char base)
 String::String(int value, unsigned char base)
 {
 	init();
-	char buf[18];
+	char buf[2 + 8 * sizeof(int)];
 	//itoa(value, buf, base);
 	snprintf(buf, sizeof(buf), getCSpec(base, true, false), value);
 	*this = buf;
@@ -143,7 +143,7 @@ String::String(int value, unsigned char base)
 String::String(unsigned int value, unsigned char base)
 {
 	init();
-	char buf[17];
+	char buf[1 + 8 * sizeof(unsigned int)];
 	//utoa(value, buf, base);
 	snprintf(buf, sizeof(buf), getCSpec(base, false, false), value);
 	*this = buf;
@@ -152,7 +152,7 @@ String::String(unsigned int value, unsigned char base)
 String::String(long value, unsigned char base)
 {
 	init();
-	char buf[34];
+	char buf[2 + 8 * sizeof(long)];
 	//ltoa(value, buf, base);
 	snprintf(buf, sizeof(buf), getCSpec(base, true, true), value);
 	*this = buf;
@@ -161,7 +161,25 @@ String::String(long value, unsigned char base)
 String::String(unsigned long value, unsigned char base)
 {
 	init();
-	char buf[33];
+	char buf[1 + 8 * sizeof(unsigned long)];
+	//ultoa(value, buf, base);
+	snprintf(buf, sizeof(buf), getCSpec(base, false, true), value);
+	*this = buf;
+}
+
+String::String(long long value, unsigned char base)
+{
+	init();
+	char buf[2 + 8 * sizeof(long long)];
+	//ltoa(value, buf, base);
+	snprintf(buf, sizeof(buf), getCSpec(base, true, true), value);
+	*this = buf;
+}
+
+String::String(unsigned long long value, unsigned char base)
+{
+	init();
+	char buf[1 + 8 * sizeof(unsigned long long)];
 	//ultoa(value, buf, base);
 	snprintf(buf, sizeof(buf), getCSpec(base, false, true), value);
 	*this = buf;
@@ -337,7 +355,7 @@ unsigned char String::concat(char c)
 
 unsigned char String::concat(unsigned char num)
 {
-	char buf[4];
+	char buf[1 + 3 * sizeof(unsigned char)];
 	//itoa(num, buf, 10);
 	snprintf(buf, sizeof(buf), getCSpec(10, true, false), num);
 	return concat(buf, strlen(buf));
@@ -345,7 +363,7 @@ unsigned char String::concat(unsigned char num)
 
 unsigned char String::concat(int num)
 {
-	char buf[7];
+	char buf[2 + 3 * sizeof(int)];
 	//itoa(num, buf, 10);
 	snprintf(buf, sizeof(buf), getCSpec(10, true, false), num);
 	return concat(buf, strlen(buf));
@@ -353,7 +371,7 @@ unsigned char String::concat(int num)
 
 unsigned char String::concat(unsigned int num)
 {
-	char buf[6];
+	char buf[1 + 3 * sizeof(unsigned int)];
 	//utoa(num, buf, 10);
 	snprintf(buf, sizeof(buf), getCSpec(10, false, false), num);
 	return concat(buf, strlen(buf));
@@ -361,13 +379,29 @@ unsigned char String::concat(unsigned int num)
 
 unsigned char String::concat(long num)
 {
-	char buf[12];
+	char buf[2 + 3 * sizeof(long)];
 	//ltoa(num, buf, 10);
 	snprintf(buf, sizeof(buf), getCSpec(10, true, true), num);
 	return concat(buf, strlen(buf));
 }
 
 unsigned char String::concat(unsigned long num)
+{
+	char buf[1 + 3 * sizeof(unsigned long)];
+	//ultoa(num, buf, 10);
+	snprintf(buf, sizeof(buf), getCSpec(10, false, true), num);
+	return concat(buf, strlen(buf));
+}
+
+unsigned char String::concat(long long num)
+{
+	char buf[12];
+	//ltoa(num, buf, 10);
+	snprintf(buf, sizeof(buf), getCSpec(10, true, true), num);
+	return concat(buf, strlen(buf));
+}
+
+unsigned char String::concat(unsigned long long num)
 {
 	char buf[11];
 	//ultoa(num, buf, 10);
@@ -443,6 +477,20 @@ StringSumHelper & operator + (const StringSumHelper &lhs, long num)
 }
 
 StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long num)
+{
+	StringSumHelper &a = const_cast<StringSumHelper&>(lhs);
+	if (!a.concat(num)) a.invalidate();
+	return a;
+}
+
+StringSumHelper & operator + (const StringSumHelper &lhs, long long num)
+{
+	StringSumHelper &a = const_cast<StringSumHelper&>(lhs);
+	if (!a.concat(num)) a.invalidate();
+	return a;
+}
+
+StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long long num)
 {
 	StringSumHelper &a = const_cast<StringSumHelper&>(lhs);
 	if (!a.concat(num)) a.invalidate();
