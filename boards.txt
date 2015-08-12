@@ -2,7 +2,7 @@
 
 intel_edu_x.name=Intel® EDU
 intel_edu_x.vid.0=0x8087
-intel_edu_x.pid.0=0x0A9F
+intel_edu_x.pid.0=0x0AB6
 intel_edu_x.vid.0x2A03.warning=Uncertified
 intel_edu_x.upload.tool=eduload
 intel_edu_x.upload.protocol=script
@@ -20,7 +20,7 @@ intel_edu_x.build.ldscript=linker_scripts/flash.ld
 intel_edu_x.build.variant=intel_edu_x
 intel_edu_x.build.variant_system_lib=arc32drv_edu
 intel_edu_x.build.vid=0x8087
-intel_edu_x.build.pid=0x0A9F
+intel_edu_x.build.pid=0x0AB6
 
 # See: http://code.google.com/p/arduino/wiki/Platforms
 
