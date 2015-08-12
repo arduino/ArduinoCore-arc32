@@ -139,6 +139,13 @@ void CDCSerialClass::flush( void )
 	if (i>0)
 	{
 		chars[i] = 0;
+		/*
+		 * Wait until any outstanding sends to finish. in_flight is cleared by
+		 * bytes_sent() callback below.
+		 */
+		while (in_flight) delayMicroseconds(10);
+
+		in_flight=1;
 		cdc_serial_service_send((char *)chars, i, (void*)"Flush");
 	}
 }
@@ -150,19 +157,17 @@ size_t CDCSerialClass::write( const uint8_t uc_data )
 	if (!opened)
 		return(0);
 
-	noInterrupts();
-	if (in_flight)
-	{
-		l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
-		_tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
-		_tx_buffer->_iHead = l;
-		interrupts();
-		return 1;
+	/*
+	 * If the buffer is full, flush it.
+	 */
+	l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
+	if (_tx_buffer->_iTail == l) {
+		flush();
 	}
 
-	in_flight = true;
-	interrupts();
-	cdc_serial_service_send((char *)&uc_data, 1, (void*)"Flush");
+	_tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
+	_tx_buffer->_iHead = l;
+
 	return 1;
 
 }
@@ -177,5 +182,4 @@ void CDCSerialClass::getByte(uint8_t uc_data)
 void CDCSerialClass::bytes_sent(uint32_t len)
 {
 	in_flight = false;
-	flush();
 }
