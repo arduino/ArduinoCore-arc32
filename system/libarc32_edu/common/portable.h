@@ -42,10 +42,10 @@
     } while(0)
 
 #define WRITE_ARC_REG(value, reg) \
-    __builtin_arc_sr(value, (volatile uint32_t)reg)
+    __builtin_arc_sr((value), (volatile uint32_t)(reg))
 
 #define READ_ARC_REG(reg) \
-    __builtin_arc_lr((volatile uint32_t)reg)
+    __builtin_arc_lr((volatile uint32_t)(reg))
 
 #define CLEAR_ARC_BIT(reg, bit) \
  do { \
