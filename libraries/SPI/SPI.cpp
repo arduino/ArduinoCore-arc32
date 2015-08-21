@@ -69,7 +69,10 @@ void SPIClass::begin()
 
         /* disable controller */
         SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
-
+		
+		/* Enable clock to peripheral */
+		MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) |= ENABLE_SPI_MASTER_1;
+		
         /* Configure defaults for clock divider, frame size and data mode */
         SPI1_M_REG_VAL(BAUDR) = SPI_CLOCK_DIV4;
         SPI1_M_REG_VAL(CTRL0) = (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT);
@@ -89,8 +92,6 @@ void SPIClass::begin()
         g_APinDescription[MISO].ulPinMode = SPI_MUX_MODE;
         g_APinDescription[SCK].ulPinMode  = SPI_MUX_MODE;
 
-        /* Enable clock to peripheral */
-        MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) |= ENABLE_SPI_MASTER_1;
     }
     initialized++; // reference count
     interrupt_unlock(flags);
