@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef _CFW_H_
 #define _CFW_H_
 
@@ -10,20 +40,15 @@
 #include "infra/message.h"
 
 /**
- * @defgroup cfw CFW: Component Framework
- * The Component Framework is the main building block for custom applications.
+ * @defgroup cfw Component Framework
+ * The Component Framework is the main building block in the thunderdome
+ * platform.
  *
- * It consists of:
- *  - Service APIs
- *  - Service Manager API
- *  - Main loop handler that wraps the messaging and exposes a functional /
- * callback interface to the application.
- *
- * An application always need to create a thread managed by the framework in
- * order to be interfaced with it.
- * It could have other threads for its specific need and would have to manage
- * communication with the framework thread for interface with the rest of the platform.
- *
+ * @{
+ * @defgroup services Services
+ * Component framework services definition
+ * @ingroup cfw
+ * @}
  * @{
  */
 
@@ -62,6 +87,11 @@ struct cfw_rsp_message {
  */
 typedef void (*handle_msg_cb_t)(struct cfw_message *, void *);
 
+/**
+ * Framework client handle.
+ *
+ * This type is used to communicate with the service manager.
+ */
 typedef void * cfw_handle_t;
 
 /**
@@ -80,38 +110,12 @@ typedef struct svc_client_handle_ {
 	/** Framework handle. */
 	cfw_handle_t cfw_handle;
 	/** Pointer to store the server-side connection handle.
-	 * Passed in the conn field of \ref struct cfw_message for request messages
+	 * Passed in the conn field of struct cfw_message for request messages
 	 */
 	void * server_handle;
 } svc_client_handle_t;
 
-
-/**
- * \brief Allocate a memory buffer
- * it is mandatory to free the memory with \ref cfw_free
- *
- * \param size size of the memory to allocate
- *
- * \param err (out): execution status:
- *         -# E_OS_OK : memory was allocated
- *         -# E_OS_ERR: unable to allocate memory
- *
- * \return pointer to the allocated memory or NULL if failed.
- */
-void * cfw_alloc(int size, OS_ERR_TYPE * err);
-
 struct cfw_message * cfw_alloc_message(int size, OS_ERR_TYPE * err);
-
-/**
- * \brief free a block of memory allocated with \ref cfw_alloc
- *
- * \param ptr the block address to free.
- *
- * \param err (out): execution status:
- *         -# E_OS_OK : memory was freed
- *         -# E_OS_ERR: unable to free memory
- */
-void cfw_free(void * ptr, OS_ERR_TYPE * err);
 
 /**
  * \brief free a message.

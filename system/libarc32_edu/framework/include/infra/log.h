@@ -1,26 +1,32 @@
-/* INTEL CONFIDENTIAL Copyright 2015 Intel Corporation All Rights Reserved.
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
  *
- * The source code contained or described herein and all documents related to
- * the source code ("Material") are owned by Intel Corporation or its suppliers
- * or licensors.
- * Title to the Material remains with Intel Corporation or its suppliers and
- * licensors.
- * The Material contains trade secrets and proprietary and confidential information
- * of Intel or its suppliers and licensors. The Material is protected by worldwide
- * copyright and trade secret laws and treaty provisions.
- * No part of the Material may be used, copied, reproduced, modified, published,
- * uploaded, posted, transmitted, distributed, or disclosed in any way without
- * Intel's prior express written permission.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * No license under any patent, copyright, trade secret or other intellectual
- * property right is granted to or conferred upon you by disclosure or delivery
- * of the Materials, either expressly, by implication, inducement, estoppel or
- * otherwise.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  *
- * Any license under such intellectual property rights must be express and
- * approved by Intel in writing
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
- ******************************************************************************/
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #ifndef __LOG_H
 #define __LOG_H
@@ -32,22 +38,25 @@
 
 /**
  * @defgroup infra_log Log
- * Log infrastructure.
  * @ingroup infra
  * @{
  */
 
-/* log levels */
+/** Log levels. */
 enum {
-	LOG_LEVEL_ERROR,
-	LOG_LEVEL_WARNING,
-	LOG_LEVEL_INFO,
-	LOG_LEVEL_DEBUG,
-	LOG_LEVEL_NUM /* gives the number of log levels */
+	LOG_LEVEL_ERROR,    /*!< Error log level */
+	LOG_LEVEL_WARNING,  /*!< Warning log level */
+	LOG_LEVEL_INFO,     /*!< Info log level */
+	LOG_LEVEL_DEBUG,    /*!< Debug log level, requires debug to be activated for
+	                     * this module at compile time */
+	LOG_LEVEL_NUM
 };
 
-/* module ids */
-#define DEFINE_LOGGER_MODULE(_i_,_n_,...) _i_,
+/* Generate a list of module IDs */
+#define DEFINE_LOGGER_MODULE(_id,_name,...) _id,
+/**
+ * The list of all available log modules on this project.
+ */
 enum {
 #include "log_modules"
 	LOG_MODULE_NUM /* gives the number of modules */
@@ -55,32 +64,43 @@ enum {
 #undef DEFINE_LOGGER_MODULE
 
 
-/* Message sent to log_printk larger than this size will
- * be truncated for some implementations */
+/** Message sent to log_printk larger than this size will be truncated on some
+ * implementations. */
 #define LOG_MAX_MSG_LEN (80)
 
 /**
- * Initializes the logger thread, queue and settings, and calls the
- * initialization functions.
+ * Initializes the log instance.
+ *
+ * This function must be called before writing any logs. In most case, a call to
+ * log_set_backend() is also required to get log output. An exception to this
+ * rule is the case of a log "slave" when multi-core log is used which doesn't
+ * need a backend.
  */
 void log_init();
 
 /**
- * Set the log backend. Can be called before log_init().
- * @param backend the backend to set
+ * Set the log backend.
+ *
+ * This function can be called before log_init(), and also at any time later
+ * for example to change the log backend at a given point in time.
+ *
+ * @param backend the log_backend to be used by this logger instance
  */
 void log_set_backend(struct log_backend backend);
 
-/** @deprecated use log_set_backend() instead */
-void log_register_backend(void (*print)(const char *buffer), void (*puts)(const char *buffer, uint16_t len));
-
 /**
- * Creates and pushes a user's log message into the logging queue.
+ * Send a user's log message into the backend.
  *
+ * On some buffered implementations the message is not immediately output to the
+ * backend. Call the log_flush() function to make sure that all messages are
+ * really output.
  * Message longer than LOG_MAX_MSG_LEN will be truncated on some implementations.
  *
- * @return Message's length if inserted, -1 if no available memory, 0 if
- * message was discarded.
+ * @param level the log level for this message
+ * @param module the ID of the log module
+ * @param format the printf-like string format
+ * @return message's length in in case of success, -1 if no available memory,
+ * 0 if message was discarded
  */
 int8_t log_printk(uint8_t level, uint8_t module, const char *format, ...);
 
@@ -88,122 +108,141 @@ int8_t log_printk(uint8_t level, uint8_t module, const char *format, ...);
  * Same as log_printk() except that this function is called with a va_list
  * instead of a variable number of arguments.
  *
- * Message longer than LOG_MAX_MSG_LEN will be truncated on some implementations.
- *
- * @return Message's length if inserted, -1 if no available memory, 0 if
- * message was discarded.
+ * @param level the log level for this message
+ * @param module the ID of the log module
+ * @param format the printf-like string format
+ * @param args
+ * @return message's length in in case of success, -1 if no available memory,
+ * 0 if message was discarded
  */
 int8_t log_vprintk(uint8_t level, uint8_t module, const char *format, va_list args);
 
 /**
- * Returns a log module's name, as string.
+ * Get the human-friendly name of a log module.
  *
- * @param module  The module id
- *
- * @return  Const pointer on the module name (NULL if module not found).
+ * @param module the ID of the log module
+ * @return the log module name or NULL if not found
  */
-const char *log_get_module_name(uint8_t module);
+const char* log_get_module_name(uint8_t module);
 
 /**
- * Returns a log level's name, as string.
+ * Get the human-friendly name of a log level.
  *
- * @param level  The level id
- *
- * @return  Const pointer on the module name (NULL if module not found).
+ * @param level the level id
+ * @return the log level name or NULL if not found
  */
-const char *log_get_level_name(uint8_t level);
+const char* log_get_level_name(uint8_t level);
 
 /**
- * Returns sending log's core, as string.
+ * Set the global log level value. This acts as a maximum overall level limit.
  *
- * @param core  The core id
- *
- * @return  Const pointer on the core name ("NULL" if core not found).
+ * @param level  The new log level value, from the log level enum
+ * @return -1 if error,
+ *          0 if new level was set
  */
-const char * log_get_core_name(uint8_t logcore_id);
-
-/**
-  * Set the global log level value. This acts as a
-  * maximum overall level limit.
-  *
-  * @param level  The new log level value, from the log level enum.
-  *
-  * @return -1 if error,
-  *          0 if new level was set
-  */
 int8_t log_set_global_level(uint8_t level);
 
 /**
- * Disable or enable the logging for a module.
+ * Disable or enable logging for a module.
  *
- * @param module_id  The module id to be disabled
- * @param action     Disable (0) or enable (1)
- *
+ * @param module the ID of the log module
+ * @param b true to enable, false to disable
  * @return -1 if the module_id or action is incorrect,
  *          0 if module filter was disabled
  */
-int8_t log_module_toggle(uint8_t module_id, bool action);
+int8_t log_module_toggle(uint8_t module, bool b);
 
 /**
- * Set the level limit per module id.
+ * Set the log level of a log module.
  *
- * @param module_id  The module id to be changed
- * @param level      The new log level limit for this module
+ * @param module the ID of the log module
+ * @param level the new log level for this module
  * @return -2 if the module_id is incorrect,
  *         -1 if the level is incorrect,
- *          0 if module filter was changed
+ *          0 in case of success
  */
-int8_t log_module_set_level(uint8_t module_id, uint8_t level);
+int8_t log_module_set_level(uint8_t module, uint8_t level);
 
 /**
- * Get the level limit.
+ * Get the global log level applying to all modules.
  *
- * @return level value
+ * @return the global log level
  */
 uint8_t log_get_global_level();
 
 /**
- * Get the module status.
+ * Get whether a log module is activated.
  *
- * @param module  The module id
- * @return module status
+ * @param module the ID of the log module
+ * @return true if this log module is activated, false otherwise
  */
 bool log_get_module_status(uint8_t module);
 
 /**
- * Get the module level per module id.
+ * Get the log level of a log module.
  *
- * @param module  The module id
- * @return level module
+ * @param module the ID of the log module
+ * @return the log level for this log module
  */
 int8_t log_get_module_level(uint8_t module);
 
 /**
- * Flushes the log messages queue, called from the panic handler.
+ * On bufferized implementations, make sure that all pending messages are
+ * flushed to the log_backend. This function has no effect on unbuffered
+ * implementations.
  */
 void log_flush();
 
-/* log function format */
-#define pr_error(module, format,...) log_printk(LOG_LEVEL_ERROR, module, format,##__VA_ARGS__)
+/**
+ * Suspend logger task.
+ * This is used when we don't want logging to interrupt any lower priority
+ * work. deep sleep process is an example.
+ */
+void log_suspend();
 
-#define pr_warning(module, format,...) log_printk(LOG_LEVEL_WARNING, module, format,##__VA_ARGS__)
+/**
+ * Resume logger task.
+ */
+void log_resume();
 
-#define pr_info(module, format,...) log_printk(LOG_LEVEL_INFO, module, format,##__VA_ARGS__)
+/**
+ * Log an error message.
+ *
+ * @param module the ID of the module related to this message
+ * @param format the printf-like string format
+ */
+#define pr_error(module, format,...) log_printk(LOG_LEVEL_ERROR, module, format, ##__VA_ARGS__)
+
+/**
+ * Log a warning message.
+ *
+ * @param module the ID of the log module related to this message
+ * @param format the printf-like string format
+ */
+#define pr_warning(module, format,...) log_printk(LOG_LEVEL_WARNING, module, format, ##__VA_ARGS__)
+
+/**
+ * Log an info message.
+ *
+ * @param module the ID of the log module related to this message
+ * @param format the printf-like string format
+ */
+#define pr_info(module, format,...) log_printk(LOG_LEVEL_INFO, module, format, ##__VA_ARGS__)
 
 /* The following function is defined for each log module. After preprocessing:
- * 1) the content of the "if" is constant, so compiler can optimize and remove
+ * 1) The content of the "if" is constant, so compiler can optimize and remove
  * dead code (the log_printk path), leading to an empty function.
- * 2) since the function is inline static, the call to the function (and then
+ * 2) Since the function is inline static, the call to the function (and then
  * the string argument) is removed.
  * This 2 passes optimization leads to a full removal of "pr_debug" code and
  * arguments if the third argument of "DEFINE_LOGGER_MODULE" is null or absent.
- * */
-#define DEFINE_LOGGER_MODULE(_i_,_n_,...) inline static int8_t pr_debug_ ## _i_(const char *format,...) { \
+ */
+#define DEFINE_LOGGER_MODULE(_id,_name,...) inline static int8_t pr_debug_ ## _id(const char *format,...) { \
 	int8_t ret = 0; \
 	if( (sizeof(#__VA_ARGS__) == sizeof("")) || 0x0##__VA_ARGS__) {\
 		va_list args;\
 		va_start(args, format);\
-		ret = log_vprintk(LOG_LEVEL_DEBUG, _i_, format, args);\
+		ret = log_vprintk(LOG_LEVEL_DEBUG, _id, format, args);\
 		va_end(args);\
 	}\
 	return ret;\
@@ -211,33 +250,17 @@ void log_flush();
 #include "log_modules"
 #undef DEFINE_LOGGER_MODULE
 
+/**
+ * Log a debug message.
+ *
+ * Note that this call will have an effect only if debug log level is activated
+ * for this module at compilation time. This is done by setting the 3rd
+ * parameter of the DEFINE_LOGGER_MODULE X_MACRO to 1.
+ *
+ * @param module the ID of the log module related to this message
+ * @param format the printf-like string format
+ */
 #define pr_debug(module, format,...) pr_debug_ ## module(format, ##__VA_ARGS__)
-
-#ifdef CONFIG_LOG_MULTI_CPU_SUPPORT
-
-/** The function that the master call when it is done with
- * processing the log buffer for a log core */
-typedef int (*ipc_log_func)(int request_id, int param1, int param2, void*ptr);
-
-/** A log core and it's attributes */
-struct log_core {
-	uint8_t cpu_id;
-	const char* name;
-	ipc_log_func send_buffer;
-};
-
-/* core ids */
-#define DEFINE_LOGGER_CORE(_i_,_k_,_l_,_n_) _i_,
-enum {
-#include "log_cores"
-	LOG_CORE_NUM /* gives the number of log cores */
-};
-#undef DEFINE_LOGGER_CORE
-
-/** The list of all log cores used on this system */
-extern const struct log_core log_cores[LOG_CORE_NUM];
-
-#endif /* CONFIG_LOG_MULTI_CPU_SUPPORT */
 
 /** @} */
 

@@ -25,7 +25,7 @@ HWFLAGS=-mARCv2EM -mav2em -mlittle-endian
 CFGFLAGS=-DCONFIG_SOC_GPIO_32 -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM
 OPTFLAGS=-g -O0 -Wall -Werror
 #CFGFLAGS+=-DCONFIG_CFW_SERVICES_TEST
-INCLUDES=-Icommon -Ibootcode -Iframework/include
+INCLUDES=-I. -Icommon -Ibootcode -Iframework/include
 EXTRA_CFLAGS=-D__CPU_ARC__ -DCLOCK_SPEED=32 -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections 
 CFLAGS=$(HWFLAGS) $(OPTFLAGS) $(EXTRA_CFLAGS) $(CFGFLAGS) $(INCLUDES)
 

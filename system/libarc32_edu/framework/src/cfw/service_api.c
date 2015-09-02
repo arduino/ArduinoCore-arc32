@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "util/list.h"
 #include "os/os.h"
 #include "infra/message.h"
@@ -40,7 +70,7 @@ struct cfw_message * cfw_clone_message(struct cfw_message * msg) {
 int cfw_register_service(T_QUEUE queue, service_t * svc,
         handle_msg_cb_t handle_message, void * data) {
     uint16_t port_id = port_alloc(queue);
-    
+
     cfw_port_set_handler(port_id, handle_message, data);
     svc->port_id = port_id;
     return _cfw_register_service(svc);
@@ -50,7 +80,7 @@ int cfw_deregister_service(cfw_handle_t handle, service_t * svc) {
     return _cfw_deregister_service(handle, svc);
 }
 
-struct cfw_rsp_message * cfw_alloc_rsp_msg(struct cfw_message *req, int msg_id, int size) {
+struct cfw_rsp_message * cfw_alloc_rsp_msg(const struct cfw_message *req, int msg_id, int size) {
     struct cfw_rsp_message * rsp = (struct cfw_rsp_message *) cfw_alloc_message(size, NULL);
     CFW_MESSAGE_TYPE(&rsp->header) = TYPE_RSP;
     CFW_MESSAGE_ID(&rsp->header) = msg_id;
@@ -119,7 +149,7 @@ void client_handle_message(struct cfw_message * msg, void *param) {
     case MSG_ID_CFW_CLOSE_SERVICE:
     {
         /* Free client-side conn */
-        cfw_free(msg->conn, NULL);
+        bfree(msg->conn);
         break;
     }
     default:
@@ -130,7 +160,7 @@ void client_handle_message(struct cfw_message * msg, void *param) {
 }
 
 cfw_handle_t cfw_init(void * queue, handle_msg_cb_t cb, void *cb_data) {
-    _cfw_handle_t * handle = (_cfw_handle_t*)cfw_alloc(sizeof(*handle), NULL);
+    _cfw_handle_t * handle = (_cfw_handle_t*)balloc(sizeof(*handle), NULL);
     handle->handle_msg = cb;
     handle->data = cb_data;
 

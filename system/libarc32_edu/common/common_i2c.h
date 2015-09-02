@@ -1,56 +1,63 @@
-/** INTEL CONFIDENTIAL Copyright 2015 Intel Corporation All Rights Reserved.
-  *
-  * The source code contained or described herein and all documents related to
-  * the source code ("Material") are owned by Intel Corporation or its suppliers
-  * or licensors.
-  * Title to the Material remains with Intel Corporation or its suppliers and
-  * licensors.
-  * The Material contains trade secrets and proprietary and confidential information
-  * of Intel or its suppliers and licensors. The Material is protected by worldwide
-  * copyright and trade secret laws and treaty provisions.
-  * No part of the Material may be used, copied, reproduced, modified, published,
-  * uploaded, posted, transmitted, distributed, or disclosed in any way without
-  * Intel's prior express written permission.
-  *
-  * No license under any patent, copyright, trade secret or other intellectual
-  * property right is granted to or conferred upon you by disclosure or delivery
-  * of the Materials, either expressly, by implication, inducement, estoppel or
-  * otherwise.
-  *
-  * Any license under such intellectual property rights must be express and
-  * approved by Intel in writing
-  *
-  ******************************************************************************/
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /*
  * Intel common I2C header
- *
  */
 
 #ifndef COMMON_I2C_H_
 #define COMMON_I2C_H_
 
+#include <stdint.h>
+
 /**
- * \addtogroup common_driver
+ * @defgroup common_driver_i2c Common I2C
+ * Inter Integrated Communication bus drivers API.
+ * @ingroup common_drivers
  * @{
- * \defgroup common_driver I2C: Inter Integrated Communication bus API
- * @{
- * \brief Definition of the structure and functions used by I2C ARC and SOC Drivers implementation.
  */
 
-/*!<
-API types
-*/
+/**
+ * API types.
+ */
 typedef enum {
-    I2C_OK = 0,
-    I2C_BUSY,
-    I2C_TX_ABORT,
-    I2C_TX_OVER,
-    I2C_RX_OVER,
-    I2C_RX_UNDER,
+    I2C_OK = 0,             /*!< I2C BUS OK */
+    I2C_BUSY,               /*!< I2C BUS BUSY */
+    I2C_TX_ABORT,           /*!< I2C BUS TX ABORT */
+    I2C_TX_OVER,            /*!< I2C BUS TX OVER */
+    I2C_RX_OVER,            /*!< I2C BUS RX OVER */
+    I2C_RX_UNDER,           /*!< I2C BUS RX UNDER */
 }DRIVER_I2C_STATUS_CODE;
 
-/*!
- * I2C speeds
+/**
+ * I2C speeds.
  */
 typedef enum {
     I2C_SLOW = 1,            /*!< (1) 0-100 Khz - note: Starts at 1 to remove need to translate before hardware write */
@@ -58,32 +65,32 @@ typedef enum {
     I2C_HS = 3               /*!< (3) 3400 kbit/s mode added support for HS mode available only in SoC block */
 } I2C_SPEED;
 
-/*!
- * I2C addressing modes
+/**
+ * I2C addressing modes.
  */
 typedef enum {
     I2C_7_Bit = 0,           /*!< (0) 7 bit  */
     I2C_10_Bit,              /*!< (1) 10 bit */
 } I2C_ADDR_MODE;
 
-/*!
- * I2C mode types
+/**
+ * I2C mode types.
  */
 typedef enum {
-    I2C_MASTER = 0,
-    I2C_SLAVE
+    I2C_MASTER = 0,         /*!< MASTER WRITE MODE */
+    I2C_SLAVE               /*!< MASTER READ MODE */
 } I2C_MODE_TYPE;
 
-/*!
-*  \brief  callback function signature
+/**
+*  callback function signature.
 */
 typedef void (*i2c_callback)( uint32_t );     /*!< callback function signature */
 
 
-/*!
-*  \brief   I2C controller configuration.
-*           Driver instantiates one of these with given parameters for each I2C
-*           controller configured using the "ss_i2c_set_config" function
+/**
+*  I2C controller configuration.
+*  Driver instantiates one of these with given parameters for each I2C
+*  controller configured using the "ss_i2c_set_config" function
 */
 typedef struct i2c_cfg_data{
     I2C_SPEED           speed;
@@ -98,6 +105,6 @@ typedef struct i2c_cfg_data{
     uint32_t            cb_err_data;        /*!< this will be passed back by the callback routine - can be used as an controller identifier */
 }i2c_cfg_data_t;
 
-/**@} @}*/
+/** @} */
 
 #endif /* COMMON_I2C_H_ */

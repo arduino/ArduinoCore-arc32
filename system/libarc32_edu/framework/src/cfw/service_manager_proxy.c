@@ -1,4 +1,35 @@
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "util/list.h"
+#include "os/os.h"
 #include "cfw/cfw.h"
 #include "cfw/cfw_debug.h"
 #include "cfw/cfw_messages.h"
@@ -49,7 +80,7 @@ void internal_handle_message(struct message * m, void * param) {
         		    __func__, req->service_id, CFW_MESSAGE_SRC(msg),
         		    req->client_cpu_id);
 #endif
-            conn_handle = (conn_handle_t *) cfw_alloc(sizeof(*conn_handle), NULL);
+            conn_handle = (conn_handle_t *) balloc(sizeof(*conn_handle), NULL);
             conn_handle->client_port = CFW_MESSAGE_SRC(msg);
             conn_handle->priv_data = NULL;
             conn_handle->svc = svc;
@@ -77,8 +108,9 @@ void internal_handle_message(struct message * m, void * param) {
             if ( conn != NULL && conn->svc != NULL && conn->svc->client_disconnected != NULL)
                 conn->svc->client_disconnected(conn);
             cfw_send_message(resp);
+            _cfw_unregister_event((conn_handle_t *)msg->conn);
             /* Free server-side conn */
-            cfw_free(conn, NULL);
+            bfree(conn);
             break;
         }
 
@@ -114,7 +146,7 @@ int handle_ipc_sync_request(uint8_t cpu_id, int request, int param1, int param2,
 #endif
     switch (request) {
     case IPC_MSG_TYPE_FREE:
-        cfw_free(ptr, NULL);
+        bfree(ptr);
         break;
     case IPC_MSG_TYPE_MESSAGE:
         {
@@ -213,6 +245,31 @@ void cfw_send_event(struct cfw_message * msg) {
     }
 }
 
+static int unregister_events_cb(void * element, void * param) {
+    indication_list_t * e = (indication_list_t *) element;
+
+    if ( e->conn_handle == param ) {
+        return 1;
+    }
+    return 0;
+}
+
+void _cfw_unregister_event(conn_handle_t * h) {
+    registered_evt_list_t * l = (registered_evt_list_t*)registered_evt_list.head;
+    while (l) {
+        list_foreach_del(&l->lh, unregister_events_cb, h);
+        l = (registered_evt_list_t*) l->list.next;
+    }
+}
+
+static bool check_duplicate_handle_cb(list_t *element, void *param)
+{
+    if (param == ((indication_list_t *)element)->conn_handle ) {
+        return true;
+    }
+    return false;
+}
+
 void _cfw_register_event(conn_handle_t * h, int msg_id) {
 #ifdef SVC_MANAGER_DEBUG
     pr_debug(LOG_MODULE_CFW, "%s : msg:%d port %d h:%p", __func__, msg_id, h->client_port, h);
@@ -220,15 +277,17 @@ void _cfw_register_event(conn_handle_t * h, int msg_id) {
     registered_evt_list_t * ind = (registered_evt_list_t *) get_event_registered_list(msg_id);
 
     if (ind == NULL) {
-        ind = (registered_evt_list_t *) cfw_alloc(sizeof(*ind), NULL);
+        ind = (registered_evt_list_t *) balloc(sizeof(*ind), NULL);
         ind->ind = msg_id;
         list_init(&ind->lh);
         list_add(&registered_evt_list, &ind->list);
     }
 
-    indication_list_t * e = (indication_list_t *)cfw_alloc(sizeof(*e), NULL);
-    e->conn_handle = h;
-    list_add(&ind->lh, (list_t *)e);
+    if (!list_find_first(&ind->lh, check_duplicate_handle_cb, h)) {
+        indication_list_t * e = (indication_list_t *)balloc(sizeof(*e), NULL);
+        e->conn_handle = h;
+        list_add(&ind->lh, (list_t *)e);
+    }
 }
 
 void _cfw_loop(void * queue) {

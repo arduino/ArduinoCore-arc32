@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef __CFW_SERVICE_H_
 #define __CFW_SERVICE_H_
 
@@ -77,7 +107,7 @@ uint16_t cfw_get_service_mgr_port_id(void);
  *
  * \return the allocated and initialized response message
  */
-struct cfw_rsp_message * cfw_alloc_rsp_msg(struct cfw_message *req, int msg_id, int size);
+struct cfw_rsp_message * cfw_alloc_rsp_msg(const struct cfw_message *req, int msg_id, int size);
 
 /**
  * Allocate an event message.
@@ -102,13 +132,24 @@ struct cfw_message * cfw_alloc_evt_msg(service_t *svc, int msg_id, int size);
 struct cfw_message * cfw_alloc_internal_msg(int msg_id, int size, void * priv);
 
 /**
- * Register a port to an indication.
+ * Register events requested by a client.
+ * This is called when a client connects to a service.
  *
+ * \param handle handle of the connection of the service
  * \param msgId the indication message id that we want to receive
- * \param port the port id where we want to receive the indication
- *             message.
+ * \param handle the connection handle for the client to connect
+ *          to events.
  */
 void _cfw_register_event(conn_handle_t *handle, int msgId);
+
+/**
+ * Unregister events registered by a client.
+ * This is called when a client disconnects from a service.
+ *
+ * \param h the connection handle for the client to disconnect
+ *          from events.
+ */
+void _cfw_unregister_event(conn_handle_t * h);
 
 /**
  * register a service to the system.
