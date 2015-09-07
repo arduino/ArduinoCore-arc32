@@ -40,6 +40,7 @@ void RingBuffer::store_char( uint8_t c )
   {
     _aucBuffer[_iHead] = c ;
     _iHead = i ;
+    _buffer_overflow = false;
   }
   else
   {

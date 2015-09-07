@@ -44,12 +44,7 @@ class CDCSerialClass : public HardwareSerial
     void flush(void);
     size_t write(const uint8_t c);
     using Print::write; // pull in write(str) and write(buf, size) from Print
-    void setInterruptPriority(uint32_t priority);
-    uint32_t getInterruptPriority();
 
-	void getByte(uint8_t uc_data);
-	void bytes_sent(uint32_t num);
-	bool in_flight;
 
     operator bool() { return true; }; // CDCSerial always active
 

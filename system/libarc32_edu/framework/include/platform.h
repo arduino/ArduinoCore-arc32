@@ -39,6 +39,16 @@
 #define CPU_ID_HOST 3
 #define NUM_CPU     4
 
+struct cdc_acm_shared_data {
+    uint8_t * rx_buffer;
+    int	    * rx_head;
+    int	    * rx_tail;
+    uint8_t * tx_buffer;
+    int	    * tx_head;
+    int	    * tx_tail;
+    uint32_t	serial_buffer_size;
+};
+
 /**
  * LMT / ARC global shared structure. This structure lies in the beginning of
  * the RAM.
@@ -66,6 +76,34 @@ struct platform_shared_block_ {
      * [16-31]	Magic number
      */
     uint32_t pm_request;
+
+    /** ARC wakelocks status info variables
+     * Used in order to share if any wakelock
+     * is taken, on ARC side.
+     */
+    uint8_t any_arc_wakelock_taken;
+
+    /** LMT wakelocks status info variables
+     * Used in order to share if any wakelock
+     * is taken, on LMT side.
+     */
+    uint8_t any_lmt_wakelock_taken;
+
+    /* Pointer to shared structure used by CDC-ACM.
+     *
+     * It embeds pointers to following:
+     *	    Rx Buffer and its Head and Tail
+     *	    Tx Buffer and its Head and Tail
+     *
+     * Tx Buffer =  buffer used by ARC to Send data out to CDC-ACM
+     * Rx Buffer = buffer used by LMT to put data read from CDC-ACM
+     *
+     * LMT updates:
+     *	    Rx Head index every time an acm_read and a rx_buffer write are
+     *	    successfully done.
+     *	    Tx Tail index when some bytes are queued to CDC-ACM.
+     */
+    struct cdc_acm_shared_data	* cdc_acm_buffers;
 };
 
 #ifdef CONFIG_BOARD_ATLASPEAK_EMU

@@ -29,84 +29,67 @@
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 #include "variant.h"
-#include "services/cdc_serial_service.h"
+
 
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
 extern void serialEvent1(void) __attribute__((weak));
 
-void CDCSerial_getByte(uint8_t uc_data, void *arg)
-{
-  ((CDCSerialClass *)arg)->getByte(uc_data);
-}
-
-void CDCSerial_bytes_sent(uint32_t num, void *arg)
-{
-  ((CDCSerialClass *)arg)->bytes_sent(num);
-}
-
 // Constructors ////////////////////////////////////////////////////////////////
 
-CDCSerialClass::CDCSerialClass( uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer )
+CDCSerialClass::CDCSerialClass( uart_init_info *info, RingBuffer *pRx_buffer,
+                        RingBuffer *pTx_buffer )
 {
-	this->info = info;
-	this->_rx_buffer = pRx_buffer;
-	this->_tx_buffer = pTx_buffer;
-	cdc_register_byte_cb(CDCSerial_getByte, this);
-	cdc_register_sent_cb(CDCSerial_bytes_sent, this);
+    this->info = info;
+    this->_rx_buffer = pRx_buffer;
+    this->_tx_buffer = pTx_buffer;
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
 
 void CDCSerialClass::begin(const uint32_t dwBaudRate)
 {
-  begin(dwBaudRate, (uint8_t)SERIAL_8N1 );
+    begin(dwBaudRate, (uint8_t)SERIAL_8N1 );
 }
 
 void CDCSerialClass::begin(const uint32_t dwBaudRate, const uint8_t config)
 {
-  init(dwBaudRate, config );
-  opened = true;
+    init(dwBaudRate, config );
+    opened = true;
 }
 
 
 void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
 {
-	// Make sure both ring buffers are initialized back to empty.
-	_rx_buffer->_iHead = _rx_buffer->_iTail = 0;
-	_tx_buffer->_iHead = _tx_buffer->_iTail = 0;
-	in_flight = false;
+    // Make sure both ring buffers are initialized back to empty.
+    _rx_buffer->_iHead = _rx_buffer->_iTail = 0;
+    _tx_buffer->_iHead = _tx_buffer->_iTail = 0;
 }
 
 void CDCSerialClass::end( void )
 {
-  flush();
-  opened = false;
-  _rx_buffer->_iHead = _rx_buffer->_iTail;
-}
-
-void CDCSerialClass::setInterruptPriority(uint32_t priority)
-{
-}
-
-uint32_t CDCSerialClass::getInterruptPriority()
-{
-  return 0;
+    opened = false;
+    _rx_buffer->_iHead = 0;
+    _rx_buffer->_iTail = 0;
 }
 
 int CDCSerialClass::available( void )
 {
-  return (int)(SERIAL_BUFFER_SIZE + _rx_buffer->_iHead - _rx_buffer->_iTail) % SERIAL_BUFFER_SIZE;
+#define SBS	SERIAL_BUFFER_SIZE
+    return (int)(SBS + _rx_buffer->_iHead - _rx_buffer->_iTail) % SBS;
 }
 
 int CDCSerialClass::availableForWrite(void)
 {
-  if (!opened)
-    return(0);
-  int head = _tx_buffer->_iHead;
-  int tail = _tx_buffer->_iTail;
-  if (head >= tail) return SERIAL_BUFFER_SIZE - 1 - head + tail;
-  return tail - head - 1;
+    if (!opened)
+        return(0);
+
+    int head = _tx_buffer->_iHead;
+    int tail = _tx_buffer->_iTail;
+
+    if (head >= tail)
+        return SERIAL_BUFFER_SIZE - head + tail;
+    return tail - head;
 }
 
 int CDCSerialClass::peek(void)
@@ -123,63 +106,29 @@ int CDCSerialClass::read( void )
     return -1;
 
   uint8_t uc = _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
-  _rx_buffer->_iTail = (unsigned int)(_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+  _rx_buffer->_iTail = (_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
   return uc;
 }
 
-static char chars[SERIAL_BUFFER_SIZE];
-
 void CDCSerialClass::flush( void )
 {
-	int i=0;
-	while (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-		chars[i++] = _tx_buffer->_aucBuffer[_tx_buffer->_iTail];
-		_tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
-	}
-	if (i>0)
-	{
-		chars[i] = 0;
-		/*
-		 * Wait until any outstanding sends to finish. in_flight is cleared by
-		 * bytes_sent() callback below.
-		 */
-		while (in_flight) delayMicroseconds(10);
-
-		in_flight=1;
-		cdc_serial_service_send((char *)chars, i, (void*)"Flush");
-	}
 }
-
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
-    int l;
-	if (!opened)
-		return(0);
+    int timeout = 25; /* 250 milliseconds */
+    static int count = 0;
 
-	/*
-	 * If the buffer is full, flush it.
-	 */
-	l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
-	if (_tx_buffer->_iTail == l) {
-		flush();
-	}
+    if (!opened)
+        return(0);
 
-	_tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
-	_tx_buffer->_iHead = l;
-
-	return 1;
-
-}
-
-void CDCSerialClass::getByte(uint8_t uc_data)
-{
-	_rx_buffer->store_char(uc_data);
-	// While we're at it, we'll flush the output.
-	flush();
-}
-
-void CDCSerialClass::bytes_sent(uint32_t len)
-{
-	in_flight = false;
+    do {
+        _tx_buffer->store_char(uc_data);
+	delay(10);
+	timeout--;
+    } while (_tx_buffer->_buffer_overflow && timeout);
+    if (timeout > 0)
+        return 1;
+    else
+        return 0;
 }

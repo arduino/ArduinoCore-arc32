@@ -41,7 +41,6 @@
 #include "cfw_platform.h"
 
 #include "cfw/cfw_messages.h"
-#include "services/cdc_serial_service.h"
 
 #include "nordic_interface.h"
 
@@ -59,8 +58,6 @@ static const uint8_t ipc_rx_chan = 0;
 static const uint8_t ipc_tx_ack_chan = 6;
 static const uint8_t ipc_rx_ack_chan = 1;
 static const uint8_t ipc_remote_cpu = CPU_ID_LMT;
-
-volatile int cdc_service_available = 0;
 
 /* ISR Callback to handle new messages received via Mailbox from LMT */
 static void ipc_mbx_isr(void)
@@ -84,51 +81,6 @@ static void free_message_ipc(struct message *msg) {
 extern "C" {
 #endif
 
-svc_client_handle_t * cdc_serial_service_handle = NULL;
-static cfw_handle_t *cfw_handle;
-
-static void handle_cdc_message(struct cfw_message * msg, void * param)
-{
-	cfw_open_conn_rsp_msg_t *cnf;
-	int events[1] = {MSG_ID_CDC_SERIAL_RX_EVT};
-
-    switch (CFW_MESSAGE_ID(msg)) {
-    case MSG_ID_CFW_SVC_AVAIL_EVT: {
-        cfw_svc_available_evt_msg_t *evt = (cfw_svc_available_evt_msg_t *)msg;
-        if (evt->service_id == CDC_SERIAL_SERVICE_ID)
-            cfw_open_service(cfw_handle, CDC_SERIAL_SERVICE_ID, "conn1");
-    }
-        break;
-
-    case MSG_ID_CFW_OPEN_SERVICE:
-        cnf = (cfw_open_conn_rsp_msg_t*)msg;
-        cdc_serial_service_handle = cnf->client_handle;
-        cfw_register_events(cdc_serial_service_handle, events,
-                            1, CFW_MESSAGE_PRIV(msg));
-        break;
-
-    case MSG_ID_CFW_REGISTER_EVT:
-        cdc_service_available = 1;
-        break;
-
-    case MSG_ID_CDC_SERIAL_TX_ACK:
-        // Tell the CDCSerialClass that the Tx has been done.
-        cdc_serial_service_sent(msg);
-        break;
-
-    case MSG_ID_CDC_SERIAL_RX_EVT:
-        // Tell the CDCSerialClass that Rx has been done.
-        cdc_serial_service_receive(msg);
-        break;
-	}
-    cfw_msg_free(msg);
-}
-
-static void cdc_serial_client_init(T_QUEUE queue)
-{
-    cfw_handle = cfw_init(service_mgr_queue, handle_cdc_message, "client");
-    cfw_register_svc_available(cfw_handle, CDC_SERIAL_SERVICE_ID, NULL);
-}
 
 void cfw_platform_nordic_init(void)
 {
@@ -190,8 +142,6 @@ void cfw_platform_init(void)
     /* Notify LMT that ARC started. */
     shared_data->arc_ready = 1;
 #endif
-
-    cdc_serial_client_init(service_mgr_queue);
 }
 
 T_QUEUE cfw_get_service_queue(void)

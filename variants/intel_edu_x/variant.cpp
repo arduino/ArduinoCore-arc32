@@ -20,7 +20,8 @@
 #include "portable.h"
 
 #include "cfw_platform.h"
-#include "services/cdc_serial_service.h"
+#include "platform.h"
+
 
 /*
  * EDU Board pin   |     GPIO     | Label
@@ -224,8 +225,23 @@ void initVariant( void )
     variantGpioInit();
     variantPwmInit();
     variantAdcInit();
+
+    /* TODO: REMOVE ME! */
+    Serial1.begin(115200);
+
+    /* Initialise CDC-ACM shared buffers pointers */
+    shared_data->cdc_acm_buffers =
+	    (struct cdc_acm_shared_data *)malloc(sizeof(struct cdc_acm_shared_data));
+
+    shared_data->cdc_acm_buffers->rx_buffer = rx_buffer_cdc._aucBuffer;
+    shared_data->cdc_acm_buffers->rx_head   = &(rx_buffer_cdc._iHead);
+    shared_data->cdc_acm_buffers->rx_tail   = &(rx_buffer_cdc._iTail);
+    shared_data->cdc_acm_buffers->tx_buffer = tx_buffer_cdc._aucBuffer;
+    shared_data->cdc_acm_buffers->tx_head   = &(tx_buffer_cdc._iHead);
+    shared_data->cdc_acm_buffers->tx_tail   = &(tx_buffer_cdc._iTail);
+    shared_data->cdc_acm_buffers->serial_buffer_size	= SERIAL_BUFFER_SIZE;
+
     cfw_platform_init();
-    delay(500);
 }
 
 #ifdef __cplusplus
