@@ -112,12 +112,12 @@ int CDCSerialClass::read( void )
 
 void CDCSerialClass::flush( void )
 {
+    while (_tx_buffer->_iTail != _tx_buffer->_iHead);
 }
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
     int timeout = 25; /* 250 milliseconds */
-    static int count = 0;
 
     if (!opened)
         return(0);

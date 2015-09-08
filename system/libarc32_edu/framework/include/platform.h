@@ -91,6 +91,10 @@ struct platform_shared_block_ {
 
     /* Pointer to shared structure used by CDC-ACM.
      *
+     * The ARC core is responsible for allocating memory and initialising the
+     * pointers of this structure.
+     * The LMT core counts on ARC to find valid pointers in place.
+     *
      * It embeds pointers to following:
      *	    Rx Buffer and its Head and Tail
      *	    Tx Buffer and its Head and Tail
