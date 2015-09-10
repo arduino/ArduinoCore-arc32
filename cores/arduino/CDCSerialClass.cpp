@@ -88,8 +88,8 @@ int CDCSerialClass::availableForWrite(void)
     int tail = _tx_buffer->_iTail;
 
     if (head >= tail)
-        return SERIAL_BUFFER_SIZE - head + tail;
-    return tail - head;
+        return SERIAL_BUFFER_SIZE - head + tail - 1;
+    return tail - head - 1;
 }
 
 int CDCSerialClass::peek(void)
@@ -117,18 +117,12 @@ void CDCSerialClass::flush( void )
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
-    int timeout = 25; /* 250 milliseconds */
-
     if (!opened)
         return(0);
 
     do {
         _tx_buffer->store_char(uc_data);
-	delay(10);
-	timeout--;
-    } while (_tx_buffer->_buffer_overflow && timeout);
-    if (timeout > 0)
-        return 1;
-    else
-        return 0;
+    } while (_tx_buffer->_buffer_overflow);
+
+    return 1;
 }
