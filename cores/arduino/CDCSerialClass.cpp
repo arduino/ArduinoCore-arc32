@@ -112,7 +112,9 @@ int CDCSerialClass::read( void )
 
 void CDCSerialClass::flush( void )
 {
-    while (_tx_buffer->_iTail != _tx_buffer->_iHead);
+    while (_tx_buffer->_iTail != _tx_buffer->_iHead) {
+	    delayMicroseconds(1);
+    }
 }
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
