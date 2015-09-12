@@ -6,6 +6,7 @@ C_SRC+=$(wildcard $(PWD)/drivers/*.c)
 C_SRC+=$(wildcard $(PWD)/common/*.c)
 C_SRC+=$(wildcard $(PWD)/framework/src/*.c)
 C_SRC+=$(wildcard $(PWD)/framework/src/services/*.c)
+C_SRC+=$(wildcard $(PWD)/framework/src/services/ble/*.c)
 C_SRC+=$(wildcard $(PWD)/framework/src/cfw/*.c)
 C_SRC+=$(wildcard $(PWD)/framework/src/infra/*.c)
 C_SRC+=$(wildcard $(PWD)/framework/src/util/*.c)
@@ -22,11 +23,11 @@ TARGET_LIB=lib$(TARGET).a
 
 HWFLAGS=-mARCv2EM -mav2em -mlittle-endian
 
-CFGFLAGS=-DCONFIG_SOC_GPIO_32 -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM
-OPTFLAGS=-g -O0 -Wall -Werror
-#CFGFLAGS+=-DCONFIG_CFW_SERVICES_TEST
-INCLUDES=-I. -Icommon -Ibootcode -Iframework/include
-EXTRA_CFLAGS=-D__CPU_ARC__ -DCLOCK_SPEED=32 -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections 
+CFGFLAGS=-DCONFIG_SOC_GPIO_32 -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DCONFIG_HAS_SHARED_MEM -DCONFIG_INFRA_IS_MASTER
+OPTFLAGS=-g -Os -Wall -Werror
+CFGFLAGS+=-DCONFIG_IPC_UART_BAUDRATE=1000000
+INCLUDES=-I. -Icommon -Idrivers -Ibootcode -Iframework/include -Iframework/src/services/ble
+EXTRA_CFLAGS=-D__CPU_ARC__ -DCLOCK_SPEED=32 -std=c99 -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections
 CFLAGS=$(HWFLAGS) $(OPTFLAGS) $(EXTRA_CFLAGS) $(CFGFLAGS) $(INCLUDES)
 
 C_OBJ=$(C_SRC:.c=.o)

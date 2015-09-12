@@ -28,47 +28,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cfw/cfw.h"
-#include "cfw/cfw_debug.h"
-#include "cfw/cfw_internal.h"
+#ifndef __BLE_SERVICE_H__
+#define __BLE_SERVICE_H__
 
-#include "infra/port.h"
-#include "infra/log.h"
+#include <stdint.h>
 
-char * cfw_get_msg_type_str(struct cfw_message *msg)
-{
-    switch(CFW_MESSAGE_TYPE(msg)) {
-        case TYPE_REQ:
-            return "REQ";
-        case TYPE_RSP:
-            return "RSP";
-        case TYPE_EVT:
-            return "EVT";
-        case TYPE_INT:
-            return "INT";
-        default:
-            return "INVALID";
-    }
-}
+/**
+ * @addtogroup ble_service
+ * @{
+ *
+ */
 
-void cfw_dump_service_handle(svc_client_handle_t * svc_handle)
-{
-    pr_info(LOG_MODULE_CFW, "svc_handle: port: %d, fw_handle: %p, server_handle: %p",
-            svc_handle->port,
-            svc_handle->cfw_handle,
-            svc_handle->server_handle);
-}
+/** BLE response/event status codes. */
+enum BLE_STATUS {
+	BLE_STATUS_SUCCESS = 0, /**< General BLE Success code */
+	BLE_STATUS_PENDING, /**< Request received and execution started, response pending */
+	BLE_STATUS_TIMEOUT, /**< Request timed out */
+	BLE_STATUS_NOT_SUPPORTED, /**< Request/feature/parameter not supported */
+	BLE_STATUS_NOT_ALLOWED, /**< Request not allowed */
+	BLE_STATUS_LINK_TIMEOUT, /**< Link timeout (link loss) */
+	BLE_STATUS_NOT_ENABLED, /**< BLE not enabled, @ref ble_enable */
+	BLE_STATUS_ERROR,	/**< Generic Error */
+	BLE_STATUS_ALREADY_REGISTERED, /**< BLE service already registered */
+	BLE_STATUS_WRONG_STATE, /**< Wrong state for request */
+	BLE_STATUS_ERROR_PARAMETER, /**< Parameter in request is wrong */
+	BLE_STATUS_GAP_BASE = 0x100, /**< GAP specific error base */
+	BLE_STATUS_GATT_BASE = 0x200, /**< GATT specific Error base */
+};
 
-void cfw_dump_message(struct cfw_message * msg)
-{
-#if 1
-    pr_debug(LOG_MODULE_CFW, "%p id: %x src: %d[cpu:%d] dst: %d[cpu:%d] type: %s",
-    		msg, CFW_MESSAGE_ID(msg), CFW_MESSAGE_SRC(msg),
-    		port_get_cpu_id(CFW_MESSAGE_SRC(msg)),
-            CFW_MESSAGE_DST(msg), port_get_cpu_id(CFW_MESSAGE_DST(msg)),
-            cfw_get_msg_type_str(msg));
-#else
-    pr_debug(LOG_MODULE_CFW, "id: %x src: %d dst: %d type: %s", msg->id,
-            msg->src, msg->dst, cfw_get_msg_type_str(msg));
+typedef uint16_t ble_status_t; /**< Response and event BLE service status type @ref BLE_STATUS */
+/** @}*/
 #endif
-}

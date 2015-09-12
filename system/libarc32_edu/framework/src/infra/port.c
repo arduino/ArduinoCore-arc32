@@ -57,12 +57,12 @@ uint8_t get_cpu_id(void)
 	return this_cpu_id;
 }
 
-#ifdef INFRA_IS_MASTER
+#ifdef CONFIG_INFRA_IS_MASTER
 static struct port ports[MAX_PORTS];
 static int registered_port_count = 0;
 #else
 static struct port * ports = NULL;
-#ifndef HAS_SHARED_MEM
+#ifndef CONFIG_HAS_SHARED_MEM
 static int allocated_port_count = 0;
 static uint8_t port_id_to_port[MAX_PORTS] = { 0 };
 #endif
@@ -75,7 +75,7 @@ void * port_alloc_port_table(int numports)
 {
 	int size = numports*sizeof(struct port);
 	ports = balloc(size, NULL);
-#ifndef HAS_SHARED_MEM
+#ifndef CONFIG_HAS_SHARED_MEM
 	allocated_port_count = numports;
 	memset(ports, 0, size);
 #endif
@@ -88,7 +88,7 @@ void * port_get_port_table()
 	return (void *)&ports[0];
 }
 
-#if (!defined HAS_SHARED_MEM && !defined INFRA_IS_MASTER)
+#if (!defined CONFIG_HAS_SHARED_MEM && !defined CONFIG_INFRA_IS_MASTER)
 static struct port * get_port(uint16_t port_id)
 {
 	int i;
@@ -131,7 +131,7 @@ void port_set_queue(uint16_t port_id, void * queue)
 	p->queue = queue;
 }
 
-#ifdef INFRA_IS_MASTER
+#ifdef CONFIG_INFRA_IS_MASTER
 uint16_t port_alloc(void * queue)
 {
     struct port * ret = NULL;
@@ -158,13 +158,15 @@ uint16_t port_alloc(void *queue)
 	struct port * port = NULL;
 	int ret = ipc_request_sync_int(IPC_REQUEST_ALLOC_PORT, 0, 0, NULL);
 	port = get_port((unsigned int)ret);
-#ifndef HAS_SHARED_MEM
-	port->id = ret;
-#endif
 	if (port != NULL) {
-		port->queue = queue;
+            port->queue = queue;
+#ifndef CONFIG_HAS_SHARED_MEM
+	    port->id = ret;
+#endif
+	    return port->id;
 	}
-	return port->id;
+        else
+            return 0;
 }
 #endif
 void port_set_handler(uint16_t port_id, void (*handler)(struct message*, void*), void *param)
@@ -249,9 +251,17 @@ int port_send_message(struct message * message)
     }
     if (port->cpu_id == get_cpu_id()) {
 #ifdef PORT_DEBUG
-        pr_info(LOG_MODULE_MAIN, "Sending message %p to port %p(q:%p) ret: %d", message, port, port->queue, err);
+            pr_info(LOG_MODULE_MAIN, "Sending message %p to port %p(q:%p) ret: %d", message, port, port->queue, err);
 #endif
-        queue_send_message(port->queue, message, &err);
+            struct port *src_port = get_port(MESSAGE_SRC(message));
+            if (src_port->cpu_id == get_cpu_id()) {
+                /* We bypass the software queue here and process directly
+                 * due to lack of background thread on this implementation
+                 */
+                port_process_message(message);
+            } else {
+                queue_send_message(port->queue, message, &err);
+            }
         return err;
     } else {
 #ifdef PORT_DEBUG
@@ -279,7 +289,14 @@ int port_send_message(struct message * msg)
 {
 	struct port * port = get_port(MESSAGE_DST(msg));
 	OS_ERR_TYPE err;
-	queue_send_message(port->queue, msg, &err);
+        if (src_port->cpu_id == get_cpu_id()) {
+            /* We bypass the software queue here and process directly
+             * due to lack of background thread on this implementation
+             */
+            port_process_message(message);
+        } else {
+            queue_send_message(port->queue, message, &err);
+        }
 	return err;
 }
 
@@ -291,15 +308,15 @@ void message_free(struct message * msg)
 
 uint16_t queue_process_message(T_QUEUE queue)
 {
-	T_QUEUE_MESSAGE m;
-	OS_ERR_TYPE err;
-	struct message * message;
-	uint16_t id = 0;
-	queue_get_message(queue, &m, OS_NO_WAIT, &err);
-	message = (struct message *) m;
-	if ( message != NULL && err == E_OS_OK) {
-		id = MESSAGE_ID(message);
-		port_process_message(message);
-	}
-	return id;
+       T_QUEUE_MESSAGE m;
+       OS_ERR_TYPE err;
+       struct message * message;
+       uint16_t id = 0;
+       queue_get_message(queue, &m, OS_NO_WAIT, &err);
+       message = (struct message *) m;
+       if ( message != NULL && err == E_OS_OK) {
+               id = MESSAGE_ID(message);
+               port_process_message(message);
+       }
+       return id;
 }

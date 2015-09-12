@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+#include <BleCharacteristic.h>
+#include <BleDevice.h>
+#include <BleService.h>
+#include <BleCommon.h>
+#include <BleDescriptor.h>
+
+/*
+ * This sketch example partially implements the standard Bluetooth Low-Energy "Battery" service.
+ * For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
+ */
+
+/* BLE Peripheral Device (this Intel Curie device)
+ * We give it an arbitrary name ("AE_BATTMON") which will appear in advertising packets
+ * and can be used by remote peers to identify this BLE device
+ * The name can be changed but ideally should not exceed 13 characters in length */
+BlePeripheral bleDevice("AE_BATTMON");
+
+/* UUID for Battery service */
+#define SERVICE_UUID_BATTERY    (0x180F)
+/* UUID for Battery Level characteristic */
+#define CHAR_UUID_BATTERY_LEVEL (0x2A19)
+
+/* BLE Battery Service */
+BleService battSvc(SERVICE_UUID_BATTERY);
+
+/* BLE Battery Level Characteristic */
+BleCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
+                              sizeof(uint8_t),             /* length of data attribute for this characteristic */
+                              BLE_CLIENT_ACCESS_READ_ONLY, /* remote clients will be able to read this characteristic */
+                              BLE_CLIENT_NOTIFY_ENABLED);  /* remote clients will be able to get notifications if this characteristic changes */
+
+/* Bluetooth MAC address for this device */
+BleDeviceAddress localAddress;
+/* Bluetooth MAC address for remote peer device */
+BleDeviceAddress peerAddress;
+
+/* Variable to keep track of last battery level reading from analog input */
+uint8_t oldBattLvl = 0;
+
+/* Print the MAC address of the remote device.
+ */
+void printBleDeviceAddress(BleDeviceAddress &address, const char *label)
+{
+  Serial.print(label);
+  Serial.print(" device address: ");
+
+  /* The address data is stored in little-endian format in memory so the
+   * bytes are printed in reverse-order to display a readable address */
+  for (int i = BLE_DEVICE_ADDR_LEN-1; i >=0 ; i--)
+      Serial.print(address.addr[i], HEX);
+
+  Serial.println();
+}
+
+/* This function will be called when a BLE GAP event is detected by the
+ * Intel Curie BLE device */
+void blePeripheralEventCb(BlePeripheral &bleDevice, BlePeripheralEvent event, void *arg)
+{
+  if (BLE_PERIPH_EVENT_CONNECTED == event) {
+    Serial.println("Got CONNECTED event");
+    /* We've got a new connection.  Lets print the MAC address of the remote device */
+    bleDevice.getPeerAddress(peerAddress);
+    printBleDeviceAddress(peerAddress, "remote");
+  } else if (BLE_PERIPH_EVENT_DISCONNECTED == event) {
+    Serial.println("Got DISCONNECTED event");
+  } else if (BLE_PERIPH_EVENT_ADV_TIMEOUT == event) {
+    Serial.println("Got ADV_TIMEOUT event");
+  } else if (BLE_PERIPH_EVENT_CONN_TIMEOUT == event) {
+    Serial.println("Got CONN_TIMEOUT event");
+  } else
+    Serial.println("Got UNKNOWN event");
+}
+
+void setup() {
+  pinMode(13, OUTPUT);
+  Serial.begin(115200);
+
+  /* First, initialise the BLE device */
+  bleDevice.init();
+
+  /* Now, we can read the local MAC address of the Intel Curie BLE device */
+  bleDevice.getLocalAddress(localAddress);
+  printBleDeviceAddress(localAddress, "local");
+
+  /* Set a function to be called whenever a BLE GAP event occurs */
+  bleDevice.setEventCallback(blePeripheralEventCb);
+
+  /* Add the BLE Battery service, and include the UUID in BLE advertising data */
+  bleDevice.addPrimaryService(battSvc, true);
+
+  /* Add the optional User Description descriptor */
+  battLvlChar.addUserDescription("Battery Level");
+  /* Add the optional Presentation-Format descriptor */
+  battLvlChar.addPresentationFormat(0x4, 0, 0x27AD, 0x1, 0x0001);
+  /* This service will have just one characteristic that reflects the current
+   * percentage-charge level of the "battery" */
+  battSvc.addCharacteristic(battLvlChar);
+
+  /* Set an initial value for this characteristic; refreshed later the loop() function */
+  battLvlChar.setValue(oldBattLvl);
+
+  /* Now activate the BLE device.  It will start continuously transmitting BLE
+   * advertising packets and thus become visible to remote BLE central devices
+   * (e.g smartphones) until it receives a new connection */
+  if (BLE_STATUS_SUCCESS == bleDevice.start())
+      Serial.println("Bluetooth device active, waiting for connections...");
+}
+
+void loop() {
+  static int ledState;
+
+  /* Blink the on-board LED (just to show some activity) */
+  digitalWrite(13, ledState ? HIGH : LOW);
+  ledState = !ledState;
+
+  /* Read the current voltage level on the A0 analog input pin.
+   * This is used here to simulate the charge level of a "battery".
+   * The following tutorial shows how a potentiometer could be used
+   * to vary the voltage on an analog input pin:
+   * https://www.arduino.cc/en/Tutorial/Potentiometer
+   */
+  uint8_t battLvl = map(analogRead(A0), 0, 1023, 0, 100);
+
+  if (battLvl != oldBattLvl) {
+    Serial.print("battLvl % is now: ");
+    Serial.println(battLvl);
+
+    /* If the voltage level has changed, we update the value of the
+     * Battery Level BLE characteristic.  Because we have enabled
+     * notifications for this characteristic, the remote device can
+     * receive automatic updates when this value is changed. */
+    battLvlChar.setValue(battLvl);
+    oldBattLvl = battLvl;
+  }
+
+  /* Repeat the loop every 200ms - can be changed if desired */
+  delay(200);
+}

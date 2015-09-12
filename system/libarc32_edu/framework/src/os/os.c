@@ -96,10 +96,12 @@ void * queue_wait(void *queue) {
 
 void queue_get_message (T_QUEUE queue, T_QUEUE_MESSAGE* message, int timeout, OS_ERR_TYPE* err) {
     *message = queue_wait(queue);
+    *err = E_OS_OK;
 }
 
 void queue_send_message (T_QUEUE queue, T_QUEUE_MESSAGE message, OS_ERR_TYPE* err) {
     queue_put(queue, message);
+    *err = E_OS_OK;
 }
 
 T_QUEUE queue_create(uint32_t  max_size, OS_ERR_TYPE*err) {

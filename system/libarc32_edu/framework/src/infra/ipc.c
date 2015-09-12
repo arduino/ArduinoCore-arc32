@@ -33,8 +33,11 @@
 #include "infra/ipc.h"
 #include "infra/port.h"
 #include "infra/message.h"
-#include "soc_register.h"
 #include "infra/log.h"
+#include "infra/time.h"
+#include "platform.h"
+
+#include "portable.h"
 
 #define MBX_IPC_SYNC_ARC_TO_LMT 5
 
@@ -50,11 +53,6 @@ static uint8_t remote_cpu = 0;
  * One mailbox for passing data, one mailbox for acknowledging the transfer
  *
  ****************************************************************************/
-
-unsigned int get_timestamp()
-{
-    return SCSS_REG_VAL(SCSS_AONC_CNT);
-}
 
 static T_MUTEX ipc_mutex;
 
@@ -93,7 +91,6 @@ int ipc_request_sync_int(int request_id, int param1, int param2, void * ptr)
 {
     int ret;
     int timeout;
-
     ret = mutex_lock(ipc_mutex, OS_WAIT_FOREVER);
     if (ret != E_OS_OK) {
         pr_error(LOG_MODULE_MAIN, "Error locking ipc %d", ret);
@@ -115,9 +112,9 @@ int ipc_request_sync_int(int request_id, int param1, int param2, void * ptr)
     MBX_DAT3(tx_chan) = (unsigned int )ptr;
     MBX_CTRL(tx_chan) = 0x80000000 | IPC_MSG_TYPE_SYNC;
 
-    timeout = get_timestamp() + 32768;
+    timeout = get_uptime_ms() + 1000;
     while(!MBX_STS(rx_ack_chan)) {
-        if (get_timestamp() > timeout) {
+        if (get_uptime_ms() > timeout) {
             pr_error(LOG_MODULE_MAIN, "Timeout waiting ack %p", request_id);
             break;
         }

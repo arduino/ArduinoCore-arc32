@@ -224,8 +224,8 @@ void initVariant( void )
     variantGpioInit();
     variantPwmInit();
     variantAdcInit();
-    cfw_platform_init(true /* irq_enable */);
-	delay(500);
+    cfw_platform_init();
+    delay(500);
 }
 
 #ifdef __cplusplus

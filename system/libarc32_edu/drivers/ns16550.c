@@ -97,6 +97,7 @@ INCLUDE FILES: drivers/uart.h
 #define IIR_MSTAT 0x00 /* modem status interrupt */
 #define IIR_THRE 0X02  /* transmit holding register empty */
 #define IIR_RBRF 0x04  /* receiver buffer register full */
+#define IIR_RLS 0x06   /* receiver line status */
 #define IIR_ID 0x06    /* interupt ID mask without IP */
 #define IIR_SEOB 0x06  /* serialization error or break */
 
@@ -165,6 +166,7 @@ INCLUDE FILES: drivers/uart.h
 #define MCR_OUT1 0x04 /* output #1 */
 #define MCR_OUT2 0x08 /* output #2 */
 #define MCR_LOOP 0x10 /* loop back */
+#define MCR_AFCE 0x20 /* auto flow control enable */
 
 /* constants for line status register */
 
@@ -175,6 +177,7 @@ INCLUDE FILES: drivers/uart.h
 #define LSR_BI 0x10    /* break interrupt */
 #define LSR_THRE 0x20  /* transmit holding register empty */
 #define LSR_TEMT 0x40  /* transmitter empty */
+#define LSR_BOTH_EMPTY (LSR_THRE|LSR_TEMT)
 
 /* constants for modem status register */
 
@@ -245,6 +248,7 @@ void uart_init(int which, /* UART channel to initialize */
 {
 	unsigned int oldLevel;     /* old interrupt lock level */
 	uint32_t divisor; /* baud rate divisor */
+	uint8_t mdc = 0;
 
 	uart[which].port = init_info->regs;
 	uart[which].irq = init_info->irq;
@@ -252,9 +256,6 @@ void uart_init(int which, /* UART channel to initialize */
 	uart[which].iirCache = 0;
 
 	oldLevel = interrupt_lock();
-
-	/* set the Host Processor Interrupt Routing Mask */
-	SOC_UNMASK_INTERRUPTS(INT_UART_1_MASK);
 
 	/* calculate baud rate divisor */
 	divisor = (init_info->sys_clk_freq / init_info->baud_rate) >> 4;
@@ -267,7 +268,11 @@ void uart_init(int which, /* UART channel to initialize */
 	/* specify the format of the asynchronous data communication exchange */
 	OUTBYTE(LCR(which), init_info->async_format);
 
-	OUTBYTE(MDC(which), MCR_OUT2 | MCR_RTS | MCR_DTR);
+	mdc = MCR_OUT2 | MCR_RTS | MCR_DTR;
+	if ((init_info->options & UART_OPTION_AFCE) == UART_OPTION_AFCE)
+		mdc |= MCR_AFCE;
+
+	OUTBYTE(MDC(which), mdc);
 
 	/*
 	 * Program FIFO: enabled, mode 0 (set for compatibility with quark),
@@ -346,7 +351,8 @@ int uart_fifo_fill(int which, /* UART on which to send */
 {
 	int i;
 
-	for (i = 0; i < size && (INBYTE(LSR(which)) & LSR_THRE) != 0; i++) {
+	for (i = 0; i < size && (INBYTE(LSR(which)) &
+			LSR_BOTH_EMPTY) != 0; i++) {
 		OUTBYTE(THR(which), txData[i]);
 	}
 	return i;
@@ -416,7 +422,7 @@ int uart_irq_tx_ready(int which /* UART to check */
 /*******************************************************************************
 *
 * _uart_irq_rx_enable - enable RX interrupt in IER
-
+*
 * RETURNS: N/A
 */
 
@@ -470,13 +476,93 @@ void uart_irq_err_enable(int which /* UART to enable Rx interrupt */
 *
 * uart_irq_err_disable - disable error interrupt in IER
 *
-* RETURNS: 1 if an IRQ is ready, 0 otherwise
+* RETURNS: N/A
 */
 
 void uart_irq_err_disable(int which /* UART to disable Rx interrupt */
 			  )
 {
 	OUTBYTE(IER(which), INBYTE(IER(which)) & (~IER_LSR));
+}
+
+/*******************************************************************************
+*
+* uart_irq_err_detected - check if line status IRQ has been raised
+*
+* RETURNS: 1 if an IRQ is detected, 0 otherwise
+*/
+
+int uart_irq_err_detected(int which /* UART to check */
+			  )
+{
+	return (IIRC(which) & IIR_ID) == IIR_RLS;
+}
+
+/*******************************************************************************
+*
+* uart_line_status - returns line status
+*
+* RETURNS: line status register content
+*/
+
+int uart_line_status(int which /* UART to check */
+			  )
+{
+	return INBYTE(LSR(which));
+}
+
+/*******************************************************************************
+*
+* uart_break_check - check if line status IRQ is due to break
+*
+* RETURNS: non null if a break has been detected, 0 otherwise
+*/
+
+int uart_break_check(int which /* UART to check */
+			  )
+{
+	return INBYTE(LSR(which)) & LSR_BI;
+}
+
+/*******************************************************************************
+*
+* uart_break_send - send a break
+*
+* The delay implementation must be working in panic context where IRQs
+* or other features are disabled, so a basic for loop is used.
+* A value of (1<<12) is more or less 1 ms on AtlasPeak 1/Lakemont (32 MHz).
+*
+* RETURNS: N/A
+*/
+
+void uart_break_send(int which, /* UART to check */
+                    int delay  /* Delay (empty loop iteration count) */
+			  )
+{
+	int ier = INBYTE(LCR(which));
+	OUTBYTE(LCR(which), ier | LCR_SBRK);
+	for (volatile int i = 0 ; i < delay; i++);
+	OUTBYTE(LCR(which), ier);
+}
+
+/*******************************************************************************
+*
+* uart_disable - disables UART by resetting RTS and DTR
+*
+* Before going to sleep we might want to set the UART in such configuration
+* that RTS and DTR are set, so that the connected device stops sending.
+* You will need to call uart_init when you'll want to setup the port again.
+*
+* RETURNS: N/A
+*/
+
+void uart_disable(int which /* UART to check */
+			   )
+{
+	uint8_t mdc = INBYTE(MDC(which));
+	mdc |= MCR_OUT2;
+	mdc &= ~(MCR_RTS | MCR_DTR | MCR_AFCE);
+	OUTBYTE(MDC(which), mdc);
 }
 
 /*******************************************************************************
@@ -526,4 +612,6 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 {
 	interrupt_connect((unsigned int)uart[which].irq, isr);
 	interrupt_enable((unsigned int)uart[which].irq);
+	/* set the Host Processor Interrupt Routing Mask */
+	SOC_UNMASK_INTERRUPTS(INT_UART_0_MASK + (which * UART_REG_ADDR_INTERVAL));
 }

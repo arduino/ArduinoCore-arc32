@@ -31,6 +31,7 @@
 #ifndef __PLATFORM_H_
 #define __PLATFORM_H_
 #include <stdint.h>
+#include "services/services_ids.h"
 
 #define CPU_ID_LMT  0
 #define CPU_ID_ARC  1
@@ -77,42 +78,6 @@ struct platform_shared_block_ {
 
 /* Use a ROM address as a temporary factory_data pointer */
 #define FACTORY_DATA_ADDR 0xffffe000
-
-/**
- * Services id definitions
- *
- * Keep them numbered manually to avoid shifting on
- * removal/addition of services
- */
-enum {
-	FRAMEWORK_SERVICE_ID  = 1,
-	TEST2_SERVICE_ID      = 2,
-	TEST_SERVICE_ID       = 3,
-	BLE_SERVICE_ID        = 4,
-	BLE_CORE_SERVICE_ID   = 5,
-	SS_GPIO_SERVICE_ID    = 6,
-	SOC_GPIO_SERVICE_ID   = 7,
-	SS_ADC_SERVICE_ID     = 8,
-	LL_STOR_SERVICE_ID    = 9,
-	BATTERY_SERVICE_ID    = 10,
-	UI_SVC_SERVICE_ID     = 11,
-	PROPERTIES_SERVICE_ID = 12,
-	ARC_SC_SVC_ID         = 13,
-	LMT_SS_SVC_ID         = 14,
-	AON_GPIO_SERVICE_ID   = 15,
-	CDC_SERIAL_SERVICE_ID = 16
-};
-
-#define BLE_SERVICE_MSG_BASE      (BLE_SERVICE_ID << 10)
-#define BLE_SERVICE_GAP_MSG_BASE  (BLE_CORE_SERVICE_ID << 10)
-#define MSG_ID_GPIO_BASE          (SOC_GPIO_SERVICE_ID << 10)
-#define MSG_ID_ADC_SERVICE_BASE   (SS_ADC_SERVICE_ID << 10)
-#define MSG_ID_LL_STORAGE_BASE    (LL_STOR_SERVICE_ID << 10)
-#define MSG_ID_BATT_SERVICE_BASE  (BATTERY_SERVICE_ID << 10)
-#define MSG_ID_UI_SERVICE_BASE    (UI_SVC_SERVICE_ID << 10)
-#define MSG_ID_PROP_SERVICE_BASE  (PROPERTIES_SERVICE_ID << 10)
-#define MSG_ID_SS_SERVICE_BASE    (ARC_SC_SVC_ID << 10)
-#define MSG_ID_CDC_SERIAL_BASE    (CDC_SERIAL_SERVICE_ID << 10)
 
 #define ADC_VOLTAGE_CHANNEL                 4   /**< TODO arbitrary value. Looking for final decision*/
 #define ADC_TEMPERATURE_CHANNEL             5   /**< TODO arbitrary value. Looking for final decision*/

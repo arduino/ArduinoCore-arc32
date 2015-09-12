@@ -28,10 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "version.h"
+#include "infra/version.h"
 
 /* The content of this struct is overwritten in a post-build script */
-struct version_header version_header __attribute__((section(".version_header"))) = {
+const struct version_header version_header __attribute__((section(".version_header"))) = {
     .magic = {'$', 'B', '!', 'N'},
     .version = 0x01,
     .reserved_1 = {0, 0, 0, 0},

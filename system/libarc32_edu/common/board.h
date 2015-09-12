@@ -155,19 +155,40 @@ This header file is used to specify and describe board-level aspects for the
  * - only the target console is supported (hostserver driver is NOT supported).
  */
 #define UART_POLL_OUT           uart_poll_out
-#define CONFIG_UART_NUM_SYSTEM_PORTS 1
+#define CONFIG_UART_NUM_SYSTEM_PORTS 2
 #define CONFIG_UART_NUM_EXTRA_PORTS 0
 #define CONFIG_UART_NUM_PORTS \
 	(CONFIG_UART_NUM_SYSTEM_PORTS + CONFIG_UART_NUM_EXTRA_PORTS)
 
-#define CONFIG_UART_CONSOLE_INDEX 0
+#define CONFIG_UART_CONSOLE_INDEX 1
 #define CONFIG_UART_CONSOLE_CLK_FREQ SYSCLK_DEFAULT_IOSC_HZ
 #define CONFIG_UART_CONSOLE_BAUDRATE 115200
-#define CONFIG_UART_CONSOLE_REGS PERIPH_ADDR_BASE_UART0
-#define CONFIG_UART_CONSOLE_IRQ IRQ_UART0_INTR
+#define CONFIG_UART_CONSOLE_REGS PERIPH_ADDR_BASE_UART1
+#define CONFIG_UART_CONSOLE_IRQ IRQ_UART1_INTR
 #define CONFIG_UART_CONSOLE_INT_PRI 0
 
 #define UART_REG_ADDR_INTERVAL 4 /* for ns16550 driver */
+
+/* uart interface */
+#define UART_POLL_IN            uart_poll_in
+#define UART_POLL_OUT           uart_poll_out
+#define UART_FIFO_FILL          uart_fifo_fill
+#define UART_FIFO_READ          uart_fifo_read
+#define UART_IRQ_TX_ENABLE      uart_irq_tx_enable
+#define UART_IRQ_TX_DISABLE     uart_irq_tx_disable
+#define UART_IRQ_TX_READY       uart_irq_tx_ready
+#define UART_IRQ_RX_ENABLE      uart_irq_rx_enable
+#define UART_IRQ_RX_DISABLE     uart_irq_rx_disable
+#define UART_IRQ_RX_READY       uart_irq_rx_ready
+#define UART_IRQ_ERR_ENABLE     uart_irq_err_enable
+#define UART_IRQ_ERR_DISABLE    uart_irq_err_disable
+#define UART_IRQ_ERR_DETECTED   uart_irq_err_detected
+#define UART_IRQ_IS_PENDING     uart_irq_is_pending
+#define UART_IRQ_HW_UPDATE      uart_irq_update
+#define UART_IRQ_INT_CONNECT    uart_int_connect
+#define UART_LINE_STATUS        uart_line_status
+#define UART_BREAK_CHECK        uart_break_check
+#define UART_BREAK_SEND         uart_break_send
 
 #endif /* !_ASMLANGUAGE */
 

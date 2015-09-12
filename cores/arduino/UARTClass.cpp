@@ -72,29 +72,29 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
   SET_PIN_MODE(16, UART_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
 
   info->options = 0;
-  info->sys_clk_freq = 32000000;
+  info->sys_clk_freq = SYSCLK_DEFAULT_IOSC_HZ;
   info->baud_rate = dwBaudRate;
-  info->regs = PERIPH_ADDR_BASE_UART1;
-  info->irq = IRQ_UART1_INTR;
-  info->int_pri = 0;
+  info->regs = CONFIG_UART_CONSOLE_REGS;
+  info->irq = CONFIG_UART_CONSOLE_IRQ;
+  info->int_pri = CONFIG_UART_CONSOLE_INT_PRI;
   info->async_format = modeReg;
 
-  uart_init(0, info);
+  uart_init(CONFIG_UART_CONSOLE_INDEX, info);
 
-  uart_irq_rx_disable(0);
-  uart_irq_tx_disable(0);
+  uart_irq_rx_disable(CONFIG_UART_CONSOLE_INDEX);
+  uart_irq_tx_disable(CONFIG_UART_CONSOLE_INDEX);
 
-  uart_int_connect(0,           /* UART to which to connect */
+  uart_int_connect(CONFIG_UART_CONSOLE_INDEX,           /* UART to which to connect */
                    UART_Handler, /* interrupt handler */
                    NULL,           /* argument to pass to handler */
                    NULL           /* ptr to interrupt stub code */
                    );
 
-  while (uart_irq_rx_ready(0))
-      uart_fifo_read(0, &c, 1);
+  while (uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
+      uart_fifo_read(CONFIG_UART_CONSOLE_INDEX, &c, 1);
 
 
-  uart_irq_rx_enable(0);
+  uart_irq_rx_enable(CONFIG_UART_CONSOLE_INDEX);
 
 }
 
@@ -104,10 +104,10 @@ void UARTClass::end( void )
   uint8_t uc_data;
   // Wait for any outstanding data to be sent
   flush();
-  uart_irq_rx_disable(0);
-  uart_irq_tx_disable(0);
+  uart_irq_rx_disable(CONFIG_UART_CONSOLE_INDEX);
+  uart_irq_tx_disable(CONFIG_UART_CONSOLE_INDEX);
   while ( ret != -1 ) {
-    ret = uart_poll_in(0, &uc_data);
+    ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
   }
   opened = false;
   // Clear any received data
@@ -163,7 +163,7 @@ void UARTClass::flush( void )
 {
   while (_tx_buffer->_iHead != _tx_buffer->_iTail); //wait for transmit data to be sent
   // Wait for transmission to complete
-  while (uart_irq_tx_ready(0));
+  while (uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX));
 }
 
 size_t UARTClass::write( const uint8_t uc_data )
@@ -182,12 +182,12 @@ size_t UARTClass::write( const uint8_t uc_data )
     _tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
     _tx_buffer->_iHead = l;
     // Make sure TX interrupt is enabled
-    uart_irq_tx_enable(0);
+    uart_irq_tx_enable(CONFIG_UART_CONSOLE_INDEX);
   }
   else 
   {
      // Bypass buffering and send character directly
-     uart_poll_out(0, uc_data);
+     uart_poll_out(CONFIG_UART_CONSOLE_INDEX, uc_data);
   }
   return 1;
 }
@@ -196,24 +196,24 @@ void UARTClass::IrqHandler( void )
 {
   uint8_t uc_data;
   int ret;
-  ret = uart_poll_in(0, &uc_data);
+  ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
   
   while ( ret != -1 ) {
     _rx_buffer->store_char(uc_data);
-    ret = uart_poll_in(0, &uc_data);
+    ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
   }
 
   // Do we need to keep sending data?
-  if (!uart_irq_tx_ready(0)) 
+  if (!uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
     if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-      uart_poll_out(0, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
+      uart_poll_out(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
       _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
     }
     else
     {
       // Mask off transmit interrupt so we don't get it anymore
-      uart_irq_tx_disable(0);
+      uart_irq_tx_disable(CONFIG_UART_CONSOLE_INDEX);
     }
   }
 }

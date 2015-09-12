@@ -28,47 +28,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cfw/cfw.h"
-#include "cfw/cfw_debug.h"
-#include "cfw/cfw_internal.h"
+#ifndef __SERVICES_IDS__
+#define __SERVICES_IDS__
 
-#include "infra/port.h"
-#include "infra/log.h"
+/**
+ * Services id definitions
+ *
+ * Keep them numbered manually to avoid shifting on
+ * removal/addition of services
+ */
+enum {
+	FRAMEWORK_SERVICE_ID  = 1,
+	TEST2_SERVICE_ID      = 2,
+	TEST_SERVICE_ID       = 3,
+	BLE_SERVICE_ID        = 4,
+	BLE_CORE_SERVICE_ID   = 5,
+	SS_GPIO_SERVICE_ID    = 6,
+	SOC_GPIO_SERVICE_ID   = 7,
+	SS_ADC_SERVICE_ID     = 8,
+	LL_STOR_SERVICE_ID    = 9,
+	BATTERY_SERVICE_ID    = 10,
+	UI_SVC_SERVICE_ID     = 11,
+	PROPERTIES_SERVICE_ID = 12,
+	ARC_SC_SVC_ID         = 13,
+	LMT_SS_SVC_ID         = 14,
+	AON_GPIO_SERVICE_ID   = 15,
+	CDC_SERIAL_SERVICE_ID = 16,
+	CFW_LAST_SERVICE_ID   = 17
+};
 
-char * cfw_get_msg_type_str(struct cfw_message *msg)
-{
-    switch(CFW_MESSAGE_TYPE(msg)) {
-        case TYPE_REQ:
-            return "REQ";
-        case TYPE_RSP:
-            return "RSP";
-        case TYPE_EVT:
-            return "EVT";
-        case TYPE_INT:
-            return "INT";
-        default:
-            return "INVALID";
-    }
-}
+#define BLE_SERVICE_MSG_BASE      (BLE_SERVICE_ID << 10)
+#define BLE_SERVICE_GAP_MSG_BASE  (BLE_CORE_SERVICE_ID << 10)
+#define MSG_ID_GPIO_BASE          (SOC_GPIO_SERVICE_ID << 10)
+#define MSG_ID_ADC_SERVICE_BASE   (SS_ADC_SERVICE_ID << 10)
+#define MSG_ID_LL_STORAGE_BASE    (LL_STOR_SERVICE_ID << 10)
+#define MSG_ID_BATT_SERVICE_BASE  (BATTERY_SERVICE_ID << 10)
+#define MSG_ID_UI_SERVICE_BASE    (UI_SVC_SERVICE_ID << 10)
+#define MSG_ID_PROP_SERVICE_BASE  (PROPERTIES_SERVICE_ID << 10)
+#define MSG_ID_SS_SERVICE_BASE    (ARC_SC_SVC_ID << 10)
+#define MSG_ID_CDC_SERIAL_BASE    (CDC_SERIAL_SERVICE_ID << 10)
 
-void cfw_dump_service_handle(svc_client_handle_t * svc_handle)
-{
-    pr_info(LOG_MODULE_CFW, "svc_handle: port: %d, fw_handle: %p, server_handle: %p",
-            svc_handle->port,
-            svc_handle->cfw_handle,
-            svc_handle->server_handle);
-}
-
-void cfw_dump_message(struct cfw_message * msg)
-{
-#if 1
-    pr_debug(LOG_MODULE_CFW, "%p id: %x src: %d[cpu:%d] dst: %d[cpu:%d] type: %s",
-    		msg, CFW_MESSAGE_ID(msg), CFW_MESSAGE_SRC(msg),
-    		port_get_cpu_id(CFW_MESSAGE_SRC(msg)),
-            CFW_MESSAGE_DST(msg), port_get_cpu_id(CFW_MESSAGE_DST(msg)),
-            cfw_get_msg_type_str(msg));
-#else
-    pr_debug(LOG_MODULE_CFW, "id: %x src: %d dst: %d type: %s", msg->id,
-            msg->src, msg->dst, cfw_get_msg_type_str(msg));
 #endif
-}

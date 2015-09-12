@@ -51,6 +51,9 @@ extern "C" {
 #define LCR_SBRK 0x40  /* break control bit */
 #define LCR_DLAB 0x80  /* divisor latch access enable */
 
+/* options for uart init */
+#define UART_OPTION_AFCE 0x01
+
 /* generic UART info structure */
 struct uart_init_info {
 	int baud_rate;
@@ -80,9 +83,14 @@ void uart_irq_rx_disable(int port);
 int uart_irq_rx_ready(int port);
 void uart_irq_err_enable(int port);
 void uart_irq_err_disable(int port);
+int uart_irq_err_detected(int port);
 int uart_irq_is_pending(int port);
 int uart_irq_update(int port);
 void uart_int_connect(int port, void (*isr)(void), void *arg, void *stub);
+int uart_line_status(int port);
+int uart_break_check(int port);
+void uart_break_send(int port, int delay);
+void uart_disable(int port);
 
 #ifdef __cplusplus
 }

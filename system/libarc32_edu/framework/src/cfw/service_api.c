@@ -137,7 +137,7 @@ void client_handle_message(struct cfw_message * msg, void *param) {
         ((svc_client_handle_t*)cnf->client_handle)->server_handle = cnf->svc_server_handle;
         /** Initialize service port. */
         ((svc_client_handle_t*)cnf->client_handle)->port = cnf->port;
-#ifndef INFRA_IS_MASTER
+#ifndef CONFIG_INFRA_IS_MASTER
         /* Set local port and cpu id */
         if (get_cpu_id() != cnf->cpu_id) {
             port_set_port_id(cnf->port);

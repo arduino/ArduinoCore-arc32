@@ -44,7 +44,7 @@
 #define MAX_PORTS       50
 
 
-#ifndef INFRA_IS_MASTER
+#ifndef CONFIG_INFRA_IS_MASTER
 /**
  * Set the port table structure for a remote, shared mem enabled CPU.
  */
@@ -156,6 +156,19 @@ uint16_t queue_process_message(T_QUEUE queue);
  * @return the message id or 0
  */
 uint16_t queue_process_message_wait(T_QUEUE queue, uint32_t timeout, OS_ERR_TYPE* err);
+
+/**
+ * Process the next message in a queue.
+ *
+ * Gets the first pending message out of the queue and calls the appropriate
+ * port handler
+ *
+ * \param queue The queue to fetch the message from
+ *
+ * \return the message id or 0
+ *
+ */
+uint16_t queue_process_message(T_QUEUE queue);
 
 /**
  * Multi CPU support APIs.

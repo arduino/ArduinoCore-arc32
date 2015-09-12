@@ -31,19 +31,18 @@
 #include "os/os.h"
 #include "util/list.h"
 
-
 void list_init(list_head_t * list) {
     list->head = list->tail = NULL;
 }
 
 void list_add_head(list_head_t * list, list_t * element) {
-    if (list->head == NULL) {
-        list->head = list->tail = element;
-    } else {
-        element->next = list->head;
-        list->head = element;
+    uint32_t saved = interrupt_lock();
+    element->next = list->head;
+    list->head = element;
+    if (element->next == NULL) {
+        list->tail = element;
     }
-    element->next = NULL;
+    interrupt_unlock(saved);
 }
 
 
@@ -60,7 +59,12 @@ void list_add(list_head_t * list, list_t * element) {
 }
 
 void list_remove(list_head_t *list, list_t * element) {
+    uint32_t saved = interrupt_lock();
     list_t * l = list->head;
+    if (l == NULL) {
+        // List empty, return
+        goto exit;
+    }
     /* remove first? */
     if (element == l) {
         list->head = l->next;
@@ -68,18 +72,19 @@ void list_remove(list_head_t *list, list_t * element) {
             list->tail = NULL;
         }
     } else {
-        list_t * prev = l;
-        while (l) {
-            if (l == element) {
-                prev->next = l->next;
-                if (list->tail == l) {
-                    list->tail = prev;
-                }
+        // Find element in the list
+        for (; (l->next) && (l->next != element); (l = l->next));
+
+        if (l->next != NULL) {
+            // remove element
+            if (list->tail == l->next) {
+                list->tail = l;
             }
-            prev = l;
-            l = l->next;
+            l->next = l->next->next;
         }
     }
+exit:
+    interrupt_unlock(saved);
 }
 
 void list_foreach(list_head_t * lh, void(*cb)(void *, void *), void * param) {
@@ -123,6 +128,9 @@ list_t * list_get(list_head_t *lh) {
     list_t * l = lh->head;
     if (l != NULL) {
         lh->head = l->next;
+        if (lh->head == NULL) {
+            lh->tail = NULL;
+        }
     }
     interrupt_unlock(saved);
     return l;
@@ -134,13 +142,7 @@ int list_empty(list_head_t *lh) {
 
 list_t * list_find_first(list_head_t * lh, bool(*cb)(list_t*,void*), void *data)
 {
-	list_t *result = NULL;
-	list_t *item = lh->head;
-	while (item && !result) {
-		if (cb(item,data)) {
-			result = item;
-		}
-		item = item->next;
-	}
-	return result;
+    list_t *l = lh->head;
+    for (; l && !cb(l,data); l = l->next);
+    return l;
 }

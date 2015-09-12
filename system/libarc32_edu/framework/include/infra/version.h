@@ -102,10 +102,10 @@ struct version_header {
 
     /** Filled with zeros, can be eventually used for 64 bits support */
     uint8_t reserved_2[4];
-} __packed;
+} __attribute__((__packed__));
 
 /** The global version header struct */
-extern struct version_header version_header;
+extern const struct version_header version_header;
 
 /** @} */
 

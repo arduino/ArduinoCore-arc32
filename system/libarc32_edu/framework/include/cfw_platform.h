@@ -32,14 +32,15 @@
 #define __CFW_PLATFORM_H_
 
 #include <stdbool.h>
+#include "os/os_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void cfw_platform_init(bool irq_enable);
-void cfw_platform_loop();
-void cfw_log(char * fmt, ... );
+void    cfw_platform_init(void);
+void    cfw_platform_nordic_init(void);
+T_QUEUE cfw_get_service_queue(void);
 
 #ifdef __cplusplus
 }
