@@ -82,6 +82,7 @@ INCLUDE FILES: drivers/uart.h
 #define REG_MDC 0x04  /* Modem control reg.       */
 #define REG_LSR 0x05  /* Line status reg.         */
 #define REG_MSR 0x06  /* Modem status reg.        */
+#define REG_DLF 0x30  /* Divisor Latch Fraction.  */
 
 /* equates for interrupt enable register */
 
@@ -203,6 +204,7 @@ INCLUDE FILES: drivers/uart.h
 #define MDC(n) (uart[n].port + REG_MDC * UART_REG_ADDR_INTERVAL)
 #define LSR(n) (uart[n].port + REG_LSR * UART_REG_ADDR_INTERVAL)
 #define MSR(n) (uart[n].port + REG_MSR * UART_REG_ADDR_INTERVAL)
+#define DLF(n) (uart[n].port + REG_DLF * UART_REG_ADDR_INTERVAL)
 
 #define IIRC(n) uart[n].iirCache
 
@@ -247,7 +249,7 @@ void uart_init(int which, /* UART channel to initialize */
 	       )
 {
 	unsigned int oldLevel;     /* old interrupt lock level */
-	uint32_t divisor; /* baud rate divisor */
+	uint32_t divisor, fdivisor, tmp; /* baud rate divisors */
 	uint8_t mdc = 0;
 
 	uart[which].port = init_info->regs;
@@ -257,13 +259,22 @@ void uart_init(int which, /* UART channel to initialize */
 
 	oldLevel = interrupt_lock();
 
+	/* The formula for calculating these baud rate divisors is:
+	 *   baud rate = (Fbase) / (16 * (divisor+(fdivisor/16))
+	 */
+
 	/* calculate baud rate divisor */
 	divisor = (init_info->sys_clk_freq / init_info->baud_rate) >> 4;
+	/* Calculate baud rate fractional divisor from the remainder.
+	 * The result is rounded to the nearest whole number */
+	tmp = init_info->baud_rate >> 4;
+	fdivisor = (((init_info->sys_clk_freq >> 4) % init_info->baud_rate) + (tmp >> 1)) / tmp;
 
 	/* set the DLAB to access the baud rate divisor registers */
 	OUTBYTE(LCR(which), LCR_DLAB);
 	OUTBYTE(BRDL(which), (unsigned char)(divisor & 0xff));
 	OUTBYTE(BRDH(which), (unsigned char)((divisor >> 8) & 0xff));
+	OUTBYTE(DLF(which), (unsigned char)(fdivisor & 0xf));
 
 	/* specify the format of the asynchronous data communication exchange */
 	OUTBYTE(LCR(which), init_info->async_format);
