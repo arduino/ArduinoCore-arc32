@@ -31,14 +31,10 @@ extern "C"{
 #define I2C_TIMEOUT -1
 #define I2C_ERROR   -2
 
-int i2c_getadapter(uint32_t i2c_bus_address);
-int i2c_openadapter(uint8_t i2c_adapter_nr);
+int i2c_openadapter(void);
 void i2c_setslave(uint8_t addr);
-int i2c_writebyte(uint8_t byte);
-int i2c_writebytes(uint8_t *bytes, uint8_t length);
-int i2c_readbyte(void);
-int i2c_readbytes(uint8_t *buf, int length);
-int i2c_transferbytes(uint8_t *tx_buf, int tx_length, uint8_t *rx_buf, int rx_length);
+int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop);
+int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
 
 #ifdef __cplusplus
 }

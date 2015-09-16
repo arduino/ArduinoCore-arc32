@@ -39,6 +39,7 @@
 #include "i2c_priv.h"
 #include "ss_dw_i2c.h"
 #include "soc_register.h"
+#include <stdbool.h>
 
 static void end_data_transfer (i2c_info_pt dev)
 {
@@ -91,9 +92,10 @@ static void recv_data(i2c_info_pt dev)
 }
 
 
-void i2c_fill_fifo(i2c_info_pt dev)
+void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
 {
     uint32_t      i, tx_cnt, data;
+
     if (_Rarely(!dev->rx_tx_len))
     {
         return;
@@ -112,9 +114,7 @@ void i2c_fill_fifo(i2c_info_pt dev)
 
             if( dev->tx_len == 1)
             {  // last byte to write
-                if (dev->rx_len > 0) // repeated start  if something to read after
-                    data |= I2C_RESTART_CMD;
-                else
+                if (! no_stop)
                     data |= I2C_STOP_CMD;
             }
             dev->tx_len -= 1;
@@ -123,9 +123,12 @@ void i2c_fill_fifo(i2c_info_pt dev)
         else
         {    // something to read
             data = I2C_PUSH_DATA | I2C_READ_CMD;
-            if (dev->rx_tx_len == 1) // last dummy byte to write
-                data |= I2C_STOP_CMD;
-        }
+            if (dev->rx_tx_len == 1)
+            { // last dummy byte to write
+                if(! no_stop)
+                    data |= I2C_STOP_CMD;
+            }
+         }
         REG_WRITE( I2C_DATA_CMD, data );
         dev->rx_tx_len -= 1;
     }
@@ -135,7 +138,7 @@ void i2c_fill_fifo(i2c_info_pt dev)
 static void xmit_data(i2c_info_pt dev)
 {
     int mask;
-    i2c_fill_fifo(dev);
+    i2c_fill_fifo(dev, false);
     if (dev->rx_tx_len <= 0)
     {
         mask = REG_READ( I2C_INTR_MASK );

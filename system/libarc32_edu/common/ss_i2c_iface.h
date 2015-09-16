@@ -41,7 +41,7 @@
 
 #include "data_type.h"
 #include "common_i2c.h"
-
+#include <stdbool.h>
 /*!
  * List of all controllers in system ( IA and SS )
  */
@@ -132,7 +132,7 @@ DRIVER_API_RC ss_i2c_clock_enable(I2C_CONTROLLER controller_id);
 DRIVER_API_RC ss_i2c_clock_disable(I2C_CONTROLLER controller_id);
 
 
-/*! \fn     DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr)
+/*! \fn     DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr, bool no_stop)
 *
 *  \brief   Function to transmit a block of data to the specified I2C slave
 *
@@ -140,14 +140,15 @@ DRIVER_API_RC ss_i2c_clock_disable(I2C_CONTROLLER controller_id);
 *  \param   data            : pointer to data to write
 *  \param   data_len        : length of data to write
 *  \param   slave_addr      : I2C address of the slave to write data to
+*  \param   no_stop         : if true, prevents STOP command and release of I2C bus at end of transaction
 *
 *  \return  DRV_RC_OK on success\n
 *           DRV_RC_FAIL otherwise
 */
-DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr);
+DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr, bool no_stop);
 
 
-/*! \fn     DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr)
+/*! \fn     DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr, bool no_stop)
 *
 *  \brief   Function to receive a block of data
 *           If set as a master, this will receive 'data_len' bytes transmitted from slave
@@ -159,13 +160,14 @@ DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t
 *  \param   data            : pointer to data to read
 *  \param   data_len        : length of data to read
 *  \param   slave_addr      : I2C address of the slave to read from
+*  \param   no_stop         : if true, prevents STOP command and release of I2C bus at end of transaction
 *
 *  \return  DRV_RC_OK on success\n
 *           DRV_RC_FAIL otherwise
 */
-DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr);
+DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t data_len, uint32_t slave_addr, bool no_stop);
 
-/*! \fn     DRIVER_API_RC soc_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr)
+/*! \fn     DRIVER_API_RC soc_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr, bool no_stop)
 *
 *  \brief   Function to transmit and receive a block of data to the specified I2C slave
 *           with repeated start
@@ -176,21 +178,23 @@ DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data, uint32_t 
 *  \param   data_read       : pointer to data to read
 *  \param   data_read_len   : length of data to read
 *  \param   slave_addr      : I2C address of the slave to write data to
+*  \param   no_stop         : if true, prevents STOP command and release of I2C bus at end of transaction
 *
 *  \return  RC_OK on success\n
 *           RC_FAIL otherwise
 */
-DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr);
+DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr, bool no_stop);
 
-/*! \fn     DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id)
+/*! \fn     DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id, bool no_stop)
 *
 *  \brief   Function to determine controllers current state
 *
 *  \param   controller_id   : I2C controller identifier
+*  \param   no_stop         : if true, prevents STOP command and release of I2C bus at end of transaction
 *
 *  \return  I2C_OK - controller ready, I2C_BUSY - controller busy
 */
-DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id);
+DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id, bool no_stop);
 
 #ifdef __cplusplus
 }

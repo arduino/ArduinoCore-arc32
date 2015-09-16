@@ -28,10 +28,8 @@
 
 class TwoWire : public Stream {
 public:
-	TwoWire(void(*begin_cb)(void));
+	TwoWire(void);
 	void begin();
-	void begin(uint8_t);
-	void begin(int);
 	void beginTransmission(uint8_t);
 	void beginTransmission(int);
 	uint8_t endTransmission(void);
@@ -46,16 +44,12 @@ public:
 	virtual int read(void);
 	virtual int peek(void);
 	virtual void flush(void);
-	void onReceive(void(*)(int));
-	void onRequest(void(*)(void));
 
 	inline size_t write(unsigned long n) { return write((uint8_t)n); }
 	inline size_t write(long n) { return write((uint8_t)n); }
 	inline size_t write(unsigned int n) { return write((uint8_t)n); }
 	inline size_t write(int n) { return write((uint8_t)n); }
 	using Print::write;
-
-	void onService(void);
 
 private:
 	// RX Buffer
@@ -68,28 +62,11 @@ private:
 	uint8_t txBuffer[BUFFER_LENGTH];
 	uint8_t txBufferLength;
 
-	// Service buffer
-	uint8_t srvBuffer[BUFFER_LENGTH];
-	uint8_t srvBufferIndex;
-	uint8_t srvBufferLength;
-
-	// Callback user functions
-	void (*onRequestCallback)(void);
-	void (*onReceiveCallback)(int);
-
-	// Called before initialization
-	void (*onBeginCallback)(void);
-
-	uint8_t adapter_nr;
-	int i2c_fd;
-	int i2c_transfer;
+	int init_status;
 };
 
 #if WIRE_INTERFACES_COUNT > 0
 extern TwoWire Wire;
-#endif
-#if WIRE_INTERFACES_COUNT > 1
-extern TwoWire Wire1;
 #endif
 
 #endif

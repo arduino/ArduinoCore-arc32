@@ -23,12 +23,7 @@
 #include "i2c.h"
 #include "variant.h"
 
-#define TIMEOUT 16
-
-int i2c_getadapter(uint32_t i2c_bus_address)
-{
-	return 0;
-}
+#define TIMEOUT_MS 16
 
 static volatile uint8_t i2c_tx_complete;
 static volatile uint8_t i2c_rx_complete;
@@ -51,50 +46,60 @@ static void ss_i2c_err(uint32_t dev_id)
 	i2c_err_detect = 1;
 }
 
-static int wait_rx_or_err(){
-	uint64_t timeout = TIMEOUT;
+static int wait_rx_or_err(bool no_stop){
+	uint64_t timeout = TIMEOUT_MS;
 	while(timeout--) {
 		if (i2c_err_detect) {
 			return I2C_ERROR;
 		}
-		if (i2c_rx_complete) {
-			return I2C_OK;
-		}
-		delay(1);
-	}
-	return I2C_TIMEOUT;
-}
-
-static int wait_tx_or_err(){
-	uint64_t timeout = TIMEOUT;
-	while(timeout--) {
-		if (i2c_err_detect) {
-			return I2C_ERROR;
-		}
-		if (i2c_tx_complete) {
-			return I2C_OK;
-		}
-		delay(1);
-	}
-	return I2C_TIMEOUT;
-}
-
-static int wait_dev_ready(I2C_CONTROLLER controller_id){
-	uint64_t timeout = TIMEOUT;
-	while(timeout--) {
-		int ret = ss_i2c_status(controller_id);
-		if (ret == I2C_OK) {
+		if (!no_stop) {
+			if (i2c_rx_complete) {
 				return I2C_OK;
+			}
+		}
+		delay(1);
+	}
+	if (!no_stop)
+		return I2C_TIMEOUT;
+	else
+		return I2C_OK;
+}
+
+static int wait_tx_or_err(bool no_stop){
+	uint64_t timeout = TIMEOUT_MS;
+	while(timeout--) {
+		if (i2c_err_detect) {
+			return I2C_ERROR;
+		}
+		if (!no_stop) {
+			if (i2c_tx_complete) {
+			return I2C_OK;
+			}
+		}
+		delay(1);
+	}
+	if (!no_stop)
+		return I2C_TIMEOUT;
+	else
+		return I2C_OK;
+}
+
+static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
+	uint64_t timeout = TIMEOUT_MS;
+	while(timeout--) {
+		int ret = ss_i2c_status(controller_id, no_stop);
+		if (ret == I2C_OK) {
+			return I2C_OK;
 		}
 		if (ret == I2C_BUSY) {
-				delay(1);
+			delay(1);
 		}
 	}
 	return I2C_TIMEOUT;
 }
 
 
-int i2c_openadapter(uint8_t i2c_adapter_nr)
+int i2c_openadapter(void)
 {
 	int ret;
 
@@ -106,7 +111,7 @@ int i2c_openadapter(uint8_t i2c_adapter_nr)
 
 	i2c_cfg_data_t i2c_cfg;
 
-	i2c_cfg.speed = I2C_FAST;
+	i2c_cfg.speed = I2C_SLOW;
 	i2c_cfg.addressing_mode = I2C_7_Bit;
 	i2c_cfg.mode_type = I2C_MASTER;
 	i2c_cfg.cb_tx = ss_i2c_tx;
@@ -117,9 +122,9 @@ int i2c_openadapter(uint8_t i2c_adapter_nr)
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
 
-	ss_i2c_set_config(i2c_adapter_nr, &i2c_cfg);
-	ss_i2c_clock_enable(i2c_adapter_nr);
-	ret = wait_dev_ready(i2c_adapter_nr);
+	ss_i2c_set_config(I2C_SENSING_0, &i2c_cfg);
+	ss_i2c_clock_enable(I2C_SENSING_0);
+	ret = wait_dev_ready(I2C_SENSING_0, false);
 
 	return ret;
 }
@@ -130,87 +135,34 @@ void i2c_setslave(uint8_t addr)
 	return;
 }
 
-int i2c_writebyte(uint8_t byte)
-{
-	unsigned char *ch = &byte;
-	int ret;
-
-	i2c_tx_complete = 0;
-	i2c_err_detect = 0;
-	ss_i2c_write(I2C_SENSING_0, ch, 1,  i2c_slave);
-
-	ret = wait_tx_or_err();
-	if (ret)
-		return ret;
-
-	ret = wait_dev_ready(I2C_SENSING_0);
-	if (ret)
-		return ret;
-	return 1; /* number of bytes */
-}
-
-int i2c_writebytes(uint8_t *bytes, uint8_t length)
+int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop)
 {
 	int ret;
 
 	i2c_tx_complete = 0;
 	i2c_err_detect = 0;
-	ss_i2c_write(I2C_SENSING_0, bytes,  length,  i2c_slave);
-	ret = wait_tx_or_err();
+	ss_i2c_transfer(I2C_SENSING_0, bytes, length, 0, 0, i2c_slave, no_stop);
+	ret = wait_tx_or_err(no_stop);
 	if (ret)
 		return ret;
-	ret = wait_dev_ready(I2C_SENSING_0);
+	ret = wait_dev_ready(I2C_SENSING_0, no_stop);
 	if (ret)
 		return ret;
 	return length;
 }
 
-int i2c_readbyte()
-{
-	unsigned char byte;
-	int ret;
-
-	i2c_rx_complete = 0;
-	i2c_err_detect = 0;
-	ss_i2c_read(I2C_SENSING_0, &byte,  1,  i2c_slave);
-	ret = wait_rx_or_err();
-	if (ret)
-		return ret;
-	ret = wait_dev_ready(I2C_SENSING_0);
-	if (ret)
-		return ret;
-	return 1; /* number of bytes */
-}
-
-int i2c_readbytes(uint8_t *buf, int length)
+int i2c_readbytes(uint8_t *buf, int length, bool no_stop)
 {
 	int ret;
 
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
-	ss_i2c_read(I2C_SENSING_0, buf,  length,  i2c_slave);
-	ret = wait_rx_or_err();
+	ss_i2c_transfer(I2C_SENSING_0, 0, 0, buf, length, i2c_slave, no_stop);
+	ret = wait_rx_or_err(no_stop);
 	if (ret)
 		return ret;
-	ret = wait_dev_ready(I2C_SENSING_0);
+	ret = wait_dev_ready(I2C_SENSING_0, no_stop);
 	if (ret)
 		return ret;
 	return length;
-}
-
-int i2c_transferbytes(uint8_t *tx_buf, int tx_length, uint8_t *rx_buf, int rx_length)
-{
-	int ret;
-
-	i2c_tx_complete = 0;
-	i2c_rx_complete = 0;
-	i2c_err_detect = 0;
-	ss_i2c_transfer(I2C_SENSING_0, tx_buf,  tx_length,  rx_buf,  rx_length, i2c_slave);
-	ret = wait_rx_or_err();
-	if (ret)
-		return ret;
-	ret = wait_dev_ready(I2C_SENSING_0);
-	if (ret)
-		return ret;
-	return rx_length;
 }

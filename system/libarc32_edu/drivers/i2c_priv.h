@@ -175,10 +175,10 @@ typedef struct i2c_info {
 #define     I2C_HOLD_TIME           (0x01)
 #define     I2C_SPEED_MODE          FAST_SPEED
 #define     I2C_SLAVE_ADDR          (0x55)   // Default for IO_I2C_SLAVE_SET_ADDR and IO_I2C_MASTER_SET_TARGET_ADDR
-#define     I2C_SS_SCL_HIGH_COUNT   (0x0190)
-#define     I2C_SS_SCL_LOW_COUNT    (0x01d6)
-#define     I2C_FS_SCL_HIGH_COUNT   (0x003c)
-#define     I2C_FS_SCL_LOW_COUNT    (0x0082)
+#define     I2C_SS_SCL_HIGH_COUNT   (0x008A)
+#define     I2C_SS_SCL_LOW_COUNT    (0x009D)
+#define     I2C_FS_SCL_HIGH_COUNT   (0x0013)
+#define     I2C_FS_SCL_LOW_COUNT    (0x0027)
 
 #define     REG_WRITE( reg, x )   _sr( (unsigned)(x), (unsigned)(dev->reg_base + reg) )
 #define     REG_READ( reg )       _lr( (unsigned)(dev->reg_base + reg) )

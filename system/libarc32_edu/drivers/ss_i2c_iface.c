@@ -319,34 +319,40 @@ DRIVER_API_RC ss_i2c_clock_disable(I2C_CONTROLLER controller_id)
 
 }
 
-DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint32_t slave_addr)
+DRIVER_API_RC ss_i2c_write(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint32_t slave_addr, bool no_stop)
 {
-    return ss_i2c_transfer(controller_id, data_write, data_write_len, 0 , 0, slave_addr);
+    return ss_i2c_transfer(controller_id, data_write, data_write_len, 0 , 0, slave_addr, no_stop);
 }
 
-DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr)
+DRIVER_API_RC ss_i2c_read(I2C_CONTROLLER controller_id, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr, bool no_stop)
 {
-    return ss_i2c_transfer(controller_id, 0, 0, data_read, data_read_len, slave_addr);
+    return ss_i2c_transfer(controller_id, 0, 0, data_read, data_read_len, slave_addr, no_stop);
 }
 
-DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr){
+DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write, uint32_t data_write_len, uint8_t *data_read, uint32_t data_read_len, uint32_t slave_addr, bool no_stop){
     i2c_info_pt dev = &i2c_master_devs[SS_CTRL_ID(controller_id)];
     uint32_t    i2c_con = 0;
     uint32_t saved;
 
-    if ((REG_READ(I2C_STATUS) & I2C_STATUS_MASTER_ACT) || !(REG_READ(I2C_STATUS) & I2C_STATUS_TFE))
+    /* Ensure we're not in the middle of transmitting a previous buffer
+     *
+     * Note that the I2C_STATUS_MASTER_ACT may be asserted if we
+     * haven't sent a STOP-bit previously.  In that case, we
+     * depend on the I2C Master to automatically send a RESTART bit
+     * on the bus if changing from transmit to receive or vice-versa.
+     */
+    if (!(REG_READ(I2C_STATUS) & I2C_STATUS_TFE))
     {
         return DRV_RC_FAIL;
     }
-    /* Protect registers using lock and unlockl of interruptions */
+
+    /* Protect registers using lock and unlock of interruptions */
     saved = interrupt_lock();
 
-    i2c_con = READ_ARC_REG((volatile uint32_t)(dev->reg_base+I2C_CON));
+    i2c_con = REG_READ(I2C_CON);
     i2c_con &= I2C_ADDRESS_MASK;        // zero slave addr first
     i2c_con |= (slave_addr << 9);
-    WRITE_ARC_REG(i2c_con, (volatile uint32_t)(dev->reg_base+I2C_CON));
-
-    interrupt_unlock(saved);
+    REG_WRITE(I2C_CON, i2c_con);
 
     if (data_read_len > 0)
     {
@@ -363,19 +369,16 @@ DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write,
     dev->i2c_read_buff = data_read;
     dev->total_read_bytes = 0;
     dev->total_write_bytes = 0;
+    i2c_fill_fifo(dev, no_stop);
 
-    if (REG_READ(I2C_STATUS) & I2C_STATUS_TFE ) {
-        int flags = interrupt_lock();
-        i2c_fill_fifo(dev);
-        interrupt_unlock(flags);
-    }
+    interrupt_unlock(saved);
 
     REG_WRITE( I2C_INTR_MASK, I2C_INT_ENB | R_TX_EMPTY  );
 
     return DRV_RC_OK;
 }
 
-DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id)
+DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id, bool no_stop)
 {
     i2c_info_pt dev = &i2c_master_devs[SS_CTRL_ID(controller_id)];
     DRIVER_I2C_STATUS_CODE rc = I2C_OK;
@@ -383,7 +386,7 @@ DRIVER_I2C_STATUS_CODE ss_i2c_status(I2C_CONTROLLER controller_id)
     uint32_t    status = 0;
 
     status = REG_READ(I2C_STATUS);
-    if ((status & I2C_STATUS_MASTER_ACT) || (status & I2C_STATUS_RFNE) || !(status & I2C_STATUS_TFE))
+    if (((!no_stop) && (status & I2C_STATUS_MASTER_ACT)) || (status & I2C_STATUS_RFNE) || !(status & I2C_STATUS_TFE))
     {
         rc = I2C_BUSY;
     }

@@ -17,7 +17,8 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * Slight modifications to support Intel EDU June 2015 - dave.hunt@emutex.com
+ * Modifications to support Intel Arduino 101
+ * Copyright (C) 2015 Intel Corporation
  */
 
 extern "C" {
@@ -29,37 +30,15 @@ extern "C" {
 #include "variant.h"
 
 
-TwoWire::TwoWire(void(*_beginCb)(void)) : rxBufferIndex(0), rxBufferLength(0),
-					  txAddress(0), txBufferLength(0),
-					  srvBufferIndex(0), srvBufferLength(0),
-					  onBeginCallback(_beginCb),
-					  adapter_nr(-1), i2c_fd(-1),
-					  i2c_transfer(0)
+TwoWire::TwoWire(void) : rxBufferIndex(0), rxBufferLength(0),
+			 txBufferLength(0), init_status(-1)
 {
 	// Empty
 }
 
 void TwoWire::begin(void)
 {
-	if (onBeginCallback)
-		onBeginCallback();
-
-	adapter_nr = 0;
-	if ((i2c_fd = i2c_openadapter(adapter_nr)) < 0) {
-		return;
-	}
-
-}
-
-void TwoWire::begin(uint8_t address)
-{
-	if (onBeginCallback)
-		onBeginCallback();
-}
-
-void TwoWire::begin(int address)
-{
-	begin((uint8_t) address);
+	init_status = i2c_openadapter();
 }
 
 uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop)
@@ -70,27 +49,7 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
 
 	/* Set slave address via ioctl  */
 	i2c_setslave(address);
-
-	if(i2c_transfer) {
-	/* Need to perform a combined read/write operation
-	 */
-		i2c_transfer = 0;
-
-		if (sendStop == false)
-			return 0;
-
-		// Call transfer fucntion.
-		if(i2c_transferbytes(txBuffer, txBufferLength, rxBuffer, quantity))
-		{
-			txBufferLength = 0;
-			rxBufferIndex = 0;
-			rxBufferLength = quantity;
-			i2c_transfer = 0;
-			return quantity;
-		} else
-			return 0;
-	}
-	ret = i2c_readbytes(rxBuffer, quantity);
+	ret = i2c_readbytes(rxBuffer, quantity, !sendStop);
 	if (ret < 0) {
 		return 0;
 	}
@@ -118,14 +77,11 @@ uint8_t TwoWire::requestFrom(int address, int quantity, int sendStop)
 
 void TwoWire::beginTransmission(uint8_t address)
 {
-	if (i2c_fd < 0 || adapter_nr < 0)
+	if (init_status < 0)
 		return;
-	/* set slave address via ioctl in case we need to perform terminating
-	 * write operation
-	 */
+	// set slave address
 	i2c_setslave(address);
-	// save address of target and empty buffer
-	txAddress = address;
+	// reset transmit buffer
 	txBufferLength = 0;
 }
 
@@ -150,31 +106,25 @@ void TwoWire::beginTransmission(int address)
 uint8_t TwoWire::endTransmission(uint8_t sendStop)
 {
 	int err;
-	if (sendStop == true) {
-
 		// transmit buffer (blocking)
-		if (txBufferLength > 1)
-			err = i2c_writebytes(txBuffer, txBufferLength);
-		else if (txBufferLength == 1)
-			err = i2c_writebyte(*txBuffer);
-		else {
+		if (txBufferLength >= 1) {
+			err = i2c_writebytes(txBuffer, txBufferLength, !sendStop);
+		} else {
 			/* FIXME: A zero byte transmit is typically used to check for an
-			 * ACK from the slave device. I'm not sure if this is the
-			 * correct way to do this.
+			 * ACK from the slave device. This is currently not supported by
+			 * this library implementation
 			 */
-			err = i2c_readbyte();
+			return 4; // Other error
 		}
 		// empty buffer
 		txBufferLength = 0;
 		if (err < 0) {
-			return 2;
+			return 2; // NACK on transmit of address
+			/* NOTE: This implementation currently does not distinguish
+			 * between NACK on transmit of adddress or data, or other errors
+			 */
 		}
-		return 0;
-	} else {
-		/* sendStop = false */
-		i2c_transfer = 1;
-		return 0;
-	}
+		return 0; // success
 }
 
 //	This provides backwards compatibility with the original
@@ -228,25 +178,6 @@ void TwoWire::flush(void)
 	// data transfer.
 }
 
-void TwoWire::onReceive(void(*function)(int))
-{
-	onReceiveCallback = function;
-}
+// Preinstantiate Objects //////////////////////////////////////////////////////
 
-void TwoWire::onRequest(void(*function)(void)) {
-	onRequestCallback = function;
-}
-
-void TwoWire::onService(void)
-{
-}
-
-static void Wire_Init(void)
-{
-}
-
-TwoWire Wire = TwoWire(Wire_Init);
-
-void WIRE_ISR_HANDLER(void) {
-	Wire.onService();
-}
+TwoWire Wire = TwoWire();
