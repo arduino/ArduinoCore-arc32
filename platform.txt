@@ -35,9 +35,9 @@ compiler.strip.cmd={compiler.prefix}-strip
 build.extra_flags=
 
 # These can be overridden in platform.local.txt
-compiler.c.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32  -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
+compiler.c.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
 compiler.c.elf.extra_flags=
-compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32  -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
+compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 

@@ -219,6 +219,30 @@ DRIVER_API_RC soc_gpio_write_port(SOC_GPIO_PORT port_id, uint32_t value);
 */
 DRIVER_API_RC soc_gpio_read_port(SOC_GPIO_PORT port_id, uint32_t *value);
 
+/**
+ *  Mask the interrupt of a GPIO bit
+ *
+ * \param   port_id         : GPIO port identifier
+ * \param   bit             : bit in port to configure
+ *
+ * \return
+ *          DRV_RC_OK on success
+ *          DRV_RC_FAIL otherwise
+ */
+DRIVER_API_RC soc_gpio_mask_interrupt(SOC_GPIO_PORT port_id, uint8_t bit);
+
+/**
+ *  Unmask the interrupt of a GPIO bit
+ *
+ * \param   port_id         : GPIO port identifier
+ * \param   bit             : bit in port to configure
+ *
+ * \return
+ *          DRV_RC_OK on success
+ *          DRV_RC_FAIL otherwise
+ */
+DRIVER_API_RC soc_gpio_unmask_interrupt(SOC_GPIO_PORT port_id, uint8_t bit);
+
 #ifdef __cplusplus
 }
 #endif

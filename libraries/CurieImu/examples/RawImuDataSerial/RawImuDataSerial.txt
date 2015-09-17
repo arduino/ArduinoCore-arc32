@@ -1,0 +1,1 @@
+Continuously reads raw accelerometer and gyroscope data values and prints them to the Serial port

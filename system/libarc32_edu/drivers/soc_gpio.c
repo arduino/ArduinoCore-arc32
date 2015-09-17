@@ -62,7 +62,6 @@ DECLARE_INTERRUPT_HANDLER void gpio_aon_isr()
     soc_gpio_ISR_proc(SOC_GPIO_AON);
 }
 static gpio_callback_fn soc_gpio_aon_cb[SOC_GPIO_AON_BITS] = {NULL};
-static void* soc_gpio_aon_arg[SOC_GPIO_AON_BITS] = {NULL};
 #endif
 
 typedef void (*ISR) ();
@@ -404,6 +403,20 @@ DRIVER_API_RC soc_gpio_read_port(SOC_GPIO_PORT port_id, uint32_t *value)
     gpio_info_pt dev = &gpio_ports_devs[port_id];
 
     *value = MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_EXT_PORTA);
+    return DRV_RC_OK;
+}
+
+DRIVER_API_RC soc_gpio_mask_interrupt(SOC_GPIO_PORT port_id, uint8_t bit)
+{
+    gpio_info_pt dev = &gpio_ports_devs[port_id];
+    SET_MMIO_BIT((volatile uint32_t *)(dev->reg_base+SOC_GPIO_INTMASK), (uint32_t)bit);
+    return DRV_RC_OK;
+}
+
+DRIVER_API_RC soc_gpio_unmask_interrupt(SOC_GPIO_PORT port_id, uint8_t bit)
+{
+    gpio_info_pt dev = &gpio_ports_devs[port_id];
+    CLEAR_MMIO_BIT((volatile uint32_t *)(dev->reg_base+SOC_GPIO_INTMASK), (uint32_t)bit);
     return DRV_RC_OK;
 }
 
