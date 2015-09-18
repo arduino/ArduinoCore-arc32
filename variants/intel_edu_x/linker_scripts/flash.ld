@@ -60,12 +60,6 @@ SECTIONS
     {
 /* FLASH Start */
 
-    version_header_section :
-    {
-        *(.version_header)
-        KEEP(*(".version_header*"))
-    } > FLASH
-
     text : ALIGN(1024)
 	{
 	__text_start = .;
@@ -73,6 +67,9 @@ SECTIONS
 /* when !XIP, .text is in RAM, and vector table must be at its very start */
 	KEEP(*(.int_vector_table))
 	KEEP(*(".int_vector_table.*"))
+
+	*(.version_header)
+	KEEP(*(".version_header*"))
 
 	*(.text)
 	*(".text.*")
