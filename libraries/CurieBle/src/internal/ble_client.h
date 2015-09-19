@@ -90,13 +90,15 @@ typedef void (*ble_client_gatts_event_cb_t)(ble_client_gatts_event_t event, stru
 extern "C" {
 #endif
 
+void ble_client_get_factory_config(ble_addr_t *bda, char *name);
 BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb,
                           void *gap_event_param,
                           ble_client_gatts_event_cb_t gatts_event_cb,
                           void *gatts_event_param);
 BleStatus ble_client_gap_set_enable_config(const char *name,
-					   const uint16_t appearance,
-					   const int8_t tx_power);
+                                           const ble_addr_t *bda,
+                                           const uint16_t appearance,
+                                           const int8_t tx_power);
 BleStatus ble_client_gap_get_bda(ble_addr_t *p_bda);
 BleStatus ble_client_gap_wr_adv_data(uint8_t *adv_data,
                                      const uint8_t adv_data_len);
@@ -119,6 +121,11 @@ BleStatus ble_client_gatts_send_notif_ind(const uint16_t value_handle,
                                           const bool indication);
 BleStatus ble_client_gap_disconnect(const uint8_t reason);
 BleStatus ble_client_gap_set_rssi_report(boolean_t enable);
+
+/* Direct Test Mode (DTM) API - for internal use only */
+BleStatus ble_client_dtm_init(void);
+BleStatus ble_client_dtm_cmd(const struct ble_test_cmd *test_cmd,
+                             struct ble_dtm_test_result *test_result);
 
 #ifdef __cplusplus
 }

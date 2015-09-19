@@ -19,16 +19,22 @@
 
 #include "BleService.h"
 
-BleService::BleService(uint16_t uuid16)
+BleService::BleService(void)
 {
     _initialised = false;
+    _connected = false;
+}
+
+BleService::BleService(uint16_t uuid16)
+    : BleService()
+{
     _uuid.type = BT_UUID16;
     _uuid.uuid16 = uuid16;
 }
 
 BleService::BleService(uint8_t uuid128[])
+    : BleService()
 {
-    _initialised = false;
     _uuid.type = BT_UUID128;
     memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
 }
@@ -55,6 +61,7 @@ BleService::addCharacteristic(BleCharacteristic &ch)
     if (BLE_STATUS_SUCCESS == status) {
         ch._initialised = true;
         ch._svc_handle = _svc_handle;
+        ch._addCCCDescriptor();
         _characteristics[_num_characteristics++] = &ch;
     }
 
@@ -62,7 +69,7 @@ BleService::addCharacteristic(BleCharacteristic &ch)
 }
 
 BleCharacteristic *
-BleService::_matchCharacteristic(uint16_t handle)
+BleService::_matchCharacteristic(uint16_t handle) const
 {
     for (unsigned i = 0; i < _num_characteristics; i++) {
         BleCharacteristic *ch = _characteristics[i];
@@ -83,7 +90,7 @@ BleService::_matchCharacteristic(uint16_t handle)
 }
 
 BleDescriptor *
-BleService::_matchDescriptor(uint16_t handle)
+BleService::_matchDescriptor(uint16_t handle) const
 {
     for (unsigned i = 0; i < _num_characteristics; i++) {
         /* Check primary services */
@@ -124,7 +131,7 @@ BleService::addSecondaryService(BleService &service)
         BLE_UUID16_TO_UUID128(service._uuid, _uuid);
 
     status = ble_client_gatts_add_service(&service._uuid,
-					  BLE_GATT_SVC_INCLUDED,
+                                          BLE_GATT_SVC_INCLUDED,
                                           &service._svc_handle);
     if (BLE_STATUS_SUCCESS != status)
         return status;
@@ -142,7 +149,7 @@ BleService::addSecondaryService(BleService &service)
 }
 
 BleService *
-BleService::_matchService(uint16_t svc_handle)
+BleService::_matchService(uint16_t svc_handle) const
 {
     for (unsigned i = 0; i < _num_services; i++) {
         BleService *service = _services[i];
@@ -152,4 +159,19 @@ BleService::_matchService(uint16_t svc_handle)
 
     /* Not found */
     return NULL;
+}
+
+void
+BleService::_setConnectedState(boolean_t connected)
+{
+    _connected = connected;
+
+    /* Cascade the connected-state update to characteristics
+     * and included services */
+
+    for (unsigned i = 0; i < _num_characteristics; i++)
+        _characteristics[i]->_setConnectedState(connected);
+
+    for (unsigned i = 0; i < _num_services; i++)
+        _services[i]->_setConnectedState(connected);
 }

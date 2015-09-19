@@ -21,12 +21,42 @@
 
 #include "internal/ble_client.h"
 
+#define BLE_CCCD_DESCRIPTOR_UUID 0x2092
+
+#define BLE_CCCD_NOTIFY_EN_MASK   0x1
+#define BLE_CCCD_INDICATE_EN_MASK 0x2
+
+/* Each characteristic has a Client Characteristic Configuration Descriptor (CCCD)
+ * This callback is invoked whenever the CCCD for a given characteristic is updated
+ * by a remote client to enable/disable receipt of notifications/indications
+ */
 void
-BleCharacteristic::_init(const uint16_t maxLength,
-                         const BleClientAccessMode clientAccess,
-                         const BleClientNotifyMode clientNotify)
+_cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
+{
+    if (BLE_DESC_EVENT_WRITE == event) {
+        BleStatus status;
+        uint16_t cccdVal;
+        BleCharacteristic *ch = (BleCharacteristic *)arg;
+
+        status = cccd.getValue(cccdVal);
+        if (BLE_STATUS_SUCCESS != status)
+            return;
+
+        ch->_notifyEnabled = (cccdVal & BLE_CCCD_NOTIFY_EN_MASK) ? true : false;
+        ch->_indicateEnabled = (cccdVal & BLE_CCCD_INDICATE_EN_MASK) ? true : false;
+    }
+}
+
+BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
+                                     const BleClientAccessMode clientAccess,
+                                     const BleClientNotifyMode clientNotify)
+    : _cccd(BLE_CCCD_DESCRIPTOR_UUID, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_WRITE)
 {
     _initialised = false;
+    _connected = false;
+    _notifyEnabled = false;
+    _indicateEnabled = false;
+
     _data_len = 0;
     _data[0] = 0;
 
@@ -70,22 +100,20 @@ BleCharacteristic::BleCharacteristic(const uint16_t uuid16,
                                      const uint16_t maxLength,
                                      const BleClientAccessMode clientAccess,
                                      const BleClientNotifyMode clientNotify)
+    : BleCharacteristic(maxLength, clientAccess, clientNotify)
 {
     _uuid.type = BT_UUID16;
     _uuid.uuid16 = uuid16;
-
-    _init(maxLength, clientAccess, clientNotify);
 }
 
 BleCharacteristic::BleCharacteristic(const uint8_t uuid128[],
                                      const uint16_t maxLength,
                                      const BleClientAccessMode clientAccess,
                                      const BleClientNotifyMode clientNotify)
+    : BleCharacteristic(maxLength, clientAccess, clientNotify)
 {
     _uuid.type = BT_UUID128;
     memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
-
-    _init(maxLength, clientAccess, clientNotify);
 }
 
 BleStatus
@@ -98,6 +126,7 @@ BleCharacteristic::addUserDescription(const char *description)
         _user_desc.len = strlen(description);
         if (_user_desc.len > sizeof(_user_desc_data))
             _user_desc.len = sizeof(_user_desc_data);
+        memset(_user_desc_data, 0, sizeof(_user_desc_data));
         memcpy(_user_desc_data, description, _user_desc.len);
         _user_desc.buffer = _user_desc_data;
 
@@ -141,14 +170,13 @@ BleCharacteristic::_setValue(void)
     if (BLE_STATUS_SUCCESS != status)
         return status;
 
-    if (_clientNotify != BLE_CLIENT_NOTIFY_DISABLED) {
-        status = ble_client_gatts_send_notif_ind(_handles.value_handle, _data_len, _data, 0,
-                                                 (_clientNotify == BLE_CLIENT_NOTIFY_WITH_ACK));
+    if (_notifyEnabled || _indicateEnabled) {
+        status = ble_client_gatts_send_notif_ind(_handles.value_handle, _data_len, _data, 0, _indicateEnabled);
+        if (BLE_STATUS_SUCCESS != status)
+            return status;
 
-        if ((BLE_STATUS_SUCCESS == status) && (_clientNotify == BLE_CLIENT_NOTIFY_WITH_ACK)) {
-            if (_event_cb)
-                _event_cb(*this, BLE_CHAR_EVENT_INDICATION_ACK, _event_cb_arg);
-        }
+        if (_indicateEnabled && _event_cb)
+            _event_cb(*this, BLE_CHAR_EVENT_INDICATION_ACK, _event_cb_arg);
     }
 
     return BLE_STATUS_SUCCESS;
@@ -256,7 +284,7 @@ BleCharacteristic::setValue(const unsigned long &value)
 }
 
 BleStatus
-BleCharacteristic::getValue(uint8_t value[], uint16_t &length)
+BleCharacteristic::getValue(uint8_t value[], uint16_t &length) const
 {
     if (!_initialised)
         return BLE_STATUS_WRONG_STATE;
@@ -268,90 +296,91 @@ BleCharacteristic::getValue(uint8_t value[], uint16_t &length)
 }
 
 BleStatus
-BleCharacteristic::getValue(String &str)
+BleCharacteristic::getValue(String &str) const
 {
     str = (char *)_data;
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(char *cstr)
+BleCharacteristic::getValue(char *cstr) const
 {
     memcpy(cstr, _data, _data_len);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(char &value)
+BleCharacteristic::getValue(char &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT8(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(unsigned char &value)
+BleCharacteristic::getValue(unsigned char &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT8(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(short &value)
+BleCharacteristic::getValue(short &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT16(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(unsigned short &value)
+BleCharacteristic::getValue(unsigned short &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT16(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(int &value)
+BleCharacteristic::getValue(int &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(unsigned int &value)
+BleCharacteristic::getValue(unsigned int &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(long &value)
+BleCharacteristic::getValue(long &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleCharacteristic::getValue(unsigned long &value)
+BleCharacteristic::getValue(unsigned long &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BleCharacteristic::setEventCallback(BleCharacteristicEventCb callback,
                                     void *arg)
 {
-    _event_cb = callback;
+    noInterrupts();
+    _event_cb = callback; /* callback disabled if NULL */
     _event_cb_arg = arg;
-    return BLE_STATUS_SUCCESS;
+    interrupts();
 }
 
 BleStatus
@@ -383,7 +412,7 @@ BleCharacteristic::addDescriptor(BleDescriptor &descriptor)
 
 
 BleDescriptor *
-BleCharacteristic::_matchDescriptor(uint16_t handle)
+BleCharacteristic::_matchDescriptor(uint16_t handle) const
 {
     for (unsigned i = 0; i < _num_descriptors; i++) {
         BleDescriptor *desc = _descriptors[i];
@@ -392,4 +421,30 @@ BleCharacteristic::_matchDescriptor(uint16_t handle)
     }
 
     return NULL;
+}
+
+void
+BleCharacteristic::_addCCCDescriptor(void)
+{
+    /* Activate our CCCD descriptor object */
+    _cccd._handle = _handles.cccd_handle;
+    _cccd._initialised = true;
+    _cccd.setEventCallback(_cccdEventHandler, (void *)this);
+    _descriptors[_num_descriptors++] = &_cccd;
+}
+
+void
+BleCharacteristic::_setConnectedState(boolean_t connected)
+{
+    _connected = connected;
+
+    /* Reset the state of these internal variables when connection is dropped */
+    if (!connected) {
+        _notifyEnabled = false;
+        _indicateEnabled = false;
+    }
+
+    /* Cascade the connected-state update to descriptors */
+    for (unsigned i = 0; i < _num_descriptors; i++)
+        _descriptors[i]->_setConnectedState(connected);
 }

@@ -78,12 +78,16 @@ private:
     friend class BlePeripheral;
     friend void  blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
-    BleService        *_matchService(uint16_t svc_handle);
-    BleCharacteristic *_matchCharacteristic(uint16_t value_handle);
-    BleDescriptor     *_matchDescriptor(uint16_t handle);
+    BleService(void);
 
-    boolean        _initialised;
-    boolean        _primary;
+    BleService        *_matchService(uint16_t svc_handle) const;
+    BleCharacteristic *_matchCharacteristic(uint16_t value_handle) const;
+    BleDescriptor     *_matchDescriptor(uint16_t handle) const;
+    void              _setConnectedState(boolean_t connected);
+
+    boolean_t      _initialised;
+    boolean_t      _connected;
+    boolean_t      _primary;
     struct bt_uuid _uuid;
     uint16_t       _svc_handle;
 

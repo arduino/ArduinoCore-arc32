@@ -563,6 +563,16 @@ struct ble_gap_rssi_evt {
 	int8_t rssi_lvl;	/**< RSSI level (compared to 0 dBm) */
 };
 
+/**
+ * RSSI report parameters @ref MSG_ID_BLE_GAP_SET_RSSI_REPORT_REQ.
+ */
+struct rssi_report_params {
+	uint16_t conn_hdl;	/**< Connection handle */
+	uint8_t op;	/**< RSSI operation @ref BLE_GAP_RSSI_OPS */
+	uint8_t delta_dBm;	/**< minimum RSSI dBm change to report a new RSSI value */
+	uint8_t min_count;	/**< number of delta_dBm changes before sending a new RSSI report */
+};
+
 /** Test Mode opcodes. */
 enum TEST_OPCODE {
 	BLE_TEST_INIT_DTM = 0x01,	/**< Put BLE controller in HCI UART DTM test mode */
@@ -571,6 +581,7 @@ enum TEST_OPCODE {
 	BLE_TEST_END_DTM = 0x1f,	/**< End LE DTM TEST */
 	/* vendor specific commands start at 0x80 */
 	BLE_TEST_SET_TXPOWER = 0x80,	/**< Set Tx power. To be called before start of tx test */
+	BLE_TEST_START_TX_CARRIER,	/**< Start Tx Carrier Test */
 };
 
 /**
@@ -903,15 +914,14 @@ int ble_gap_sm_passkey_reply(svc_client_handle_t * p_svc_handle,
  * Enable disable the reporting of the RSSI value.
  *
  * @param p_svc_handle service handle
- * @param conn_handle connection on which bonding procedure is executed
- * @param op Enable/Disable RSSI reporting for specified connection @ref BLE_GAP_RSSI_OPS
+ * @param conf RSSI report parameters @ref MSG_ID_BLE_GAP_SET_RSSI_REPORT_REQ
  * @param p_priv  pointer to private data
  *
  * @return @ref OS_ERR_TYPE,
  * @return MSG: MSG_ID_BLE_GAP_SET_RSSI_REPORT_RSP @ref ble_rsp
  */
 int ble_gap_set_rssi_report(svc_client_handle_t * p_svc_handle,
-			    uint16_t conn_handle, uint8_t op,
+			    const struct rssi_report_params *params,
 			    void *p_priv);
 
 /**

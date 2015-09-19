@@ -21,11 +21,11 @@
 
 #include "internal/ble_client.h"
 
-void
-BleDescriptor::_init(const uint16_t maxLength,
-                     const BleClientAccessMode clientAccess)
+BleDescriptor::BleDescriptor(const uint16_t maxLength,
+                             const BleClientAccessMode clientAccess)
 {
     _initialised = false;
+    _connected = false;
 
     _desc.p_uuid = &_uuid;
 
@@ -49,21 +49,19 @@ BleDescriptor::_init(const uint16_t maxLength,
 BleDescriptor::BleDescriptor(const uint16_t uuid16,
                              const uint16_t maxLength,
                              const BleClientAccessMode clientAccess)
+    : BleDescriptor(maxLength, clientAccess)
 {
     _uuid.type = BT_UUID16;
     _uuid.uuid16 = uuid16;
-
-    _init(maxLength, clientAccess);
 }
 
 BleDescriptor::BleDescriptor(const uint8_t uuid128[],
                              const uint16_t maxLength,
                              const BleClientAccessMode clientAccess)
+    : BleDescriptor(maxLength, clientAccess)
 {
     _uuid.type = BT_UUID128;
     memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
-
-    _init(maxLength, clientAccess);
 }
 
 BleStatus
@@ -72,11 +70,7 @@ BleDescriptor::_setValue(void)
     if (!_initialised)
         return BLE_STATUS_WRONG_STATE;
 
-    BleStatus status = ble_client_gatts_set_attribute_value(_handle, _desc.length, _data, 0);
-    if (BLE_STATUS_SUCCESS != status)
-        return status;
-
-    return BLE_STATUS_SUCCESS;
+    return ble_client_gatts_set_attribute_value(_handle, _desc.length, _data, 0);
 }
 
 BleStatus
@@ -182,7 +176,7 @@ BleDescriptor::setValue(const unsigned long &value)
 }
 
 BleStatus
-BleDescriptor::getValue(uint8_t value[], uint16_t &length)
+BleDescriptor::getValue(uint8_t value[], uint16_t &length) const
 {
     if (!_initialised)
         return BLE_STATUS_WRONG_STATE;
@@ -194,88 +188,95 @@ BleDescriptor::getValue(uint8_t value[], uint16_t &length)
 }
 
 BleStatus
-BleDescriptor::getValue(String &str)
+BleDescriptor::getValue(String &str) const
 {
     str = (char *)_data;
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(char *cstr)
+BleDescriptor::getValue(char *cstr) const
 {
     memcpy(cstr, _data, _desc.length);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(char &value)
+BleDescriptor::getValue(char &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT8(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(unsigned char &value)
+BleDescriptor::getValue(unsigned char &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT8(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(short &value)
+BleDescriptor::getValue(short &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT16(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(unsigned short &value)
+BleDescriptor::getValue(unsigned short &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT16(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(int &value)
+BleDescriptor::getValue(int &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(unsigned int &value)
+BleDescriptor::getValue(unsigned int &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(long &value)
+BleDescriptor::getValue(long &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_INT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BleDescriptor::getValue(unsigned long &value)
+BleDescriptor::getValue(unsigned long &value) const
 {
-    uint8_t *p = _data;
+    const uint8_t *p = _data;
     LESTREAM_TO_UINT32(p, value);
     return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BleDescriptor::setEventCallback(BleDescriptorEventCb callback,
                                 void *arg)
 {
-    _event_cb = callback;
+    noInterrupts();
+    _event_cb = callback; /* callback disabled if NULL */
     _event_cb_arg = arg;
-    return BLE_STATUS_SUCCESS;
+    interrupts();
+}
+
+void
+BleDescriptor::_setConnectedState(boolean_t connected)
+{
+    _connected = connected;
 }

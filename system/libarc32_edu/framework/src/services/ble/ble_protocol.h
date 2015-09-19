@@ -130,6 +130,7 @@
 #define BLE_DIS_SW_REV                          0x2A28
 #define BLE_DIS_SYS_ID                          0x2A23
 #define BLE_DIS_CERTIF_DATA_LIST                0x2A2A
+#define BLE_DIS_PNP_ID                          0x2A50
 
 /* BATTERY */
 #define BLE_BAT_BAT_LEVEL                       0x2A19
@@ -166,58 +167,57 @@
 
 /** BLE GAP Appearance Characteristic definitions.
  *
- * As per BT spec see:
- * http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
+ * See http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
  */
-#define BLE_GAP_APPEARANCE_UNKNOWN                                0 /**< Unknown. */
-#define BLE_GAP_APPEARANCE_GENERIC_PHONE                         64 /**< Generic Phone. */
-#define BLE_GAP_APPEARANCE_GENERIC_COMPUTER                     128 /**< Generic Computer. */
-#define BLE_GAP_APPEARANCE_GENERIC_WATCH                        192 /**< Generic Watch. */
-#define BLE_GAP_APPEARANCE_WATCH_SPORTS_WATCH                   193 /**< Watch: Sports Watch. */
-#define BLE_GAP_APPEARANCE_GENERIC_CLOCK                        256 /**< Generic Clock. */
-#define BLE_GAP_APPEARANCE_GENERIC_DISPLAY                      320 /**< Generic Display. */
-#define BLE_GAP_APPEARANCE_GENERIC_REMOTE_CONTROL               384 /**< Generic Remote Control. */
-#define BLE_GAP_APPEARANCE_GENERIC_EYE_GLASSES                  448 /**< Generic Eye-glasses. */
-#define BLE_GAP_APPEARANCE_GENERIC_TAG                          512 /**< Generic Tag. */
-#define BLE_GAP_APPEARANCE_GENERIC_KEYRING                      576 /**< Generic Keyring. */
-#define BLE_GAP_APPEARANCE_GENERIC_MEDIA_PLAYER                 640 /**< Generic Media Player. */
-#define BLE_GAP_APPEARANCE_GENERIC_BARCODE_SCANNER              704 /**< Generic Barcode Scanner. */
-#define BLE_GAP_APPEARANCE_GENERIC_THERMOMETER                  768 /**< Generic Thermometer. */
-#define BLE_GAP_APPEARANCE_THERMOMETER_EAR                      769 /**< Thermometer: Ear. */
-#define BLE_GAP_APPEARANCE_GENERIC_HEART_RATE_SENSOR            832 /**< Generic Heart rate Sensor. */
-#define BLE_GAP_APPEARANCE_HEART_RATE_SENSOR_HEART_RATE_BELT    833 /**< Heart Rate Sensor: Heart Rate Belt. */
-#define BLE_GAP_APPEARANCE_GENERIC_BLOOD_PRESSURE               896 /**< Generic Blood Pressure. */
-#define BLE_GAP_APPEARANCE_BLOOD_PRESSURE_ARM                   897 /**< Blood Pressure: Arm. */
-#define BLE_GAP_APPEARANCE_BLOOD_PRESSURE_WRIST                 898 /**< Blood Pressure: Wrist. */
-#define BLE_GAP_APPEARANCE_GENERIC_HID                          960 /**< Human Interface Device (HID). */
-#define BLE_GAP_APPEARANCE_HID_KEYBOARD                         961 /**< Keyboard (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_MOUSE                            962 /**< Mouse (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_JOYSTICK                         963 /**< Joystiq (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_GAMEPAD                          964 /**< Gamepad (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_DIGITIZERSUBTYPE                 965 /**< Digitizer Tablet (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_CARD_READER                      966 /**< Card Reader (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_DIGITAL_PEN                      967 /**< Digital Pen (HID Subtype). */
-#define BLE_GAP_APPEARANCE_HID_BARCODE                          968 /**< Barcode Scanner (HID Subtype). */
-#define BLE_GAP_APPEARANCE_GENERIC_GLUCOSE_METER               1024 /**< Generic Glucose Meter. */
-#define BLE_GAP_APPEARANCE_GENERIC_RUNNING_WALKING_SENSOR      1088 /**< Generic Running Walking Sensor. */
-#define BLE_GAP_APPEARANCE_RUNNING_WALKING_SENSOR_IN_SHOE      1089 /**< Running Walking Sensor: In-Shoe. */
-#define BLE_GAP_APPEARANCE_RUNNING_WALKING_SENSOR_ON_SHOE      1090 /**< Running Walking Sensor: On-Shoe. */
-#define BLE_GAP_APPEARANCE_RUNNING_WALKING_SENSOR_ON_HIP       1091 /**< Running Walking Sensor: On-Hip. */
-#define BLE_GAP_APPEARANCE_GENERIC_CYCLING                     1152 /**< Generic Cycling. */
-#define BLE_GAP_APPEARANCE_CYCLING_CYCLING_COMPUTER            1153 /**< Cycling: Cycling Computer. */
-#define BLE_GAP_APPEARANCE_CYCLING_SPEED_SENSOR                1154 /**< Cycling: Speed Sensor. */
-#define BLE_GAP_APPEARANCE_CYCLING_CADENCE_SENSOR              1155 /**< Cycling: Cadence Sensor. */
-#define BLE_GAP_APPEARANCE_CYCLING_POWER_SENSOR                1156 /**< Cycling: Power Sensor. */
-#define BLE_GAP_APPEARANCE_CYCLING_SPEED_CADENCE_SENSOR        1157 /**< Cycling: Speed and Cadence Sensor. */
-#define BLE_GAP_APPEARANCE_GENERIC_PULSE_OXIMETER              3136 /**< Generic Pulse Oximeter. */
-#define BLE_GAP_APPEARANCE_PULSE_OXIMETER_FINGERTIP            3137 /**< Fingertip (Pulse Oximeter subtype). */
-#define BLE_GAP_APPEARANCE_PULSE_OXIMETER_WRIST_WORN           3138 /**< Wrist Worn(Pulse Oximeter subtype). */
-#define BLE_GAP_APPEARANCE_GENERIC_WEIGHT_SCALE                3200 /**< Generic Weight Scale. */
-#define BLE_GAP_APPEARANCE_GENERIC_OUTDOOR_SPORTS_ACT          5184 /**< Generic Outdoor Sports Activity. */
-#define BLE_GAP_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_DISP         5185 /**< Location Display Device (Outdoor Sports Activity subtype). */
-#define BLE_GAP_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_DISP 5186 /**< Location and Navigation Display Device (Outdoor Sports Activity subtype). */
-#define BLE_GAP_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_POD          5187 /**< Location Pod (Outdoor Sports Activity subtype). */
-#define BLE_GAP_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_POD  5188 /**< Location and Navigation Pod (Outdoor Sports Activity subtype). */
+#define BLE_GAP_APPEARANCE_TYPE_UNKNOWN                                0
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_PHONE                         64
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_COMPUTER                     128
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_WATCH                        192
+#define BLE_GAP_APPEARANCE_TYPE_WATCH_SPORTS_WATCH                   193
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_CLOCK                        256
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_DISPLAY                      320
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_REMOTE_CONTROL               384
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_EYE_GLASSES                  448
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_TAG                          512
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_KEYRING                      576
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_MEDIA_PLAYER                 640
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_BARCODE_SCANNER              704
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_THERMOMETER                  768
+#define BLE_GAP_APPEARANCE_TYPE_THERMOMETER_EAR                      769
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_HEART_RATE_SENSOR            832
+#define BLE_GAP_APPEARANCE_TYPE_HEART_RATE_SENSOR_HEART_RATE_BELT    833
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_BLOOD_PRESSURE               896
+#define BLE_GAP_APPEARANCE_TYPE_BLOOD_PRESSURE_ARM                   897
+#define BLE_GAP_APPEARANCE_TYPE_BLOOD_PRESSURE_WRIST                 898
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_HID                          960
+#define BLE_GAP_APPEARANCE_TYPE_HID_KEYBOARD                         961
+#define BLE_GAP_APPEARANCE_TYPE_HID_MOUSE                            962
+#define BLE_GAP_APPEARANCE_TYPE_HID_JOYSTICK                         963
+#define BLE_GAP_APPEARANCE_TYPE_HID_GAMEPAD                          964
+#define BLE_GAP_APPEARANCE_TYPE_HID_DIGITIZERSUBTYPE                 965
+#define BLE_GAP_APPEARANCE_TYPE_HID_CARD_READER                      966
+#define BLE_GAP_APPEARANCE_TYPE_HID_DIGITAL_PEN                      967
+#define BLE_GAP_APPEARANCE_TYPE_HID_BARCODE                          968
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_GLUCOSE_METER               1024
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_RUNNING_WALKING_SENSOR      1088
+#define BLE_GAP_APPEARANCE_TYPE_RUNNING_WALKING_SENSOR_IN_SHOE      1089
+#define BLE_GAP_APPEARANCE_TYPE_RUNNING_WALKING_SENSOR_ON_SHOE      1090
+#define BLE_GAP_APPEARANCE_TYPE_RUNNING_WALKING_SENSOR_ON_HIP       1091
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_CYCLING                     1152
+#define BLE_GAP_APPEARANCE_TYPE_CYCLING_CYCLING_COMPUTER            1153
+#define BLE_GAP_APPEARANCE_TYPE_CYCLING_SPEED_SENSOR                1154
+#define BLE_GAP_APPEARANCE_TYPE_CYCLING_CADENCE_SENSOR              1155
+#define BLE_GAP_APPEARANCE_TYPE_CYCLING_POWER_SENSOR                1156
+#define BLE_GAP_APPEARANCE_TYPE_CYCLING_SPEED_CADENCE_SENSOR        1157
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_PULSE_OXIMETER              3136
+#define BLE_GAP_APPEARANCE_TYPE_PULSE_OXIMETER_FINGERTIP            3137
+#define BLE_GAP_APPEARANCE_TYPE_PULSE_OXIMETER_WRIST_WORN           3138
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_WEIGHT_SCALE                3200
+#define BLE_GAP_APPEARANCE_TYPE_GENERIC_OUTDOOR_SPORTS_ACT          5184
+#define BLE_GAP_APPEARANCE_TYPE_OUTDOOR_SPORTS_ACT_LOC_DISP         5185
+#define BLE_GAP_APPEARANCE_TYPE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_DISP 5186
+#define BLE_GAP_APPEARANCE_TYPE_OUTDOOR_SPORTS_ACT_LOC_POD          5187
+#define BLE_GAP_APPEARANCE_TYPE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_POD  5188
 
 /**
  * DTM commands, opcodes, indexes.

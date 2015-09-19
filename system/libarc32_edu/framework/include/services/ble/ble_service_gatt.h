@@ -153,7 +153,7 @@ enum BLE_GATTC_MSG_ID {
 	MSG_ID_BLE_GATTC_DISCOVER_INCLUDED_SERVICES_RSP,/**< find included service procedure */
 	MSG_ID_BLE_GATTC_DISCOVER_CHAR_RSP,		    /**< discover characteristics of a service */
 	MSG_ID_BLE_GATTC_DISCOVER_DESCRIPTOR_RSP,	    /**< discover descriptor of a characteristic */
-	MSG_ID_BLE_GATTC_RD_CHARS_RSP,		    /**< read characteristic, multiple chars or long characteristics */
+	MSG_ID_BLE_GATTC_RD_CHARS_RSP,		    /**< read characteristic or long characteristics */
 	MSG_ID_BLE_GATTC_WR_OP_RSP,			    /**< different types of write operations */
 	MSG_ID_BLE_GATTC_SEND_HANDLE_VALUE_RSP /* 44 */ ,   /**< send attribute handle to server */
 
@@ -174,8 +174,9 @@ enum BLE_GATTC_MSG_ID {
  */
 #define MAX_UUID_SIZE              16
 
-#define BLE_GATT_INVALID_HANDLE     0x0000	/**< reserved invalid attribute handle */
-#define BLE_GATT_MAX_HANDLE         0xffff	/**< maximum handle in a BLE server */
+#define BLE_GATT_INVALID_HANDLE              0x0000  /**< reserved invalid attribute handle */
+#define BLE_GATT_MAX_HANDLE                  0xffff  /**< maximum handle in a BLE server */
+#define BLE_GATT_START_HANDLE_DISCOVER       0x0001  /**< Value of start handle during discovery. */
 
 /** BT uuid types defined as length. */
 enum BT_UUID_TYPES {
@@ -289,16 +290,13 @@ struct ble_gatt_char_user_desc {
 /**
  * GATT characteristic presentation format description.
  */
-#pragma pack(push)
-#pragma pack(4)
-struct __attribute__ ((__packed__)) ble_gatt_pf_desc {
-	uint16_t unit;   /**< as UUIUD defined by SIG */
-	uint16_t descr;   /**< as UUID as defined by SIG */
-	uint8_t format;   /**< @ref BLE_GATT_FORMATS */
-	int8_t exp;   /**< see Unit from Bluetooth Assigned Numbers, https://developer.bluetooth.org/gatt/units/Pages/default.aspx */
+struct ble_gatt_pf_desc {
+	uint16_t unit;      /**< as UUIUD defined by SIG */
+	uint16_t descr;     /**< as UUID as defined by SIG */
+	uint8_t format;     /**< @ref BLE_GATT_FORMATS */
+	int8_t exp;         /**< see Unit from Bluetooth Assigned Numbers, https://developer.bluetooth.org/gatt/units/Pages/default.aspx */
 	uint8_t name_spc;   /**< name space of the description */
 } ;
-#pragma pack(pop)
 
 /**
  * GATT indication types.

@@ -97,42 +97,44 @@ public:
      *
      * @return BleStatus indicating success or error
      */
-    BleStatus getValue(uint8_t value[], uint16_t &length);
+    BleStatus getValue(uint8_t value[], uint16_t &length) const;
 
     /* Alternative methods to get descriptor value */
-    BleStatus getValue(String &str); /* WARNING - assumes characteristic value is a null-terminated string */
-    BleStatus getValue(char *cstr);  /* WARNING - ensure cstr buffer size is big enough */
-    BleStatus getValue(char &value);
-    BleStatus getValue(unsigned char &value);
-    BleStatus getValue(short &value);
-    BleStatus getValue(unsigned short &value);
-    BleStatus getValue(int &value);
-    BleStatus getValue(unsigned int &value);
-    BleStatus getValue(long &value);
-    BleStatus getValue(unsigned long &value);
+    BleStatus getValue(String &str) const; /* WARNING - assumes characteristic value is a null-terminated string */
+    BleStatus getValue(char *cstr) const;  /* WARNING - ensure cstr buffer size is big enough */
+    BleStatus getValue(char &value) const;
+    BleStatus getValue(unsigned char &value) const;
+    BleStatus getValue(short &value) const;
+    BleStatus getValue(unsigned short &value) const;
+    BleStatus getValue(int &value) const;
+    BleStatus getValue(unsigned int &value) const;
+    BleStatus getValue(long &value) const;
+    BleStatus getValue(unsigned long &value) const;
 
     /**
      * Provide a function to be called when events related to this Descriptor are raised
      *
-     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param callback Pointer to callback function to invoke when an event occurs, or NULL to disable.
      * @param arg      [Optional] Opaque argument which will be passed in the callback.
-     *
-     * @return BleStatus indicating success or error
      */
-    BleStatus setEventCallback(BleDescriptorEventCb callback, void *arg);
+    void setEventCallback(BleDescriptorEventCb callback, void *arg = NULL);
 
 private:
     friend class BleCharacteristic;
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
+    BleDescriptor(const uint16_t maxLength,
+                  const BleClientAccessMode clientAccess);
+
     BleStatus _setValue(void);
-    void      _init(const uint16_t maxLength,
-                    const BleClientAccessMode clientAccess);
+    void      _setConnectedState(boolean_t connected);
 
     struct ble_gatts_descriptor _desc;
     struct bt_uuid              _uuid;
     uint16_t                    _handle;
+    uint16_t                    _char_handle;
     boolean_t                   _initialised;
+    boolean_t                   _connected;
     BleDescriptorEventCb        _event_cb;
     void                        *_event_cb_arg;
 

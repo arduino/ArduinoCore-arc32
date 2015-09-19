@@ -202,9 +202,6 @@ int ble_gap_disconnect(svc_client_handle_t * p_svc_handle,
 		       uint16_t conn_hdl, uint8_t reason,
 		       void *p_priv)
 {
-	pr_info(LOG_MODULE_BLE, "ble_gap_disconnect: Reason: 0x%x conn_hdl: %d"
-					, reason, conn_hdl);
-
 	struct ble_gap_disconnect_req_msg *msg;
 
 	msg = (struct ble_gap_disconnect_req_msg*)cfw_alloc_message_for_service(p_svc_handle,
@@ -252,8 +249,8 @@ int ble_gap_service_write(svc_client_handle_t * p_svc_handle,
 		msg->car = p_params->car;
 		break;
 	default:
-		pr_warning(LOG_MODULE_BLE, "%s: Attribute type not supported : 0x%x",
-				__func__, p_params->attr_type);
+		pr_warning(LOG_MODULE_BLE, "ble_gap_srv_wr: Attr "
+				"not supported : 0x%x", p_params->attr_type);
 	}
 
 	return cfw_send_message(msg);
@@ -294,13 +291,11 @@ int ble_gap_sm_pairing_req(const svc_client_handle_t * h,
 }
 
 int ble_gap_set_rssi_report(svc_client_handle_t * p_svc_handle,
-			    uint16_t conn_hdl, uint8_t op,
-			    void *p_priv)
+		const struct rssi_report_params *params,
+		void *p_priv)
 {
-	struct cfw_message *msg = cfw_alloc_message_for_service(p_svc_handle,
-								MSG_ID_BLE_GAP_SET_RSSI_REPORT_REQ,
-								sizeof(*msg),
-								p_priv);
+	CFW_ALLOC_FOR_SVC(struct ble_gap_set_rssi_report_req_msg, msg, p_svc_handle, MSG_ID_BLE_GAP_SET_RSSI_REPORT_REQ, 0, p_priv);
+	msg->params = *params;
 	return cfw_send_message(msg);
 }
 

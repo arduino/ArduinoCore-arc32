@@ -32,11 +32,13 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
     case BLE_CLIENT_GAP_EVENT_CONNECTED:
         p->_state = BLE_PERIPH_STATE_CONNECTED;
         p->_peer_bda = event_data->connected.peer_bda;
+        p->_setConnectedState(true);
         if (p->_event_cb)
             p->_event_cb(*p, BLE_PERIPH_EVENT_CONNECTED, p->_event_cb_arg);
         break;
     case BLE_CLIENT_GAP_EVENT_DISCONNECTED:
         p->_state = BLE_PERIPH_STATE_READY;
+        p->_setConnectedState(false);
         if (p->_event_cb)
             p->_event_cb(*p, BLE_PERIPH_EVENT_DISCONNECTED, p->_event_cb_arg);
         /* Restart advertising automatically, unless disconnected by local host */
@@ -52,6 +54,7 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
         break;
     case BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT:
         p->_state = BLE_PERIPH_STATE_READY;
+        p->_setConnectedState(false);
         if (p->_event_cb)
             p->_event_cb(*p, BLE_PERIPH_EVENT_CONN_TIMEOUT, p->_event_cb_arg);
         if (p->_adv_auto_restart)
@@ -92,22 +95,16 @@ blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_
 void
 BlePeripheral::_advDataInit(void)
 {
-	uint8_t *adv_tmp = _adv_data;
+    uint8_t *adv_tmp = _adv_data;
 
     _adv_data_set = false;
+    memset(_adv_data, 0, sizeof(_adv_data));
 
     /* Add flags */
-	*adv_tmp++ = 2;
-	*adv_tmp++ = BLE_ADV_TYPE_FLAGS;
-	*adv_tmp++ = BLE_SVC_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-	_adv_data_len = 3;
-
-    /* Add manufacturer ID */
-    adv_tmp = &_adv_data[_adv_data_len];
-    *adv_tmp++ = 3;
-	*adv_tmp++ = BLE_ADV_TYPE_MANUFACTURER;
-	UINT16_TO_LESTREAM(adv_tmp, _manuf_id);
-	_adv_data_len += 4;
+    *adv_tmp++ = 2;
+    *adv_tmp++ = BLE_ADV_TYPE_FLAGS;
+    *adv_tmp++ = BLE_SVC_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    _adv_data_len = 3;
 
     if (_appearance) {
         /* Add appearance */
@@ -126,32 +123,61 @@ BlePeripheral::_advDataInit(void)
         *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
         calculated_len = strlen(_name);
     } else {
-		*adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
-		*adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
-		calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
-	}
-	memcpy(adv_tmp, _name, calculated_len);
-	_adv_data_len += calculated_len + 2;
+        *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
+        *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
+        calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
+    }
+    memcpy(adv_tmp, _name, calculated_len);
+    _adv_data_len += calculated_len + 2;
 }
 
-BlePeripheral::BlePeripheral(const char *name, const uint16_t appearance)
+BlePeripheral::BlePeripheral(void)
 {
     _num_services = 0;
+    _appearance = 0;
     _state = BLE_PERIPH_STATE_NOT_READY;
-    _manuf_id = 0x0002;  /* Intel Corporation */
 
-	int len = strlen(name);
-	if (len >= BLE_MAX_DEVICE_NAME)
-		len = BLE_MAX_DEVICE_NAME-1;
-	memcpy(_name, name, len);
-	_name[len] = 0; /* make sure it is null terminated */
+    ble_client_get_factory_config(&_local_bda, _name);
+}
+
+BleStatus
+BlePeripheral::setName(const char name[])
+{
+    if (BLE_PERIPH_STATE_NOT_READY != _state)
+        return BLE_STATUS_WRONG_STATE;
+
+    memset(_name, 0, sizeof(_name));
+    if (name && name[0]) {
+        int len = strlen(name);
+        if (len > BLE_MAX_DEVICE_NAME)
+            len = BLE_MAX_DEVICE_NAME;
+        memcpy(_name, name, len);
+    }
+
+    return BLE_STATUS_SUCCESS;
+}
+
+void
+BlePeripheral::getName(char name[]) const
+{
+    strcpy(name, _name);
+}
+
+BleStatus
+BlePeripheral::setAppearance(const uint16_t appearance)
+{
+    if (BLE_PERIPH_STATE_NOT_READY != _state)
+        return BLE_STATUS_WRONG_STATE;
 
     _appearance = appearance;
 
-    /* Populate initial advertising data
-     * This may be extended later with Service UUIDs
-     */
-    _advDataInit();
+    return BLE_STATUS_SUCCESS;
+}
+
+void
+BlePeripheral::getAppearance(uint16_t &appearance) const
+{
+    appearance = _appearance;
 }
 
 BleStatus
@@ -168,10 +194,15 @@ BlePeripheral::init(int8_t txPower)
         return status;
     }
 
-    status = ble_client_gap_set_enable_config(_name, _appearance, txPower);
+    status = ble_client_gap_set_enable_config(_name, &_local_bda, _appearance, txPower);
     if (BLE_STATUS_SUCCESS != status) {
         return status;
     }
+
+    /* Populate initial advertising data
+     * This may be extended later with Service UUIDs
+     */
+    _advDataInit();
 
     _state = BLE_PERIPH_STATE_READY;
     return BLE_STATUS_SUCCESS;
@@ -225,7 +256,7 @@ BlePeripheral::addPrimaryService(BleService &service, boolean_t advertise)
 }
 
 BleService *
-BlePeripheral::_matchService(uint16_t svc_handle)
+BlePeripheral::_matchService(uint16_t svc_handle) const
 {
     for (unsigned i = 0; i < _num_services; i++) {
         /* Check primary services */
@@ -244,7 +275,7 @@ BlePeripheral::_matchService(uint16_t svc_handle)
 }
 
 BleCharacteristic *
-BlePeripheral::_matchCharacteristic(uint16_t handle)
+BlePeripheral::_matchCharacteristic(uint16_t handle) const
 {
     for (unsigned i = 0; i < _num_services; i++) {
         /* Check primary services */
@@ -259,7 +290,7 @@ BlePeripheral::_matchCharacteristic(uint16_t handle)
 }
 
 BleDescriptor *
-BlePeripheral::_matchDescriptor(uint16_t handle)
+BlePeripheral::_matchDescriptor(uint16_t handle) const
 {
     for (unsigned i = 0; i < _num_services; i++) {
         /* Check primary services */
@@ -274,7 +305,7 @@ BlePeripheral::_matchDescriptor(uint16_t handle)
 }
 
 BleStatus
-BlePeripheral::getState(BlePeripheralState &state)
+BlePeripheral::getState(BlePeripheralState &state) const
 {
     state = _state;
     return BLE_STATUS_SUCCESS;
@@ -324,17 +355,18 @@ BlePeripheral::stop(void)
     return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BlePeripheral::setEventCallback(BlePeripheralEventCb callback,
                                 void *arg)
 {
-    _event_cb = callback;
+    noInterrupts();
+    _event_cb = callback; /* callback disabled if NULL */
     _event_cb_arg = arg;
-    return BLE_STATUS_SUCCESS;
+    interrupts();
 }
 
 BleStatus
-BlePeripheral::getPeerAddress(BleDeviceAddress &address)
+BlePeripheral::getPeerAddress(BleDeviceAddress &address) const
 {
     if (_state != BLE_PERIPH_STATE_CONNECTED)
         return BLE_STATUS_WRONG_STATE;
@@ -346,7 +378,7 @@ BlePeripheral::getPeerAddress(BleDeviceAddress &address)
 }
 
 BleStatus
-BlePeripheral::getLocalAddress(BleDeviceAddress &address)
+BlePeripheral::getLocalAddress(BleDeviceAddress &address) const
 {
     BleStatus status;
 
@@ -363,4 +395,15 @@ BlePeripheral::getLocalAddress(BleDeviceAddress &address)
     memcpy(address.addr, bda.addr, sizeof(address.addr));
 
     return BLE_STATUS_SUCCESS;
+}
+
+void
+BlePeripheral::_setConnectedState(boolean_t connected)
+{
+    _connected = connected;
+
+    /* Cascade the connected-state update to primary services */
+
+    for (unsigned i = 0; i < _num_services; i++)
+        _services[i]->_setConnectedState(connected);
 }

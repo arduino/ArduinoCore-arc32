@@ -33,6 +33,7 @@
 
 #include <stdint.h>
 #include "services/ble/ble_service_gap_api.h"
+#include "services/ble/ble_service_gattc_api.h"
 
 /* Forward declarations */
 struct _ble_service_cb;
@@ -44,7 +45,7 @@ struct ble_enable_req_msg;
 
 struct ble_svc_string {
 	uint8_t *p_string;		/**< String utf8 encoded */
-	uint16_t len;			/**< length of string */
+	uint8_t len;			/**< length of string */
 };
 
 struct ble_svc_sec_mode {
@@ -140,6 +141,55 @@ struct ble_gap_sm_pairing_req_msg {
 struct ble_dtm_test_req_msg {
 	struct cfw_message header; /**< Component framework message header (@ref cfw), MUST be first element of structure */
 	struct ble_test_cmd params;
+};
+
+struct ble_gap_set_rssi_report_req_msg {
+	struct cfw_message header; /**< Component framework message header (@ref cfw), MUST be first element of structure */
+	struct rssi_report_params params; /**< RSSI report config @ref rssi_report_cfg */
+};
+
+struct ble_gattc_discover_primary_service_req_msg {
+	struct cfw_message header;
+	uint16_t conn_handle; /**< Connection handle */
+	uint8_t data[]; /**< Variable length data of the request (UUID) */
+};
+
+struct ble_gattc_discover_included_service_req_msg {
+	struct cfw_message header;
+	uint16_t conn_handle;
+	struct ble_gattc_handle_range handle_range;
+};
+
+struct ble_gattc_discover_characteristic_req_msg {
+	struct cfw_message header;
+	uint16_t conn_handle;
+	struct ble_gattc_handle_range handle_range;
+};
+
+struct ble_gattc_discover_descriptor_req_msg {
+	struct cfw_message header;
+	uint16_t conn_handle;
+	struct ble_gattc_handle_range handle_range;
+};
+
+struct ble_gattc_read_characteristic_req_msg {
+	struct cfw_message header; /**< Component framework message header (@ref cfw), MUST be first element of structure */
+	uint16_t conn_handle; /**< Connection handle*/
+	uint16_t char_handle; /**< handle of the attribute to be read */
+	uint16_t offset; /**< offset into the attribute value to be read */
+};
+
+struct _ble_gattc_wr_characteristic {
+	uint16_t char_handle; /**< handle of characteristic */
+	uint16_t len; /**< if len is bigger then ATT MTU size, the controller fragment buffer itself */
+	uint8_t wr_type; /**< type of write operation @ref BLE_GATT_WR_OP_TYPES */
+	uint8_t value[]; /**< characteristic value to write */
+};
+
+struct ble_gattc_write_char_op_req_msg {
+	struct cfw_message header;
+	uint16_t conn_handle;
+	struct _ble_gattc_wr_characteristic wr_char_param;
 };
 
 /**

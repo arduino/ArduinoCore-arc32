@@ -36,7 +36,14 @@
 #include "cfw/cfw_service.h"
 #include "cfw_platform.h"
 #include "infra/time.h"
+#include "infra/factory_data.h"
+#include "infra/version.h"
+#include "curie_factory_data.h"
 #include "portable.h"
+
+#include "uart.h"
+#include "ipc_uart_ns16550.h"
+#include "infra/ipc_uart.h"
 
 #include "ble_client.h"
 
@@ -77,9 +84,11 @@ struct cfw_msg_rsp_sync {
     void *param;
 };
 
+#define TIMEOUT_TICKS_1SEC 32768 /* ~1 second in RTC timer ticks */
+#define TIMEOUT_TICKS_1MS  32    /* ~1 millisecond in RTC timer ticks */
 #define wait_for_condition(cond, status) \
 do { \
-    unsigned timeout = get_uptime_32k() + 32768;  \
+    unsigned timeout = get_uptime_32k() + TIMEOUT_TICKS_1SEC;  \
     status = BLE_STATUS_SUCCESS; \
     while (!(cond)) { \
         if (get_uptime_32k() > timeout) { \
@@ -261,6 +270,12 @@ static void handle_msg_id_ble_gap_set_rssi_report_rsp(struct ble_rsp *rsp, void 
     sync.response = 1;
 }
 
+static void handle_msg_id_ble_gap_dtm_init_rsp(struct ble_generic_msg *rsp, void *param)
+{
+    sync.status = rsp->status;
+    sync.response = 1;
+}
+
 static void ble_core_client_handle_message(struct cfw_message *msg, void *param)
 {
     switch (CFW_MESSAGE_ID(msg)) {
@@ -345,6 +360,10 @@ static void ble_core_client_handle_message(struct cfw_message *msg, void *param)
     case MSG_ID_BLE_GAP_SET_RSSI_REPORT_RSP:
         handle_msg_id_ble_gap_set_rssi_report_rsp((struct ble_rsp *)msg, param);
         break;
+
+    case MSG_ID_BLE_GAP_DTM_INIT_RSP:
+        handle_msg_id_ble_gap_dtm_init_rsp((struct ble_generic_msg *)msg, param);
+        break;
     }
     cfw_msg_free(msg);
 }
@@ -352,6 +371,47 @@ static void ble_core_client_handle_message(struct cfw_message *msg, void *param)
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define NIBBLE_TO_CHAR(n) \
+    ((n) >= 0xA ? ('A' + (n) - 0xA) : ('0' + (n)))
+
+#define BYTE_TO_STR(s, byte)               \
+    do {                                   \
+        *s++ = NIBBLE_TO_CHAR(byte >> 4);  \
+        *s++ = NIBBLE_TO_CHAR(byte & 0xF); \
+    }while(0)
+
+void ble_client_get_factory_config(ble_addr_t *bda, char *name)
+{
+    struct curie_oem_data *p_oem = NULL;
+    unsigned i;
+
+    /* Set the MAC address defined in Factory Data (if provided)
+     * Otherwise, the device will default to a static random address */
+    if (bda) {
+        bda->type = BLE_DEVICE_ADDR_INVALID;
+        if (!strncmp((char*)global_factory_data->oem_data.magic, FACTORY_DATA_MAGIC, 4)) {
+            p_oem = (struct curie_oem_data *) &global_factory_data->oem_data.project_data;
+            if (p_oem->bt_mac_address_type < 2) {
+                bda->type = p_oem->bt_mac_address_type;
+                for (i = 0; i < BLE_ADDR_LEN; i++)
+                    bda->addr[i] = p_oem->bt_address[BLE_ADDR_LEN - 1 - i];
+            }
+        }
+    }
+
+    /* Set a default name if one has not been specified */
+    if (name) {
+        char *suffix = name + strlen(BLE_DEVICE_NAME_DEFAULT_PREFIX);
+        strcpy(name, BLE_DEVICE_NAME_DEFAULT_PREFIX);
+		if (bda && bda->type != BLE_DEVICE_ADDR_INVALID) {
+            *suffix++ = '-';
+            BYTE_TO_STR(suffix, p_oem->bt_address[4]);
+            BYTE_TO_STR(suffix, p_oem->bt_address[5]);
+        }
+        *suffix = 0; /* NULL-terminate the string */
+    }
+}
 
 BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb, void *gap_event_param,
                           ble_client_gatts_event_cb_t gatts_event_cb, void *gatts_event_param)
@@ -376,8 +436,8 @@ BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb, void *gap_even
     if (status != BLE_STATUS_SUCCESS)
         return status;
 
-    /* We need to wait for ~1 usec before continuing */
-    delay_until = get_uptime_32k() + 32;
+    /* We need to wait for ~1 ms before continuing */
+    delay_until = get_uptime_32k() + TIMEOUT_TICKS_1MS;
     while (get_uptime_32k() < delay_until);
 
     sync.response = 0;
@@ -400,13 +460,14 @@ BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb, void *gap_even
 }
 
 BleStatus ble_client_gap_set_enable_config(const char *name,
+                                           const ble_addr_t *bda,
                                            const uint16_t appearance,
                                            const int8_t tx_power)
 {
     struct ble_wr_config config;
     BleStatus status;
 
-    config.p_bda = NULL;
+    config.p_bda = (bda && bda->type != BLE_DEVICE_ADDR_INVALID) ? (ble_addr_t *)bda : NULL;
     config.p_name = (uint8_t *)name;
     config.appearance = appearance;
     config.tx_power = tx_power;
@@ -623,9 +684,6 @@ BleStatus ble_client_gatts_send_notif_ind(const uint16_t value_handle,
 {
     BleStatus status;
 
-    if (!connected)
-        return BLE_STATUS_WRONG_STATE;
-
     ble_gatts_ind_params_t ind_params = {
         .val_handle = value_handle,
         .len = len,
@@ -672,14 +730,19 @@ BleStatus ble_client_gap_disconnect(const uint8_t reason)
 BleStatus ble_client_gap_set_rssi_report(boolean_t enable)
 {
     BleStatus status;
+    struct rssi_report_params params;
 
     if (!connected)
         return BLE_STATUS_WRONG_STATE;
 
+    params.conn_hdl = conn_handle;
+    params.op = enable ? BLE_GAP_RSSI_ENABLE_REPORT : BLE_GAP_RSSI_DISABLE_REPORT;
+    /* TODO - pick sensible defaults for these and/or allow user to specify */
+    params.delta_dBm = 5;
+    params.min_count = 3;
+
     sync.response = 0;
-    if (ble_gap_set_rssi_report(service_handle, conn_handle,
-                                enable ? BLE_GAP_RSSI_ENABLE_REPORT : BLE_GAP_RSSI_DISABLE_REPORT,
-                                NULL))
+    if (ble_gap_set_rssi_report(service_handle, &params, NULL))
         return BLE_STATUS_ERROR;
 
     /* Wait for response messages */
@@ -688,6 +751,111 @@ BleStatus ble_client_gap_set_rssi_report(boolean_t enable)
         return status;
 
     return sync.status;
+}
+
+BleStatus ble_client_dtm_init(void)
+{
+    BleStatus status;
+
+    /* Ensure that the ble_client_init() has been called already */
+    if (!service_handle)
+        return BLE_STATUS_WRONG_STATE;
+
+    /* Instruct the Nordic to enter Direct Test Mode */
+    sync.response = 0;
+    ble_gap_dtm_init_req(service_handle, NULL);
+
+    /* Wait for response messages */
+    wait_for_condition(sync.response, status);
+    if (status != BLE_STATUS_SUCCESS)
+        return status;
+
+    /* DTM is active. Detach UART IPC driver to allow direct access */
+	if (BLE_STATUS_SUCCESS == sync.status)
+        uart_ipc_disable(IPC_UART);
+
+    return sync.status;
+}
+
+static int uart_raw_ble_core_tx_rx(uint8_t * send_data, uint8_t send_no,
+			       uint8_t * rcv_data, uint8_t rcv_no)
+{
+	int i;
+	uint8_t rx_byte;
+	int res;
+	/* send command */
+	for (i = 0; i < send_no; i++)
+		uart_poll_out(IPC_UART, send_data[i]);
+	/* answer */
+	i = 0;
+	do {
+		res = uart_poll_in(IPC_UART, &rx_byte);
+		if (res == 0) {
+			rcv_data[i++] = rx_byte;
+		}
+	} while (i < rcv_no);
+	return i;
+}
+
+BleStatus ble_client_dtm_cmd(const struct ble_test_cmd *test_cmd,
+                             struct ble_dtm_test_result *test_result)
+{
+    BleStatus status;
+
+	uint8_t send_data[7];
+	uint8_t rcv_data[9] = {};
+	int send_no;
+	int rcv_no;
+
+	send_data[0] = DTM_HCI_CMD;
+	send_data[1] = test_cmd->mode;
+	send_data[2] = DTM_HCI_OPCODE2;
+
+	switch (test_cmd->mode) {
+	case BLE_TEST_START_DTM_RX:
+		send_data[3] = 1;	/* length */
+		send_data[4] = test_cmd->rx.freq;
+		send_no = 5;
+		rcv_no = 7;
+		break;
+	case BLE_TEST_START_DTM_TX:
+		send_data[3] = 3;	/* length */
+		send_data[4] = test_cmd->tx.freq;
+		send_data[5] = test_cmd->tx.len;
+		send_data[6] = test_cmd->tx.pattern;
+		send_no = 7;
+		rcv_no = 7;
+		break;
+	case BLE_TEST_SET_TXPOWER:
+		send_data[3] = 1;	/* length */
+		send_data[4] = test_cmd->tx_pwr.dbm;
+		send_no = 5;
+		rcv_no = 7;
+		break;
+	case BLE_TEST_END_DTM:
+		send_data[3] = 0;	/* length */
+		send_no = 4;
+		rcv_no = 9;
+		break;
+	default:
+		return BLE_STATUS_NOT_SUPPORTED;
+	}
+
+	uart_raw_ble_core_tx_rx(send_data, send_no, rcv_data, rcv_no);
+
+	status = rcv_data[DTM_HCI_STATUS_IDX];
+
+    test_result->mode = test_cmd->mode;
+
+	uint8_t *p;
+	switch (test_cmd->mode) {
+	case BLE_TEST_END_DTM:
+		p = &rcv_data[DTM_HCI_LE_END_IDX];
+		LESTREAM_TO_UINT16(p, test_result->nb);
+		break;
+	}
+
+    return status;
 }
 
 #ifdef __cplusplus
