@@ -66,6 +66,7 @@ THE SOFTWARE.
 
 #define BMI160_RA_STATUS            0x1B
 
+#define BMI160_STEP_INT_BIT         0
 #define BMI160_ANYMOTION_INT_BIT    2
 #define BMI160_NOMOTION_INT_BIT     7
 #define BMI160_FFULL_INT_BIT        5
@@ -125,6 +126,7 @@ THE SOFTWARE.
 #define BMI160_HIGH_G_EN_BIT        0
 #define BMI160_HIGH_G_EN_LEN        3
 
+#define BMI160_STEP_EN_BIT          3
 #define BMI160_DRDY_EN_BIT          4
 #define BMI160_FFULL_EN_BIT         5
 
@@ -210,6 +212,23 @@ THE SOFTWARE.
 #define BMI160_RA_OFFSET_5          0x76
 #define BMI160_RA_OFFSET_6          0x77
 
+#define BMI160_RA_STEP_CNT_L        0x78
+#define BMI160_RA_STEP_CNT_H        0x79
+
+#define BMI160_STEP_BUF_MIN_BIT     0
+#define BMI160_STEP_BUF_MIN_LEN     3
+#define BMI160_STEP_CNT_EN_BIT      3
+
+#define BMI160_STEP_TIME_MIN_BIT    0
+#define BMI160_STEP_TIME_MIN_LEN    3
+#define BMI160_STEP_THRESH_MIN_BIT  3
+#define BMI160_STEP_THRESH_MIN_LEN  2
+#define BMI160_STEP_ALPHA_BIT       5
+#define BMI160_STEP_ALPHA_LEN       3
+
+#define BMI160_RA_STEP_CONF_0       0x7A
+#define BMI160_RA_STEP_CONF_1       0x7B
+
 #define BMI160_GYRO_RANGE_SEL_BIT   0
 #define BMI160_GYRO_RANGE_SEL_LEN   3
 
@@ -269,7 +288,14 @@ THE SOFTWARE.
 #define BMI160_CMD_GYR_MODE_NORMAL  0x15
 #define BMI160_CMD_FIFO_FLUSH       0xB0
 #define BMI160_CMD_INT_RESET        0xB1
+#define BMI160_CMD_STEP_CNT_CLR     0xB2
 #define BMI160_CMD_SOFT_RESET       0xB6
+
+typedef enum {
+    BMI160_STEP_MODE_NORMAL = 0,
+    BMI160_STEP_MODE_SENSITIVE,
+    BMI160_STEP_MODE_ROBUST
+} BMI160StepMode;
 
 #define BMI160_RA_CMD               0x7E
 
@@ -363,10 +389,18 @@ class BMI160Class {
         unsigned getZeroMotionDetectionDuration();
         void setZeroMotionDetectionDuration(unsigned duration);
 
+        void setStepDetectionMode(BMI160StepMode mode);
+        bool getStepCountEnabled();
+        void setStepCountEnabled(bool enabled);
+        uint16_t getStepCount();
+        void resetStepCount();
+
         bool getIntFreefallEnabled();
         void setIntFreefallEnabled(bool enabled);
         bool getIntShockEnabled();
         void setIntShockEnabled(bool enabled);
+        bool getIntStepEnabled();
+        void setIntStepEnabled(bool enabled);
         bool getIntMotionEnabled();
         void setIntMotionEnabled(bool enabled);
         bool getIntZeroMotionEnabled();
@@ -388,6 +422,7 @@ class BMI160Class {
         uint8_t getIntStatus3();
         bool getIntFreefallStatus();
         bool getIntShockStatus();
+        bool getIntStepStatus();
         bool getIntMotionStatus();
         bool getIntZeroMotionStatus();
         bool getIntFIFOBufferFullStatus();
@@ -434,7 +469,9 @@ class BMI160Class {
         uint8_t getRegister(uint8_t reg);
         void setRegister(uint8_t reg, uint8_t data);
 
-        /* TODO - consider making these protected - not sure if we want to allow use from a sketch */
+        /* TODO - consider making these protected - not sure if we want to allow use from a sketch
+         * except perhaps for the latch control functions
+         */
         bool getIntEnabled();
         void setIntEnabled(bool enabled);
         bool getInterruptMode();

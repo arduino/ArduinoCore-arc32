@@ -811,6 +811,104 @@ void BMI160Class::setShockDetectionDuration(uint8_t duration) {
     reg_write(BMI160_RA_INT_LOWHIGH_3, duration);
 }
 
+/** Set Step Detection mode.
+ * Sets the step detection mode to one of 3 predefined sensitivity settings:
+ *
+ *  @see BMI160_STEP_MODE_NORMAL (Recommended for most applications)
+ *  @see BMI160_STEP_MODE_SENSITIVE
+ *  @see BMI160_STEP_MODE_ROBUST
+ *
+ * Please refer to Section 2.11.37 of the BMI160 Data Sheet for more information
+ * on Step Detection configuration.
+ *
+ * @return Set Step Detection mode
+ * @see BMI160_RA_STEP_CONF_0
+ * @see BMI160_RA_STEP_CONF_1
+ */
+void BMI160Class::setStepDetectionMode(BMI160StepMode mode) {
+    uint8_t step_conf0, min_step_buf;
+
+    /* Applying pre-defined values suggested in data-sheet Section 2.11.37 */
+    switch (mode) {
+    case BMI160_STEP_MODE_NORMAL:
+        step_conf0 = 0x15;
+        min_step_buf = 0x3;
+        break;
+    case BMI160_STEP_MODE_SENSITIVE:
+        step_conf0 = 0x2D;
+        min_step_buf = 0x0;
+        break;
+    case BMI160_STEP_MODE_ROBUST:
+        step_conf0 = 0x1D;
+        min_step_buf = 0x7;
+        break;
+    default:
+        /* Unrecognised mode option */
+        return;
+    };
+
+    reg_write(BMI160_RA_STEP_CONF_0, step_conf0);
+    reg_write_bits(BMI160_RA_STEP_CONF_1, min_step_buf,
+                   BMI160_STEP_BUF_MIN_BIT,
+                   BMI160_STEP_BUF_MIN_LEN);
+}
+
+/** Get Step Counter enabled status.
+ * Once enabled and configured correctly (@see setStepDetectionMode()), the
+ * BMI160 will increment a counter for every step detected by the accelerometer.
+ * To retrieve the current step count, @see getStepCount().
+ *
+ * For more details on the Step Counting feature, see Section
+ * 2.7 of the BMI160 Data Sheet.
+ *
+ * @return Current Step Counter enabled status
+ * @see BMI160_RA_STEP_CONF_1
+ * @see BMI160_STEP_CNT_EN_BIT
+ */
+bool BMI160Class::getStepCountEnabled() {
+    return !!(reg_read_bits(BMI160_RA_STEP_CONF_1,
+                            BMI160_STEP_CNT_EN_BIT,
+                            1));
+}
+
+/** Set Step Counter enabled status.
+ *
+ * @return Set Step Counter enabled
+ * @see getStepCountEnabled()
+ * @see BMI160_RA_STEP_CONF_1
+ * @see BMI160_STEP_CNT_EN_BIT
+ */
+void BMI160Class::setStepCountEnabled(bool enabled) {
+    return reg_write_bits(BMI160_RA_STEP_CONF_1, enabled ? 0x1 : 0,
+                          BMI160_STEP_CNT_EN_BIT,
+                          1);
+}
+
+
+/** Get current number of detected step movements (Step Count).
+ * Returns a step counter which is incremented when step movements are detected
+ * (assuming Step Detection mode and Step Counter are configured/enabled).
+ *
+ * @return Number of steps as an unsigned 16-bit integer
+ * @see setStepCountEnabled()
+ * @see setStepDetectionMode()
+ * @see BMI160_RA_STEP_CNT_L
+ */
+uint16_t BMI160Class::getStepCount() {
+    buffer[0] = BMI160_RA_STEP_CNT_L;
+    serial_buffer_transfer(buffer, 1, 2);
+    return (((uint16_t)buffer[1]) << 8) | buffer[0];
+}
+
+/** Resets the current number of detected step movements (Step Count) to 0.
+ *
+ * @see getStepCount()
+ * @see BMI160_RA_CMD
+ */
+void BMI160Class::resetStepCount() {
+    reg_write(BMI160_RA_CMD, BMI160_CMD_STEP_CNT_CLR);
+}
+
 /** Get motion detection event acceleration threshold.
  * This register configures the detection threshold for Motion interrupt
  * generation in the INT_MOTION[1] register. The unit of threshold is
@@ -1038,6 +1136,30 @@ void BMI160Class::setIntShockEnabled(bool enabled) {
     reg_write_bits(BMI160_RA_INT_EN_1, enabled ? 0x7 : 0x0,
                    BMI160_HIGH_G_EN_BIT,
                    BMI160_HIGH_G_EN_LEN);
+}
+
+/** Get Step interrupt enabled status.
+ * Will be set 0 for disabled, 1 for enabled.
+ * @return Current interrupt enabled status
+ * @see BMI160_RA_INT_EN_2
+ * @see BMI160_STEP_EN_BIT
+ **/
+bool BMI160Class::getIntStepEnabled() {
+    return !!(reg_read_bits(BMI160_RA_INT_EN_2,
+                            BMI160_STEP_EN_BIT,
+                            1));
+}
+
+/** Set Step interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntStepEnabled()
+ * @see BMI160_RA_INT_EN_2
+ * @see BMI160_STEP_EN_BIT
+ **/
+void BMI160Class::setIntStepEnabled(bool enabled) {
+    reg_write_bits(BMI160_RA_INT_EN_2, enabled ? 0x1 : 0x0,
+                   BMI160_STEP_EN_BIT,
+                   1);
 }
 
 /** Get Motion Detection interrupt enabled status.
@@ -1350,7 +1472,7 @@ bool BMI160Class::getIntFreefallStatus() {
 }
 
 /** Get Shock interrupt status.
- * This bit automatically sets to 1 when a Motion Detection condition
+ * This bit automatically sets to 1 when a Shock (High-G) Detection condition
  * is present, and clears when the condition is no longer present.
  *
  * For more details on the Shock (High-G) detection interrupt, see Section
@@ -1436,6 +1558,23 @@ bool BMI160Class::getZPosShockDetected() {
     uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
     return !!(!(status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
               (status & (1 << BMI160_HIGH_G_1ST_Y_BIT)));
+}
+
+/** Get Step interrupt status.
+ * This bit automatically sets to 1 when a Step Detection condition
+ * is present, and clears when the condition is no longer present.
+ *
+ * For more details on the Step detection interrupt, see Section
+ * 2.6.3 of the BMI160 Data Sheet.
+ *
+ * @return Current interrupt status
+ * @see BMI160_RA_INT_STATUS_0
+ * @see BMI160_STEP_INT_BIT
+ */
+bool BMI160Class::getIntStepStatus() {
+    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
+                            BMI160_STEP_INT_BIT,
+                            1));
 }
 
 /** Get Motion Detection interrupt status.
@@ -1900,6 +2039,8 @@ int16_t BMI160Class::getRotationZ() {
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
+
+
 
 /** Read a BMI160 register directly.
  * @param reg register address
