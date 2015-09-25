@@ -18,43 +18,9 @@
  */
 
 #include "CurieImu.h"
-
-extern "C" {
-#include "ss_spi_iface.h"
-#include "soc_gpio.h"
-}
+#include "internal/ss_spi.h"
 
 #define BMI160_GPIN_AON_PIN 4
-
-static volatile unsigned spi_xfer_complete;
-static volatile unsigned spi_err_detect;
-
-static void spi_err_cb(uint32_t data)
-{
-    spi_err_detect = 1;
-}
-
-static void spi_xfer_cb(uint32_t data)
-{
-    spi_xfer_complete = 1;
-}
-
-#define TIMEOUT_MS 16
-#define SPI_OK 0
-#define SPI_ERROR 1
-#define SPI_TIMEOUT 2
-
-static int wait_xfer_or_err(void){
-	uint64_t timeout = TIMEOUT_MS;
-	while(timeout--) {
-		if (spi_err_detect)
-			return SPI_ERROR;
-        if (spi_xfer_complete)
-				return SPI_OK;
-		delay(1);
-	}
-    return SPI_TIMEOUT;
-}
 
 /******************************************************************************/
 
@@ -72,22 +38,7 @@ void CurieImuClass::initialize()
     SET_PIN_MODE(37, QRK_PMUX_SEL_MODEA); // SPI1_SS_SCK
     SET_PIN_MODE(38, QRK_PMUX_SEL_MODEA); // SPI1_SS_CS_B[0]
  
-    spi_cfg_data_t spi_cfg;
-
-    memset(&spi_cfg, 0, sizeof(spi_cfg));
-
-    /* Configure the SPI bus settings required for by the BMI160 */
-    spi_cfg.speed              = 8000; /* KHz */
-    spi_cfg.txfr_mode          = SPI_TX_RX;
-    spi_cfg.data_frame_size    = SPI_8_BIT;
-    spi_cfg.slave_enable       = SPI_SE_1;
-    spi_cfg.bus_mode           = SPI_BUSMODE_0;
-    spi_cfg.loopback_enable    = 0; 
-    spi_cfg.cb_err = spi_err_cb;
-    spi_cfg.cb_xfer = spi_xfer_cb;
-   
-    ss_spi_clock_enable(SPI_SENSING_1);
-    ss_spi_set_config(SPI_SENSING_1, &spi_cfg);
+    ss_spi_init();
 
     /* Perform a dummy read from 0x7f to switch to spi interface */
     uint8_t dummy_reg = 0x7F;
@@ -106,10 +57,7 @@ int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
     if (rx_cnt) /* For read transfers, assume 1st byte contains register address */
         buf[0] |= (1 << BMI160_SPI_READ_BIT);
 
-    spi_err_detect = 0;
-    spi_xfer_complete = 0;
-    ss_spi_transfer(SPI_SENSING_1, buf, tx_cnt, buf, rx_cnt, SPI_SE_1);
-    return wait_xfer_or_err();
+    return ss_spi_xfer(buf, tx_cnt, rx_cnt);
 }
 
 /** Interrupt handler for interrupts from PIN1 on the BMI160
@@ -137,12 +85,12 @@ void CurieImuClass::attachInterrupt(void (*callback)(void))
     memset(&cfg, 0, sizeof(gpio_cfg_data_t));
     cfg.gpio_type = GPIO_INTERRUPT;
     cfg.int_type = EDGE;
-    cfg.int_polarity = ACTIVE_HIGH;
+    cfg.int_polarity = ACTIVE_LOW;
     cfg.int_debounce = DEBOUNCE_ON;
     cfg.gpio_cb = bmi160_pin1_isr;
     soc_gpio_set_config(SOC_GPIO_AON, BMI160_GPIN_AON_PIN, &cfg);
 
-    setInterruptMode(0);  // Active-High
+    setInterruptMode(1);  // Active-Low
     setInterruptDrive(0); // Push-Pull
     setInterruptLatch(BMI160_LATCH_MODE_10_MS); // 10ms pulse
     setIntEnabled(true);

@@ -39,6 +39,13 @@ THE SOFTWARE.
 
 #define BMI160_RA_CHIP_ID           0x00
 
+#define BMI160_ACC_PMU_STATUS_BIT   4
+#define BMI160_ACC_PMU_STATUS_LEN   2
+#define BMI160_GYR_PMU_STATUS_BIT   2
+#define BMI160_GYR_PMU_STATUS_LEN   2
+
+#define BMI160_RA_PMU_STATUS        0x03
+
 #define BMI160_RA_GYRO_X_L          0x0C
 #define BMI160_RA_GYRO_X_H          0x0D
 #define BMI160_RA_GYRO_Y_L          0x0E
@@ -262,6 +269,7 @@ THE SOFTWARE.
 #define BMI160_CMD_GYR_MODE_NORMAL  0x15
 #define BMI160_CMD_FIFO_FLUSH       0xB0
 #define BMI160_CMD_INT_RESET        0xB1
+#define BMI160_CMD_SOFT_RESET       0xB6
 
 #define BMI160_RA_CMD               0x7E
 
