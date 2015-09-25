@@ -68,11 +68,18 @@ THE SOFTWARE.
 
 #define BMI160_STEP_INT_BIT         0
 #define BMI160_ANYMOTION_INT_BIT    2
+#define BMI160_D_TAP_INT_BIT        4
+#define BMI160_S_TAP_INT_BIT        5
 #define BMI160_NOMOTION_INT_BIT     7
 #define BMI160_FFULL_INT_BIT        5
 #define BMI160_DRDY_INT_BIT         4
 #define BMI160_LOW_G_INT_BIT        3
 #define BMI160_HIGH_G_INT_BIT       2
+
+#define BMI160_TAP_SIGN_BIT         7
+#define BMI160_TAP_1ST_Z_BIT        6
+#define BMI160_TAP_1ST_Y_BIT        5
+#define BMI160_TAP_1ST_X_BIT        4
 
 #define BMI160_ANYMOTION_SIGN_BIT   3
 #define BMI160_ANYMOTION_1ST_Z_BIT  2
@@ -119,6 +126,8 @@ THE SOFTWARE.
 
 #define BMI160_ANYMOTION_EN_BIT     0
 #define BMI160_ANYMOTION_EN_LEN     3
+#define BMI160_D_TAP_EN_BIT         4
+#define BMI160_S_TAP_EN_BIT         5
 #define BMI160_NOMOTION_EN_BIT      0
 #define BMI160_NOMOTION_EN_LEN      3
 #define BMI160_LOW_G_EN_BIT         3
@@ -184,6 +193,16 @@ THE SOFTWARE.
 #define BMI160_RA_INT_MOTION_1      0x60
 #define BMI160_RA_INT_MOTION_2      0x61
 #define BMI160_RA_INT_MOTION_3      0x62
+
+#define BMI160_TAP_DUR_BIT          0
+#define BMI160_TAP_DUR_LEN          3
+#define BMI160_TAP_SHOCK_BIT        6
+#define BMI160_TAP_QUIET_BIT        7
+#define BMI160_TAP_THRESH_BIT       0
+#define BMI160_TAP_THRESH_LEN       5
+
+#define BMI160_RA_INT_TAP_0         0x63
+#define BMI160_RA_INT_TAP_1         0x64
 
 #define BMI160_FOC_ACC_Z_BIT        0
 #define BMI160_FOC_ACC_Z_LEN        2
@@ -291,13 +310,34 @@ THE SOFTWARE.
 #define BMI160_CMD_STEP_CNT_CLR     0xB2
 #define BMI160_CMD_SOFT_RESET       0xB6
 
+#define BMI160_RA_CMD               0x7E
+
 typedef enum {
     BMI160_STEP_MODE_NORMAL = 0,
     BMI160_STEP_MODE_SENSITIVE,
-    BMI160_STEP_MODE_ROBUST
+    BMI160_STEP_MODE_ROBUST,
 } BMI160StepMode;
 
-#define BMI160_RA_CMD               0x7E
+typedef enum {
+    BMI160_TAP_SHOCK_DURATION_50MS = 0,
+    BMI160_TAP_SHOCK_DURATION_75MS,
+} BMI160TapShockDuration;
+
+typedef enum {
+    BMI160_TAP_QUIET_DURATION_30MS = 0,
+    BMI160_TAP_QUIET_DURATION_20MS,
+} BMI160TapQuietDuration;
+
+typedef enum {
+    BMI160_DOUBLE_TAP_DURATION_50MS = 0,
+    BMI160_DOUBLE_TAP_DURATION_100MS,
+    BMI160_DOUBLE_TAP_DURATION_150MS,
+    BMI160_DOUBLE_TAP_DURATION_200MS,
+    BMI160_DOUBLE_TAP_DURATION_250MS,
+    BMI160_DOUBLE_TAP_DURATION_375MS,
+    BMI160_DOUBLE_TAP_DURATION_500MS,
+    BMI160_DOUBLE_TAP_DURATION_700MS,
+} BMI160DoubleTapDuration;
 
 class BMI160Class {
     public:
@@ -389,6 +429,18 @@ class BMI160Class {
         unsigned getZeroMotionDetectionDuration();
         void setZeroMotionDetectionDuration(unsigned duration);
 
+        uint8_t getTapDetectionThreshold();
+        void setTapDetectionThreshold(uint8_t threshold);
+
+        bool getTapShockDuration();
+        void setTapShockDuration(bool duration);
+
+        bool getTapQuietDuration();
+        void setTapQuietDuration(bool duration);
+
+        uint8_t getDoubleTapDetectionDuration();
+        void setDoubleTapDetectionDuration(uint8_t duration);
+
         void setStepDetectionMode(BMI160StepMode mode);
         bool getStepCountEnabled();
         void setStepCountEnabled(bool enabled);
@@ -405,6 +457,10 @@ class BMI160Class {
         void setIntMotionEnabled(bool enabled);
         bool getIntZeroMotionEnabled();
         void setIntZeroMotionEnabled(bool enabled);
+        bool getIntTapEnabled();
+        void setIntTapEnabled(bool enabled);
+        bool getIntDoubleTapEnabled();
+        void setIntDoubleTapEnabled(bool enabled);
 
         bool getGyroFIFOEnabled();
         void setGyroFIFOEnabled(bool enabled);
@@ -425,6 +481,8 @@ class BMI160Class {
         bool getIntStepStatus();
         bool getIntMotionStatus();
         bool getIntZeroMotionStatus();
+        bool getIntTapStatus();
+        bool getIntDoubleTapStatus();
         bool getIntFIFOBufferFullStatus();
         bool getIntDataReadyStatus();
 
@@ -456,6 +514,13 @@ class BMI160Class {
         bool getZNegMotionDetected();
         bool getZPosMotionDetected();
         bool getZeroMotionDetected();
+
+        bool getXNegTapDetected();
+        bool getXPosTapDetected();
+        bool getYNegTapDetected();
+        bool getYPosTapDetected();
+        bool getZNegTapDetected();
+        bool getZPosTapDetected();
 
         bool getFIFOHeaderModeEnabled();
         void setFIFOHeaderModeEnabled(bool enabled);

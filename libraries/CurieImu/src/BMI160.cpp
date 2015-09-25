@@ -1064,6 +1064,7 @@ unsigned BMI160Class::getZeroMotionDetectionDuration() {
     else
         return (unsigned)(duration & 0xF) + 1;
 }
+
 /** Set zero motion detection event duration threshold.
  *
  * This must be called at least once to enable zero-motion detection.
@@ -1088,6 +1089,170 @@ void BMI160Class::setZeroMotionDetectionDuration(unsigned units) {
     reg_write_bits(BMI160_RA_INT_MOTION_0, duration,
                    BMI160_NOMOTION_DUR_BIT,
                    BMI160_NOMOTION_DUR_LEN);
+}
+
+/** Get Tap event acceleration threshold.
+ * This register configures the detection threshold for Tap event
+ * detection. The threshold is expressed a 5-bit unsigned integer.
+ * The unit of threshold is dependent on the accelerometer
+ * sensitivity range (@see getFullScaleAccelRange()):
+ *
+ * <pre>
+ * Full Scale Range | LSB Resolution
+ * -----------------+----------------
+ * +/- 2g           |  62.5 mg/LSB (0 =  31.25mg)
+ * +/- 4g           | 125.0 mg/LSB (0 =  62.5mg)
+ * +/- 8g           | 250.0 mg/LSB (0 = 125.0mg)
+ * +/- 16g          | 500.0 mg/LSB (0 = 250.0mg)
+ * </pre>
+ *
+ * A Tap is detected as a shock event which exceeds the detection threshold for
+ * a specified duration.  A threshold between 0.7g and 1.5g in the 2g
+ * measurement range is suggested for typical tap detection applications.
+ * 
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current shock acceleration threshold value
+ * @see BMI160_RA_INT_TAP_1
+ */
+uint8_t BMI160Class::getTapDetectionThreshold() {
+    return reg_read_bits(BMI160_RA_INT_TAP_1,
+                         BMI160_TAP_THRESH_BIT,
+                         BMI160_TAP_THRESH_LEN);
+}
+
+/** Set tap event acceleration threshold.
+ * @param threshold New tap acceleration threshold value
+ * @see getTapDetectionThreshold()
+ * @see BMI160_RA_INT_TAP_1
+ */
+void BMI160Class::setTapDetectionThreshold(uint8_t threshold) {
+    reg_write_bits(BMI160_RA_INT_TAP_1, threshold,
+                   BMI160_TAP_THRESH_BIT,
+                   BMI160_TAP_THRESH_LEN);
+}
+
+/** Get tap shock detection duration.
+ * This register configures the duration for a tap event generation.
+ *
+ * The time will be returned as a 1-bit boolean, with the following
+ * values (@see BMI160TapShockDuration)
+ *
+ * <pre>
+ * duration specifier | duration threshold
+ * -------------------+----------------
+ *  0b0               |  50ms
+ *  0b1               |  75ms
+ * </pre>
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current tap detection duration threshold value
+ * @see BMI160_RA_INT_TAP_0
+ * @see BMI160_TAP_SHOCK_BIT
+ */
+bool BMI160Class::getTapShockDuration() {
+    return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
+                            BMI160_TAP_SHOCK_BIT,
+                            1));
+}
+
+/** Set tap shock detection event duration threshold.
+ *
+ * @param units New tap detection duration threshold value
+ * @see getTapShockDetectionDuration()
+ * @see BMI160_RA_INT_TAP_0
+ * @see BMI160_TAP_SHOCK_BIT
+ */
+void BMI160Class::setTapShockDuration(bool duration) {
+    reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
+                   BMI160_TAP_SHOCK_BIT,
+                   1);
+}
+
+/** Get tap quiet duration threshold.
+ * This register configures the quiet duration for double-tap event detection.
+ *
+ * The time will be returned as a 1-bit boolean, with the following
+ * values (@see BMI160TapQuietDuration)
+ *
+ * <pre>
+ * duration specifier | duration threshold
+ * -------------------+----------------
+ *  0b0               |  30ms
+ *  0b1               |  20ms
+ * </pre>
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current tap quiet detection duration threshold value
+ * @see BMI160_RA_INT_TAP_0
+ * @see BMI160_TAP_QUIET_BIT
+ */
+bool BMI160Class::getTapQuietDuration() {
+    return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
+                            BMI160_TAP_QUIET_BIT,
+                            1));
+}
+
+/** Set tap quiet duration threshold.
+ *
+ * @param units New tap detection duration threshold value
+ * @see getTapQuietDuration()
+ * @see BMI160_RA_INT_TAP_0
+ * @see BMI160_TAP_QUIET_BIT
+ */
+void BMI160Class::setTapQuietDuration(bool duration) {
+    reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
+                   BMI160_TAP_QUIET_BIT,
+                   1);
+}
+
+/** Get double-tap detection time window length.
+ * This register configures the length of time window between 2 tap events for
+ * double-tap event generation.
+ *
+ * The time will be returned as a 3-bit unsigned integer, with the following
+ * values (@see BMI160DoubleTapDuration)
+ *
+ * <pre>
+ * duration specifier | length of time window
+ * -------------------+----------------
+ *  0b000             |  50ms
+ *  0b001             | 100ms
+ *  0b010             | 150ms
+ *  0b011             | 200ms
+ *  0b100             | 250ms
+ *  0b101             | 375ms
+ *  0b110             | 500ms
+ *  0b111             | 700ms
+ * </pre>
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current double-tap detection time window threshold value
+ * @see BMI160_RA_INT_TAP_0
+ */
+uint8_t BMI160Class::getDoubleTapDetectionDuration() {
+    return reg_read_bits(BMI160_RA_INT_TAP_0,
+                         BMI160_TAP_DUR_BIT,
+                         BMI160_TAP_DUR_LEN);
+}
+
+/** Set double-tap detection event duration threshold.
+ *
+ * @param duration New double-tap detection time window threshold value
+ * @see getDoubleTapDetectionDuration()
+ * @see BMI160_RA_INT_TAP_0
+ */
+void BMI160Class::setDoubleTapDetectionDuration(uint8_t duration) {
+    reg_write_bits(BMI160_RA_INT_TAP_0, duration,
+                   BMI160_TAP_DUR_BIT,
+                   BMI160_TAP_DUR_LEN);
 }
 
 /** Get Free Fall interrupt enabled status.
@@ -1217,6 +1382,54 @@ void BMI160Class::setIntZeroMotionEnabled(bool enabled) {
     reg_write_bits(BMI160_RA_INT_EN_2, enabled ? 0x7 : 0x0,
                    BMI160_NOMOTION_EN_BIT,
                    BMI160_NOMOTION_EN_LEN);
+}
+
+/** Get Tap Detection interrupt enabled status.
+ * Will be set 0 for disabled, 1 for enabled.
+ * @return Current interrupt enabled status
+ * @see BMI160_RA_INT_EN_0
+ * @see BMI160_S_TAP_EN_BIT
+ **/
+bool BMI160Class::getIntTapEnabled() {
+    return !!(reg_read_bits(BMI160_RA_INT_EN_0,
+                            BMI160_S_TAP_EN_BIT,
+                            1));
+}
+
+/** Set Tap Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntTapEnabled()
+ * @see BMI160_RA_INT_EN_0
+ * @see BMI160_S_TAP_EN_BIT
+ **/
+void BMI160Class::setIntTapEnabled(bool enabled) {
+    reg_write_bits(BMI160_RA_INT_EN_0, enabled ? 0x1 : 0,
+                   BMI160_S_TAP_EN_BIT,
+                   1);
+}
+
+/** Get Tap Detection interrupt enabled status.
+ * Will be set 0 for disabled, 1 for enabled.
+ * @return Current interrupt enabled status
+ * @see BMI160_RA_INT_EN_0
+ * @see BMI160_D_TAP_EN_BIT
+ **/
+bool BMI160Class::getIntDoubleTapEnabled() {
+    return !!(reg_read_bits(BMI160_RA_INT_EN_0,
+                            BMI160_D_TAP_EN_BIT,
+                            1));
+}
+
+/** Set Tap Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntTapEnabled()
+ * @see BMI160_RA_INT_EN_0
+ * @see BMI160_D_TAP_EN_BIT
+ **/
+void BMI160Class::setIntDoubleTapEnabled(bool enabled) {
+    reg_write_bits(BMI160_RA_INT_EN_0, enabled ? 0x1 : 0,
+                   BMI160_D_TAP_EN_BIT,
+                   1);
 }
 
 /** Get FIFO Buffer Full interrupt enabled status.
@@ -1455,7 +1668,7 @@ uint8_t BMI160Class::getIntStatus3() {
 }
 
 /** Get Free Fall interrupt status.
- * This bit automatically sets to 1 when a Motion Detection condition
+ * This bit automatically sets to 1 when a Free Fall condition
  * is present, and clears when the condition is no longer present.
  *
  * For more details on the Free-Fall (Low-G) detection interrupt, see Section
@@ -1468,6 +1681,40 @@ uint8_t BMI160Class::getIntStatus3() {
 bool BMI160Class::getIntFreefallStatus() {
     return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
                             BMI160_LOW_G_INT_BIT,
+                            1));
+}
+
+/** Get Tap Detection interrupt status.
+ * This bit automatically sets to 1 when a Tap Detection condition
+ * is present, and clears when the condition is no longer present.
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current interrupt status
+ * @see BMI160_RA_INT_STATUS_0
+ * @see BMI160_S_TAP_INT_BIT
+ */
+bool BMI160Class::getIntTapStatus() {
+    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
+                            BMI160_S_TAP_INT_BIT,
+                            1));
+}
+
+/** Get Double-Tap Detection interrupt status.
+ * This bit automatically sets to 1 when a Double-Tap Detection condition
+ * is present, and clears when the condition is no longer present.
+ *
+ * For more details on the Double-Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current interrupt status
+ * @see BMI160_RA_INT_STATUS_0
+ * @see BMI160_D_TAP_INT_BIT
+ */
+bool BMI160Class::getIntDoubleTapStatus() {
+    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
+                            BMI160_D_TAP_INT_BIT,
                             1));
 }
 
@@ -1557,7 +1804,7 @@ bool BMI160Class::getZNegShockDetected() {
 bool BMI160Class::getZPosShockDetected() {
     uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
     return !!(!(status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_Y_BIT)));
+              (status & (1 << BMI160_HIGH_G_1ST_Z_BIT)));
 }
 
 /** Get Step interrupt status.
@@ -1663,7 +1910,79 @@ bool BMI160Class::getZNegMotionDetected() {
 bool BMI160Class::getZPosMotionDetected() {
     uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
     return !!(!(status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_Y_BIT)));
+              (status & (1 << BMI160_ANYMOTION_1ST_Z_BIT)));
+}
+
+/** Check if tap interrupt was triggered by negative X-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_X_BIT
+ */
+bool BMI160Class::getXNegTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_X_BIT)));
+}
+
+/** Check if tap interrupt was triggered by positive X-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_X_BIT
+ */
+bool BMI160Class::getXPosTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_X_BIT)));
+}
+
+/** Check if tap interrupt was triggered by negative Y-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_Y_BIT
+ */
+bool BMI160Class::getYNegTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_Y_BIT)));
+}
+
+/** Check if tap interrupt was triggered by positive Y-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_Y_BIT
+ */
+bool BMI160Class::getYPosTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_Y_BIT)));
+}
+
+/** Check if tap interrupt was triggered by negative Z-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_Z_BIT
+ */
+bool BMI160Class::getZNegTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_Z_BIT)));
+}
+
+/** Check if tap interrupt was triggered by positive Z-axis tap
+ * @return Tap detection status
+ * @see BMI160_RA_INT_STATUS_2
+ * @see BMI160_TAP_SIGN_BIT
+ * @see BMI160_TAP_1ST_Z_BIT
+ */
+bool BMI160Class::getZPosTapDetected() {
+    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
+    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
+              (status & (1 << BMI160_TAP_1ST_Z_BIT)));
 }
 
 /** Get Zero Motion Detection interrupt status.
