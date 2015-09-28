@@ -31,8 +31,6 @@ THE SOFTWARE.
 */
 #include "BMI160.h"
 
-#define ACCEL_CONVERT_CONST 9800
-
 #define BMI160_CHIP_ID 0xD1
 
 #define BMI160_ACCEL_POWERUP_DELAY_MS 10
@@ -41,10 +39,6 @@ THE SOFTWARE.
 /* Test the sign bit and set remaining MSBs if sign bit is set */
 #define BMI160_SIGN_EXTEND(val, from) \
     (((val) & (1 << ((from) - 1))) ? (val | (((1 << (1 + (sizeof(val) << 3) - (from))) - 1) << (from))) : val)
-
-//static uint8_t acc_sensitivity_shift = BMI160_SENSITIVITY_ACCEL_8G_SHIFT;
-//static uint16_t gyro_convert_numerator = 305;
-//static uint16_t gyro_convert_denominator = 10;
 
 /******************************************************************************/
 
@@ -206,6 +200,7 @@ uint8_t BMI160Class::getAccelRate() {
                          BMI160_ACCEL_RATE_SEL_BIT,
                          BMI160_ACCEL_RATE_SEL_LEN);
 }
+
 /** Set accelerometer output data rate.
  * @param rate New output data rate
  * @see getGyroRate()
@@ -252,6 +247,7 @@ uint8_t BMI160Class::getGyroDLPFMode() {
                          BMI160_GYRO_DLPF_SEL_BIT,
                          BMI160_GYRO_DLPF_SEL_LEN);
 }
+
 /** Set gyroscope digital low-pass filter configuration.
  * @param mode New DLFP configuration setting
  * @see getGyroDLPFMode()
@@ -296,6 +292,7 @@ uint8_t BMI160Class::getAccelDLPFMode() {
                          BMI160_ACCEL_DLPF_SEL_BIT,
                          BMI160_ACCEL_DLPF_SEL_LEN);
 }
+
 /** Set accelerometer digital low-pass filter configuration.
  * @param mode New DLFP configuration setting
  * @see getAccelDLPFMode()
@@ -305,7 +302,6 @@ void BMI160Class::setAccelDLPFMode(uint8_t mode) {
                           BMI160_ACCEL_DLPF_SEL_BIT,
                           BMI160_ACCEL_DLPF_SEL_LEN);
 }
-
 
 /** Get full-scale gyroscope range.
  * The gyr_range parameter allows setting the full-scale range of the gyro sensors,
@@ -975,6 +971,7 @@ uint8_t BMI160Class::getMotionDetectionDuration() {
                              BMI160_ANYMOTION_DUR_BIT,
                              BMI160_ANYMOTION_DUR_LEN);
 }
+
 /** Set motion detection event duration threshold.
  * @param duration New motion detection duration threshold value (#samples [1-4])
  * @see getMotionDetectionDuration()
@@ -1019,6 +1016,7 @@ void BMI160Class::setMotionDetectionDuration(uint8_t samples) {
 uint8_t BMI160Class::getZeroMotionDetectionThreshold() {
     return reg_read(BMI160_RA_INT_MOTION_2);
 }
+
 /** Set zero motion detection event acceleration threshold.
  * @param threshold New zero motion detection acceleration threshold value
  * @see getZeroMotionDetectionThreshold()
@@ -1676,7 +1674,7 @@ uint8_t BMI160Class::getIntStatus3() {
  *
  * @return Current interrupt status
  * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_HIGH_G_INT_BIT
+ * @see BMI160_LOW_G_INT_BIT
  */
 bool BMI160Class::getIntFreefallStatus() {
     return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
@@ -2212,14 +2210,6 @@ void BMI160Class::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
     *x = (((int16_t)buffer[1]) << 8) | buffer[0];
     *y = (((int16_t)buffer[3]) << 8) | buffer[2];
     *z = (((int16_t)buffer[5]) << 8) | buffer[4];
-
-/* TODO - figure out if the conversion below is needed here */
-#if 0
-    /* convert accel data */
-    data_accel.x = (int16_t) ((data_accel.x * ACCEL_CONVERT_CONST) >> acc_sensitivity_shift);
-    data_accel.y = (int16_t) ((data_accel.y * ACCEL_CONVERT_CONST) >> acc_sensitivity_shift);
-    data_accel.z = (int16_t) ((data_accel.z * ACCEL_CONVERT_CONST) >> acc_sensitivity_shift);
-#endif
 }
 
 /** Get X-axis accelerometer reading.
@@ -2317,13 +2307,6 @@ void BMI160Class::getRotation(int16_t* x, int16_t* y, int16_t* z) {
     *x = (((int16_t)buffer[1]) << 8) | buffer[0];
     *y = (((int16_t)buffer[3]) << 8) | buffer[2];
     *z = (((int16_t)buffer[5]) << 8) | buffer[4];
-
-#if 0
-    /* convert gyro data */
-    data_gyro.x = (data_gyro.x * gyro_convert_numerator) / gyro_convert_denominator;
-    data_gyro.y = (data_gyro.y * gyro_convert_numerator) / gyro_convert_denominator;
-    data_gyro.z = (data_gyro.z * gyro_convert_numerator) / gyro_convert_denominator;
-#endif
 }
 
 /** Get X-axis gyroscope reading.
@@ -2358,8 +2341,6 @@ int16_t BMI160Class::getRotationZ() {
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
-
-
 
 /** Read a BMI160 register directly.
  * @param reg register address

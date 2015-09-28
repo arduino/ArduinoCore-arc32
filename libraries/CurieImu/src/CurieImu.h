@@ -1,4 +1,6 @@
 /*
+ * BMI160 accelerometer/gyroscope library for Intel(R) Curie(TM) devices.
+ *
  * Copyright (c) 2015 Intel Corporation.  All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -22,6 +24,16 @@
 
 #include "BMI160.h"
 
+/* Note that this CurieImuClass class inherits methods from the BMI160Class which
+ * is defined in BMI160.h.  BMI160Class provides methods for configuring and
+ * accessing features of the BMI160 IMU device.  This CurieImuClass extends that
+ * class with implementation of details specific to the integration of the BMI160
+ * device on the Intel Curie module, such as the serial communication interface
+ * and interrupt signalling.
+ *
+ * Please refer to the respective .cpp files for documentation on each of the
+ * methods provided by these classes.
+ */
 class CurieImuClass : public BMI160Class {
     friend void bmi160_pin1_isr(void);
 

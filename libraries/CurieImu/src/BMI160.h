@@ -361,26 +361,6 @@ class BMI160Class {
         uint8_t getFullScaleAccelRange();
         void setFullScaleAccelRange(uint8_t range);
 
-
-#if 0
-		// SELF_TEST registers
-		uint8_t getAccelXSelfTestFactoryTrim();
-		uint8_t getAccelYSelfTestFactoryTrim();
-		uint8_t getAccelZSelfTestFactoryTrim();
-
-		uint8_t getGyroXSelfTestFactoryTrim();
-		uint8_t getGyroYSelfTestFactoryTrim();
-		uint8_t getGyroZSelfTestFactoryTrim();
-		
-        // ACCEL_CONFIG register
-        bool getAccelXSelfTest();
-        void setAccelXSelfTest(bool enabled);
-        bool getAccelYSelfTest();
-        void setAccelYSelfTest(bool enabled);
-        bool getAccelZSelfTest();
-        void setAccelZSelfTest(bool enabled);
-#endif
-
         void autoCalibrateGyroOffset();
         bool getGyroOffsetEnabled();
         void setGyroOffsetEnabled(bool enabled);
@@ -549,7 +529,6 @@ class BMI160Class {
 
     protected:
         virtual int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
-
 
     private:
         uint8_t reg_read (uint8_t reg);
