@@ -37,15 +37,19 @@ extern void serialEvent1(void) __attribute__((weak));
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-CDCSerialClass::CDCSerialClass( uart_init_info *info, RingBuffer *pRx_buffer,
-                        RingBuffer *pTx_buffer )
+CDCSerialClass::CDCSerialClass(uart_init_info *info)
 {
     this->info = info;
-    this->_rx_buffer = pRx_buffer;
-    this->_tx_buffer = pTx_buffer;
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
+
+void CDCSerialClass::setSharedData(struct cdc_acm_shared_data *cdc_acm_shared_data)
+{
+    this->_shared_data = cdc_acm_shared_data;
+    this->_rx_buffer = cdc_acm_shared_data->rx_buffer;
+    this->_tx_buffer = cdc_acm_shared_data->tx_buffer;
+}
 
 void CDCSerialClass::begin(const uint32_t dwBaudRate)
 {
@@ -55,37 +59,43 @@ void CDCSerialClass::begin(const uint32_t dwBaudRate)
 void CDCSerialClass::begin(const uint32_t dwBaudRate, const uint8_t config)
 {
     init(dwBaudRate, config );
-    opened = true;
 }
 
 
 void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
 {
+    /* Set a per-byte write delay approximately equal to the time it would
+     * take to clock out a byte on a standard UART at this baud rate */
+    _writeDelayUsec = 8000000 / dwBaudRate;
+
     // Make sure both ring buffers are initialized back to empty.
-    _rx_buffer->_iHead = _rx_buffer->_iTail = 0;
-    _tx_buffer->_iHead = _tx_buffer->_iTail = 0;
+    _rx_buffer->head = _rx_buffer->tail = 0;
+    _tx_buffer->head = _tx_buffer->tail = 0;
+
+    _shared_data->device_open = true;
 }
 
 void CDCSerialClass::end( void )
 {
-    opened = false;
-    _rx_buffer->_iHead = 0;
-    _rx_buffer->_iTail = 0;
+    _shared_data->device_open = false;
+
+    _rx_buffer->head = 0;
+    _rx_buffer->tail = 0;
 }
 
 int CDCSerialClass::available( void )
 {
 #define SBS	SERIAL_BUFFER_SIZE
-    return (int)(SBS + _rx_buffer->_iHead - _rx_buffer->_iTail) % SBS;
+    return (int)(SBS + _rx_buffer->head - _rx_buffer->tail) % SBS;
 }
 
 int CDCSerialClass::availableForWrite(void)
 {
-    if (!opened)
+    if (!_shared_data->device_open || !_shared_data->host_open)
         return(0);
 
-    int head = _tx_buffer->_iHead;
-    int tail = _tx_buffer->_iTail;
+    int head = _tx_buffer->head;
+    int tail = _tx_buffer->tail;
 
     if (head >= tail)
         return SERIAL_BUFFER_SIZE - head + tail - 1;
@@ -94,37 +104,52 @@ int CDCSerialClass::availableForWrite(void)
 
 int CDCSerialClass::peek(void)
 {
-  if ( _rx_buffer->_iHead == _rx_buffer->_iTail )
+  if ( _rx_buffer->head == _rx_buffer->tail )
     return -1;
 
-  return _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
+  return _rx_buffer->data[_rx_buffer->tail];
 }
 
 int CDCSerialClass::read( void )
 {
-  if ( _rx_buffer->_iHead == _rx_buffer->_iTail )
+  if ( _rx_buffer->head == _rx_buffer->tail )
     return -1;
 
-  uint8_t uc = _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
-  _rx_buffer->_iTail = (_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+  uint8_t uc = _rx_buffer->data[_rx_buffer->tail];
+  _rx_buffer->tail = (_rx_buffer->tail + 1) % SERIAL_BUFFER_SIZE;
   return uc;
 }
 
 void CDCSerialClass::flush( void )
 {
-    while (_tx_buffer->_iTail != _tx_buffer->_iHead) {
+    while (_tx_buffer->tail != _tx_buffer->head) {
 	    delayMicroseconds(1);
     }
 }
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
-    if (!opened)
+    uint32_t retries = 1;
+
+    if (!_shared_data->device_open || !_shared_data->host_open)
         return(0);
 
     do {
-        _tx_buffer->store_char(uc_data);
-    } while (_tx_buffer->_buffer_overflow);
+        int i = (uint32_t)(_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE;
+        // if we should be storing the received character into the location
+        // just before the tail (meaning that the head would advance to the
+        // current location of the tail), we're about to overflow the buffer
+        // and so we don't write the character or advance the head.
+        if (i != _tx_buffer->tail) {
+            _tx_buffer->data[_tx_buffer->head] = uc_data;
+            _tx_buffer->head = i;
+
+	    // Mimick the throughput of a typical UART by throttling the data
+	    // flow according to the configured baud rate
+	    delayMicroseconds(_writeDelayUsec);
+            break;
+        }
+    } while (retries--);
 
     return 1;
 }
