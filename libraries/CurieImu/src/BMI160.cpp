@@ -64,7 +64,7 @@ void BMI160Class::reg_write_bits(uint8_t reg, uint8_t data, unsigned pos, unsign
     data &= mask; // zero all non-important bits in data
     b &= ~(mask); // zero all important bits in existing byte
     b |= data; // combine data with existing byte
-    reg_write(reg, data);
+    reg_write(reg, b);
 }
 
 uint8_t BMI160Class::reg_read_bits(uint8_t reg, unsigned pos, unsigned len)
