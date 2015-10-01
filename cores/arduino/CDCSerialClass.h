@@ -24,7 +24,7 @@
 #define _CFWSERIAL_CLASS_
 
 #include "HardwareSerial.h"
-#include "RingBuffer.h"
+#include "platform.h"
 
 #include <board.h>
 #include <uart.h>
@@ -32,7 +32,9 @@
 class CDCSerialClass : public HardwareSerial
 {
   public:
-    CDCSerialClass(uart_init_info *info, RingBuffer *pRx_buffer, RingBuffer *pTx_buffer );
+    CDCSerialClass(uart_init_info *info);
+
+    void setSharedData(struct cdc_acm_shared_data *cdc_acm_shared_data);
 
     void begin(const uint32_t dwBaudRate);
     void begin(const uint32_t dwBaudRate, const uint8_t config);
@@ -45,19 +47,18 @@ class CDCSerialClass : public HardwareSerial
     size_t write(const uint8_t c);
     using Print::write; // pull in write(str) and write(buf, size) from Print
 
-
-    operator bool() { return true; }; // CDCSerial always active
+    operator bool() { return (_shared_data && _shared_data->host_open); };
 
   protected:
     void init(const uint32_t dwBaudRate, const uint8_t config);
 
-    RingBuffer *_rx_buffer;
-    RingBuffer *_tx_buffer;
+    struct cdc_acm_shared_data *_shared_data;
+    struct cdc_ring_buffer *_rx_buffer;
+    struct cdc_ring_buffer *_tx_buffer;
 
     uart_init_info *info;
+    uint32_t _writeDelayUsec;
     uint32_t _dwId;
-    uint32_t opened;
-
 };
 
 #endif // _CDCSerial_CLASS_

@@ -39,14 +39,27 @@
 #define CPU_ID_HOST 3
 #define NUM_CPU     4
 
+#define SERIAL_BUFFER_SIZE 256
+
+struct cdc_ring_buffer
+{
+    /** Ring buffer data */
+    uint8_t data[SERIAL_BUFFER_SIZE];
+    /** Ring buffer head pointer, modified by producer */
+    int head;
+    /** Ring buffer head pointer, modified by consumer */
+    int tail;
+};
+
 struct cdc_acm_shared_data {
-    uint8_t * rx_buffer;
-    int	    * rx_head;
-    int	    * rx_tail;
-    uint8_t * tx_buffer;
-    int	    * tx_head;
-    int	    * tx_tail;
-    uint32_t	serial_buffer_size;
+    /** Ring buffer to pass CDC-ACM data from LMT to ARC */
+    struct cdc_ring_buffer *rx_buffer;
+    /** Ring buffer to pass CDC-ACM data from ARC to LMT */
+    struct cdc_ring_buffer *tx_buffer;
+    /** Boolean flag set by LMT when CDC-ACM host connection is opened */
+    int host_open;
+    /** Boolean flag set by ARC when CDC-ACM endpoint connection is opened */
+    int device_open;
 };
 
 /**
@@ -91,21 +104,9 @@ struct platform_shared_block_ {
 
     /* Pointer to shared structure used by CDC-ACM.
      *
-     * The ARC core is responsible for allocating memory and initialising the
+     * The QRK core is responsible for allocating memory and initialising the
      * pointers of this structure.
-     * The LMT core counts on ARC to find valid pointers in place.
-     *
-     * It embeds pointers to following:
-     *	    Rx Buffer and its Head and Tail
-     *	    Tx Buffer and its Head and Tail
-     *
-     * Tx Buffer =  buffer used by ARC to Send data out to CDC-ACM
-     * Rx Buffer = buffer used by LMT to put data read from CDC-ACM
-     *
-     * LMT updates:
-     *	    Rx Head index every time an acm_read and a rx_buffer write are
-     *	    successfully done.
-     *	    Tx Tail index when some bytes are queued to CDC-ACM.
+     * The ARC core counts on QRK to find valid pointers in place.
      */
     struct cdc_acm_shared_data	* cdc_acm_buffers;
 };
