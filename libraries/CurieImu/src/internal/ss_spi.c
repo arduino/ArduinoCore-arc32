@@ -74,11 +74,12 @@ void ss_spi_init()
 }
 
 static inline
-void spi_transmit(uint8_t *buf, size_t count) {
+void spi_transmit(uint8_t *buf, size_t count, boolean_t waitCompletion) {
     while (count--)
         SS_SPI_REG_WRITE(DR, *buf++ | SPI_PUSH_DATA);
     /* Wait for transfer to complete */
-    while ((SS_SPI_REG_READ(TXFLR) > 0) || (SS_SPI_REG_READ(SR) & SPI_STATUS_BUSY));
+    if (waitCompletion)
+        while ((SS_SPI_REG_READ(TXFLR) > 0) || (SS_SPI_REG_READ(SR) & SPI_STATUS_BUSY));
 }
 
 static inline
@@ -110,7 +111,7 @@ int ss_spi_xfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
     SS_SPI_REG_WRITE(SPIEN, (SPI_SE_1 << 4) | SPI_ENABLE);
 
     if (tx_cnt)
-        spi_transmit(buf, tx_cnt);
+        spi_transmit(buf, tx_cnt, !(rx_cnt)); // No wait for TX-RX transfers
     else
         SS_SPI_REG_WRITE(DR, SPI_PUSH_DATA | 0x56); // start rx-only transfer
 
