@@ -68,9 +68,10 @@ void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
      * take to clock out a byte on a standard UART at this baud rate */
     _writeDelayUsec = 8000000 / dwBaudRate;
 
-    // Make sure both ring buffers are initialized back to empty.
-    _rx_buffer->head = _rx_buffer->tail = 0;
-    _tx_buffer->head = _tx_buffer->tail = 0;
+    /* Make sure both ring buffers are initialized back to empty.
+     * Empty the Rx buffer but don't touch Tx buffer: it is drained by the
+     * LMT one way or another */
+    _rx_buffer->tail = _rx_buffer->head;
 
     _shared_data->device_open = true;
 }
@@ -78,9 +79,6 @@ void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
 void CDCSerialClass::end( void )
 {
     _shared_data->device_open = false;
-
-    _rx_buffer->head = 0;
-    _rx_buffer->tail = 0;
 }
 
 int CDCSerialClass::available( void )
