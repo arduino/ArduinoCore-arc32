@@ -105,7 +105,7 @@ void Adafruit_DotStar::hw_spi_init(void) { // Initialize hardware SPI
   DDRB  |=   _BV(PORTB1) | _BV(PORTB2);  // DO (NOT MOSI) + SCK
 #else
   SPI.begin();
- #if defined(__AVR__) || defined(CORE_TEENSY)
+ #if defined(__AVR__) || defined(CORE_TEENSY) || defined(__ARDUINO_ARC__)
   SPI.setClockDivider(SPI_CLOCK_DIV2); // 8 MHz (6 MHz on Pro Trinket 3V)
  #else
   SPI.setClockDivider((F_CPU + 4000000L) / 8000000L); // 8-ish MHz on Due
