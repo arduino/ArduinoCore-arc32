@@ -292,6 +292,10 @@ THE SOFTWARE.
 #define BMI160_ACCEL_RANGE_16G      0X0C
 
 /* Accelerometer Output Data Rate Options */
+#define BMI160_ACCEL_RATE_25_32HZ   0x01
+#define BMI160_ACCEL_RATE_25_16HZ   0x02
+#define BMI160_ACCEL_RATE_25_8HZ    0x03
+#define BMI160_ACCEL_RATE_25_4HZ    0x04
 #define BMI160_ACCEL_RATE_25_2HZ    0x05
 #define BMI160_ACCEL_RATE_25HZ      0x06
 #define BMI160_ACCEL_RATE_50HZ      0x07
