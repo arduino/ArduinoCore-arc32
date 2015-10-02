@@ -98,11 +98,9 @@ uint32_t sizeof_g_APinDescription;
 
 // Serial - CDC-ACM port
 
-RingBuffer rx_buffer_cdc;
-RingBuffer tx_buffer_cdc;
 uart_init_info info_cdc;
 
-CDCSerialClass Serial(&info_cdc, &rx_buffer_cdc, &tx_buffer_cdc);
+CDCSerialClass Serial(&info_cdc);
 
 void serialEvent() __attribute__((weak));
 void serialEvent() { }
@@ -219,27 +217,15 @@ void variantAdcInit(void)
 
 void initVariant( void )
 {
+    /* Initialise CDC-ACM shared buffers pointers, provided by LMT */
+    Serial.setSharedData(shared_data->cdc_acm_buffers);
+
     /* For now, lets enable clocks for all interfaces we need
      * TODO - Consider only enabling as needed later to reduce power consumption
      */
     variantGpioInit();
     variantPwmInit();
     variantAdcInit();
-
-    /* TODO: REMOVE ME! */
-    Serial1.begin(115200);
-
-    /* Initialise CDC-ACM shared buffers pointers */
-    shared_data->cdc_acm_buffers =
-	    (struct cdc_acm_shared_data *)malloc(sizeof(struct cdc_acm_shared_data));
-
-    shared_data->cdc_acm_buffers->rx_buffer = rx_buffer_cdc._aucBuffer;
-    shared_data->cdc_acm_buffers->rx_head   = &(rx_buffer_cdc._iHead);
-    shared_data->cdc_acm_buffers->rx_tail   = &(rx_buffer_cdc._iTail);
-    shared_data->cdc_acm_buffers->tx_buffer = tx_buffer_cdc._aucBuffer;
-    shared_data->cdc_acm_buffers->tx_head   = &(tx_buffer_cdc._iHead);
-    shared_data->cdc_acm_buffers->tx_tail   = &(tx_buffer_cdc._iTail);
-    shared_data->cdc_acm_buffers->serial_buffer_size	= SERIAL_BUFFER_SIZE;
 
     cfw_platform_init();
 }
