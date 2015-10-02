@@ -66,7 +66,7 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(CurieImu.testConnection() ? "CurieImu connection successful" : "CurieImu connection failed");
 
-#if CALIBRATE_ACCELGRYO_OFFSETS
+#ifdef CALIBRATE_ACCELGRYO_OFFSETS
 // use the code below to calibrate accel/gyro offset values
     Serial.println("Internal sensor offsets BEFORE calibration...");
     Serial.print(CurieImu.getXAccelOffset()); Serial.print("\t"); // -76
