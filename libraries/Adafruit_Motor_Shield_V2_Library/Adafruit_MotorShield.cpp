@@ -23,7 +23,7 @@
 #include <Wire.h>
 #include "Adafruit_MotorShield.h"
 #include <Adafruit_PWMServoDriver.h>
-#ifdef __AVR__
+#if defined(__AVR__) || defined(__ARDUINO_ARC__)
  #define WIRE Wire
 #else // Arduino Due
  #define WIRE Wire1
