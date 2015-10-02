@@ -25,6 +25,7 @@
 
 #include "HardwareSerial.h"
 #include "platform.h"
+#include "wiring.h"
 
 #include <board.h>
 #include <uart.h>
@@ -47,7 +48,12 @@ class CDCSerialClass : public HardwareSerial
     size_t write(const uint8_t c);
     using Print::write; // pull in write(str) and write(buf, size) from Print
 
-    operator bool() { return (_shared_data && _shared_data->host_open); };
+    operator bool() {
+	/* In case bool() is called in a very tight while loop, give LMT space
+	 * to set the variable */
+	delay(1);
+        return (_shared_data && _shared_data->host_open);
+    };
 
   protected:
     void init(const uint32_t dwBaudRate, const uint8_t config);
