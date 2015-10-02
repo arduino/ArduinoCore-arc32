@@ -153,23 +153,6 @@ THE SOFTWARE.
 #define BMI160_LATCH_MODE_BIT       0
 #define BMI160_LATCH_MODE_LEN       4
 
-#define BMI160_LATCH_MODE_NONE      0
-#define BMI160_LATCH_MODE_312_5_US  1
-#define BMI160_LATCH_MODE_625_US    2
-#define BMI160_LATCH_MODE_1_25_MS   3
-#define BMI160_LATCH_MODE_2_5_MS    4
-#define BMI160_LATCH_MODE_5_MS      5
-#define BMI160_LATCH_MODE_10_MS     6
-#define BMI160_LATCH_MODE_20_MS     7
-#define BMI160_LATCH_MODE_40_MS     8
-#define BMI160_LATCH_MODE_80_MS     9
-#define BMI160_LATCH_MODE_160_MS    10
-#define BMI160_LATCH_MODE_320_MS    11
-#define BMI160_LATCH_MODE_640_MS    12
-#define BMI160_LATCH_MODE_1_28_S    13
-#define BMI160_LATCH_MODE_2_56_S    14
-#define BMI160_LATCH_MODE_LATCH     15
-
 #define BMI160_RA_INT_LATCH         0x54
 #define BMI160_RA_INT_MAP_0         0x55
 #define BMI160_RA_INT_MAP_1         0x56
@@ -251,25 +234,8 @@ THE SOFTWARE.
 #define BMI160_GYRO_RANGE_SEL_BIT   0
 #define BMI160_GYRO_RANGE_SEL_LEN   3
 
-/* Gyroscope Full-Scale Range Options */
-#define BMI160_GYRO_RANGE_125       0x04
-#define BMI160_GYRO_RANGE_250       0x03
-#define BMI160_GYRO_RANGE_500       0x02
-#define BMI160_GYRO_RANGE_1000      0x01
-#define BMI160_GYRO_RANGE_2000      0x00
-
 #define BMI160_GYRO_RATE_SEL_BIT    0
 #define BMI160_GYRO_RATE_SEL_LEN    4
-
-/* Gyroscope Output Data Rate Options */
-#define BMI160_GYRO_RATE_25HZ       0x06
-#define BMI160_GYRO_RATE_50HZ       0x07
-#define BMI160_GYRO_RATE_100HZ      0x08
-#define BMI160_GYRO_RATE_200HZ      0x09
-#define BMI160_GYRO_RATE_400HZ      0x0A
-#define BMI160_GYRO_RATE_800HZ      0x0B
-#define BMI160_GYRO_RATE_1600HZ     0x0C
-#define BMI160_GYRO_RATE_3200HZ     0x0D
 
 #define BMI160_GYRO_DLPF_SEL_BIT    4
 #define BMI160_GYRO_DLPF_SEL_LEN    2
@@ -277,33 +243,8 @@ THE SOFTWARE.
 #define BMI160_ACCEL_DLPF_SEL_BIT   4
 #define BMI160_ACCEL_DLPF_SEL_LEN   3
 
-/* Gyroscope Digital Low-Pass Filter Mode Options */
-#define BMI160_DLPF_MODE_NORM       0x2
-#define BMI160_DLPF_MODE_OSR2       0x1
-#define BMI160_DLPF_MODE_OSR4       0x0
-
 #define BMI160_ACCEL_RANGE_SEL_BIT  0
 #define BMI160_ACCEL_RANGE_SEL_LEN  4
-
-/* Accelerometer Range Options */
-#define BMI160_ACCEL_RANGE_2G       0X03
-#define BMI160_ACCEL_RANGE_4G       0X05
-#define BMI160_ACCEL_RANGE_8G       0X08
-#define BMI160_ACCEL_RANGE_16G      0X0C
-
-/* Accelerometer Output Data Rate Options */
-#define BMI160_ACCEL_RATE_25_32HZ   0x01
-#define BMI160_ACCEL_RATE_25_16HZ   0x02
-#define BMI160_ACCEL_RATE_25_8HZ    0x03
-#define BMI160_ACCEL_RATE_25_4HZ    0x04
-#define BMI160_ACCEL_RATE_25_2HZ    0x05
-#define BMI160_ACCEL_RATE_25HZ      0x06
-#define BMI160_ACCEL_RATE_50HZ      0x07
-#define BMI160_ACCEL_RATE_100HZ     0x08
-#define BMI160_ACCEL_RATE_200HZ     0x09
-#define BMI160_ACCEL_RATE_400HZ     0x0A
-#define BMI160_ACCEL_RATE_800HZ     0x0B
-#define BMI160_ACCEL_RATE_1600HZ    0x0C
 
 #define BMI160_CMD_START_FOC        0x03
 #define BMI160_CMD_ACC_MODE_NORMAL  0x11
@@ -315,22 +256,129 @@ THE SOFTWARE.
 
 #define BMI160_RA_CMD               0x7E
 
+/**
+ * Interrupt Latch Mode options
+ * @see setInterruptLatch()
+ */
+typedef enum {
+    BMI160_LATCH_MODE_NONE = 0, /**< Non-latched */
+    BMI160_LATCH_MODE_312_5_US, /**< Temporary, 312.50 microseconds */
+    BMI160_LATCH_MODE_625_US,   /**< Temporary, 625.00 microseconds */
+    BMI160_LATCH_MODE_1_25_MS,  /**< Temporary,   1.25 milliseconds */
+    BMI160_LATCH_MODE_2_5_MS,   /**< Temporary,   2.50 milliseconds */
+    BMI160_LATCH_MODE_5_MS,     /**< Temporary,   5.00 milliseconds */
+    BMI160_LATCH_MODE_10_MS,    /**< Temporary,  10.00 milliseconds */
+    BMI160_LATCH_MODE_20_MS,    /**< Temporary,  20.00 milliseconds */
+    BMI160_LATCH_MODE_40_MS,    /**< Temporary,  40.00 milliseconds */
+    BMI160_LATCH_MODE_80_MS,    /**< Temporary,  80.00 milliseconds */
+    BMI160_LATCH_MODE_160_MS,   /**< Temporary, 160.00 milliseconds */
+    BMI160_LATCH_MODE_320_MS,   /**< Temporary, 320.00 milliseconds */
+    BMI160_LATCH_MODE_640_MS,   /**< Temporary, 640.00 milliseconds */
+    BMI160_LATCH_MODE_1_28_S,   /**< Temporary,   1.28 seconds      */
+    BMI160_LATCH_MODE_2_56_S,   /**< Temporary,   2.56 seconds      */
+    BMI160_LATCH_MODE_LATCH,    /**< Latched, @see resetInterrupt() */
+} BMI160InterruptLatchMode;
+
+/**
+ * Digital Low-Pass Filter Mode options
+ * @see setGyroDLPFMode()
+ * @see setAccelDLPFMode()
+ */
+typedef enum {
+    BMI160_DLPF_MODE_NORM = 0x2,
+    BMI160_DLPF_MODE_OSR2 = 0x1,
+    BMI160_DLPF_MODE_OSR4 = 0x0,
+} BMI160DLPFMode;
+
+/**
+ * Accelerometer Sensitivity Range options
+ * @see setFullScaleAccelRange()
+ */
+typedef enum {
+    BMI160_ACCEL_RANGE_2G  = 0X03, /**<  +/-  2g range */
+    BMI160_ACCEL_RANGE_4G  = 0X05, /**<  +/-  4g range */
+    BMI160_ACCEL_RANGE_8G  = 0X08, /**<  +/-  8g range */
+    BMI160_ACCEL_RANGE_16G = 0X0C, /**<  +/- 16g range */
+} BMI160AccelRange;
+
+/**
+ * Gyroscope Sensitivity Range options
+ * @see setFullScaleGyroRange()
+ */
+typedef enum {
+    BMI160_GYRO_RANGE_2000 = 0, /**<  +/- 2000 degrees/second */
+    BMI160_GYRO_RANGE_1000,     /**<  +/- 1000 degrees/second */
+    BMI160_GYRO_RANGE_500,      /**<  +/-  500 degrees/second */
+    BMI160_GYRO_RANGE_250,      /**<  +/-  250 degrees/second */
+    BMI160_GYRO_RANGE_125,      /**<  +/-  125 degrees/second */
+} BMI160GyroRange;
+
+/**
+ * Accelerometer Output Data Rate options
+ * @see setAccelRate()
+ */
+typedef enum {
+    BMI160_ACCEL_RATE_25_32HZ = 1, /**<   25/32 Hz */
+    BMI160_ACCEL_RATE_25_16HZ,     /**<   25/16 Hz */
+    BMI160_ACCEL_RATE_25_8HZ,      /**<   25/8  Hz */
+    BMI160_ACCEL_RATE_25_4HZ,      /**<   25/4  Hz */
+    BMI160_ACCEL_RATE_25_2HZ,      /**<   25/2  Hz */
+    BMI160_ACCEL_RATE_25HZ,        /**<   25    Hz */
+    BMI160_ACCEL_RATE_50HZ,        /**<   50    Hz */
+    BMI160_ACCEL_RATE_100HZ,       /**<  100    Hz */
+    BMI160_ACCEL_RATE_200HZ,       /**<  200    Hz */
+    BMI160_ACCEL_RATE_400HZ,       /**<  400    Hz */
+    BMI160_ACCEL_RATE_800HZ,       /**<  800    Hz */
+    BMI160_ACCEL_RATE_1600HZ,      /**< 1600    Hz */
+} BMI160AccelRate;
+
+/**
+ * Gyroscope Output Data Rate options
+ * @see setGyroRate()
+ */
+typedef enum {
+    BMI160_GYRO_RATE_25HZ = 6,     /**<   25    Hz */
+    BMI160_GYRO_RATE_50HZ,         /**<   50    Hz */
+    BMI160_GYRO_RATE_100HZ,        /**<  100    Hz */
+    BMI160_GYRO_RATE_200HZ,        /**<  200    Hz */
+    BMI160_GYRO_RATE_400HZ,        /**<  400    Hz */
+    BMI160_GYRO_RATE_800HZ,        /**<  800    Hz */
+    BMI160_GYRO_RATE_1600HZ,       /**< 1600    Hz */
+    BMI160_GYRO_RATE_3200HZ,       /**< 3200    Hz */
+} BMI160GyroRate;
+
+/**
+ * Step Detection Mode options
+ * @see setStepDetectionMode()
+ */
 typedef enum {
     BMI160_STEP_MODE_NORMAL = 0,
     BMI160_STEP_MODE_SENSITIVE,
     BMI160_STEP_MODE_ROBUST,
 } BMI160StepMode;
 
+/**
+ * Tap Detection Shock Duration options
+ * @see setTapShockDuration()
+ */
 typedef enum {
     BMI160_TAP_SHOCK_DURATION_50MS = 0,
     BMI160_TAP_SHOCK_DURATION_75MS,
 } BMI160TapShockDuration;
 
+/**
+ * Tap Detection Quiet Duration options
+ * @see setTapQuietDuration()
+ */
 typedef enum {
     BMI160_TAP_QUIET_DURATION_30MS = 0,
     BMI160_TAP_QUIET_DURATION_20MS,
 } BMI160TapQuietDuration;
 
+/**
+ * Double-Tap Detection Duration options
+ * @see setDoubleTapDetectionDuration()
+ */
 typedef enum {
     BMI160_DOUBLE_TAP_DURATION_50MS = 0,
     BMI160_DOUBLE_TAP_DURATION_100MS,
@@ -517,9 +565,6 @@ class BMI160Class {
         uint8_t getRegister(uint8_t reg);
         void setRegister(uint8_t reg, uint8_t data);
 
-        /* TODO - consider making these protected - not sure if we want to allow use from a sketch
-         * except perhaps for the latch control functions
-         */
         bool getIntEnabled();
         void setIntEnabled(bool enabled);
         bool getInterruptMode();

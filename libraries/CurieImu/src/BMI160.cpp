@@ -154,8 +154,8 @@ bool BMI160Class::testConnection()
  * </pre>
  *
  * @return Current sample rate
- * @see BMI160_GYRO_RATE_25HZ
  * @see BMI160_RA_GYRO_CONF
+ * @see BMI160GyroRate
  */
 uint8_t BMI160Class::getGyroRate() {
     return reg_read_bits(BMI160_RA_GYRO_CONF,
@@ -192,8 +192,8 @@ void BMI160Class::setGyroRate(uint8_t rate) {
  * </pre>
  *
  * @return Current sample rate
- * @see BMI160_ACCEL_RATE_25HZ
  * @see BMI160_RA_ACCEL_CONF
+ * @see BMI160AccelRate
  */
 uint8_t BMI160Class::getAccelRate() {
     return reg_read_bits(BMI160_RA_ACCEL_CONF,
@@ -203,8 +203,7 @@ uint8_t BMI160Class::getAccelRate() {
 
 /** Set accelerometer output data rate.
  * @param rate New output data rate
- * @see getGyroRate()
- * @see BMI160_ACCEL_RATE_25HZ
+ * @see getAccelRate()
  * @see BMI160_RA_ACCEL_CONF
  */
 void BMI160Class::setAccelRate(uint8_t rate) {
@@ -239,8 +238,8 @@ void BMI160Class::setAccelRate(uint8_t rate) {
  * bandwidths above are approximately 4 times smaller.
  *
  * @return DLFP configuration
- * @see BMI160_DLPF_MODE_NORM
  * @see BMI160_RA_GYRO_CONF
+ * @see BMI160DLPFMode
  */
 uint8_t BMI160Class::getGyroDLPFMode() {
     return reg_read_bits(BMI160_RA_GYRO_CONF,
@@ -285,7 +284,7 @@ void BMI160Class::setGyroDLPFMode(uint8_t mode) {
  *
  * @return DLFP configuration
  * @see BMI160_RA_GYRO_CONF
- * @see BMI160_DLPF_MODE_NORM
+ * @see BMI160DLPFMode
  */
 uint8_t BMI160Class::getAccelDLPFMode() {
     return reg_read_bits(BMI160_RA_ACCEL_CONF,
@@ -308,16 +307,16 @@ void BMI160Class::setAccelDLPFMode(uint8_t mode) {
  * as described in the table below.
  *
  * <pre>
- * 4 = +/- 125 degrees/sec
- * 3 = +/- 250 degrees/sec
- * 2 = +/- 500 degrees/sec
+ * 4 = +/-  125 degrees/sec
+ * 3 = +/-  250 degrees/sec
+ * 2 = +/-  500 degrees/sec
  * 1 = +/- 1000 degrees/sec
  * 0 = +/- 2000 degrees/sec
  * </pre>
  *
  * @return Current full-scale gyroscope range setting
- * @see BMI160_GYRO_RANGE_125
  * @see BMI160_RA_GYRO_RANGE
+ * @see BMI160GyroRange
  */
 uint8_t BMI160Class::getFullScaleGyroRange() {
     return reg_read_bits(BMI160_RA_GYRO_RANGE,
@@ -347,10 +346,8 @@ void BMI160Class::setFullScaleGyroRange(uint8_t range) {
  * </pre>
  *
  * @return Current full-scale accelerometer range setting
- * @see BMI160_ACCEL_RANGE_2G
  * @see BMI160_RA_ACCEL_RANGE
- * @see BMI160_ACCEL_RANGE_SEL_BIT
- * @see BMI160_ACCEL_RANGE_SEL_LEN
+ * @see BMI160AccelRange
  */
 uint8_t BMI160Class::getFullScaleAccelRange() {
     return reg_read_bits(BMI160_RA_ACCEL_RANGE,
@@ -361,6 +358,7 @@ uint8_t BMI160Class::getFullScaleAccelRange() {
 /** Set full-scale accelerometer range.
  * @param range New full-scale accelerometer range setting
  * @see getFullScaleAccelRange()
+ * @see BMI160AccelRange
  */
 void BMI160Class::setFullScaleAccelRange(uint8_t range) {
     reg_write_bits(BMI160_RA_ACCEL_RANGE, range,
@@ -820,6 +818,7 @@ void BMI160Class::setShockDetectionDuration(uint8_t duration) {
  * @return Set Step Detection mode
  * @see BMI160_RA_STEP_CONF_0
  * @see BMI160_RA_STEP_CONF_1
+ * @see BMI160StepMode
  */
 void BMI160Class::setStepDetectionMode(BMI160StepMode mode) {
     uint8_t step_conf0, min_step_buf;
@@ -1149,7 +1148,7 @@ void BMI160Class::setTapDetectionThreshold(uint8_t threshold) {
  *
  * @return Current tap detection duration threshold value
  * @see BMI160_RA_INT_TAP_0
- * @see BMI160_TAP_SHOCK_BIT
+ * @see BMI160TapShockDuration
  */
 bool BMI160Class::getTapShockDuration() {
     return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
@@ -1162,7 +1161,6 @@ bool BMI160Class::getTapShockDuration() {
  * @param units New tap detection duration threshold value
  * @see getTapShockDetectionDuration()
  * @see BMI160_RA_INT_TAP_0
- * @see BMI160_TAP_SHOCK_BIT
  */
 void BMI160Class::setTapShockDuration(bool duration) {
     reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
@@ -1188,7 +1186,7 @@ void BMI160Class::setTapShockDuration(bool duration) {
  *
  * @return Current tap quiet detection duration threshold value
  * @see BMI160_RA_INT_TAP_0
- * @see BMI160_TAP_QUIET_BIT
+ * @see BMI160TapQuietDuration
  */
 bool BMI160Class::getTapQuietDuration() {
     return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
@@ -1201,7 +1199,6 @@ bool BMI160Class::getTapQuietDuration() {
  * @param units New tap detection duration threshold value
  * @see getTapQuietDuration()
  * @see BMI160_RA_INT_TAP_0
- * @see BMI160_TAP_QUIET_BIT
  */
 void BMI160Class::setTapQuietDuration(bool duration) {
     reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
@@ -1234,6 +1231,7 @@ void BMI160Class::setTapQuietDuration(bool duration) {
  *
  * @return Current double-tap detection time window threshold value
  * @see BMI160_RA_INT_TAP_0
+ * @see BMI160DoubleTapDuration
  */
 uint8_t BMI160Class::getDoubleTapDetectionDuration() {
     return reg_read_bits(BMI160_RA_INT_TAP_0,
@@ -2103,7 +2101,7 @@ void BMI160Class::setInterruptDrive(bool drive) {
  *
  * @return Current latch mode
  * @see BMI160_RA_INT_LATCH
- * @see BMI160_LATCH_MODE_BIT
+ * @see BMI160InterruptLatchMode
  */
 uint8_t BMI160Class::getInterruptLatch() {
     return reg_read_bits(BMI160_RA_INT_LATCH,
@@ -2115,7 +2113,7 @@ uint8_t BMI160Class::getInterruptLatch() {
  * @param latch New latch mode
  * @see getInterruptLatch()
  * @see BMI160_RA_INT_LATCH
- * @see BMI160_LATCH_MODE_BIT
+ * @see BMI160InterruptLatchMode
  */
 void BMI160Class::setInterruptLatch(uint8_t mode) {
     reg_write_bits(BMI160_RA_INT_LATCH, mode,
