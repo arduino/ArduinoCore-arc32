@@ -44,6 +44,7 @@ THE SOFTWARE.
 
 uint8_t BMI160Class::reg_read (uint8_t reg)
 {
+    uint8_t buffer[1];
     buffer[0] = reg;
     serial_buffer_transfer(buffer, 1, 1);
     return buffer[0];
@@ -51,6 +52,7 @@ uint8_t BMI160Class::reg_read (uint8_t reg)
 
 void BMI160Class::reg_write(uint8_t reg, uint8_t data)
 {
+    uint8_t buffer[2];
     buffer[0] = reg;
     buffer[1] = data;
     serial_buffer_transfer(buffer, 2, 0);
@@ -890,6 +892,7 @@ void BMI160Class::setStepCountEnabled(bool enabled) {
  * @see BMI160_RA_STEP_CNT_L
  */
 uint16_t BMI160Class::getStepCount() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_STEP_CNT_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((uint16_t)buffer[1]) << 8) | buffer[0];
@@ -1535,6 +1538,7 @@ void BMI160Class::setGyroFIFOEnabled(bool enabled) {
  * @see BMI160_RA_FIFO_LENGTH_0
  */
 uint16_t BMI160Class::getFIFOCount() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_FIFO_LENGTH_0;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2156,6 +2160,7 @@ void BMI160Class::setIntEnabled(bool enabled) {
  * @see BMI160_RA_GYRO_X_L
  */
 void BMI160Class::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz) {
+    uint8_t buffer[12];
     buffer[0] = BMI160_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 12);
     *gx = (((int16_t)buffer[1])  << 8) | buffer[0];
@@ -2203,6 +2208,7 @@ void BMI160Class::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx,
  * @see BMI160_RA_ACCEL_X_L
  */
 void BMI160Class::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
+    uint8_t buffer[6];
     buffer[0] = BMI160_RA_ACCEL_X_L;
     serial_buffer_transfer(buffer, 1, 6);
     *x = (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2216,6 +2222,7 @@ void BMI160Class::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
  * @see BMI160_RA_ACCEL_X_L
  */
 int16_t BMI160Class::getAccelerationX() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_ACCEL_X_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2227,6 +2234,7 @@ int16_t BMI160Class::getAccelerationX() {
  * @see BMI160_RA_ACCEL_Y_L
  */
 int16_t BMI160Class::getAccelerationY() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_ACCEL_Y_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2238,6 +2246,7 @@ int16_t BMI160Class::getAccelerationY() {
  * @see BMI160_RA_ACCEL_Z_L
  */
 int16_t BMI160Class::getAccelerationZ() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_ACCEL_Z_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2261,6 +2270,7 @@ int16_t BMI160Class::getAccelerationZ() {
  * @see BMI160_RA_TEMP_L
  */
 int16_t BMI160Class::getTemperature() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_TEMP_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2300,6 +2310,7 @@ int16_t BMI160Class::getTemperature() {
  * @see BMI160_RA_GYRO_X_L
  */
 void BMI160Class::getRotation(int16_t* x, int16_t* y, int16_t* z) {
+    uint8_t buffer[6];
     buffer[0] = BMI160_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 6);
     *x = (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2313,6 +2324,7 @@ void BMI160Class::getRotation(int16_t* x, int16_t* y, int16_t* z) {
  * @see BMI160_RA_GYRO_X_L
  */
 int16_t BMI160Class::getRotationX() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2324,6 +2336,7 @@ int16_t BMI160Class::getRotationX() {
  * @see BMI160_RA_GYRO_Y_L
  */
 int16_t BMI160Class::getRotationY() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_GYRO_Y_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
@@ -2335,6 +2348,7 @@ int16_t BMI160Class::getRotationY() {
  * @see BMI160_RA_GYRO_Z_L
  */
 int16_t BMI160Class::getRotationZ() {
+    uint8_t buffer[2];
     buffer[0] = BMI160_RA_GYRO_Z_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];

@@ -583,8 +583,6 @@ class BMI160Class {
         void reg_write(uint8_t reg, uint8_t data);
         void reg_write_bits(uint8_t reg, uint8_t data, unsigned pos, unsigned len);
         uint8_t reg_read_bits(uint8_t reg, unsigned pos, unsigned len);
-
-        uint8_t buffer[12];
 };
 
 #endif /* _BMI160_H_ */
