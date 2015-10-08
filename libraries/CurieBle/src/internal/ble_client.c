@@ -46,6 +46,7 @@
 #include "infra/ipc_uart.h"
 
 #include "ble_client.h"
+#include "platform.h"
 
 enum {
     UNIT_0_625_MS = 625,                            /**< Number of microseconds in 0.625 milliseconds. */
@@ -402,14 +403,47 @@ void ble_client_get_factory_config(ble_addr_t *bda, char *name)
 
     /* Set a default name if one has not been specified */
     if (name) {
-        char *suffix = name + strlen(BLE_DEVICE_NAME_DEFAULT_PREFIX);
-        strcpy(name, BLE_DEVICE_NAME_DEFAULT_PREFIX);
-		if (bda && bda->type != BLE_DEVICE_ADDR_INVALID) {
-            *suffix++ = '-';
-            BYTE_TO_STR(suffix, p_oem->bt_address[4]);
-            BYTE_TO_STR(suffix, p_oem->bt_address[5]);
+
+        // Need to check in the OTP if there is some board name set
+        // If yes, let's read it, otherwise let's keep the default
+        // name set in BLE_DEVICE_NAME_DEFAULT_PREFIX
+        const struct customer_data* otp_data_ptr = (struct customer_data*)(FACTORY_DATA_ADDR + 0x200);
+        char *suffix;
+
+        // checking the presence of key patterns
+        if ((otp_data_ptr->patternKeyStart == PATTERN_KEY_START) &&
+            (otp_data_ptr->patternKeyEnd == PATTERN_KEY_END))
+        {
+           // The board name is with OTP ar programmed
+           uint8_t len = otp_data_ptr->board_name_len;
+
+           // We need to reserve 5 bytes for '-' and 4 last MAC address in ASCII 
+           if (len > BLE_MAX_DEVICE_NAME - 5) len = BLE_MAX_DEVICE_NAME - 5;
+           strncpy(name, (const char *)otp_data_ptr->board_name, len);
+           suffix = name + len;
         }
-        *suffix = 0; /* NULL-terminate the string */
+        else
+        {
+            // There is no board name in the OTP area
+            suffix = name + strlen(BLE_DEVICE_NAME_DEFAULT_PREFIX);
+            strcpy(name, BLE_DEVICE_NAME_DEFAULT_PREFIX);
+        }
+
+        // Adding the four last digits of MAC address separated by '-' sufix
+        if (bda && bda->type != BLE_DEVICE_ADDR_INVALID) 
+        {
+            *suffix++ = '-';
+             BYTE_TO_STR(suffix, p_oem->bt_address[4]);
+             BYTE_TO_STR(suffix, p_oem->bt_address[5]);
+	     *suffix = 0; /* NULL-terminate the string. Note the macro BYTE_TO_STR 
+                             automatically move the pointer */
+        }
+        else
+        {
+	     /* This code segment will be only reached if Curie module was not 
+                provisioned properly with a BLE MAC address*/
+             *suffix++ = 0; /* NULL-terminate the string */
+        }
     }
 }
 

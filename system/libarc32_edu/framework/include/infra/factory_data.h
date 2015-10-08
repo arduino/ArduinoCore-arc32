@@ -51,6 +51,12 @@
  * the factory_data struct is modified */
 #define FACTORY_DATA_VERSION 0x01
 
+/** Key Patterns in the OTP area */
+#define PATTERN_KEY_START  0xA5A5A5A5
+#define PATTERN_KEY_END    0x5A5A5A5A
+const char INVALID_SN_F[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+const char INVALID_SN_0[4] = {0,0,0,0};
+
 enum hardware_type {
     EVT = 0x00,  /*!< Engineering hardware */
     DVT = 0x04,  /*!< Comes after EVT */
@@ -140,7 +146,28 @@ struct customer_data {
      * hexadecimal value, left-padded */
     uint8_t product_hw_ver[4];
 
-    uint8_t reserved[492];
+    uint8_t reserved[12];
+
+    uint8_t board_name[32];
+
+    uint8_t vendor_name[32];
+
+    uint32_t product_sn_len;
+
+    uint32_t board_name_len;
+
+    uint32_t vendor_name_len;
+
+    uint8_t reserved_1[388];
+
+    uint32_t patternKeyStart;
+
+    uint32_t blockVersionHi;
+
+    uint32_t blockVersionLow;
+
+    uint32_t patternKeyEnd;
+
 } __packed;
 
 /**

@@ -29,7 +29,7 @@
  * For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
  */
 
-/* Device name: Appears in advertising packets. Must not exceed 16 characters in length */
+/* Device name: Appears in advertising packets. Must not exceed 20 characters in length */
 #define DEVICE_NAME               "AE_IO"
 /* UUID for Automation I/O service */
 #define SERVICE_UUID_AUTOMATIONIO (0x1815)

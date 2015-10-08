@@ -40,7 +40,7 @@
  *
  * Bluetooth SIG defined macros and enum extracted from Bluetooth Spec 4.2
  */
-#define BLE_MAX_DEVICE_NAME 16 /**< Max BLE device name length, spec size: 248 */
+#define BLE_MAX_DEVICE_NAME  20 /**< Max BLE device name length, spec size: 248 */
 #define BLE_MAX_ADV_SIZE     31
 
 /** Advertising Data Type. */

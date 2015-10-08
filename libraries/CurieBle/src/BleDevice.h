@@ -91,7 +91,7 @@ public:
      * If broadcast name is not set, a default name will be used instead
      *
      * @param name       User-defined name string for this device.  Truncated if
-     *                   more than maximum allowed string length (16 bytes).
+     *                   more than maximum allowed string length (20 bytes).
      *
      * @note This method must be called before the init method
      */
@@ -101,7 +101,7 @@ public:
      * Get the current broadcast name for the BLE Peripheral Device
      *
      * @param name       Array to be filled with a copy of the name string.
-     *                   Array size must be at least 17 bytes.
+     *                   Array size must be at least 20 bytes.
      */
     void getName(char name[]) const;
 
