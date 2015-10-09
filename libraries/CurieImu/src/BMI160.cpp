@@ -1041,51 +1041,35 @@ void BMI160Class::setZeroMotionDetectionThreshold(uint8_t threshold) {
  * [112.64 - 430.08]s | 10.24s
  * </pre>
  *
- * The time will be returned as a multiple of the base unit, which is 1.28s
-
  * The Zero Motion interrupt is triggered when the Zero Motion condition is
  * maintained for the duration specified in this register.
  *
  * For more details on the Zero Motion detection interrupt, see Section 2.6.9 of
  * the BMI160 Data Sheet.
  *
- * @return Current zero motion detection duration threshold value (LSB = 1.28s)
+ * @return Current zero motion detection duration threshold value
+ *         @see BMI160ZeroMotionDuration for a list of possible values
  * @see getZeroMotionDetectionThreshold()
  * @see BMI160_RA_INT_MOTION_0
+ * @see BMI160ZeroMotionDuration
  */
-unsigned BMI160Class::getZeroMotionDetectionDuration() {
-    uint8_t duration = reg_read_bits(BMI160_RA_INT_MOTION_0,
-                                     BMI160_NOMOTION_DUR_BIT,
-                                     BMI160_NOMOTION_DUR_LEN);
-    if (duration & 0x20)
-        return (unsigned)((duration & 0x1F) + 11) << 3;
-    else if (duration & 0x10)
-        return (unsigned)((duration & 0xF) + 5) << 2;
-    else
-        return (unsigned)(duration & 0xF) + 1;
+uint8_t BMI160Class::getZeroMotionDetectionDuration() {
+    return reg_read_bits(BMI160_RA_INT_MOTION_0,
+                         BMI160_NOMOTION_DUR_BIT,
+                         BMI160_NOMOTION_DUR_LEN);
 }
 
 /** Set zero motion detection event duration threshold.
  *
  * This must be called at least once to enable zero-motion detection.
  *
- * @param units New zero motion detection duration threshold value (LSB = 1.28s)
+ * @param duration New zero motion detection duration threshold value
+ *        @see BMI160ZeroMotionDuration for a list of valid values
  * @see getZeroMotionDetectionDuration()
  * @see BMI160_RA_INT_MOTION_0
+ * @see BMI160ZeroMotionDuration
  */
-void BMI160Class::setZeroMotionDetectionDuration(unsigned units) {
-    /* Select No-Motion detection mode */
-    uint8_t duration;
-
-    if (units >= 88) /* [112.64 - 430.08]s */
-        duration = 0x20 | (((units >> 3) - 11) & 0x1F);
-    else if (units >= 20) /* [25.6 - 102.4]s */
-        duration = 0x10 | (((units >> 2) - 5) & 0xF);
-    else if (units >= 1) /* [1.28 - 20.48]s */
-        duration = ((units - 1) & 0xF);
-    else
-        duration = 0; /* 1.28s - minimum value */
-
+void BMI160Class::setZeroMotionDetectionDuration(uint8_t duration) {
     reg_write_bits(BMI160_RA_INT_MOTION_0, duration,
                    BMI160_NOMOTION_DUR_BIT,
                    BMI160_NOMOTION_DUR_LEN);

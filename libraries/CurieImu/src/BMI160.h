@@ -390,6 +390,77 @@ typedef enum {
     BMI160_DOUBLE_TAP_DURATION_700MS,
 } BMI160DoubleTapDuration;
 
+/**
+ * Zero-Motion Detection Duration options
+ * @see setZeroMotionDetectionDuration()
+ */
+typedef enum {
+    BMI160_ZERO_MOTION_DURATION_1_28S   = 0x00, /**<   1.28 seconds */
+    BMI160_ZERO_MOTION_DURATION_2_56S,          /**<   2.56 seconds */
+    BMI160_ZERO_MOTION_DURATION_3_84S,          /**<   3.84 seconds */
+    BMI160_ZERO_MOTION_DURATION_5_12S,          /**<   5.12 seconds */
+    BMI160_ZERO_MOTION_DURATION_6_40S,          /**<   6.40 seconds */
+    BMI160_ZERO_MOTION_DURATION_7_68S,          /**<   7.68 seconds */
+    BMI160_ZERO_MOTION_DURATION_8_96S,          /**<   8.96 seconds */
+    BMI160_ZERO_MOTION_DURATION_10_24S,         /**<  10.24 seconds */
+    BMI160_ZERO_MOTION_DURATION_11_52S,         /**<  11.52 seconds */
+    BMI160_ZERO_MOTION_DURATION_12_80S,         /**<  12.80 seconds */
+    BMI160_ZERO_MOTION_DURATION_14_08S,         /**<  14.08 seconds */
+    BMI160_ZERO_MOTION_DURATION_15_36S,         /**<  15.36 seconds */
+    BMI160_ZERO_MOTION_DURATION_16_64S,         /**<  16.64 seconds */
+    BMI160_ZERO_MOTION_DURATION_17_92S,         /**<  17.92 seconds */
+    BMI160_ZERO_MOTION_DURATION_19_20S,         /**<  19.20 seconds */
+    BMI160_ZERO_MOTION_DURATION_20_48S,         /**<  20.48 seconds */
+    BMI160_ZERO_MOTION_DURATION_25_60S  = 0x10, /**<  25.60 seconds */
+    BMI160_ZERO_MOTION_DURATION_30_72S,         /**<  30.72 seconds */
+    BMI160_ZERO_MOTION_DURATION_35_84S,         /**<  35.84 seconds */
+    BMI160_ZERO_MOTION_DURATION_40_96S,         /**<  40.96 seconds */
+    BMI160_ZERO_MOTION_DURATION_46_08S,         /**<  46.08 seconds */
+    BMI160_ZERO_MOTION_DURATION_51_20S,         /**<  51.20 seconds */
+    BMI160_ZERO_MOTION_DURATION_56_32S,         /**<  56.32 seconds */
+    BMI160_ZERO_MOTION_DURATION_61_44S,         /**<  61.44 seconds */
+    BMI160_ZERO_MOTION_DURATION_66_56S,         /**<  66.56 seconds */
+    BMI160_ZERO_MOTION_DURATION_71_68S,         /**<  71.68 seconds */
+    BMI160_ZERO_MOTION_DURATION_76_80S,         /**<  76.80 seconds */
+    BMI160_ZERO_MOTION_DURATION_81_92S,         /**<  81.92 seconds */
+    BMI160_ZERO_MOTION_DURATION_87_04S,         /**<  87.04 seconds */
+    BMI160_ZERO_MOTION_DURATION_92_16S,         /**<  92.16 seconds */
+    BMI160_ZERO_MOTION_DURATION_97_28S,         /**<  97.28 seconds */
+    BMI160_ZERO_MOTION_DURATION_102_40S,        /**< 102.40 seconds */
+    BMI160_ZERO_MOTION_DURATION_112_64S = 0x20, /**< 112.64 seconds */
+    BMI160_ZERO_MOTION_DURATION_122_88S,        /**< 122.88 seconds */
+    BMI160_ZERO_MOTION_DURATION_133_12S,        /**< 133.12 seconds */
+    BMI160_ZERO_MOTION_DURATION_143_36S,        /**< 143.36 seconds */
+    BMI160_ZERO_MOTION_DURATION_153_60S,        /**< 153.60 seconds */
+    BMI160_ZERO_MOTION_DURATION_163_84S,        /**< 163.84 seconds */
+    BMI160_ZERO_MOTION_DURATION_174_08S,        /**< 174.08 seconds */
+    BMI160_ZERO_MOTION_DURATION_184_32S,        /**< 184.32 seconds */
+    BMI160_ZERO_MOTION_DURATION_194_56S,        /**< 194.56 seconds */
+    BMI160_ZERO_MOTION_DURATION_204_80S,        /**< 204.80 seconds */
+    BMI160_ZERO_MOTION_DURATION_215_04S,        /**< 215.04 seconds */
+    BMI160_ZERO_MOTION_DURATION_225_28S,        /**< 225.28 seconds */
+    BMI160_ZERO_MOTION_DURATION_235_52S,        /**< 235.52 seconds */
+    BMI160_ZERO_MOTION_DURATION_245_76S,        /**< 245.76 seconds */
+    BMI160_ZERO_MOTION_DURATION_256_00S,        /**< 256.00 seconds */
+    BMI160_ZERO_MOTION_DURATION_266_24S,        /**< 266.24 seconds */
+    BMI160_ZERO_MOTION_DURATION_276_48S,        /**< 276.48 seconds */
+    BMI160_ZERO_MOTION_DURATION_286_72S,        /**< 286.72 seconds */
+    BMI160_ZERO_MOTION_DURATION_296_96S,        /**< 296.96 seconds */
+    BMI160_ZERO_MOTION_DURATION_307_20S,        /**< 307.20 seconds */
+    BMI160_ZERO_MOTION_DURATION_317_44S,        /**< 317.44 seconds */
+    BMI160_ZERO_MOTION_DURATION_327_68S,        /**< 327.68 seconds */
+    BMI160_ZERO_MOTION_DURATION_337_92S,        /**< 337.92 seconds */
+    BMI160_ZERO_MOTION_DURATION_348_16S,        /**< 348.16 seconds */
+    BMI160_ZERO_MOTION_DURATION_358_40S,        /**< 358.40 seconds */
+    BMI160_ZERO_MOTION_DURATION_368_64S,        /**< 368.64 seconds */
+    BMI160_ZERO_MOTION_DURATION_378_88S,        /**< 378.88 seconds */
+    BMI160_ZERO_MOTION_DURATION_389_12S,        /**< 389.12 seconds */
+    BMI160_ZERO_MOTION_DURATION_399_36S,        /**< 399.36 seconds */
+    BMI160_ZERO_MOTION_DURATION_409_60S,        /**< 409.60 seconds */
+    BMI160_ZERO_MOTION_DURATION_419_84S,        /**< 419.84 seconds */
+    BMI160_ZERO_MOTION_DURATION_430_08S,        /**< 430.08 seconds */
+} BMI160ZeroMotionDuration;
+
 class BMI160Class {
     public:
         void initialize();
@@ -457,8 +528,8 @@ class BMI160Class {
         uint8_t getZeroMotionDetectionThreshold();
         void setZeroMotionDetectionThreshold(uint8_t threshold);
 
-        unsigned getZeroMotionDetectionDuration();
-        void setZeroMotionDetectionDuration(unsigned duration);
+        uint8_t getZeroMotionDetectionDuration();
+        void setZeroMotionDetectionDuration(uint8_t duration);
 
         uint8_t getTapDetectionThreshold();
         void setTapDetectionThreshold(uint8_t threshold);
