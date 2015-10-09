@@ -318,11 +318,7 @@ typedef enum {
  * @see setAccelRate()
  */
 typedef enum {
-    BMI160_ACCEL_RATE_25_32HZ = 1, /**<   25/32 Hz */
-    BMI160_ACCEL_RATE_25_16HZ,     /**<   25/16 Hz */
-    BMI160_ACCEL_RATE_25_8HZ,      /**<   25/8  Hz */
-    BMI160_ACCEL_RATE_25_4HZ,      /**<   25/4  Hz */
-    BMI160_ACCEL_RATE_25_2HZ,      /**<   25/2  Hz */
+    BMI160_ACCEL_RATE_25_2HZ = 5,  /**<   25/2  Hz */
     BMI160_ACCEL_RATE_25HZ,        /**<   25    Hz */
     BMI160_ACCEL_RATE_50HZ,        /**<   50    Hz */
     BMI160_ACCEL_RATE_100HZ,       /**<  100    Hz */
