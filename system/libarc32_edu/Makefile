@@ -18,7 +18,7 @@ AS=arc-elf32-as
 RM=rm -f
 INSTALL=install
 
-TARGET=arc32drv_edu
+TARGET=arc32drv_arduino101
 TARGET_LIB=lib$(TARGET).a
 
 HWFLAGS=-mARCv2EM -mav2em -mlittle-endian

@@ -41,17 +41,12 @@ void * cfw_alloc(int size, OS_ERR_TYPE * err) {
     void * ptr;
     unsigned int flags = interrupt_lock();
     ptr = malloc(size+sizeof(void*));
-    if (ptr != NULL) {
-        (*(int*) ptr) = size;
+    (*(int*) ptr) = size;
 #ifdef TRACK_ALLOCS
-        alloc_count++;
+    alloc_count++;
 #endif
-        interrupt_unlock(flags);
-        return ptr;
-    } else {
-        interrupt_unlock(flags);
-        return 0;
-    }
+    interrupt_unlock(flags);
+    return ptr;
 }
 
 void cfw_free(void * ptr, OS_ERR_TYPE * err) {

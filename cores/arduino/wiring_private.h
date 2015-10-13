@@ -21,7 +21,7 @@
 
   $Id: wiring.h 239 2007-01-12 17:58:39Z mellis $
   
-  Modified to allow compiling for Intel EDU - September 2015 <dino.tinitigan@intel.com>
+  Modified to allow compiling for Arduino 101 - September 2015 <dino.tinitigan@intel.com>
 */
 
 #ifndef WiringPrivate_h

@@ -3,7 +3,7 @@
  * Copyright (c) 2014 by Paul Stoffregen <paul@pjrc.com> (Transaction API)
  * Copyright (c) 2014 by Matthijs Kooijman <matthijs@stdin.nl> (SPISettings AVR)
  * Copyright (c) 2014 by Andrew J. Kroll <xxxajk@gmail.com> (atomicity fixes)
- * Copyright (c) 2015 by Intel Corporation <dan@emutex.com> (Intel EDU support)
+ * Copyright (c) 2015 by Intel Corporation <dan@emutex.com> (Arduino 101 support)
  * SPI Master library for arduino.
  *
  * This file is free software; you can redistribute it and/or modify

@@ -24,7 +24,8 @@
 
 
 /*
- * EDU Board pin   |     GPIO     | Label
+ * Arduino 101
+ *  Board pin      |     GPIO     | Label
  * ----------------+--------------+-------
  *   0             |  GPIO_SS[9]  | "RX0"
  *   1             |  GPIO_SS[8]  | "TX0"

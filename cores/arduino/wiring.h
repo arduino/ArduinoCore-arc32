@@ -36,7 +36,7 @@ extern void initVariant( void ) ;
 extern void init( void ) ;
 
 /**
- * \brief Returns the number of milliseconds since the Intel EDU board began
+ * \brief Returns the number of milliseconds since the Arduino 101 board began
  * running the current program.
  *
  * This number will practically never overflow (go back to zero).
@@ -46,7 +46,7 @@ extern void init( void ) ;
 extern uint64_t millis( void ) ;
 
 /**
- * \brief Returns the number of microseconds since the Intel EDU board began
+ * \brief Returns the number of microseconds since the Arduino 101 board began
  * running the current program.
  *
  * This number will practically never overflow (go back to zero).

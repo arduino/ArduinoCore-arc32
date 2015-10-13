@@ -37,7 +37,7 @@ extern void pinMode( uint8_t pin, uint8_t mode ) ;
  * If the pin has been configured as an OUTPUT with pinMode(), its voltage will be set to the
  * corresponding value: 3.3V for HIGH, 0V (ground) for LOW.
  *
- * TODO - update the text below for Intel EDU
+ * TODO - update the text below for Arduino 101
  *
  * If the pin is configured as an INPUT, writing a HIGH value with digitalWrite() will enable an internal
  * 20K pullup resistor (see the tutorial on digital pins). Writing LOW will disable the pullup. The pullup

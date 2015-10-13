@@ -1,5 +1,5 @@
 
-# Intel EDU Core and platform.
+# Arduino 101 Core and platform.
 #
 # For more info:
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
@@ -35,9 +35,9 @@ compiler.strip.cmd={compiler.prefix}-strip
 build.extra_flags=
 
 # These can be overridden in platform.local.txt
-compiler.c.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
+compiler.c.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_arduino101/common" "-I{build.system.path}/libarc32_arduino101/drivers" "-I{build.system.path}/libarc32_arduino101/bootcode" "-I{build.system.path}/libarc32_arduino101/framework/include"
 compiler.c.elf.extra_flags=
-compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_edu/common" "-I{build.system.path}/libarc32_edu/drivers" "-I{build.system.path}/libarc32_edu/bootcode" "-I{build.system.path}/libarc32_edu/framework/include"
+compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DCONFIG_SOC_GPIO_AON -DINFRA_MULTI_CPU_SUPPORT -DCFW_MULTI_CPU_SUPPORT -DHAS_SHARED_MEM "-I{build.system.path}/libarc32_arduino101/common" "-I{build.system.path}/libarc32_arduino101/drivers" "-I{build.system.path}/libarc32_arduino101/bootcode" "-I{build.system.path}/libarc32_arduino101/framework/include"
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 
@@ -53,7 +53,7 @@ build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} -DUSBCON '-DUSB_MANU
 build.usb_manufacturer="Unknown"
 
 
-# Intel EDU compile patterns
+# Arduino 101 compile patterns
 # ---------------------
 
 ## Compile c files
@@ -80,16 +80,16 @@ recipe.size.regex=Total\s+([0-9]+).*
 
 # Arc Uploader/Programmers tools
 # -------------------
-tools.eduload.cmd.path={runtime.tools.sketchUploader.path}/clupload/cluploadEDU_osx.sh
-tools.eduload.cmd.path.linux="{runtime.tools.sketchUploader.path}/clupload/cluploadEDU_linux.sh"
-tools.eduload.cmd.path.windows={runtime.tools.sketchUploader.path}/x86/bin/bash.exe
-tools.eduload.cmd.script.windows={runtime.tools.sketchUploader.path}/clupload/cluploadEDU_win.sh
-tools.eduload.cmd.bin.windows={runtime.tools.sketchUploader.path}/x86/bin
+tools.arduino101load.cmd.path={runtime.tools.sketchUploader.path}/clupload/cluploadArduino101_osx.sh
+tools.arduino101load.cmd.path.linux="{runtime.tools.sketchUploader.path}/clupload/cluploadArduino101_linux.sh"
+tools.arduino101load.cmd.path.windows={runtime.tools.sketchUploader.path}/x86/bin/bash.exe
+tools.arduino101load.cmd.script.windows={runtime.tools.sketchUploader.path}/clupload/cluploadArduino101_win.sh
+tools.arduino101load.cmd.bin.windows={runtime.tools.sketchUploader.path}/x86/bin
 
-tools.eduload.upload.params.verbose=-vvvvvv
-tools.eduload.upload.params.quiet=-q
+tools.arduino101load.upload.params.verbose=-vvvvvv
+tools.arduino101load.upload.params.quiet=-q
 
-tools.eduload.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
-tools.eduload.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
-tools.eduload.upload.elf.windows={build.path}/{build.project_name}.elf
-tools.eduload.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"
+tools.arduino101load.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.arduino101load.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.arduino101load.upload.elf.windows={build.path}/{build.project_name}.elf
+tools.arduino101load.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"

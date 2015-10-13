@@ -1,5 +1,5 @@
 /*
- Servo.cpp - Interrupt driven Servo library for Arduino using ARC Timer 1 on Intel EDU boards
+ Servo.cpp - Interrupt driven Servo library for Arduino using ARC Timer 1 on Arduino 101 boards
  Copyright (c) 2009 Michael Margolis.  All right reserved.
 
  This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
- Copyright (c) 2015 Intel Corporation. Implementation of Servo library for Intel EDU
+ Copyright (c) 2015 Intel Corporation. Implementation of Servo library for Arduino 101
  */
 
 #include "interrupt.h"

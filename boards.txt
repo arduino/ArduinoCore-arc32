@@ -2,31 +2,31 @@
 
 ##############################################################
 
-intel_edu_x.name=Intel® EDU
+arduino_101_x.name=Arduino 101
 
-intel_edu_x.vid.0=0x8087
-intel_edu_x.pid.0=0x0AB6
-intel_edu_x.vid.0x2A03.warning=Uncertified
+arduino_101_x.vid.0=0x8087
+arduino_101_x.pid.0=0x0AB6
+arduino_101_x.vid.0x2A03.warning=Uncertified
 
-intel_edu_x.upload.tool=eduload
-intel_edu_x.upload.protocol=script
-intel_edu_x.upload.maximum_size=196608
-intel_edu_x.upload.use_1200bps_touch=true
-intel_edu_x.upload.wait_for_upload_port=false
-intel_edu_x.upload.native_usb=false
-intel_edu_x.upload.params.quiet=-q
-intel_edu_x.upload.params.verbose=-q
+arduino_101_x.upload.tool=arduino101load
+arduino_101_x.upload.protocol=script
+arduino_101_x.upload.maximum_size=196608
+arduino_101_x.upload.use_1200bps_touch=true
+arduino_101_x.upload.wait_for_upload_port=false
+arduino_101_x.upload.native_usb=false
+arduino_101_x.upload.params.quiet=-q
+arduino_101_x.upload.params.verbose=-q
 
-intel_edu_x.build.usb_product="Intel EDU"
-intel_edu_x.build.mcu=ARCv2EM
-intel_edu_x.build.f_cpu=32000000L
-intel_edu_x.build.board=ARC32_TOOLS
-intel_edu_x.build.core=arduino
-intel_edu_x.build.ldscript=linker_scripts/flash.ld
-intel_edu_x.build.variant=intel_edu_x
-intel_edu_x.build.variant_system_lib=arc32drv_edu
-intel_edu_x.build.vid=0x8087
-intel_edu_x.build.pid=0x0AB6
+arduino_101_x.build.usb_product="Arduino 101"
+arduino_101_x.build.mcu=ARCv2EM
+arduino_101_x.build.f_cpu=32000000L
+arduino_101_x.build.board=ARC32_TOOLS
+arduino_101_x.build.core=arduino
+arduino_101_x.build.ldscript=linker_scripts/flash.ld
+arduino_101_x.build.variant=arduino_101_x
+arduino_101_x.build.variant_system_lib=arc32drv_arduino101
+arduino_101_x.build.vid=0x8087
+arduino_101_x.build.pid=0x0AB6
 
 ##############################################################
 
