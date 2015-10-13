@@ -51,7 +51,7 @@ inline int toUpperCase(int c)__attribute__((always_inline));
 // It is equivalent to (isalpha(c) || isdigit(c)).
 inline boolean isAlphaNumeric(int c)
 {
-  return ( isalnum(c) == 0 ? false : true);
+  return ( (isalnum(c) || isprint(c)) == 0 ? false : true);
 }
 
 
