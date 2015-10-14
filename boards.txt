@@ -2,31 +2,31 @@
 
 ##############################################################
 
-arduino_101_x.name=Arduino 101
+arduino_101.name=Arduino 101
 
-arduino_101_x.vid.0=0x8087
-arduino_101_x.pid.0=0x0AB6
-arduino_101_x.vid.0x2A03.warning=Uncertified
+arduino_101.vid.0=0x8087
+arduino_101.pid.0=0x0AB6
+arduino_101.vid.0x2A03.warning=Uncertified
 
-arduino_101_x.upload.tool=arduino101load
-arduino_101_x.upload.protocol=script
-arduino_101_x.upload.maximum_size=196608
-arduino_101_x.upload.use_1200bps_touch=true
-arduino_101_x.upload.wait_for_upload_port=false
-arduino_101_x.upload.native_usb=false
-arduino_101_x.upload.params.quiet=-q
-arduino_101_x.upload.params.verbose=-q
+arduino_101.upload.tool=arduino101load
+arduino_101.upload.protocol=script
+arduino_101.upload.maximum_size=196608
+arduino_101.upload.use_1200bps_touch=true
+arduino_101.upload.wait_for_upload_port=false
+arduino_101.upload.native_usb=false
+arduino_101.upload.params.quiet=-q
+arduino_101.upload.params.verbose=-q
 
-arduino_101_x.build.usb_product="Arduino 101"
-arduino_101_x.build.mcu=ARCv2EM
-arduino_101_x.build.f_cpu=32000000L
-arduino_101_x.build.board=ARC32_TOOLS
-arduino_101_x.build.core=arduino
-arduino_101_x.build.ldscript=linker_scripts/flash.ld
-arduino_101_x.build.variant=arduino_101_x
-arduino_101_x.build.variant_system_lib=arc32drv_arduino101
-arduino_101_x.build.vid=0x8087
-arduino_101_x.build.pid=0x0AB6
+arduino_101.build.usb_product="Arduino 101"
+arduino_101.build.mcu=ARCv2EM
+arduino_101.build.f_cpu=32000000L
+arduino_101.build.board=ARC32_TOOLS
+arduino_101.build.core=arduino
+arduino_101.build.ldscript=linker_scripts/flash.ld
+arduino_101.build.variant=arduino_101
+arduino_101.build.variant_system_lib=arc32drv_arduino101
+arduino_101.build.vid=0x8087
+arduino_101.build.pid=0x0AB6
 
 ##############################################################
 
