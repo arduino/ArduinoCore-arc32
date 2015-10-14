@@ -1,5 +1,5 @@
 /*
-main.cpp userspace main loop for Intel EDU family boards
+main.cpp userspace main loop for Arduino 101 family boards
 Copyright (C) 2014 Intel Corporation
 
 This library is free software; you can redistribute it and/or

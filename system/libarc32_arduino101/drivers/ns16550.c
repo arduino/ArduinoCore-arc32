@@ -541,7 +541,7 @@ int uart_break_check(int which /* UART to check */
 *
 * The delay implementation must be working in panic context where IRQs
 * or other features are disabled, so a basic for loop is used.
-* A value of (1<<12) is more or less 1 ms on AtlasPeak 1/Lakemont (32 MHz).
+* A value of (1<<12) is more or less 1 ms on Arduino 101/Lakemont (32 MHz).
 *
 * RETURNS: N/A
 */

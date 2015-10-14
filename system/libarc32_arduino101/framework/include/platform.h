@@ -111,11 +111,7 @@ struct platform_shared_block_ {
     struct cdc_acm_shared_data	* cdc_acm_buffers;
 };
 
-#ifdef CONFIG_BOARD_ATLASPEAK_EMU
-#define RAM_START           0xffb00000
-#else
 #define RAM_START           0xA8000000
-#endif
 
 #define shared_data ((volatile struct platform_shared_block_ *) RAM_START)
 

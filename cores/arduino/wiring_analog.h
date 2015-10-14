@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-/* TODO - update analogReference and other ADC-related functions for Intel EDU */
+/* TODO - update analogReference and other ADC-related functions for Arduino 101 */
 
 /*
  * \brief SAM3 products have only one reference for ADC

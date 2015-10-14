@@ -32,7 +32,7 @@
 
 /*
 DESCRIPTION
-Linker script for the Atlas Peak ARC BSPs.
+Linker script for the Arduino 101 ARC BSPs.
 */
 
 OUTPUT_FORMAT("elf32-littlearc", "elf32-bigarc", "elf32-littlearc")

@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _VARIANT_INTEL_EDU_X_
-#define _VARIANT_INTEL_EDU_X_
+#ifndef _VARIANT_ARDUINO_101_X_
+#define _VARIANT_ARDUINO_101_X_
 
 #include "gpio.h"
 #include "ss_gpio_iface.h"
@@ -49,7 +49,7 @@ extern "C"{
  *        Platform Identifiers
  *----------------------------------------------------------------------------*/
 #define PLATFORM_ID   0xAE
-#define PLATFORM_NAME "AtlasEdge"
+#define PLATFORM_NAME "Arduino101"
 
 /*----------------------------------------------------------------------------
  *        Pins
@@ -204,5 +204,5 @@ void CDCSerial_bytes_sent(uint32_t num);
 
 extern uint32_t sizeof_g_APinDescription;
 
-#endif /* _VARIANT_INTEL_EDU_X_ */
+#endif /* _VARIANT_ARDUINO_101_X_ */
 

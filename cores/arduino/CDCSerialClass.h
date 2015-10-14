@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-  CDC-ACM class for Intel EDU - Aug 2015 <dave.hunt@emutex.com>
+  CDC-ACM class for Arduino 101 - Aug 2015 <dave.hunt@emutex.com>
 
 */
 

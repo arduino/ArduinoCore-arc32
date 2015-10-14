@@ -1,4 +1,4 @@
-/* board.h - board configuration macros for the atlas_peak-arc BSP */
+/* board.h - board configuration macros for the Arduino 101-arc BSP */
 
 /*
  * Copyright (c) 2014-2015 Wind River Systems, Inc.
@@ -33,7 +33,7 @@
 /*
 DESCRIPTION
 This header file is used to specify and describe board-level aspects for the
-'atlas_peak-arc' BSP.
+'Arduino 101-arc' BSP.
 */
 
 #ifndef _BOARD__H_
