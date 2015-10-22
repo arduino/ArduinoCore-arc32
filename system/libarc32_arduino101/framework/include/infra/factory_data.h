@@ -54,8 +54,6 @@
 /** Key Patterns in the OTP area */
 #define PATTERN_KEY_START  0xA5A5A5A5
 #define PATTERN_KEY_END    0x5A5A5A5A
-const char INVALID_SN_F[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-const char INVALID_SN_0[4] = {0,0,0,0};
 
 enum hardware_type {
     EVT = 0x00,  /*!< Engineering hardware */
