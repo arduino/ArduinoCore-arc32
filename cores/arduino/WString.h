@@ -63,7 +63,8 @@ public:
 	// be false).
 	String(const char *cstr = "");
 	String(const String &str);
-	#ifdef __GXX_EXPERIMENTAL_CXX0X__
+	String(const __FlashStringHelper *str);
+       #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
 	String(String &&rval);
 	String(StringSumHelper &&rval);
 	#endif
@@ -91,7 +92,8 @@ public:
 	// marked as invalid ("if (s)" will be false).
 	String & operator = (const String &rhs);
 	String & operator = (const char *cstr);
-	#ifdef __GXX_EXPERIMENTAL_CXX0X__
+	String & operator = (const __FlashStringHelper *str);
+    #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
 	String & operator = (String &&rval);
 	String & operator = (StringSumHelper &&rval);
 	#endif
@@ -113,6 +115,7 @@ public:
 	unsigned char concat(unsigned long long num);
 	unsigned char concat(float num);
 	unsigned char concat(double num);
+	unsigned char concat(const __FlashStringHelper * str);
 
 	// if there's not enough memory for the concatenated value, the string
 	// will be left unchanged (but this isn't signalled in any way)
@@ -128,6 +131,7 @@ public:
 	String & operator += (unsigned long long num)	{concat(num); return (*this);}
 	String & operator += (float num)	        {concat(num); return (*this);}
 	String & operator += (double num)               {concat(num); return (*this);}
+	String & operator += (const __FlashStringHelper *str){concat(str); return (*this);}
 
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const String &rhs);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const char *cstr);
@@ -141,6 +145,7 @@ public:
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned long long num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, float num);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, double num);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, const __FlashStringHelper *rhs);
 
 	// comparison (only works w/ Strings and "strings")
 	operator StringIfHelperType() const { return buffer ? &String::StringIfHelper : 0; }
@@ -196,11 +201,11 @@ public:
 	float toFloat(void) const;
 	char * getCSpec(int base, bool issigned, bool islong);
 
+protected:
 	char *buffer;	        // the actual char array
 	unsigned int capacity;  // the array length minus one (for the '\0')
 	unsigned int len;       // the String length (not counting the '\0')
-	unsigned char flags;    // unused, for future features
-
+protected:
 	void init(void);
 	void invalidate(void);
 	unsigned char changeBuffer(unsigned int maxStrLen);
@@ -208,7 +213,8 @@ public:
 
 	// copy and move
 	String & copy(const char *cstr, unsigned int length);
-	#ifdef __GXX_EXPERIMENTAL_CXX0X__
+	String & copy(const __FlashStringHelper *pstr, unsigned int length);
+       #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
 	void move(String &rhs);
 	#endif
 };
