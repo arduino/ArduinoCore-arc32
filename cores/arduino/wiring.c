@@ -29,32 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FREQ_MHZ	((ARCV2_TIMER0_CLOCK_FREQ)/1000000)
 static const uint64_t	 MS_TO_CLKS = (FREQ_MHZ * 1000);
 
-static uint64_t getTimeStampClks(void)
-{
-    __asm__ volatile (
-   /* Disable interrupts - we don't want to be disturbed */
-   "clri r2			    \n\t"
-   /* Load in r1 value of timer0_overflows */
-   "ld r1, %0			    \n\t"
-   /* Read COUNT0 register */
-   "lr r0, [0x21]		    \n\t"
-   /* Read CONTROL0 register */
-   "lr r3, [0x22]		    \n\t"
-   /* If CONTROL0.IP is set COUNT0 reached LIMIT0 => r1 value might not be
-    * accurate => read COUNT0 again */
-   "bbit0.nt r3, 3, end	    \n\t"
-   /* Read COUNT0 again*/
-   "lr r0, [0x21]		    \n\t"
-   /* Timer0 overflowed => timer0_overflows++ */
-   "add r1, r1, 1		    \n\t"
-   /***/
-   "end:			    \n\t"
-   "seti r2			    \n\t"
-   : /* Output parameters and their constraints */
-   :  "m"(timer0_overflows)   /* Input parameters and their constraints */
-   :  "r0", "r1", "r2", "r3" /* Killed registers */
-   );
-}
+extern uint64_t getTimeStampClks(void);
 
 void delay(uint32_t msec)
 {
