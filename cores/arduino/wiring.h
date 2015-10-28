@@ -98,6 +98,29 @@ void delayMicroseconds(uint32_t dwUs)
     while (arcv2_timer0_count_get() - init_count < clocks);
 }
 
+static inline __attribute__ ((always_inline))
+void delayTicks(uint32_t ticks)
+{
+  // Each tick is 1/32 uS
+  // TODO: improve using asm
+  if(ticks == 0)
+      return;
+  else if(ticks < 10)
+  {
+    // just do a 5 tick delay to be close enough
+    __builtin_arc_nop();
+    __builtin_arc_nop();
+    __builtin_arc_nop();
+    __builtin_arc_nop();
+    __builtin_arc_nop();
+  }
+  else  // compensate for the overhead
+  {
+    ticks -= 10;
+    uint32_t init_count = arcv2_timer0_count_get();
+    while (arcv2_timer0_count_get() - init_count < ticks);
+  }
+}
 
 #ifdef __cplusplus
 }
