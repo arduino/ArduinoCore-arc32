@@ -29,8 +29,7 @@
 
 #include "WString.h"
 #include <stdio.h>
-
-
+#include "stdlib_noniso.h"
 
 /*********************************************/
 /*  Constructors                             */
