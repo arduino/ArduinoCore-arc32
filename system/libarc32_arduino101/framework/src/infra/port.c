@@ -136,7 +136,7 @@ uint16_t port_alloc(void * queue)
 {
     struct port * ret = NULL;
     uint32_t flags = interrupt_lock();
-    if (registered_port_count < MAX_PORTS) {
+    if ((registered_port_count < MAX_PORTS) && (registered_port_count >= 0)) {
         ports[registered_port_count].id = registered_port_count + 1; /* don't use 0 as port.*/
         ports[registered_port_count].cpu_id = get_cpu_id(); /* is overwritten in case of ipc */
         ports[registered_port_count].queue = queue;
@@ -150,7 +150,10 @@ uint16_t port_alloc(void * queue)
         panic(E_OS_ERR_NO_MEMORY);
     }
     interrupt_unlock(flags);
-    return ret->id;
+    if (ret != NULL)
+        return ret->id;
+    else
+        return 0;
 }
 #else
 uint16_t port_alloc(void *queue)
