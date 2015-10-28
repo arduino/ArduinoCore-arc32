@@ -120,7 +120,8 @@ int CDCSerialClass::read( void )
 
 void CDCSerialClass::flush( void )
 {
-    while (_tx_buffer->tail != _tx_buffer->head) {
+    while (_tx_buffer->tail != _tx_buffer->head) { /* This infinite loop is intentional
+						      and requested by design */
 	    delayMicroseconds(1);
     }
 }
