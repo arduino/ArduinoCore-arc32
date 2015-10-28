@@ -32,7 +32,7 @@ struct _IsrTableEntry __attribute__((section(".data"))) _IsrTable[SS_NUM_IRQS];
 static void _dummy_isr(void)
 {
     __asm__ ("flag 0x01"); /* Set the halt flag => halt the CPU  */
-    for(;;);
+    for(;;); /* This infinite loop is intentional and requested by design */
 }
 
 void interrupt_connect(unsigned int irq, void (*isr)(void))
