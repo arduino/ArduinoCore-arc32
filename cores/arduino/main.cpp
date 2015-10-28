@@ -42,7 +42,7 @@ int main( void )
 
 	setup();
 
-	for (;;)
+	for (;;) /* This infinite loop is intentional and requested by design */
 	{
 		loop();
 		if (serialEventRun) serialEventRun();
