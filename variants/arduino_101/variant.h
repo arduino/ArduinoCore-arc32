@@ -197,7 +197,6 @@ void CDCSerial_bytes_sent(uint32_t num);
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_MONITOR         Serial
-#define SERIAL_PORT_USBVIRTUAL      SerialUSB
 #define SERIAL_PORT_HARDWARE_OPEN   Serial1
 #define SERIAL_PORT_HARDWARE        Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1

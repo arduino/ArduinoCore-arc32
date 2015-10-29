@@ -50,96 +50,101 @@ void reverse(char* begin, char* end) {
     }
 }
 
-char* itoa(int value, char* result, int base) {
-    if(base < 2 || base > 16) {
-        *result = 0;
-        return result;
-    }
-
-    char* out = result;
-    int quotient = abs(value);
-
-    do {
-        const int tmp = quotient / base;
-        *out = "0123456789abcdef"[quotient - (tmp * base)];
-        ++out;
-        quotient = tmp;
-    } while(quotient);
-
-    // Apply negative sign
-    if(value < 0)
-        *out++ = '-';
-
-    reverse(result, out);
-    *out = 0;
-    return result;
+char* itoa( int val, char *string, int radix )
+{
+    return ltoa( val, string, radix ) ;
 }
 
-char* ltoa(long value, char* result, int base) {
-    if(base < 2 || base > 16) {
-        *result = 0;
-        return result;
+char* ltoa( long val, char *string, int radix )
+{
+    char tmp[33];
+    char *tp = tmp;
+    long i;
+    unsigned long v;
+    int sign;
+    char *sp;
+
+    if ( string == NULL )
+    {
+        return 0 ;
     }
 
-    char* out = result;
-    long quotient = abs(value);
+    if (radix > 36 || radix <= 1)
+    {
+        return 0 ;
+    }
 
-    do {
-        const long tmp = quotient / base;
-        *out = "0123456789abcdef"[quotient - (tmp * base)];
-        ++out;
-        quotient = tmp;
-    } while(quotient);
+    sign = (radix == 10 && val < 0);
+    if (sign)
+    {
+        v = -val;
+    }
+    else
+    {
+        v = (unsigned long)val;
+    }
 
-    // Apply negative sign
-    if(value < 0)
-        *out++ = '-';
+    while (v || tp == tmp)
+    {
+        i = v % radix;
+        v = v / radix;
+        if (i < 10)
+            *tp++ = i+'0';
+        else
+            *tp++ = i + 'a' - 10;
+    }
 
-    reverse(result, out);
-    *out = 0;
-    return result;
+    sp = string;
+
+    if (sign)
+        *sp++ = '-';
+    while (tp > tmp)
+        *sp++ = *--tp;
+    *sp = 0;
+
+    return string;
 }
 
-char* utoa(unsigned value, char* result, int base) {
-    if(base < 2 || base > 16) {
-        *result = 0;
-        return result;
-    }
-
-    char* out = result;
-    unsigned quotient = value;
-
-    do {
-        const unsigned tmp = quotient / base;
-        *out = "0123456789abcdef"[quotient - (tmp * base)];
-        ++out;
-        quotient = tmp;
-    } while(quotient);
-
-    reverse(result, out);
-    *out = 0;
-    return result;
+char* utoa( unsigned int val, char *string, int radix )
+{
+    return ultoa( val, string, radix ) ;
 }
 
-char* ultoa(unsigned long value, char* result, int base) {
-    if(base < 2 || base > 16) {
-        *result = 0;
-        return result;
+char* ultoa( unsigned long val, char *string, int radix )
+{
+    char tmp[33];
+    char *tp = tmp;
+    long i;
+    unsigned long v = val;
+    char *sp;
+
+    if ( string == NULL )
+    {
+        return 0;
     }
 
-    char* out = result;
-    unsigned long quotient = value;
+    if (radix > 36 || radix <= 1)
+    {
+        return 0;
+    }
 
-    do {
-        const unsigned long tmp = quotient / base;
-        *out = "0123456789abcdef"[quotient - (tmp * base)];
-        ++out;
-        quotient = tmp;
-    } while(quotient);
+    while (v || tp == tmp)
+    {
+        i = v % radix;
+        v = v / radix;
+        if (i < 10)
+            *tp++ = i+'0';
+        else
+            *tp++ = i + 'a' - 10;
+    }
 
-    reverse(result, out);
-    *out = 0;
-    return result;
+    sp = string;
+
+    while (tp > tmp)
+        *sp++ = *--tp;
+      *sp = 0;
+
+    return string;
 }
 
 char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
@@ -189,7 +194,6 @@ char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
     if (prec > 0) {
         *out = '.';
         ++out;
-
 
         for (unsigned char decShift = prec; decShift > 0; decShift--) {
             remainder *= 10.0;
