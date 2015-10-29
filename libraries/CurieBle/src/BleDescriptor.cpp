@@ -93,7 +93,7 @@ BleStatus
 BleDescriptor::setValue(const String &str)
 {
     str.getBytes((unsigned char *)&_data, (unsigned int)BLE_MAX_ATTR_DATA_LEN, 0U);
-    _desc.length = str.len + 1;
+    _desc.length = str.length() + 1;
     return _setValue();
 }
 

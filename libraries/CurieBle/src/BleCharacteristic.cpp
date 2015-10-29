@@ -201,7 +201,7 @@ BleStatus
 BleCharacteristic::setValue(const String &str)
 {
     str.getBytes((unsigned char *)&_data, (unsigned int)_char_data.max_len, 0U);
-    _data_len = str.len + 1;
+    _data_len = str.length() + 1;
     return _setValue();
 }
 
