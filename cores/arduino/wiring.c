@@ -29,7 +29,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FREQ_MHZ	((ARCV2_TIMER0_CLOCK_FREQ)/1000000)
 static const uint64_t	 MS_TO_CLKS = (FREQ_MHZ * 1000);
 
-extern uint64_t getTimeStampClks(void);
+static inline __attribute__((always_inline))
+uint64_t getTimeStampClks(void)
+{
+	uint32_t time_stamp;
+	int key = interrupt_lock();
+	uint64_t ret = timer0_overflows;
+	time_stamp = aux_reg_read(ARC_V2_TMR0_COUNT);
+	if (aux_reg_read(ARC_V2_TMR0_CONTROL) & (0x01 << 3)) {
+		time_stamp = aux_reg_read(ARC_V2_TMR0_COUNT);
+		ret++;
+	}
+	interrupt_unlock(key);
+	return ((ret << 32) | time_stamp);
+}
 
 void delay(uint32_t msec)
 {
