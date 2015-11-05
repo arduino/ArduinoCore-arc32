@@ -165,7 +165,7 @@ BleCharacteristic::_setValue(void)
     if (!_initialised)
         return BLE_STATUS_WRONG_STATE;
 
-    if ((_data_len > BLE_MAX_ATTR_DATA_LEN) && (_data_len > _char_data.max_len))
+    if ((_data_len > BLE_MAX_ATTR_DATA_LEN) || (_data_len > _char_data.max_len))
         return BLE_STATUS_NOT_ALLOWED;
 
     status = ble_client_gatts_set_attribute_value(_handles.value_handle,
