@@ -387,6 +387,7 @@ BlePeripheral::getLocalAddress(BleDeviceAddress &address) const
         return BLE_STATUS_WRONG_STATE;
 
     ble_addr_t bda;
+    memset(&bda, 0, sizeof(ble_addr_t));
     status = ble_client_gap_get_bda(&bda);
     if (BLE_STATUS_SUCCESS != status)
         return status;

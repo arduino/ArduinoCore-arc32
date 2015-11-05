@@ -110,6 +110,7 @@ int i2c_openadapter(void)
 	SET_PIN_PULLUP(25, 1);
 
 	i2c_cfg_data_t i2c_cfg;
+	memset(&i2c_cfg, 0, sizeof(i2c_cfg_data_t));
 
 	i2c_cfg.speed = I2C_SLOW;
 	i2c_cfg.addressing_mode = I2C_7_Bit;

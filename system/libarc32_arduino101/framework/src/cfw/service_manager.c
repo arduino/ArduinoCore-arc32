@@ -452,7 +452,7 @@ void _cfw_loop(void * queue)
 {
     struct cfw_message * message;
     T_QUEUE_MESSAGE m;
-    while (1) {
+    while (1) { /* This infinite loop is intentional and requested by design */
         queue_get_message(queue, &m, OS_WAIT_FOREVER, NULL );
         message = (struct cfw_message *) m;
         if (message != NULL ) {

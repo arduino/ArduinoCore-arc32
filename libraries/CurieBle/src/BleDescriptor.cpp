@@ -70,6 +70,9 @@ BleDescriptor::_setValue(void)
     if (!_initialised)
         return BLE_STATUS_WRONG_STATE;
 
+    if (_desc.length > BLE_MAX_ATTR_DATA_LEN)
+        return BLE_STATUS_NOT_ALLOWED;
+
     return ble_client_gatts_set_attribute_value(_handle, _desc.length, _data, 0);
 }
 
