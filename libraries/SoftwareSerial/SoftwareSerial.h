@@ -73,7 +73,7 @@ private:
 public:
   // public methods
   SoftwareSerial(uint32_t receivePin, uint32_t transmitPin, bool inverse_logic = false);
-  ~SoftwareSerial();
+  virtual ~SoftwareSerial();
   void begin(long speed);
   bool listen();
   void end();
