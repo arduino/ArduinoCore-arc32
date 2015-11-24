@@ -4,7 +4,7 @@
  * 
  */
 
-#include <Time.h>  
+#include <TimeLib.h>  
 #include <Wire.h>  
 #include <CurieRTC.h>  // a basic Curie library that returns time as a time_t
 

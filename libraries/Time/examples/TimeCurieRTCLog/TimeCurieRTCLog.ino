@@ -6,7 +6,7 @@
  * the time of the event and time since the previous event is calculated and sent to the serial port. 
  */
 
-#include <Time.h>  
+#include <TimeLib.h>  
 #include <CurieRTC.h> // a basic CurieRTC library that returns time as a time_t
 
 const int nbrInputPins  = 6;             // monitor 6 digital pins 

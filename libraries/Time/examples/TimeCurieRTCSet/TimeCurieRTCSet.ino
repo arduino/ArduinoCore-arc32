@@ -7,7 +7,7 @@
  * On Linux, you can use "date +T%s > /dev/ttyACM0" (UTC time zone)
  */
 
-#include <Time.h>
+#include <TimeLib.h>
 #include <CurieRTC.h> // a basic CurieRTC library that returns time as a time_t
 
 
