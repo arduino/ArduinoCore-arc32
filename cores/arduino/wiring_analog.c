@@ -51,7 +51,18 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 
 void analogWrite(uint8_t pin, int val)
 {
-    if (! digitalPinHasPWM(pin)) return;
+    if (! digitalPinHasPWM(pin))
+    {
+        if(val > 127)
+        {
+            digitalWrite(pin, HIGH);
+        }
+        else
+        {
+            digitalWrite(pin, LOW);
+        }
+        return;
+    }
 
     if (val <= 0) {
         /* Use GPIO for 0% duty cycle (always off)  */
