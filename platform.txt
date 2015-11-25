@@ -86,10 +86,10 @@ tools.arduino101load.cmd.path.windows={runtime.tools.sketchUploader.path}/x86/bi
 tools.arduino101load.cmd.script.windows={runtime.tools.sketchUploader.path}/clupload/cluploadArduino101_win.sh
 tools.arduino101load.cmd.bin.windows={runtime.tools.sketchUploader.path}/x86/bin
 
-tools.arduino101load.upload.params.verbose=-vvvvvv
-tools.arduino101load.upload.params.quiet=-q
+tools.arduino101load.upload.params.verbose=verbose
+tools.arduino101load.upload.params.quiet=quiet
 
-tools.arduino101load.upload.pattern=/bin/bash --verbose --noprofile "{cmd.path}" "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
-tools.arduino101load.upload.pattern.linux=/bin/bash --verbose  --noprofile {cmd.path} "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port}
+tools.arduino101load.upload.pattern=/bin/bash --noprofile "{cmd.path}" "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port} "{upload.verbose}"
+tools.arduino101load.upload.pattern.linux=/bin/bash --noprofile {cmd.path} "{runtime.tools.sketchUploader.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port} "{upload.verbose}"
 tools.arduino101load.upload.elf.windows={build.path}/{build.project_name}.elf
-tools.arduino101load.upload.pattern.windows="{cmd.path}" "--verbose" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}"
+tools.arduino101load.upload.pattern.windows="{cmd.path}" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}" "{upload.verbose}"
