@@ -16,7 +16,7 @@ void setup() {
   // get the date and time the compiler was run
   if (getDate(__DATE__) && getTime(__TIME__)) {
     t = makeTime(tm);
-    setTime(t);
+    RTC.set(t);
     parse = true;
     config = true;
   }
