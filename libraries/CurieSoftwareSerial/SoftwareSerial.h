@@ -16,6 +16,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 Implementation of SoftwareSerial Library for Arduino 101
+
+CurieSoftwareSerial library is a work in progress
+Currently only 38400 and 57600 bps is the supported baud rate for RX
+RX is only fully functional on pins 2, 4, 7, 8, 10, 11, 12.
 */
 
 #ifndef SoftwareSerial_h
@@ -57,12 +61,12 @@ private:
   static SoftwareSerial *active_object;
 
   // private methods
-  static void recv() __attribute__((__always_inline__));
+  static void recv();
   uint32_t rx_pin_read();
   void tx_pin_write(uint32_t pin_state) __attribute__((__always_inline__));
   void setTX(uint8_t transmitPin);
   void setRX(uint8_t receivePin);
-  void setRxIntMsk(bool enable) __attribute__((__always_inline__));
+  void setRxIntMsk(bool enable);
 
   // Return num - sub, or 1 if the result would be < 1
   static uint16_t subtract_cap(uint16_t num, uint16_t sub);

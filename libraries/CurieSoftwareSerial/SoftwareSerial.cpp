@@ -16,6 +16,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 Implementation of SoftwareSerial Library for Arduino 101
+
+CurieSoftwareSerial library is a work in progress
+Currently only 38400 and 57600 bps is the supported baud rate for RX
+RX is only fully functional on pins 2, 4, 7, 8, 10, 11, 12.
 */
 
 // When set, _DEBUG co-opts pins 11 and 13 for debugging with an
@@ -172,7 +176,8 @@ void SoftwareSerial::recv()
     }
 
     // skip the stop bit/s
-    delayTicks(bitDelay>>4);
+    //TODO: tweak this value depending on which gpio is used
+    delayTicks(bitDelay >> 2);
     DebugPulse(_DEBUG_PIN1, 1);
   }
   interrupts();

@@ -5,8 +5,8 @@
  Receives from software serial, sends to hardware serial.
 
  The circuit:
- * RX is digital pin 10 (connect to TX of other device)
- * TX is digital pin 11 (connect to RX of other device)
+ * RX is digital pin 2 (connect to TX of other device)
+ * TX is digital pin 3 (connect to RX of other device)
 
  Note:
  Not all pins on the Mega and Mega 2560 support change interrupts,
@@ -27,12 +27,12 @@
  */
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(10, 11); // RX, TX
+SoftwareSerial mySerial(2, 3); // RX, TX
 
 void setup()
 {
   // Open serial communications and wait for port to open:
-  Serial.begin(57600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
@@ -41,7 +41,7 @@ void setup()
   Serial.println("Goodnight moon!");
 
   // set the data rate for the SoftwareSerial port
-  mySerial.begin(4800);
+  mySerial.begin(38400);
   mySerial.println("Hello, world?");
 }
 
