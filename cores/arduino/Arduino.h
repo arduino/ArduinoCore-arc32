@@ -30,7 +30,7 @@
 //#include "itoa.h"
 
 #if ARDUINO < 10607
-#error IDE version incompatible with Arduino 101, please upgrade to it to version 1.6.7 or newer
+#error IDE version incompatible with Arduino 101. Please upgrade to version 1.6.7 or newer.
 #endif
 
 #ifdef __cplusplus
