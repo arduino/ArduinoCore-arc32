@@ -58,8 +58,6 @@ BleCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit ch
 
 /* Bluetooth MAC address for this device */
 BleDeviceAddress localAddress;
-/* Bluetooth MAC address for remote peer device */
-BleDeviceAddress peerAddress;
 
 /* Variable to keep track of last battery level reading from analog input */
 uint8_t oldBattLvl = 0;
@@ -81,21 +79,27 @@ void printBleDeviceAddress(BleDeviceAddress &address, const char *label)
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
-void blePeripheralEventCb(BlePeripheral &blePeripheral, BlePeripheralEvent event, void *arg)
+void blePeripheralConnectedEventCb(BleCentral &bleCentral)
 {
-  if (BLE_PERIPH_EVENT_CONNECTED == event) {
-    LOG_SERIAL.println("Got CONNECTED event");
-    /* We've got a new connection.  Lets print the MAC address of the remote device */
-    peerAddress = blePeripheral.central().address();
-    printBleDeviceAddress(peerAddress, "remote");
-  } else if (BLE_PERIPH_EVENT_DISCONNECTED == event) {
-    LOG_SERIAL.println("Got DISCONNECTED event");
-  } else if (BLE_PERIPH_EVENT_ADV_TIMEOUT == event) {
-    LOG_SERIAL.println("Got ADV_TIMEOUT event");
-  } else if (BLE_PERIPH_EVENT_CONN_TIMEOUT == event) {
-    LOG_SERIAL.println("Got CONN_TIMEOUT event");
-  } else
-    LOG_SERIAL.println("Got UNKNOWN event");
+  LOG_SERIAL.println("Got CONNECTED event");
+  /* We've got a new connection.  Lets print the MAC address of the remote device */
+  BleDeviceAddress peerAddress = bleCentral.address();
+  printBleDeviceAddress(peerAddress, "remote");
+}
+
+void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
+{
+  LOG_SERIAL.println("Got DISCONNECTED event");
+}
+
+void blePeripheralAdvTimeoutEventCb(BleCentral &bleCentral)
+{
+  LOG_SERIAL.println("Got ADV_TIMEOUT event");
+}
+
+void blePeripheralConnTimeoutEventCb(BleCentral &bleCentral)
+{
+  LOG_SERIAL.println("Got CONN_TIMEOUT event");
 }
 
 void setup() {
@@ -116,7 +120,10 @@ void setup() {
   printBleDeviceAddress(localAddress, "local");
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventCallback(blePeripheralEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_ADV_TIMEOUT, blePeripheralAdvTimeoutEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONN_TIMEOUT, blePeripheralConnTimeoutEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
 

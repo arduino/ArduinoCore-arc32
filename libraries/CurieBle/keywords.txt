@@ -28,3 +28,5 @@ setAdvertisedServiceUuid	KEYWORD2
 
 setLocalName	KEYWORD2
 setAppearance	KEYWORD2
+
+setEventCallback	KEYWORD2

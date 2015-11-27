@@ -43,13 +43,15 @@ enum BlePeripheralEvent {
     BLE_PERIPH_EVENT_ADV_TIMEOUT,
     BLE_PERIPH_EVENT_CONN_TIMEOUT,
     BLE_PERIPH_EVENT_RSSI_CHANGE, /* NOTE: Currently unsupported */
+
+    BLE_PERIPH_EVENT_LAST
 };
 
 /* Forward declaration needed for callback function prototype below */
 class BlePeripheral;
 
 /** Function prototype for BLE Peripheral Device event callback */
-typedef void (*BlePeripheralEventCb)(BlePeripheral &peripheral, BlePeripheralEvent event, void *arg);
+typedef void (*BlePeripheralEventCb)(BleCentral &central);
 
 /* TODO - consider splitting this into a BleDevice base class, and derive
  * BlePeripheral and BleCentral classes from it.  For now, we only support Peripheral mode
@@ -175,10 +177,10 @@ public:
     /**
      * Provide a function to be called when events related to this Device are raised
      *
+     * @param event    Event type for callback
      * @param callback Pointer to callback function to invoke when an event occurs.
-     * @param arg      [Optional] Opaque argument which will be passed in the callback.
      */
-    void setEventCallback(BlePeripheralEventCb callback, void *arg = NULL);
+    void setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback);
 
 private:
     /**
@@ -222,8 +224,7 @@ private:
     boolean_t  _connected;
     BleCentral _central;
 
-    BlePeripheralEventCb _event_cb;
-    void                *_event_cb_arg;
+    BlePeripheralEventCb _event_cb[BLE_PERIPH_EVENT_LAST];
 
     BleService *_services[BLE_MAX_PRIMARY_SERVICES];
     uint32_t    _num_services;

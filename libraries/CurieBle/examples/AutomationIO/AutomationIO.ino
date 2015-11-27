@@ -141,15 +141,14 @@ BleService ioService(SERVICE_UUID_AUTOMATIONIO);
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
-void blePeripheralEventCb(BlePeripheral &peripheral, BlePeripheralEvent event, void *arg)
+void blePeripheralConnectedEventCb(BleCentral &bleCentral)
 {
-  if (BLE_PERIPH_EVENT_CONNECTED == event) {
-    LOG_SERIAL.println("Got CONNECTED event");
-  } else if (BLE_PERIPH_EVENT_DISCONNECTED == event) {
-    LOG_SERIAL.println("Got DISCONNECTED event");
-  } else {
-    LOG_SERIAL.println("Got UNKNOWN peripheral event");
-  }
+  LOG_SERIAL.println("Got CONNECTED event");
+}
+
+void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
+{
+  LOG_SERIAL.println("Got DISCONNECTED event");
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
@@ -193,7 +192,8 @@ void setup() {
   CHECK_STATUS(blePeripheral.init());
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventCallback(blePeripheralEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
+  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
 

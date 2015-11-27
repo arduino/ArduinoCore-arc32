@@ -28,6 +28,7 @@ void
 blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param)
 {
     BlePeripheral *p = (BlePeripheral *)param;
+    BleCentral c = p->central();
     BleDeviceAddress peerAddress;
     switch (event) {
     case BLE_CLIENT_GAP_EVENT_CONNECTED:
@@ -36,31 +37,31 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
         p->_setConnectedState(true);
         p->getPeerAddress(peerAddress);
         p->_central.setAddress(peerAddress);
-        if (p->_event_cb)
-            p->_event_cb(*p, BLE_PERIPH_EVENT_CONNECTED, p->_event_cb_arg);
+        if (p->_event_cb[BLE_PERIPH_EVENT_CONNECTED])
+            p->_event_cb[BLE_PERIPH_EVENT_CONNECTED](c);
         break;
     case BLE_CLIENT_GAP_EVENT_DISCONNECTED:
+        if (p->_event_cb[BLE_PERIPH_EVENT_DISCONNECTED])
+            p->_event_cb[BLE_PERIPH_EVENT_DISCONNECTED](c);
         p->_state = BLE_PERIPH_STATE_READY;
         p->_setConnectedState(false);
         p->_central.clearAddress();
-        if (p->_event_cb)
-            p->_event_cb(*p, BLE_PERIPH_EVENT_DISCONNECTED, p->_event_cb_arg);
         /* Restart advertising automatically, unless disconnected by local host */
         if (p->_adv_auto_restart && (event_data->disconnected.hci_reason != BLE_DISCONNECT_REASON_LOCAL_TERMINATION))
             p->start();
         break;
     case BLE_CLIENT_GAP_EVENT_ADV_TIMEOUT:
         p->_state = BLE_PERIPH_STATE_READY;
-        if (p->_event_cb)
-            p->_event_cb(*p, BLE_PERIPH_EVENT_ADV_TIMEOUT, p->_event_cb_arg);
+        if (p->_event_cb[BLE_PERIPH_EVENT_ADV_TIMEOUT])
+            p->_event_cb[BLE_PERIPH_EVENT_ADV_TIMEOUT](c);
         if (p->_adv_auto_restart)
             p->start();
         break;
     case BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT:
         p->_state = BLE_PERIPH_STATE_READY;
         p->_setConnectedState(false);
-        if (p->_event_cb)
-            p->_event_cb(*p, BLE_PERIPH_EVENT_CONN_TIMEOUT, p->_event_cb_arg);
+        if (p->_event_cb[BLE_PERIPH_EVENT_CONN_TIMEOUT])
+            p->_event_cb[BLE_PERIPH_EVENT_CONN_TIMEOUT](c);
         if (p->_adv_auto_restart)
             p->start();
         break;
@@ -141,6 +142,8 @@ BlePeripheral::BlePeripheral(void) :
     _num_services = 0;
     _appearance = 0;
     _state = BLE_PERIPH_STATE_NOT_READY;
+
+    memset(_event_cb, 0x00, sizeof(_event_cb));
 
     ble_client_get_factory_config(&_local_bda, _localName);
 }
@@ -406,13 +409,11 @@ BlePeripheral::stop(void)
 }
 
 void
-BlePeripheral::setEventCallback(BlePeripheralEventCb callback,
-                                void *arg)
+BlePeripheral::setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback)
 {
-    noInterrupts();
-    _event_cb = callback; /* callback disabled if NULL */
-    _event_cb_arg = arg;
-    interrupts();
+  if (event < sizeof(_event_cb)) {
+    _event_cb[event] = callback;
+  }
 }
 
 BleStatus
