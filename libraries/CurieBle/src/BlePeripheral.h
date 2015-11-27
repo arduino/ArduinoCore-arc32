@@ -89,6 +89,8 @@ public:
     void poll();
     void end();
 
+    BleStatus setAdvertisedServiceUuid(struct bt_uuid advertisedServiceUuid);
+
     /**
      * Set the broadcast name for the BLE Peripheral Device
      *
@@ -152,14 +154,12 @@ public:
      * Add a BLE Primary Service for this Device
      *
      * @param service   BLE Primary Service object reference
-     * @param advertise [Optional] If true, this service will be included in
-     *                  BLE Advertising packets if sufficient space is available
      *
      * @return BleStatus indicating success or error
      *
      * @note This method must be called only before advertising is started.
      */
-    BleStatus addPrimaryService(BleService &service, boolean_t advertise = false);
+    BleStatus addPrimaryService(BleService &service_uuid);
 
     /**
      * Get the current state of this Device

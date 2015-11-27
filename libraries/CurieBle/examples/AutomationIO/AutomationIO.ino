@@ -187,7 +187,7 @@ void setup() {
   LOG_SERIAL.begin(115200);
 
   /* Set a name for the BLE device */
-  CHECK_STATUS(blePeripheral.setLocalName(DEVICE_NAME));
+  CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
 
   /* First, initialise the BLE device */
   CHECK_STATUS(blePeripheral.init());
@@ -195,8 +195,10 @@ void setup() {
   /* Set a function to be called whenever a BLE GAP event occurs */
   blePeripheral.setEventCallback(blePeripheralEventCb);
 
+  CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
+
   /* Add the Automation I/O Service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addPrimaryService(ioService, true));
+  CHECK_STATUS(blePeripheral.addPrimaryService(ioService));
 
   /* Add characteristics for the Digital Inputs */
   for (unsigned i = 0; i < ARRAY_SIZE(digitalInputPins); i++) {

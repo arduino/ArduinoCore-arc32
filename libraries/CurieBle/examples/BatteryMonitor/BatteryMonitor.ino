@@ -118,8 +118,10 @@ void setup() {
   /* Set a function to be called whenever a BLE GAP event occurs */
   blePeripheral.setEventCallback(blePeripheralEventCb);
 
+  CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
+
   /* Add the BLE Battery service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addPrimaryService(battSvc, true));
+  CHECK_STATUS(blePeripheral.addPrimaryService(battSvc));
 
   /* This service will have just one characteristic that reflects the current
    * percentage-charge level of the "battery" */
