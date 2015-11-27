@@ -6,4 +6,25 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-BLEPeripheral	KEYWORD1
+BlePeripheral	KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+uuid	KEYWORD2
+
+connected	KEYWORD2
+address	KEYWORD2
+poll	KEYWORD2
+disconnect	KEYWORD2
+
+begin	KEYWORD2
+poll	KEYWORD2
+end	KEYWORD2
+
+setAdvertisedServiceUuid	KEYWORD2
+
+setLocalName	KEYWORD2
+setAppearance	KEYWORD2
