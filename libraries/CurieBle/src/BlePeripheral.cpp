@@ -145,6 +145,10 @@ int BlePeripheral::begin()
     return (BLE_STATUS_SUCCESS == start());
 }
 
+void BlePeripheral::poll()
+{
+}
+
 void BlePeripheral::end()
 {
     stop();

@@ -86,7 +86,8 @@ public:
     BlePeripheral(void);
 
     int begin();
-    void end(); 
+    void poll();
+    void end();
 
     /**
      * Set the broadcast name for the BLE Peripheral Device

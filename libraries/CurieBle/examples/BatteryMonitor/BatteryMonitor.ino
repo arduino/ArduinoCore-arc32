@@ -138,6 +138,8 @@ void setup() {
 void loop() {
   static int ledState;
 
+  blePeripheral.poll();
+
   /* Blink the on-board LED (just to show some activity) */
   digitalWrite(13, ledState ? HIGH : LOW);
   ledState = !ledState;

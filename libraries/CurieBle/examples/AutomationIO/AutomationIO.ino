@@ -300,6 +300,8 @@ void setup() {
 }
 
 void loop() {
+  blePeripheral.poll();
+  
   /* Update the digital input characteristics based on current pin reading */
   for (unsigned i = 0; i < ARRAY_SIZE(digitalInputPins); i++) {
     DigitalPinConfig *pin = &digitalInputPins[i];
