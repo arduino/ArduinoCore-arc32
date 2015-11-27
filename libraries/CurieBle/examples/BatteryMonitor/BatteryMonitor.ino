@@ -23,7 +23,7 @@
  */
 
 /* BLE Peripheral Device (this Intel Curie device) */
-BlePeripheral bleDevice;
+BlePeripheral blePeripheral;
 
 /* UUID for Battery service */
 #define SERVICE_UUID_BATTERY    (0x180F)
@@ -106,20 +106,20 @@ void setup() {
    * We give it an arbitrary name which will appear in advertising packets
    * and can be used by remote peers to identify this BLE device
    * The name can be changed but must not exceed 20 characters in length */
-  CHECK_STATUS(bleDevice.setName("AE_BATTMON"));
+  CHECK_STATUS(blePeripheral.setName("AE_BATTMON"));
 
   /* First, initialise the BLE device */
-  CHECK_STATUS(bleDevice.init());
+  CHECK_STATUS(blePeripheral.init());
 
   /* Now, we can read the local MAC address of the Intel Curie BLE device */
-  CHECK_STATUS(bleDevice.getLocalAddress(localAddress));
+  CHECK_STATUS(blePeripheral.getLocalAddress(localAddress));
   printBleDeviceAddress(localAddress, "local");
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  bleDevice.setEventCallback(blePeripheralEventCb);
+  blePeripheral.setEventCallback(blePeripheralEventCb);
 
   /* Add the BLE Battery service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(bleDevice.addPrimaryService(battSvc, true));
+  CHECK_STATUS(blePeripheral.addPrimaryService(battSvc, true));
 
   /* This service will have just one characteristic that reflects the current
    * percentage-charge level of the "battery" */
@@ -131,7 +131,7 @@ void setup() {
   /* Now activate the BLE device.  It will start continuously transmitting BLE
    * advertising packets and thus become visible to remote BLE central devices
    * (e.g smartphones) until it receives a new connection */
-  CHECK_STATUS(bleDevice.start());
+  CHECK_STATUS(blePeripheral.start());
   LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
 }
 
