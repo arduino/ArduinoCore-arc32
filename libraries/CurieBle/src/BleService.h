@@ -47,6 +47,8 @@ public:
      */
     BleService(uint8_t uuid128[]);
 
+    struct bt_uuid uuid();
+
     /**
      * Add a BLE Characteristic for this Service
      *

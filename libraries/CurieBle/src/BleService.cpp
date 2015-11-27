@@ -39,6 +39,11 @@ BleService::BleService(uint8_t uuid128[])
     memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
 }
 
+struct bt_uuid BleService::uuid()
+{
+    return _uuid;
+}
+
 BleStatus
 BleService::addCharacteristic(BleCharacteristic &ch)
 {
