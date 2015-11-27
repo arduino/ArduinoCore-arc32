@@ -20,30 +20,9 @@
 #ifndef _BLE_PERIPHERAL_H_INCLUDED
 #define _BLE_PERIPHERAL_H_INCLUDED
 
+#include "BleAddress.h"
+#include "BleCentral.h"
 #include "BleService.h"
-
-/**
- * BLE GAP supported address types.
- */
-enum BleDeviceAddressType {
-    BLE_DEVICE_ADDR_PUBLIC = 0,
-    BLE_DEVICE_ADDR_PRIVATE_RANDOM_STATIC,
-    BLE_DEVICE_ADDR_RRIVATE_RANDOM_PRIVATE_RESOLVABLE,
-    BLE_DEVICE_ADDR_PRIVATE_RANDOM_PRIVATE_NONRESOLVABLE,
-};
-
-/**
- * BT/BLE Device Address Length.
- */
-#define BLE_DEVICE_ADDR_LEN 6
-
-/**
- * BT/BLE Device Address
- */
-typedef struct _BleDeviceAddress {
-	BleDeviceAddressType type;         /**< BLE Address type */
-	uint8_t addr[BLE_DEVICE_ADDR_LEN]; /**< BT Mac address, little endian format */
-} BleDeviceAddress;
 
 /**
  * BLE Peripheral Device State
@@ -132,6 +111,11 @@ public:
      * @param appearance Appearance category identifier currently set for this device
      */
     void getAppearance(uint16_t &appearance) const;
+
+    BleStatus disconnect();
+
+    BleCentral central();
+    bool connected();
 
     /**
      * Initialise the BLE Peripheral Device
@@ -236,6 +220,7 @@ private:
     ble_addr_t _local_bda;
     ble_addr_t _peer_bda;
     boolean_t  _connected;
+    BleCentral _central;
 
     BlePeripheralEventCb _event_cb;
     void                *_event_cb_arg;

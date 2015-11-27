@@ -28,17 +28,21 @@ void
 blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param)
 {
     BlePeripheral *p = (BlePeripheral *)param;
+    BleDeviceAddress peerAddress;
     switch (event) {
     case BLE_CLIENT_GAP_EVENT_CONNECTED:
         p->_state = BLE_PERIPH_STATE_CONNECTED;
         p->_peer_bda = event_data->connected.peer_bda;
         p->_setConnectedState(true);
+        p->getPeerAddress(peerAddress);
+        p->_central.setAddress(peerAddress);
         if (p->_event_cb)
             p->_event_cb(*p, BLE_PERIPH_EVENT_CONNECTED, p->_event_cb_arg);
         break;
     case BLE_CLIENT_GAP_EVENT_DISCONNECTED:
         p->_state = BLE_PERIPH_STATE_READY;
         p->_setConnectedState(false);
+        p->_central.clearAddress();
         if (p->_event_cb)
             p->_event_cb(*p, BLE_PERIPH_EVENT_DISCONNECTED, p->_event_cb_arg);
         /* Restart advertising automatically, unless disconnected by local host */
@@ -131,7 +135,8 @@ BlePeripheral::_advDataInit(void)
     _adv_data_len += calculated_len + 2;
 }
 
-BlePeripheral::BlePeripheral(void)
+BlePeripheral::BlePeripheral(void) :
+    _central(this)
 {
     _num_services = 0;
     _appearance = 0;
@@ -220,6 +225,35 @@ void
 BlePeripheral::getAppearance(uint16_t &appearance) const
 {
     appearance = _appearance;
+}
+
+BleStatus
+BlePeripheral::disconnect()
+{
+    BleStatus status;
+
+    if (BLE_PERIPH_STATE_CONNECTED == _state)
+        status = ble_client_gap_disconnect(BLE_DISCONNECT_REASON_LOCAL_TERMINATION);
+    else
+        status = BLE_STATUS_WRONG_STATE;
+
+    return status;
+}
+
+BleCentral
+BlePeripheral::central()
+{
+    poll();
+
+    return _central;
+}
+
+bool
+BlePeripheral::connected()
+{
+    poll();
+
+    return _central;
 }
 
 BleStatus
@@ -359,12 +393,10 @@ BlePeripheral::stop(void)
 {
     BleStatus status;
 
-    if (BLE_PERIPH_STATE_CONNECTED == _state)
-        status = ble_client_gap_disconnect(BLE_DISCONNECT_REASON_LOCAL_TERMINATION);
-    else if (BLE_PERIPH_STATE_ADVERTISING == _state)
+    if (BLE_PERIPH_STATE_ADVERTISING == _state)
         status = ble_client_gap_stop_advertise();
     else
-        status = BLE_STATUS_WRONG_STATE;
+        status = disconnect();
 
     if (BLE_STATUS_SUCCESS != status)
         return status;

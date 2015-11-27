@@ -81,12 +81,12 @@ void printBleDeviceAddress(BleDeviceAddress &address, const char *label)
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
-void blePeripheralEventCb(BlePeripheral &bleDevice, BlePeripheralEvent event, void *arg)
+void blePeripheralEventCb(BlePeripheral &blePeripheral, BlePeripheralEvent event, void *arg)
 {
   if (BLE_PERIPH_EVENT_CONNECTED == event) {
     LOG_SERIAL.println("Got CONNECTED event");
     /* We've got a new connection.  Lets print the MAC address of the remote device */
-    bleDevice.getPeerAddress(peerAddress);
+    peerAddress = blePeripheral.central().address();
     printBleDeviceAddress(peerAddress, "remote");
   } else if (BLE_PERIPH_EVENT_DISCONNECTED == event) {
     LOG_SERIAL.println("Got DISCONNECTED event");
