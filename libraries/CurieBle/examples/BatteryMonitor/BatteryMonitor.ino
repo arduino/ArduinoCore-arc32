@@ -53,8 +53,7 @@ BleService battSvc(SERVICE_UUID_BATTERY);
 /* BLE Battery Level Characteristic */
 BleCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
                               sizeof(uint8_t),             /* length of data attribute for this characteristic */
-                              BLE_CLIENT_ACCESS_READ_ONLY, /* remote clients will be able to read this characteristic */
-                              BLE_CLIENT_NOTIFY_ENABLED);  /* remote clients will be able to get notifications if this characteristic changes */
+                              BleRead | BleNotify);  /* remote clients will be able to get notifications if this characteristic changes */
 
 /* Bluetooth MAC address for this device */
 BleDeviceAddress localAddress;

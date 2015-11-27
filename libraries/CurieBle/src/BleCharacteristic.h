@@ -41,6 +41,15 @@ class BlePeripheral;
 /** Function prototype for BLE Characteristic event callback */
 typedef void (*BleCharacteristicEventCb)(BleCharacteristic &characteristic, BleCharacteristicEvent event, void *arg);
 
+enum BleProperty {
+  // BleBroadcast            = 0x01,
+  BleRead                 = 0x02,
+  BleWriteWithoutResponse = 0x04,
+  BleWrite                = 0x08,
+  BleNotify               = 0x10,
+  BleIndicate             = 0x20
+};
+
 /**
  * BLE GATT Characteristic
  */
@@ -56,8 +65,7 @@ public:
      */
     BleCharacteristic(const uint16_t uuid16,
                       const uint16_t maxLength,
-                      const BleClientAccessMode clientAccess,
-                      const BleClientNotifyMode clientNotify);
+                      const uint8_t properties);
 
     /**
      * Constructor for BLE Characteristic with 128-bit UUID
@@ -69,8 +77,7 @@ public:
      */
     BleCharacteristic(const uint8_t uuid128[],
                       const uint16_t maxLength,
-                      const BleClientAccessMode clientAccess,
-                      const BleClientNotifyMode clientNotify);
+                      const uint8_t properties);
 
     /**
      * Add an optional User-Description descriptor
@@ -181,8 +188,7 @@ private:
     friend void _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg);
 
     BleCharacteristic(const uint16_t maxLength,
-                      const BleClientAccessMode clientAccess,
-                      const BleClientNotifyMode clientNotify);
+                      const uint8_t properties);
 
     BleDescriptor *_matchDescriptor(uint16_t handle) const;
     BleStatus      _setValue(void);
@@ -194,8 +200,7 @@ private:
 
     boolean_t                _initialised;
     boolean_t                _connected;
-    BleClientAccessMode      _clientAccess;
-    BleClientNotifyMode      _clientNotify;
+    uint8_t                  _properties;
     BleCharacteristicEventCb _event_cb;
     void                     *_event_cb_arg;
 

@@ -48,8 +48,7 @@ _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 }
 
 BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
-                                     const BleClientAccessMode clientAccess,
-                                     const BleClientNotifyMode clientNotify)
+                                     const uint8_t properties)
     : _cccd(BLE_CCCD_DESCRIPTOR_UUID, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_WRITE)
 {
     _initialised = false;
@@ -60,35 +59,23 @@ BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
     _data_len = 0;
     _data[0] = 0;
 
-    _clientAccess = clientAccess;
-    _clientNotify = clientNotify;
+    _properties = properties;
 
     memset(&_char_data, 0, sizeof(_char_data));
 
     _char_data.p_uuid = &_uuid;
+    _char_data.props.props = properties;
 
-    if ((_clientAccess == BLE_CLIENT_ACCESS_READ_ONLY) ||
-        (_clientAccess == BLE_CLIENT_ACCESS_READ_WRITE)) {
+    if (properties & (BleRead | BleNotify | BleIndicate)) {
         _char_data.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-        _char_data.props.props |= BLE_GATT_CHAR_PROP_BIT_READ;
-
-        /* Enable notifications only if characteristic is also readable by client */
-        if (_clientNotify == BLE_CLIENT_NOTIFY_ENABLED)
-            _char_data.props.props |= BLE_GATT_CHAR_PROP_BIT_NOTIFY;
-        else if (_clientNotify == BLE_CLIENT_NOTIFY_WITH_ACK)
-            _char_data.props.props |= BLE_GATT_CHAR_PROP_BIT_INDICATE;
-    }
-    else {
+    } else {
         _char_data.perms.rd = GAP_SEC_NO_PERMISSION;
     }
 
-    if ((_clientAccess == BLE_CLIENT_ACCESS_WRITE_ONLY) ||
-        (_clientAccess == BLE_CLIENT_ACCESS_READ_WRITE)) {
+    if (properties & (BleWriteWithoutResponse | BleWrite)) {
         _char_data.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-        _char_data.props.props |= (BLE_GATT_CHAR_PROP_BIT_WRITE | BLE_GATT_CHAR_PROP_BIT_WRITE_NR);
-    }
-    else {
-        _char_data.perms.wr = GAP_SEC_NO_PERMISSION;
+    } else {
+        _char_data.perms.rd = GAP_SEC_NO_PERMISSION;
     }
 
     _char_data.init_len = _data_len;
@@ -98,9 +85,8 @@ BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
 
 BleCharacteristic::BleCharacteristic(const uint16_t uuid16,
                                      const uint16_t maxLength,
-                                     const BleClientAccessMode clientAccess,
-                                     const BleClientNotifyMode clientNotify)
-    : BleCharacteristic(maxLength, clientAccess, clientNotify)
+                                     const uint8_t properties)
+    : BleCharacteristic(maxLength, properties)
 {
     _uuid.type = BT_UUID16;
     _uuid.uuid16 = uuid16;
@@ -108,9 +94,8 @@ BleCharacteristic::BleCharacteristic(const uint16_t uuid16,
 
 BleCharacteristic::BleCharacteristic(const uint8_t uuid128[],
                                      const uint16_t maxLength,
-                                     const BleClientAccessMode clientAccess,
-                                     const BleClientNotifyMode clientNotify)
-    : BleCharacteristic(maxLength, clientAccess, clientNotify)
+                                     const uint8_t properties)
+    : BleCharacteristic(maxLength, properties)
 {
     _uuid.type = BT_UUID128;
     memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);

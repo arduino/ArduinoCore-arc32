@@ -59,13 +59,13 @@ struct AnalogPinConfig {
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY, BLE_CLIENT_NOTIFY_ENABLED}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BleRead | BleNotify}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BLE_CLIENT_ACCESS_WRITE_ONLY, BLE_CLIENT_NOTIFY_DISABLED}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BleWriteWithoutResponse | BleWrite}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_ONLY, BLE_CLIENT_NOTIFY_ENABLED} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BleRead | BleNotify} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BLE_CLIENT_ACCESS_WRITE_ONLY, BLE_CLIENT_NOTIFY_DISABLED} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BleWriteWithoutResponse | BleWrite} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins

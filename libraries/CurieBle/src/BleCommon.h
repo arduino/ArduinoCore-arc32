@@ -33,13 +33,6 @@ typedef enum {
     BLE_CLIENT_ACCESS_READ_WRITE,
 } BleClientAccessMode;
 
-typedef enum {
-    BLE_CLIENT_NOTIFY_DISABLED = 0,
-    BLE_CLIENT_NOTIFY_ENABLED,  /* send Notification to client when characteristic updated */
-    BLE_CLIENT_NOTIFY_WITH_ACK, /* send Indication to client when characteristic updated  */
-} BleClientNotifyMode;
-
-
 /* Arbitrary maximum limits which can be increased if needed (at a cost of increased RAM usage) */
 /*   Max number of primary services allowed */
 #define BLE_MAX_PRIMARY_SERVICES   8
