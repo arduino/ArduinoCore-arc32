@@ -140,6 +140,16 @@ BlePeripheral::BlePeripheral(void)
     ble_client_get_factory_config(&_local_bda, _name);
 }
 
+int BlePeripheral::begin()
+{
+    return (BLE_STATUS_SUCCESS == start());
+}
+
+void BlePeripheral::end()
+{
+    stop();
+}
+
 BleStatus
 BlePeripheral::setName(const char name[])
 {

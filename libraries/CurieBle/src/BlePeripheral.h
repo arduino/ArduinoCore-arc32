@@ -85,6 +85,9 @@ public:
      */
     BlePeripheral(void);
 
+    int begin();
+    void end(); 
+
     /**
      * Set the broadcast name for the BLE Peripheral Device
      *
@@ -192,6 +195,7 @@ public:
      */
     void setEventCallback(BlePeripheralEventCb callback, void *arg = NULL);
 
+private:
     /**
      * Start advertising / accept connections
      *
@@ -209,7 +213,6 @@ public:
      */
     BleStatus stop(void);
 
-private:
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
