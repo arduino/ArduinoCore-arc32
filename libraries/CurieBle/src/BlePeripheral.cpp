@@ -118,16 +118,16 @@ BlePeripheral::_advDataInit(void)
     /* Add device name (truncated if too long) */
     uint8_t calculated_len;
     adv_tmp = &_adv_data[_adv_data_len];
-    if (_adv_data_len + strlen(_name) + 2 <= BLE_MAX_ADV_SIZE) {
-        *adv_tmp++ = strlen(_name) + 1;
+    if (_adv_data_len + strlen(_localName) + 2 <= BLE_MAX_ADV_SIZE) {
+        *adv_tmp++ = strlen(_localName) + 1;
         *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
-        calculated_len = strlen(_name);
+        calculated_len = strlen(_localName);
     } else {
         *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
         *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
         calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
     }
-    memcpy(adv_tmp, _name, calculated_len);
+    memcpy(adv_tmp, _localName, calculated_len);
     _adv_data_len += calculated_len + 2;
 }
 
@@ -137,7 +137,7 @@ BlePeripheral::BlePeripheral(void)
     _appearance = 0;
     _state = BLE_PERIPH_STATE_NOT_READY;
 
-    ble_client_get_factory_config(&_local_bda, _name);
+    ble_client_get_factory_config(&_local_bda, _localName);
 }
 
 int BlePeripheral::begin()
@@ -155,26 +155,26 @@ void BlePeripheral::end()
 }
 
 BleStatus
-BlePeripheral::setName(const char name[])
+BlePeripheral::setLocalName(const char localName[])
 {
     if (BLE_PERIPH_STATE_NOT_READY != _state)
         return BLE_STATUS_WRONG_STATE;
 
-    memset(_name, 0, sizeof(_name));
-    if (name && name[0]) {
-        int len = strlen(name);
+    memset(_localName, 0, sizeof(_localName));
+    if (localName && localName[0]) {
+        int len = strlen(localName);
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
-        memcpy(_name, name, len);
+        memcpy(_localName, localName, len);
     }
 
     return BLE_STATUS_SUCCESS;
 }
 
 void
-BlePeripheral::getName(char name[]) const
+BlePeripheral::getLocalName(char localName[]) const
 {
-    strcpy(name, _name);
+    strcpy(localName, _localName);
 }
 
 BleStatus
@@ -208,7 +208,7 @@ BlePeripheral::init(int8_t txPower)
         return status;
     }
 
-    status = ble_client_gap_set_enable_config(_name, &_local_bda, _appearance, txPower);
+    status = ble_client_gap_set_enable_config(_localName, &_local_bda, _appearance, txPower);
     if (BLE_STATUS_SUCCESS != status) {
         return status;
     }

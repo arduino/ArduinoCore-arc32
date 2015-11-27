@@ -25,8 +25,8 @@
  * For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
  */
 
-/* Device name: Appears in advertising packets. Must not exceed 20 characters in length */
-#define DEVICE_NAME               "AE_IO"
+/* Local name: Appears in advertising packets. Must not exceed 20 characters in length */
+#define LOCAL_NAME                "AE_IO"
 /* UUID for Automation I/O service */
 #define SERVICE_UUID_AUTOMATIONIO (0x1815)
 /* UUID for digital characteristic */
@@ -187,7 +187,7 @@ void setup() {
   LOG_SERIAL.begin(115200);
 
   /* Set a name for the BLE device */
-  CHECK_STATUS(blePeripheral.setName(DEVICE_NAME));
+  CHECK_STATUS(blePeripheral.setLocalName(DEVICE_NAME));
 
   /* First, initialise the BLE device */
   CHECK_STATUS(blePeripheral.init());

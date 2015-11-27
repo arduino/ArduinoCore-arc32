@@ -106,7 +106,7 @@ void setup() {
    * We give it an arbitrary name which will appear in advertising packets
    * and can be used by remote peers to identify this BLE device
    * The name can be changed but must not exceed 20 characters in length */
-  CHECK_STATUS(blePeripheral.setName("AE_BATTMON"));
+  CHECK_STATUS(blePeripheral.setLocalName("AE_BATTMON"));
 
   /* First, initialise the BLE device */
   CHECK_STATUS(blePeripheral.init());

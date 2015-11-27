@@ -94,20 +94,20 @@ public:
      *
      * If broadcast name is not set, a default name will be used instead
      *
-     * @param name       User-defined name string for this device.  Truncated if
+     * @param localName  User-defined name string for this device.  Truncated if
      *                   more than maximum allowed string length (20 bytes).
      *
      * @note This method must be called before the init method
      */
-    BleStatus setName(const char *name);
+    BleStatus setLocalName(const char *localName);
 
     /**
      * Get the current broadcast name for the BLE Peripheral Device
      *
-     * @param name       Array to be filled with a copy of the name string.
+     * @param localName  Array to be filled with a copy of the name string.
      *                   Array size must be at least 20 bytes.
      */
-    void getName(char name[]) const;
+    void getLocalName(char localName[]) const;
 
     /**
      * Set the broadcast appearance type for the BLE Peripheral Device
@@ -227,7 +227,7 @@ private:
     BlePeripheralState   _state;
 
     boolean_t  _initialised;
-    char       _name[BLE_MAX_DEVICE_NAME+1];
+    char       _localName[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
