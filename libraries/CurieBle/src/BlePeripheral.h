@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _BLE_DEVICE_H_INCLUDED
-#define _BLE_DEVICE_H_INCLUDED
+#ifndef _BLE_PERIPHERAL_H_INCLUDED
+#define _BLE_PERIPHERAL_H_INCLUDED
 
 #include "BleService.h"
 

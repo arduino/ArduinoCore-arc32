@@ -18,7 +18,7 @@
  */
 
 #include "BleCharacteristic.h"
-#include "BleDevice.h"
+#include "BlePeripheral.h"
 #include "BleService.h"
 #include "BleCommon.h"
 #include "BleDescriptor.h"

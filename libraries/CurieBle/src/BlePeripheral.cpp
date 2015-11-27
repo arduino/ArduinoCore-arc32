@@ -17,7 +17,7 @@
  *
  */
 
-#include "BleDevice.h"
+#include "BlePeripheral.h"
 #include "BleService.h"
 
 #include "internal/ble_client.h"
