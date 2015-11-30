@@ -50,6 +50,7 @@ BleService::addCharacteristic(BleCharacteristic &ch)
     if (BLE_STATUS_SUCCESS == status) {
         ch._initialised = true;
         ch._svc_handle = _svc_handle;
+        ch._setValue();
         ch._addCCCDescriptor();
         _characteristics[_num_characteristics++] = &ch;
     }

@@ -131,24 +131,23 @@ BleCharacteristic::_setValue(void)
 {
     BleStatus status;
 
-    if (!_initialised)
-        return BLE_STATUS_WRONG_STATE;
-
     if ((_data_len > BLE_MAX_ATTR_DATA_LEN) || (_data_len > _char_data.max_len))
         return BLE_STATUS_NOT_ALLOWED;
 
-    status = ble_client_gatts_set_attribute_value(_handles.value_handle,
-                                                  _data_len, _data, 0);
-    if (BLE_STATUS_SUCCESS != status)
-        return status;
-
-    if (_notifyEnabled || _indicateEnabled) {
-        status = ble_client_gatts_send_notif_ind(_handles.value_handle, _data_len, _data, 0, _indicateEnabled);
+    if (_initialised) {
+        status = ble_client_gatts_set_attribute_value(_handles.value_handle,
+                                                      _data_len, _data, 0);
         if (BLE_STATUS_SUCCESS != status)
             return status;
 
-        if (_indicateEnabled && _event_cb)
-            _event_cb(*this, BLE_CHAR_EVENT_INDICATION_ACK, _event_cb_arg);
+        if (_notifyEnabled || _indicateEnabled) {
+            status = ble_client_gatts_send_notif_ind(_handles.value_handle, _data_len, _data, 0, _indicateEnabled);
+            if (BLE_STATUS_SUCCESS != status)
+                return status;
+
+            if (_indicateEnabled && _event_cb)
+                _event_cb(*this, BLE_CHAR_EVENT_INDICATION_ACK, _event_cb_arg);
+        }
     }
 
     return BLE_STATUS_SUCCESS;
