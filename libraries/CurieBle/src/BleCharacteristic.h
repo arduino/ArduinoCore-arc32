@@ -30,8 +30,12 @@
  * BLE Characteristic Events
  */
 enum BleCharacteristicEvent {
-    BLE_CHAR_EVENT_WRITE = 0,
-    BLE_CHAR_EVENT_INDICATION_ACK,
+    BleWritten = 0,
+    BleSubscribed = 1,
+    BleUnsubscribed = 2,
+    BleAcked = 3,
+
+    BleCharacteristicEventLast = 4
 };
 
 /* Forward declaration needed for callback function prototype below */
@@ -40,7 +44,7 @@ class BleService;
 class BlePeripheral;
 
 /** Function prototype for BLE Characteristic event callback */
-typedef void (*BleCharacteristicEventCb)(BleCharacteristic &characteristic, BleCharacteristicEvent event, void *arg);
+typedef void (*BleCharacteristicEventHandler)(BleCharacteristic &characteristic);
 
 enum BleProperty {
   // BleBroadcast            = 0x01,
@@ -105,7 +109,7 @@ public:
      * @param callback Pointer to callback function to invoke when an event occurs.
      * @param arg      [Optional] Opaque argument which will be passed in the callback.
      */
-    void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
+    void setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback);
 
 private:
     /**
@@ -209,8 +213,7 @@ private:
     boolean_t                _initialised;
     boolean_t                _connected;
     uint8_t                  _properties;
-    BleCharacteristicEventCb _event_cb;
-    void                     *_event_cb_arg;
+    BleCharacteristicEventHandler _event_handlers[BleCharacteristicEventLast];
 
     uint16_t                        _svc_handle;
     struct ble_gatts_characteristic _char_data;

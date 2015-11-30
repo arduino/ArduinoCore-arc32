@@ -78,10 +78,10 @@ blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_
     switch (event) {
     case BLE_CLIENT_GATTS_EVENT_WRITE: {
         if ((ch = p->_matchCharacteristic(event_data->wr.attr_handle))) {
-            if (ch->_event_cb) {
-                ch->_data_len = event_data->wr.len > ch->_char_data.max_len ? ch->_char_data.max_len : event_data->wr.len;
-                memcpy(ch->_data, event_data->wr.data, ch->_data_len);
-                ch->_event_cb(*ch, BLE_CHAR_EVENT_WRITE, ch->_event_cb_arg);
+            ch->_data_len = event_data->wr.len > ch->_char_data.max_len ? ch->_char_data.max_len : event_data->wr.len;
+            memcpy(ch->_data, event_data->wr.data, ch->_data_len);
+            if (ch->_event_handlers[BleWritten]) {
+                ch->_event_handlers[BleWritten](*ch);
             }
         } else if ((desc = p->_matchDescriptor(event_data->wr.attr_handle))) {
             if (desc->_event_cb) {

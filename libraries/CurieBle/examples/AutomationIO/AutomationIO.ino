@@ -156,34 +156,34 @@ void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
-void digitalOutputCharEventCb(BleUnsignedCharCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
+void digitalOutputCharWrittenEventCb(BleCharacteristic &characteristic)
 {
-  unsigned pin = (unsigned)arg;
-  unsigned char val;
+  for(unsigned int i = 0; i < ARRAY_SIZE(digitalOutputPins); i++) {
+    if (&digitalOutputPins[i].characteristic == &characteristic) {
+      unsigned pin = digitalOutputPins[i].pin;
+       /* The remote client has updated the value for this pin, get the current value */
+      unsigned char val = digitalOutputPins[i].characteristic.value();
 
-  if (BLE_CHAR_EVENT_WRITE == event) {
-    /* The remote client has updated the value for this pin, get the current value */
-    val = characteristic.value();
-    /* Update the state of the pin to reflect the new value */
-    digitalWrite(pin, VAL_TO_DIGITAL_PIN_STATE(pin, val));
-  } else
-    LOG_SERIAL.println("Got UNKNOWN characteristic event");
+      /* Update the state of the pin to reflect the new value */
+      digitalWrite(pin, VAL_TO_DIGITAL_PIN_STATE(pin, val));
+      break;
+    }
+  }  
 }
 
 /* This function will be called when a connected remote peer sets a new value for an analog output characteristic */
-void analogOutputCharEventCb(BleUnsignedShortCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
+void analogOutputCharWrittenEventCb(BleCharacteristic &characteristic)
 {
-  unsigned pin = (unsigned)arg;
-  unsigned short val;
-
-  if (BLE_CHAR_EVENT_WRITE == event) {
-    /* The remote client has updated the value for this pin, get the current value */
-    val = characteristic.value();
-    /* Update the state of the pin to reflect the new value */
-    analogWrite(pin, val);
+  for(unsigned int i = 0; i < ARRAY_SIZE(analogOutputPins); i++) {
+    if (&analogOutputPins[i].characteristic == &characteristic) {
+      unsigned pin = analogOutputPins[i].pin;
+      /* The remote client has updated the value for this pin, get the current value */
+      unsigned short val = analogOutputPins[i].characteristic.value();
+      /* Update the state of the pin to reflect the new value */
+      analogWrite(pin, val);
+      break;
+    }
   }
-  else
-    LOG_SERIAL.println("Got UNKNOWN characteristic event");
 }
 
 void setup() {
@@ -230,7 +230,7 @@ void setup() {
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))digitalOutputCharEventCb, (void*)pin->pin);
+    pin->characteristic.setEventHandler(BleWritten, digitalOutputCharWrittenEventCb);
     /* Add a number_of_digitals descriptor for this characteristic */
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
@@ -260,7 +260,7 @@ void setup() {
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))analogOutputCharEventCb, (void*)pin->pin);
+    pin->characteristic.setEventHandler(BleWritten, analogOutputCharWrittenEventCb);
   }
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE

@@ -44,6 +44,16 @@ _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 
         ch->_notifyEnabled = (cccdVal & BLE_CCCD_NOTIFY_EN_MASK) ? true : false;
         ch->_indicateEnabled = (cccdVal & BLE_CCCD_INDICATE_EN_MASK) ? true : false;
+
+        if (ch->_notifyEnabled || ch->_indicateEnabled) {
+            if (ch->_event_handlers[BleSubscribed]) {
+                ch->_event_handlers[BleSubscribed](*ch);
+            }
+        } else {
+            if (ch->_event_handlers[BleUnsubscribed]) {
+                ch->_event_handlers[BleUnsubscribed](*ch);
+            }
+        }
     }
 }
 
@@ -83,6 +93,8 @@ BleCharacteristic::BleCharacteristic(const char* uuid,
     _char_data.init_len = _data_len;
     _char_data.max_len = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
     _char_data.p_value = _data;
+
+    memset(_event_handlers, 0, sizeof(_event_handlers));
 }
 
 BleCharacteristic::BleCharacteristic(const char* uuid,
@@ -153,8 +165,8 @@ BleCharacteristic::_setValue(void)
             if (BLE_STATUS_SUCCESS != status)
                 return status;
 
-            if (_indicateEnabled && _event_cb)
-                _event_cb(*this, BLE_CHAR_EVENT_INDICATION_ACK, _event_cb_arg);
+            if (_indicateEnabled && _event_handlers[BleAcked])
+                _event_handlers[BleAcked](*this);
         }
     }
 
@@ -370,18 +382,19 @@ BleCharacteristic::valueLength() const
     return _data_len;
 }
 
-uint8_t BleCharacteristic::operator[] (int offset) const
+uint8_t
+BleCharacteristic::operator[] (int offset) const
 {
     return _data[offset];
 }
 
 void
-BleCharacteristic::setEventCallback(BleCharacteristicEventCb callback,
-                                    void *arg)
+BleCharacteristic::setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback)
 {
     noInterrupts();
-    _event_cb = callback; /* callback disabled if NULL */
-    _event_cb_arg = arg;
+    if (event < sizeof(_event_handlers)) {
+        _event_handlers[event] = callback;
+    }
     interrupts();
 }
 
