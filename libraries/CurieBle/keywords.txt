@@ -6,27 +6,79 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+BleAttribute	KEYWORD1
+BleCentral	KEYWORD1
+BleCharacteristic	KEYWORD1
+BleDescriptor	KEYWORD1
 BlePeripheral	KEYWORD1
+BleService	KEYWORD1
+BleTypedCharacteristic	KEYWORD1
+BleUuid	KEYWORD1
 
+BleCharCharacteristic	KEYWORD1
+BleUnsignedCharCharacteristic	KEYWORD1
+BleShortCharacteristic	KEYWORD1
+BleUnsignedShortCharacteristic	KEYWORD1
+BleIntCharacteristic	KEYWORD1
+BleUnsignedIntCharacteristic	KEYWORD1
+BleLongCharacteristic	KEYWORD1
+BleUnsignedLongCharacteristic	KEYWORD1
+BleFloatCharacteristic	KEYWORD1
+BleDoubleCharacteristic	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
 uuid	KEYWORD2
+type	KEYWORD2
+numAttributes	KEYWORD2
 
 connected	KEYWORD2
 address	KEYWORD2
 poll	KEYWORD2
 disconnect	KEYWORD2
 
+properties	KEYWORD2
+valueSize	KEYWORD2
+value	KEYWORD2
+valueLength	KEYWORD2
+setValue	KEYWORD2
+setEventHandler	KEYWORD2
+
+
 begin	KEYWORD2
-poll	KEYWORD2
-end	KEYWORD2
-
 setAdvertisedServiceUuid	KEYWORD2
-
 setLocalName	KEYWORD2
 setAppearance	KEYWORD2
+addAttribute	KEYWORD2
+central	KEYWORD2
 
-setEventCallback	KEYWORD2
+setValueLE	KEYWORD2
+valueLE	KEYWORD2
+setValueBE	KEYWORD2
+valueBE	KEYWORD2
+
+str	KEYWORD2
+data	KEYWORD2
+length	KEYWORD2
+
+setEventListener	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+BleTypeService	LITERAL1
+BleTypeCharacteristic	LITERAL1
+BleTypeDescriptor	LITERAL1
+
+//BleBroadcast	LITERAL1
+BleRead	LITERAL1
+BleWriteWithoutResponse	LITERAL1
+BleWrite	LITERAL1
+BleNotify	LITERAL1
+BleIndicate	LITERAL1
+
+BleConnected	LITERAL1
+BleDisconnected	LITERAL1
