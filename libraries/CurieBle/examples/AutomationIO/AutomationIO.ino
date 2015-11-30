@@ -44,6 +44,8 @@ struct DigitalPinConfig {
   unsigned                      pin;
   const char                    *name;
   BleUnsignedCharCharacteristic characteristic;
+  BleDescriptor                 userDescription;
+  BleDescriptor                 presentationFormat;
   BleDescriptor                 numDigitalsDesc;
   uint8_t                       val;
 };
@@ -52,6 +54,8 @@ struct AnalogPinConfig {
   unsigned                       pin;
   const char                     *name;
   BleUnsignedShortCharacteristic characteristic;
+  BleDescriptor                  userDescription;
+  BleDescriptor                  presentationFormat;
   uint16_t                       val;
 };
 
@@ -59,13 +63,13 @@ struct AnalogPinConfig {
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x2, 0, 0x27, 0x00, 0x1, pin + 1}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x2, 0, 0x27, 0x00, 0x1, pin + 1}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0, 0x27, 0x00, 0x1, pin + 1}, 7} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0, 0x27, 0x00, 0x1, pin + 1}, 7} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins
@@ -204,22 +208,14 @@ void setup() {
     /* Configure this pin as an input */
     pinMode(pin->pin, INPUT);
 
-    /* Add the User-Description for this pin */
-    CHECK_STATUS(pin->characteristic.addUserDescription(pin->name));
-    /* Add the Presentation-Format for this pin
-     *   format:      0x2    (unsigned 2-bit integer)
-     *   exponent:    0      (Not Applicable)
-     *   unit:        0x2700 (BLE GATT Unit UUID: unitless)
-     *   nameSpace:   0x1    (Bluetooth standard namespace)
-     *   description: pin+1  (Instance number of this characteristic)
-     */
-    CHECK_STATUS(pin->characteristic.addPresentationFormat(0x2, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = digitalRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(DIGITAL_PIN_STATE_TO_VAL(pin->pin, pin->val)));
     /* Add a number_of_digitals descriptor for this characteristic */
+    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
     CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
@@ -231,21 +227,13 @@ void setup() {
     /* Configure this pin as an output */
     pinMode(pin->pin, OUTPUT);
 
-    /* Add the User-Description for this pin */
-    CHECK_STATUS(pin->characteristic.addUserDescription(pin->name));
-    /* Add the Presentation-Format for this pin
-     *   format:      0x2    (unsigned 2-bit integer)
-     *   exponent:    0      (Not Applicable)
-     *   unit:        0x2700 (BLE GATT Unit UUID: unitless)
-     *   nameSpace:   0x1    (Bluetooth standard namespace)
-     *   description: pin+1  (Instance number of this characteristic)
-     */
-    CHECK_STATUS(pin->characteristic.addPresentationFormat(0x2, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))digitalOutputCharEventCb, (void*)pin->pin);
     /* Add a number_of_digitals descriptor for this characteristic */
+    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
     CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
@@ -254,18 +242,10 @@ void setup() {
   for (unsigned i = 0; i < ARRAY_SIZE(analogInputPins); i++) {
     AnalogPinConfig *pin = &analogInputPins[i];
 
-    /* Add the User-Description for this pin */
-    CHECK_STATUS(pin->characteristic.addUserDescription(pin->name));
-    /* Add the Presentation-Format for this pin
-     *   format:      0x6    (unsigned 16-bit integer)
-     *   exponent:    0      (Not Applicable)
-     *   unit:        0x2700 (BLE GATT Unit UUID: unitless)
-     *   nameSpace:   0x1    (Bluetooth standard namespace)
-     *   description: pin+1  (Instance number of this characteristic)
-     */
-    CHECK_STATUS(pin->characteristic.addPresentationFormat(0x6, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = analogRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(pin->val));
@@ -275,18 +255,10 @@ void setup() {
   for (unsigned i = 0; i < ARRAY_SIZE(analogOutputPins); i++) {
     AnalogPinConfig *pin = &analogOutputPins[i];
 
-    /* Add the User-Description for this pin */
-    CHECK_STATUS(pin->characteristic.addUserDescription(pin->name));
-    /* Add the Presentation-Format for this pin
-     *   format:      0x6    (unsigned 16-bit integer)
-     *   exponent:    0      (Not Applicable)
-     *   unit:        0x2700 (BLE GATT Unit UUID: unitless)
-     *   nameSpace:   0x1    (Bluetooth standard namespace)
-     *   description: pin+1  (Instance number of this characteristic)
-     */
-    CHECK_STATUS(pin->characteristic.addPresentationFormat(0x6, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))analogOutputCharEventCb, (void*)pin->pin);
   }

@@ -183,7 +183,21 @@ BleStatus BlePeripheral::begin()
             if (lastCharacteristic) {
                 BleDescriptor *descriptor = (BleDescriptor*)attribute;
 
-                status = lastCharacteristic->addDescriptor(*descriptor);
+                if (strcmp(descriptor->uuid(), "2901") == 0) {
+                    status = lastCharacteristic->addUserDescription((const char*)descriptor->value());
+                } else if (strcmp(descriptor->uuid(), "2904")) {
+                    const uint8_t* value = descriptor->value();
+
+                    const uint8_t  format = value[0];
+                    const int8_t   exponent = value[1];
+                    const uint16_t unit = value[2] << 8 | value[3];
+                    const uint8_t  nameSpace = value[4];
+                    const uint16_t description = value[5] << 8 | value[6];
+
+                    status = lastCharacteristic->addPresentationFormat(format, exponent, unit, nameSpace, description);
+                } else {
+                    status = lastCharacteristic->addDescriptor(*descriptor);
+                }
             }
         }
 

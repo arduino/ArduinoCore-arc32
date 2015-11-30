@@ -44,16 +44,13 @@ typedef void (*BleDescriptorEventCb)(BleDescriptor &descriptor, BleDescriptorEve
  */
 class BleDescriptor : public BleAttribute {
 public:
-    /**
-     * Constructor for BLE Descriptor with 16-bit UUID
-     *
-     * @param uuid16       16-bit UUID defined by BLE standard
-     * @param maxLength    Maximum data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
-     * @param clientAccess Access permissions for remote client
-     */
-    BleDescriptor(const char* uuid,
-                  const uint16_t maxLength,
-                  const BleClientAccessMode clientAccess);
+    BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength);
+    BleDescriptor(const char* uuid, const char* value);
+
+    uint16_t valueSize() const;
+    const uint8_t* value() const;
+    uint16_t valueLength() const;
+    uint8_t operator[] (int offset) const;
 
     /**
      * Set the current value of the Descriptor
@@ -110,6 +107,18 @@ public:
     void setEventCallback(BleDescriptorEventCb callback, void *arg = NULL);
 
 private:
+    /**
+     * Constructor for BLE Descriptor with 16-bit UUID
+     *
+     * @param uuid16       16-bit UUID defined by BLE standard
+     * @param maxLength    Maximum data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
+     * @param clientAccess Access permissions for remote client
+     */
+    BleDescriptor(const char* uuid,
+                  const uint16_t maxLength,
+                  const BleClientAccessMode clientAccess);
+
+
     friend class BleCharacteristic;
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 

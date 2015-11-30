@@ -79,6 +79,36 @@ public:
                       const char* value);
 
     /**
+     * Set the current value of the Characteristic
+     *
+     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
+     * @param length Length, in bytes, of valid data in the array to write.
+     *               Must not exceed maxLength set for this characteristic.
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleStatus setValue(const uint8_t value[], const uint16_t length);
+
+    /* Alternative methods to set characteristic value based on data type */
+    BleStatus setValue(const String &str);
+    BleStatus setValue(const char *cstr);
+    BleStatus setValue(const char &value);
+
+    uint16_t valueSize() const;
+    const uint8_t* value() const;
+    uint16_t valueLength() const;
+    uint8_t operator[] (int offset) const;
+
+    /**
+     * Provide a function to be called when events related to this Characteristic are raised
+     *
+     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param arg      [Optional] Opaque argument which will be passed in the callback.
+     */
+    void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
+
+private:
+    /**
      * Add an optional User-Description descriptor
      *
      * Refer to https://developer.bluetooth.org for further information
@@ -115,35 +145,6 @@ public:
                                     const uint16_t unit,
                                     const uint8_t  nameSpace,
                                     const uint16_t description);
-
-    /**
-     * Set the current value of the Characteristic
-     *
-     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
-     * @param length Length, in bytes, of valid data in the array to write.
-     *               Must not exceed maxLength set for this characteristic.
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus setValue(const uint8_t value[], const uint16_t length);
-
-    /* Alternative methods to set characteristic value based on data type */
-    BleStatus setValue(const String &str);
-    BleStatus setValue(const char *cstr);
-    BleStatus setValue(const char &value);
-
-    uint16_t valueSize() const;
-    const uint8_t* value() const;
-    uint16_t valueLength() const;
-    uint8_t operator[] (int offset) const;
-
-    /**
-     * Provide a function to be called when events related to this Characteristic are raised
-     *
-     * @param callback Pointer to callback function to invoke when an event occurs.
-     * @param arg      [Optional] Opaque argument which will be passed in the callback.
-     */
-    void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
 
 private:
     BleStatus setValue(const unsigned char &value);

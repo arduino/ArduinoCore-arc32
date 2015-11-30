@@ -48,6 +48,41 @@ BleDescriptor::BleDescriptor(const char* uuid,
         _desc.perms.wr = GAP_SEC_NO_PERMISSION;
 }
 
+BleDescriptor::BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength) :
+    BleDescriptor(uuid, valueLength, BLE_CLIENT_ACCESS_READ_ONLY)
+{
+    setValue(value, valueLength);
+}
+
+BleDescriptor::BleDescriptor(const char* uuid, const char* value) :
+    BleDescriptor(uuid, (const uint8_t*)value, strlen(value))
+{
+}
+
+uint16_t
+BleDescriptor::valueSize() const
+{
+    return _desc.length;
+}
+
+const uint8_t*
+BleDescriptor::BleDescriptor::value() const
+{
+    return _desc.p_value;
+}
+
+uint16_t
+BleDescriptor::valueLength() const
+{
+    return _desc.length;
+}
+
+uint8_t
+BleDescriptor::operator[] (int offset) const
+{
+    return _desc.p_value[offset];
+}
+
 BleStatus
 BleDescriptor::_setValue(void)
 {
