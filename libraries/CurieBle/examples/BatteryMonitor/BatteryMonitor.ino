@@ -62,29 +62,13 @@ BleDeviceAddress localAddress;
 /* Variable to keep track of last battery level reading from analog input */
 uint8_t oldBattLvl = 0;
 
-/* Print the MAC address of the remote device.
- */
-void printBleDeviceAddress(BleDeviceAddress &address, const char *label)
-{
-  LOG_SERIAL.print(label);
-  LOG_SERIAL.print(" device address: ");
-
-  /* The address data is stored in little-endian format in memory so the
-   * bytes are printed in reverse-order to display a readable address */
-  for (int i = BLE_DEVICE_ADDR_LEN-1; i >=0 ; i--)
-      LOG_SERIAL.print(address.addr[i], HEX);
-
-  LOG_SERIAL.println();
-}
-
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
 void blePeripheralConnectedEventCb(BleCentral &bleCentral)
 {
-  LOG_SERIAL.println("Got CONNECTED event");
   /* We've got a new connection.  Lets print the MAC address of the remote device */
-  BleDeviceAddress peerAddress = bleCentral.address();
-  printBleDeviceAddress(peerAddress, "remote");
+  LOG_SERIAL.println("Got CONNECTED event");
+  LOG_SERIAL.println(bleCentral.address());
 }
 
 void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
@@ -135,10 +119,6 @@ void setup() {
    * (e.g smartphones) until it receives a new connection */
   CHECK_STATUS(blePeripheral.begin());
   LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
-
-  /* Now, we can read the local MAC address of the Intel Curie BLE device */
-  CHECK_STATUS(blePeripheral.getLocalAddress(localAddress));
-  printBleDeviceAddress(localAddress, "local");
 }
 
 void loop() {

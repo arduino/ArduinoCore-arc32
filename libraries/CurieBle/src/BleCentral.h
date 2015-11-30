@@ -34,7 +34,7 @@ class BleCentral {
         bool operator!=(const BleCentral& rhs) const;
 
         bool connected();
-        BleDeviceAddress address() const;
+        const char* address() const;
         void poll();
 
         BleStatus disconnect();

@@ -130,15 +130,6 @@ public:
      */
     void setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback);
 
-    /**
-     * Get the current Bluetooth Device Address (MAC) of this Device
-     *
-     * @param address Current Bluetooth Device Address
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getLocalAddress(BleDeviceAddress &address) const;
-
 private:
     /**
      * Start advertising / accept connections
@@ -202,6 +193,15 @@ private:
      * @return BleStatus indicating success or error
      */
     BleStatus getPeerAddress(BleDeviceAddress &address) const;
+
+    /**
+     * Get the current Bluetooth Device Address (MAC) of this Device
+     *
+     * @param address Current Bluetooth Device Address
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleStatus getLocalAddress(BleDeviceAddress &address) const;
 
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);

@@ -50,8 +50,24 @@ bool BleCentral::connected() {
     return (*this && *this == _peripheral->central());
 }
 
-BleDeviceAddress BleCentral::address() const {
-    return _address;
+const char* BleCentral::address() const {
+    static String address = "";
+
+    for (int i = 5; i >= 0; i--) {
+        unsigned char a = _address.addr[i];
+
+        if (a < 0x10) {
+            address += "0";
+        }
+
+        address += String(a, 16);
+
+        if (i > 0) {
+            address += ":";
+        }
+    }
+
+    return address.c_str();
 }
 
 void BleCentral::poll() {
