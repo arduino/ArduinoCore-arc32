@@ -17,30 +17,20 @@
  *
  */
 
-#include "BleAttribute.h"
+#ifndef _BLE_UUID_H_INCLUDED
+#define _BLE_UUID_H_INCLUDED
 
-#include "BleUuid.h"
+#include "BleCommon.h"
 
-unsigned char BleAttribute::_numAttributes = 0;
-
-BleAttribute::BleAttribute(const char* uuid, enum BleAttributeType type) :
-    _uuidStr(uuid),
-    _type(type)
+class BleUuid
 {
-    BleUuid bleUuid(uuid);
+public:
+    BleUuid(const char * str);
 
-    _uuid = bleUuid.uuid();
-    _numAttributes++;
-}
+    bt_uuid uuid() const;
 
-const char* BleAttribute::uuid() const {
-    return _uuidStr;
-}
+private:
+    struct bt_uuid _uuid;
+};
 
-enum BleAttributeType BleAttribute::type() const {
-    return this->_type;
-}
-
-unsigned char BleAttribute::numAttributes() {
-    return _numAttributes;
-}
+#endif // _BLE_UUID_H_INCLUDED

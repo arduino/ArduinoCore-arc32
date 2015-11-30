@@ -26,9 +26,9 @@
 BlePeripheral blePeripheral;
 
 /* UUID for Battery service */
-#define SERVICE_UUID_BATTERY    (0x180F)
+#define SERVICE_UUID_BATTERY    "180F"
 /* UUID for Battery Level characteristic */
-#define CHAR_UUID_BATTERY_LEVEL (0x2A19)
+#define CHAR_UUID_BATTERY_LEVEL "2A19"
 
 /* Serial port to use for printing informational messages to the user */
 #define LOG_SERIAL Serial
@@ -52,8 +52,9 @@ BleService battSvc(SERVICE_UUID_BATTERY);
 
 /* BLE Battery Level Characteristic */
 BleCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
-                              sizeof(uint8_t),             /* length of data attribute for this characteristic */
-                              BleRead | BleNotify);  /* remote clients will be able to get notifications if this characteristic changes */
+                              BleRead | BleNotify, /* remote clients will be able to get notifications if this characteristic changes */
+                              sizeof(uint8_t)            /* length of data attribute for this characteristic */
+                              );  
 
 /* Bluetooth MAC address for this device */
 BleDeviceAddress localAddress;

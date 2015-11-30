@@ -21,7 +21,7 @@
 
 #include "internal/ble_client.h"
 
-#define BLE_CCCD_DESCRIPTOR_UUID 0x2092
+#define BLE_CCCD_DESCRIPTOR_UUID "2092"
 
 #define BLE_CCCD_NOTIFY_EN_MASK   0x1
 #define BLE_CCCD_INDICATE_EN_MASK 0x2
@@ -47,9 +47,10 @@ _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
     }
 }
 
-BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
-                                     const uint8_t properties) :
-    BleAttribute(BleTypeCharacteristic),
+BleCharacteristic::BleCharacteristic(const char* uuid,
+                      const uint8_t properties,
+                      const uint16_t maxLength) :
+    BleAttribute(uuid, BleTypeCharacteristic),
     _cccd(BLE_CCCD_DESCRIPTOR_UUID, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_WRITE)
 {
     _initialised = false;
@@ -82,24 +83,6 @@ BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
     _char_data.init_len = _data_len;
     _char_data.max_len = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
     _char_data.p_value = _data;
-}
-
-BleCharacteristic::BleCharacteristic(const uint16_t uuid16,
-                                     const uint16_t maxLength,
-                                     const uint8_t properties)
-    : BleCharacteristic(maxLength, properties)
-{
-    _uuid.type = BT_UUID16;
-    _uuid.uuid16 = uuid16;
-}
-
-BleCharacteristic::BleCharacteristic(const uint8_t uuid128[],
-                                     const uint16_t maxLength,
-                                     const uint8_t properties)
-    : BleCharacteristic(maxLength, properties)
-{
-    _uuid.type = BT_UUID128;
-    memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
 }
 
 BleStatus

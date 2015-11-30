@@ -51,18 +51,7 @@ public:
      * @param maxLength    Maximum data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
      * @param clientAccess Access permissions for remote client
      */
-    BleDescriptor(const uint16_t uuid16,
-                  const uint16_t maxLength,
-                  const BleClientAccessMode clientAccess);
-
-    /**
-     * Constructor for BLE Descriptor with 128-bit UUID
-     *
-     * @param uuid128      128-bit custom-defined UUID
-     * @param maxLength    Maximum data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
-     * @param clientAccess Access permissions for remote client
-     */
-    BleDescriptor(const uint8_t uuid128[],
+    BleDescriptor(const char* uuid,
                   const uint16_t maxLength,
                   const BleClientAccessMode clientAccess);
 
@@ -131,7 +120,6 @@ private:
     void      _setConnectedState(boolean_t connected);
 
     struct ble_gatts_descriptor _desc;
-    struct bt_uuid              _uuid;
     uint16_t                    _handle;
     uint16_t                    _char_handle;
     boolean_t                   _initialised;

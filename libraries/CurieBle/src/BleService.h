@@ -39,16 +39,7 @@ public:
      *
      * @param uuid16    16-bit UUID defined by BLE standard
      */
-    BleService(uint16_t uuid16);
-
-    /**
-     * Constructor for BLE Service with 128-bit UUID
-     *
-     * @param uuid128   128-bit custom-defined UUID
-     */
-    BleService(uint8_t uuid128[]);
-
-    struct bt_uuid uuid();
+    BleService(const char* uuid);
 
 protected:
     /**
@@ -92,7 +83,6 @@ private:
     boolean_t      _initialised;
     boolean_t      _connected;
     boolean_t      _primary;
-    struct bt_uuid _uuid;
     uint16_t       _svc_handle;
 
     BleService *_services[BLE_MAX_INCLUDED_SERVICES];

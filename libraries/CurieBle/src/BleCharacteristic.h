@@ -64,21 +64,9 @@ public:
      * @param clientAccess Access permissions for remote client
      * @param clientNotify Notification mode to alert remote client when characteristic value is updated (@ref setValue)
      */
-    BleCharacteristic(const uint16_t uuid16,
-                      const uint16_t maxLength,
-                      const uint8_t properties);
-
-    /**
-     * Constructor for BLE Characteristic with 128-bit UUID
-     *
-     * @param uuid128      128-bit custom-defined UUID
-     * @param maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
-     * @param clientAccess Access permissions for remote client
-     * @param clientNotify Notification mode to alert remote client when characteristic value is updated (@ref setValue)
-     */
-    BleCharacteristic(const uint8_t uuid128[],
-                      const uint16_t maxLength,
-                      const uint8_t properties);
+    BleCharacteristic(const char* uuid,
+                      const uint8_t properties,
+                      const uint16_t maxLength);
 
     /**
      * Add an optional User-Description descriptor
@@ -207,7 +195,6 @@ private:
     void                     *_event_cb_arg;
 
     uint16_t                        _svc_handle;
-    struct bt_uuid                  _uuid;
     struct ble_gatts_characteristic _char_data;
     struct ble_gatts_char_handles   _handles;
 

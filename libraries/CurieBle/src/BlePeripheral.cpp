@@ -19,6 +19,7 @@
 
 #include "BlePeripheral.h"
 #include "BleService.h"
+#include "BleUuid.h"
 
 #include "internal/ble_client.h"
 
@@ -207,8 +208,12 @@ void BlePeripheral::end()
 }
 
 BleStatus
-BlePeripheral::setAdvertisedServiceUuid(struct bt_uuid uuid)
+BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
+    BleUuid bleUuid = BleUuid(advertisedServiceUuid);
+    struct bt_uuid uuid = bleUuid.uuid();
+
+
     /* Append UUID to advertising data
      * TODO - we could pack multiple UUIDs of the same type together
      *        to conserve bytes in the advertising data payload

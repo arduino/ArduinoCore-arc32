@@ -20,25 +20,31 @@
 #ifndef _BLE_ATTRIBUTE_H_INCLUDED
 #define _BLE_ATTRIBUTE_H_INCLUDED
 
+#include "BleCommon.h"
+
 enum BleAttributeType {
-  BleTypeService        = 0x2800,
-  BleTypeCharacteristic = 0x2803,
-  BleTypeDescriptor     = 0x2900
+    BleTypeService        = 0x2800,
+    BleTypeCharacteristic = 0x2803,
+    BleTypeDescriptor     = 0x2900
 };
 
 class BleAttribute {
 public:
-    BleAttribute(enum BleAttributeType type);
+    BleAttribute(const char* uuid, enum BleAttributeType type);
 
+    const char* uuid() const;
     enum BleAttributeType type() const;
-
 
 protected:
     static unsigned char numAttributes();
 
+    struct bt_uuid _uuid;
+
 private:
+    static unsigned char _numAttributes;
+
+    const char* _uuidStr;
     enum BleAttributeType _type;
-    static unsigned char  _numAttributes;
 };
 
 #endif // _BLE_ATTRIBUTE_H_INCLUDED

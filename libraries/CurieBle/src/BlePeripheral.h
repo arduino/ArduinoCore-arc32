@@ -71,7 +71,7 @@ public:
     void poll();
     void end();
 
-    BleStatus setAdvertisedServiceUuid(struct bt_uuid advertisedServiceUuid);
+    BleStatus setAdvertisedServiceUuid(const char* advertisedServiceUuid);
 
     /**
      * Set the broadcast name for the BLE Peripheral Device

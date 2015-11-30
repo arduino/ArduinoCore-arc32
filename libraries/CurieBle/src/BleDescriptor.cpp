@@ -21,9 +21,10 @@
 
 #include "internal/ble_client.h"
 
-BleDescriptor::BleDescriptor(const uint16_t maxLength,
+BleDescriptor::BleDescriptor(const char* uuid, 
+                             const uint16_t maxLength,
                              const BleClientAccessMode clientAccess)
-    : BleAttribute(BleTypeDescriptor)
+    : BleAttribute(uuid, BleTypeDescriptor)
 {
     _initialised = false;
     _connected = false;
@@ -45,24 +46,6 @@ BleDescriptor::BleDescriptor(const uint16_t maxLength,
         _desc.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     else
         _desc.perms.wr = GAP_SEC_NO_PERMISSION;
-}
-
-BleDescriptor::BleDescriptor(const uint16_t uuid16,
-                             const uint16_t maxLength,
-                             const BleClientAccessMode clientAccess)
-    : BleDescriptor(maxLength, clientAccess)
-{
-    _uuid.type = BT_UUID16;
-    _uuid.uuid16 = uuid16;
-}
-
-BleDescriptor::BleDescriptor(const uint8_t uuid128[],
-                             const uint16_t maxLength,
-                             const BleClientAccessMode clientAccess)
-    : BleDescriptor(maxLength, clientAccess)
-{
-    _uuid.type = BT_UUID128;
-    memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
 }
 
 BleStatus

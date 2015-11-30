@@ -17,32 +17,15 @@
  *
  */
 
+#include "BleUuid.h"
+
 #include "BleService.h"
 
-BleService::BleService(void) :
-    BleAttribute(BleTypeService)
+BleService::BleService(const char* uuid) :
+    BleAttribute(uuid, BleTypeService)
 {
     _initialised = false;
     _connected = false;
-}
-
-BleService::BleService(uint16_t uuid16)
-    : BleService()
-{
-    _uuid.type = BT_UUID16;
-    _uuid.uuid16 = uuid16;
-}
-
-BleService::BleService(uint8_t uuid128[])
-    : BleService()
-{
-    _uuid.type = BT_UUID128;
-    memcpy(&_uuid.uuid128, uuid128, MAX_UUID_SIZE);
-}
-
-struct bt_uuid BleService::uuid()
-{
-    return _uuid;
 }
 
 BleStatus

@@ -28,13 +28,13 @@
 /* Local name: Appears in advertising packets. Must not exceed 20 characters in length */
 #define LOCAL_NAME                "AE_IO"
 /* UUID for Automation I/O service */
-#define SERVICE_UUID_AUTOMATIONIO (0x1815)
+#define SERVICE_UUID_AUTOMATIONIO "1815"
 /* UUID for digital characteristic */
-#define CHAR_UUID_DIGITAL         (0x2A56)
+#define CHAR_UUID_DIGITAL         "2A56"
 /* UUID for analog characteristic */
-#define CHAR_UUID_ANALOG          (0x2A58)
+#define CHAR_UUID_ANALOG          "2A58"
 /* UUID for number_of_digitals descriptor */
-#define DESC_UUID_NUMDIGITALS     (0x2909)
+#define DESC_UUID_NUMDIGITALS     "2909"
 
 /* Structure to encapsulate information for each pin
  * This helps us to build lists of pins below to allow
@@ -59,13 +59,13 @@ struct AnalogPinConfig {
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BleRead | BleNotify}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify, sizeof(uint8_t)}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, sizeof(uint8_t), BleWriteWithoutResponse | BleWrite}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite, sizeof(uint8_t)}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BleRead | BleNotify} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify, sizeof(uint16_t)} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, sizeof(uint16_t), BleWriteWithoutResponse | BleWrite} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite, sizeof(uint16_t)} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins
