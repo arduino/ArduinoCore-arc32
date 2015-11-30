@@ -294,7 +294,7 @@ void setup() {
   /* Now activate the BLE device.  It will start continuously transmitting BLE
    * advertising packets and thus become visible to remote BLE central devices
    * (e.g smartphones) until it receives a new connection */
-  blePeripheral.begin();
+  CHECK_STATUS(blePeripheral.begin());
   LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
 }
 

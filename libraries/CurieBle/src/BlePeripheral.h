@@ -67,7 +67,7 @@ public:
     BlePeripheral(void);
     virtual ~BlePeripheral();
 
-    int begin();
+    BleStatus begin();
     void poll();
     void end();
 

@@ -157,9 +157,14 @@ BlePeripheral::~BlePeripheral(void)
     }
 }
 
-int BlePeripheral::begin()
+BleStatus BlePeripheral::begin()
 {
-    init();
+    BleStatus status;
+
+    status = init();
+    if (status != BLE_STATUS_SUCCESS) {
+        return status;
+    }
 
     BleService* lastService = NULL;
     BleCharacteristic *lastCharacteristic = NULL;
@@ -170,22 +175,26 @@ int BlePeripheral::begin()
 
         if (BleTypeService == type) {
             lastService = (BleService*)attribute;
-            addPrimaryService(*lastService);
+            status = addPrimaryService(*lastService);
         } else if (BleTypeCharacteristic == type) {
             if (lastService) {
                 lastCharacteristic = (BleCharacteristic*)attribute;
-                lastService->addCharacteristic(*lastCharacteristic);
+                status = lastService->addCharacteristic(*lastCharacteristic);
             }
         } else if (BleTypeDescriptor == type) {
             if (lastCharacteristic) {
                 BleDescriptor *descriptor = (BleDescriptor*)attribute;
 
-                lastCharacteristic->addDescriptor(*descriptor);
+                status = lastCharacteristic->addDescriptor(*descriptor);
             }
+        }
+
+        if (status != BLE_STATUS_SUCCESS) {
+            return status;
         }
     }
 
-    return (BLE_STATUS_SUCCESS == start());
+    return start();
 }
 
 void BlePeripheral::poll()
