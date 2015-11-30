@@ -75,16 +75,6 @@ void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
   LOG_SERIAL.println("Got DISCONNECTED event");
 }
 
-void blePeripheralAdvTimeoutEventCb(BleCentral &bleCentral)
-{
-  LOG_SERIAL.println("Got ADV_TIMEOUT event");
-}
-
-void blePeripheralConnTimeoutEventCb(BleCentral &bleCentral)
-{
-  LOG_SERIAL.println("Got CONN_TIMEOUT event");
-}
-
 void setup() {
   pinMode(13, OUTPUT);
   LOG_SERIAL.begin(115200);
@@ -96,10 +86,8 @@ void setup() {
   CHECK_STATUS(blePeripheral.setLocalName("AE_BATTMON"));
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_ADV_TIMEOUT, blePeripheralAdvTimeoutEventCb);
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONN_TIMEOUT, blePeripheralConnTimeoutEventCb);
+  blePeripheral.setEventHandler(BleConnected, blePeripheralConnectedEventCb);
+  blePeripheral.setEventHandler(BleDisconnected, blePeripheralDisconnectedEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
 

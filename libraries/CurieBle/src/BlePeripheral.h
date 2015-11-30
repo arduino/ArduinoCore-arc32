@@ -39,20 +39,16 @@ enum BlePeripheralState {
  * BLE Peripheral Device Events
  */
 enum BlePeripheralEvent {
-    BLE_PERIPH_EVENT_CONNECTED = 0,
-    BLE_PERIPH_EVENT_DISCONNECTED,
-    BLE_PERIPH_EVENT_ADV_TIMEOUT,
-    BLE_PERIPH_EVENT_CONN_TIMEOUT,
-    BLE_PERIPH_EVENT_RSSI_CHANGE, /* NOTE: Currently unsupported */
+  BleConnected = 0,
+  BleDisconnected = 1,
 
-    BLE_PERIPH_EVENT_LAST
+  BlePeripheralEventLast = 2
 };
-
 /* Forward declaration needed for callback function prototype below */
 class BlePeripheral;
 
 /** Function prototype for BLE Peripheral Device event callback */
-typedef void (*BlePeripheralEventCb)(BleCentral &central);
+typedef void (*BlePeripheralEventHandler)(BleCentral &central);
 
 /* TODO - consider splitting this into a BleDevice base class, and derive
  * BlePeripheral and BleCentral classes from it.  For now, we only support Peripheral mode
@@ -129,7 +125,7 @@ public:
      * @param event    Event type for callback
      * @param callback Pointer to callback function to invoke when an event occurs.
      */
-    void setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback);
+    void setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandler callback);
 
 private:
     /**
@@ -217,7 +213,7 @@ private:
     BlePeripheralState   _state;
 
     boolean_t  _initialised;
-    char       _localName[BLE_MAX_DEVICE_NAME+1];
+    char       _local_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
@@ -228,13 +224,13 @@ private:
     boolean_t  _connected;
     BleCentral _central;
 
-    BlePeripheralEventCb _event_cb[BLE_PERIPH_EVENT_LAST];
+    BlePeripheralEventHandler _event_handlers[BlePeripheralEventLast];
 
     BleService *_services[BLE_MAX_PRIMARY_SERVICES];
     uint32_t    _num_services;
 
     BleAttribute** _attributes;
-    unsigned char _numAttributes;
+    unsigned char _num_attributes;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

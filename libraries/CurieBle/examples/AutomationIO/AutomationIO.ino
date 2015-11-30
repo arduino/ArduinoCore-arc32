@@ -189,8 +189,8 @@ void setup() {
   CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
-  blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
+  blePeripheral.setEventHandler(BleConnected, blePeripheralConnectedEventCb);
+  blePeripheral.setEventHandler(BleDisconnected, blePeripheralDisconnectedEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
 

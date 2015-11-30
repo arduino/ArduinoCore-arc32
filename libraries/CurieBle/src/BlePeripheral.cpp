@@ -38,12 +38,12 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
         p->_setConnectedState(true);
         p->getPeerAddress(peerAddress);
         p->_central.setAddress(peerAddress);
-        if (p->_event_cb[BLE_PERIPH_EVENT_CONNECTED])
-            p->_event_cb[BLE_PERIPH_EVENT_CONNECTED](c);
+        if (p->_event_handlers[BleConnected])
+            p->_event_handlers[BleConnected](c);
         break;
     case BLE_CLIENT_GAP_EVENT_DISCONNECTED:
-        if (p->_event_cb[BLE_PERIPH_EVENT_DISCONNECTED])
-            p->_event_cb[BLE_PERIPH_EVENT_DISCONNECTED](c);
+        if (p->_event_handlers[BleDisconnected])
+            p->_event_handlers[BleDisconnected](c);
         p->_state = BLE_PERIPH_STATE_READY;
         p->_setConnectedState(false);
         p->_central.clearAddress();
@@ -53,16 +53,13 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
         break;
     case BLE_CLIENT_GAP_EVENT_ADV_TIMEOUT:
         p->_state = BLE_PERIPH_STATE_READY;
-        if (p->_event_cb[BLE_PERIPH_EVENT_ADV_TIMEOUT])
-            p->_event_cb[BLE_PERIPH_EVENT_ADV_TIMEOUT](c);
+
         if (p->_adv_auto_restart)
             p->start();
         break;
     case BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT:
         p->_state = BLE_PERIPH_STATE_READY;
         p->_setConnectedState(false);
-        if (p->_event_cb[BLE_PERIPH_EVENT_CONN_TIMEOUT])
-            p->_event_cb[BLE_PERIPH_EVENT_CONN_TIMEOUT](c);
         if (p->_adv_auto_restart)
             p->start();
         break;
@@ -124,31 +121,31 @@ BlePeripheral::_advDataInit(void)
     /* Add device name (truncated if too long) */
     uint8_t calculated_len;
     adv_tmp = &_adv_data[_adv_data_len];
-    if (_adv_data_len + strlen(_localName) + 2 <= BLE_MAX_ADV_SIZE) {
-        *adv_tmp++ = strlen(_localName) + 1;
+    if (_adv_data_len + strlen(_local_name) + 2 <= BLE_MAX_ADV_SIZE) {
+        *adv_tmp++ = strlen(_local_name) + 1;
         *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
-        calculated_len = strlen(_localName);
+        calculated_len = strlen(_local_name);
     } else {
         *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
         *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
         calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
     }
-    memcpy(adv_tmp, _localName, calculated_len);
+    memcpy(adv_tmp, _local_name, calculated_len);
     _adv_data_len += calculated_len + 2;
 }
 
 BlePeripheral::BlePeripheral(void) :
     _central(this),
     _attributes(NULL),
-    _numAttributes(0)
+    _num_attributes(0)
 {
     _num_services = 0;
     _appearance = 0;
     _state = BLE_PERIPH_STATE_NOT_READY;
 
-    memset(_event_cb, 0x00, sizeof(_event_cb));
+    memset(_event_handlers, 0x00, sizeof(_event_handlers));
 
-    ble_client_get_factory_config(&_local_bda, _localName);
+    ble_client_get_factory_config(&_local_bda, _local_name);
 }
 
 BlePeripheral::~BlePeripheral(void)
@@ -170,7 +167,7 @@ BleStatus BlePeripheral::begin()
     BleService* lastService = NULL;
     BleCharacteristic *lastCharacteristic = NULL;
 
-    for (int i = 0; i < _numAttributes; i++) {
+    for (int i = 0; i < _num_attributes; i++) {
         BleAttribute* attribute = _attributes[i];
         BleAttributeType type = _attributes[i]->type();
 
@@ -198,11 +195,13 @@ BleStatus BlePeripheral::begin()
     return start();
 }
 
-void BlePeripheral::poll()
+void
+BlePeripheral::poll()
 {
 }
 
-void BlePeripheral::end()
+void
+BlePeripheral::end()
 {
     stop();
 }
@@ -242,12 +241,12 @@ BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 BleStatus
 BlePeripheral::setLocalName(const char localName[])
 {
-    memset(_localName, 0, sizeof(_localName));
+    memset(_local_name, 0, sizeof(_local_name));
     if (localName && localName[0]) {
         int len = strlen(localName);
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
-        memcpy(_localName, localName, len);
+        memcpy(_local_name, localName, len);
     }
 
     return BLE_STATUS_SUCCESS;
@@ -256,7 +255,7 @@ BlePeripheral::setLocalName(const char localName[])
 void
 BlePeripheral::getLocalName(char localName[]) const
 {
-    strcpy(localName, _localName);
+    strcpy(localName, _local_name);
 }
 
 BleStatus
@@ -316,7 +315,7 @@ BlePeripheral::init(int8_t txPower)
         return status;
     }
 
-    status = ble_client_gap_set_enable_config(_localName, &_local_bda, _appearance, txPower);
+    status = ble_client_gap_set_enable_config(_local_name, &_local_bda, _appearance, txPower);
     if (BLE_STATUS_SUCCESS != status) {
         return status;
     }
@@ -452,10 +451,10 @@ BlePeripheral::stop(void)
 }
 
 void
-BlePeripheral::setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback)
+BlePeripheral::setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandler callback)
 {
-  if (event < sizeof(_event_cb)) {
-    _event_cb[event] = callback;
+  if (event < sizeof(_event_handlers)) {
+    _event_handlers[event] = callback;
   }
 }
 
@@ -510,8 +509,8 @@ BlePeripheral::addAttribute(BleAttribute& attribute)
         _attributes = (BleAttribute**)malloc(BleAttribute::numAttributes() * sizeof(BleAttribute*));
     }
 
-    _attributes[_numAttributes] = &attribute;
-    _numAttributes++;
+    _attributes[_num_attributes] = &attribute;
+    _num_attributes++;
 
     return BLE_STATUS_SUCCESS;
 }
