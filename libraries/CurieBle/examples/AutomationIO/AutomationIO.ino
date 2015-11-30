@@ -41,31 +41,31 @@
  * flexible pin assignments to different modes of operation
  */
 struct DigitalPinConfig {
-  unsigned          pin;
-  const char        *name;
-  BleCharacteristic characteristic;
-  BleDescriptor     numDigitalsDesc;
-  uint8_t           val;
+  unsigned                      pin;
+  const char                    *name;
+  BleUnsignedCharCharacteristic characteristic;
+  BleDescriptor                 numDigitalsDesc;
+  uint8_t                       val;
 };
 
 struct AnalogPinConfig {
-  unsigned          pin;
-  const char        *name;
-  BleCharacteristic characteristic;
-  uint16_t          val;
+  unsigned                       pin;
+  const char                     *name;
+  BleUnsignedShortCharacteristic characteristic;
+  uint16_t                       val;
 };
 
 /* Macros to simplify the definition of a new PinConfig struct for a given pin number
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify, sizeof(uint8_t)}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite, sizeof(uint8_t)}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {DESC_UUID_NUMDIGITALS, sizeof(uint8_t), BLE_CLIENT_ACCESS_READ_ONLY} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify, sizeof(uint16_t)} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite, sizeof(uint16_t)} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins
@@ -152,14 +152,14 @@ void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
-void digitalOutputCharEventCb(BleCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
+void digitalOutputCharEventCb(BleUnsignedCharCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
 {
   unsigned pin = (unsigned)arg;
-  uint8_t val;
+  unsigned char val;
 
   if (BLE_CHAR_EVENT_WRITE == event) {
     /* The remote client has updated the value for this pin, get the current value */
-    characteristic.getValue(val);
+    val = characteristic.value();
     /* Update the state of the pin to reflect the new value */
     digitalWrite(pin, VAL_TO_DIGITAL_PIN_STATE(pin, val));
   } else
@@ -167,14 +167,14 @@ void digitalOutputCharEventCb(BleCharacteristic &characteristic, BleCharacterist
 }
 
 /* This function will be called when a connected remote peer sets a new value for an analog output characteristic */
-void analogOutputCharEventCb(BleCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
+void analogOutputCharEventCb(BleUnsignedShortCharacteristic &characteristic, BleCharacteristicEvent event, void *arg)
 {
   unsigned pin = (unsigned)arg;
-  uint16_t val;
+  unsigned short val;
 
   if (BLE_CHAR_EVENT_WRITE == event) {
     /* The remote client has updated the value for this pin, get the current value */
-    characteristic.getValue(val);
+    val = characteristic.value();
     /* Update the state of the pin to reflect the new value */
     analogWrite(pin, val);
   }
@@ -244,7 +244,7 @@ void setup() {
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventCallback(digitalOutputCharEventCb, (void*)pin->pin);
+    pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))digitalOutputCharEventCb, (void*)pin->pin);
     /* Add a number_of_digitals descriptor for this characteristic */
     CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
     CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
@@ -288,7 +288,7 @@ void setup() {
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventCallback(analogOutputCharEventCb, (void*)pin->pin);
+    pin->characteristic.setEventCallback((void (*)(BleCharacteristic&, BleCharacteristicEvent, void*))analogOutputCharEventCb, (void*)pin->pin);
   }
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE

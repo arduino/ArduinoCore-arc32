@@ -51,16 +51,15 @@ BlePeripheral blePeripheral;
 BleService battSvc(SERVICE_UUID_BATTERY);
 
 /* BLE Battery Level Characteristic */
-BleCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
-                              BleRead | BleNotify, /* remote clients will be able to get notifications if this characteristic changes */
-                              sizeof(uint8_t)            /* length of data attribute for this characteristic */
+BleUnsignedCharCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
+                              BleRead | BleNotify /* remote clients will be able to get notifications if this characteristic changes */
                               );  
 
 /* Bluetooth MAC address for this device */
 BleDeviceAddress localAddress;
 
 /* Variable to keep track of last battery level reading from analog input */
-uint8_t oldBattLvl = 0;
+unsigned char oldBattLvl = 0;
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
@@ -136,7 +135,7 @@ void loop() {
    * to vary the voltage on an analog input pin:
    * https://www.arduino.cc/en/Tutorial/Potentiometer
    */
-  uint8_t battLvl = map(analogRead(A0), 0, 1023, 0, 100);
+  unsigned char battLvl = map(analogRead(A0), 0, 1023, 0, 100);
 
   if (battLvl != oldBattLvl) {
     LOG_SERIAL.print("Battery Level % is now: ");

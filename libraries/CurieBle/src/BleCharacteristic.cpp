@@ -85,6 +85,14 @@ BleCharacteristic::BleCharacteristic(const char* uuid,
     _char_data.p_value = _data;
 }
 
+BleCharacteristic::BleCharacteristic(const char* uuid,
+                      const uint8_t properties,
+                      const char* value) :
+    BleCharacteristic(uuid, properties, strlen(value))
+{
+    setValue(value);
+}
+
 BleStatus
 BleCharacteristic::addUserDescription(const char *description)
 {
@@ -179,7 +187,7 @@ BleCharacteristic::setValue(const String &str)
 BleStatus
 BleCharacteristic::setValue(const char *cstr)
 {
-    return setValue((uint8_t *)cstr, (uint16_t) (strlen(cstr) + 1));
+    return setValue((uint8_t *)cstr, (uint16_t) (strlen(cstr)));
 }
 
 BleStatus
@@ -342,6 +350,29 @@ BleCharacteristic::getValue(unsigned long &value) const
     const uint8_t *p = _data;
     LESTREAM_TO_UINT32(p, value);
     return BLE_STATUS_SUCCESS;
+}
+
+uint16_t
+BleCharacteristic::valueSize() const
+{
+    return _char_data.max_len;
+}
+
+const uint8_t*
+BleCharacteristic::value() const
+{
+    return _data;
+}
+
+uint16_t
+BleCharacteristic::valueLength() const
+{
+    return _data_len;
+}
+
+uint8_t BleCharacteristic::operator[] (int offset) const
+{
+    return _data[offset];
 }
 
 void

@@ -57,16 +57,26 @@ enum BleProperty {
 class BleCharacteristic : public BleAttribute {
 public:
     /**
-     * Constructor for BLE Characteristic with 16-bit UUID
+     * Constructor for BLE Characteristic
      *
-     * @param uuid16       16-bit UUID defined by BLE standard
+     * @param uuid         UUID (string) defined by BLE standard
+     * @param properties   Characteristic property mask
      * @param maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
-     * @param clientAccess Access permissions for remote client
-     * @param clientNotify Notification mode to alert remote client when characteristic value is updated (@ref setValue)
      */
     BleCharacteristic(const char* uuid,
                       const uint8_t properties,
                       const uint16_t maxLength);
+
+    /**
+     * Constructor for BLE Characteristic
+     *
+     * @param uuid         UUID (string) defined by BLE standard
+     * @param properties   Characteristic property mask
+     * @param value        String value for characteristic (string length (<= BLE_MAX_ATTR_DATA_LEN))
+     */
+    BleCharacteristic(const char* uuid,
+                      const uint8_t properties,
+                      const char* value);
 
     /**
      * Add an optional User-Description descriptor
@@ -121,6 +131,21 @@ public:
     BleStatus setValue(const String &str);
     BleStatus setValue(const char *cstr);
     BleStatus setValue(const char &value);
+
+    uint16_t valueSize() const;
+    const uint8_t* value() const;
+    uint16_t valueLength() const;
+    uint8_t operator[] (int offset) const;
+
+    /**
+     * Provide a function to be called when events related to this Characteristic are raised
+     *
+     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param arg      [Optional] Opaque argument which will be passed in the callback.
+     */
+    void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
+
+private:
     BleStatus setValue(const unsigned char &value);
     BleStatus setValue(const short &value);
     BleStatus setValue(const unsigned short &value);
@@ -150,14 +175,6 @@ public:
     BleStatus getValue(unsigned int &value) const;
     BleStatus getValue(long &value) const;
     BleStatus getValue(unsigned long &value) const;
-
-    /**
-     * Provide a function to be called when events related to this Characteristic are raised
-     *
-     * @param callback Pointer to callback function to invoke when an event occurs.
-     * @param arg      [Optional] Opaque argument which will be passed in the callback.
-     */
-    void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
 
 protected:
     /**

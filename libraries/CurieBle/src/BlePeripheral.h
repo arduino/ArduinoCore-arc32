@@ -23,6 +23,7 @@
 #include "BleAddress.h"
 #include "BleCentral.h"
 #include "BleService.h"
+#include "BleTypedCharacteristics.h"
 
 /**
  * BLE Peripheral Device State
