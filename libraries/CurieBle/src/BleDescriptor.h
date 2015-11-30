@@ -20,6 +20,7 @@
 #ifndef _BLE_DESCRIPTOR_H_INCLUDED
 #define _BLE_DESCRIPTOR_H_INCLUDED
 
+#include "BleAttribute.h"
 #include "BleCommon.h"
 
 #include "internal/ble_client.h"
@@ -41,7 +42,7 @@ typedef void (*BleDescriptorEventCb)(BleDescriptor &descriptor, BleDescriptorEve
 /**
  * BLE GATT Descriptor class
  */
-class BleDescriptor {
+class BleDescriptor : public BleAttribute {
 public:
     /**
      * Constructor for BLE Descriptor with 16-bit UUID

@@ -20,6 +20,7 @@
 #ifndef _BLE_CHARACTERISTIC_H_INCLUDED
 #define _BLE_CHARACTERISTIC_H_INCLUDED
 
+#include "BleAttribute.h"
 #include "BleCommon.h"
 #include "BleDescriptor.h"
 
@@ -53,7 +54,7 @@ enum BleProperty {
 /**
  * BLE GATT Characteristic
  */
-class BleCharacteristic {
+class BleCharacteristic : public BleAttribute {
 public:
     /**
      * Constructor for BLE Characteristic with 16-bit UUID
@@ -118,17 +119,6 @@ public:
                                     const uint16_t description);
 
     /**
-     * Add a BLE Descriptor for this Characteristic
-     *
-     * @param descriptor BLE Descriptor reference
-     *
-     * @return BleStatus indicating success or error
-     *
-     * @note This method must be called only before the characteristic is added to a service
-     */
-    BleStatus addDescriptor(BleDescriptor &descriptor);
-
-    /**
      * Set the current value of the Characteristic
      *
      * @param value  New value to set, as a byte array.  Data is stored in internal copy.
@@ -180,6 +170,18 @@ public:
      * @param arg      [Optional] Opaque argument which will be passed in the callback.
      */
     void setEventCallback(BleCharacteristicEventCb callback, void *arg = NULL);
+
+protected:
+    /**
+     * Add a BLE Descriptor for this Characteristic
+     *
+     * @param descriptor BLE Descriptor reference
+     *
+     * @return BleStatus indicating success or error
+     *
+     * @note This method must be called only before the characteristic is added to a service
+     */
+    BleStatus addDescriptor(BleDescriptor &descriptor);
 
 private:
     friend class BlePeripheral;

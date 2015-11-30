@@ -48,8 +48,9 @@ _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 }
 
 BleCharacteristic::BleCharacteristic(const uint16_t maxLength,
-                                     const uint8_t properties)
-    : _cccd(BLE_CCCD_DESCRIPTOR_UUID, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_WRITE)
+                                     const uint8_t properties) :
+    BleAttribute(BleTypeCharacteristic),
+    _cccd(BLE_CCCD_DESCRIPTOR_UUID, sizeof(uint16_t), BLE_CLIENT_ACCESS_READ_WRITE)
 {
     _initialised = false;
     _connected = false;

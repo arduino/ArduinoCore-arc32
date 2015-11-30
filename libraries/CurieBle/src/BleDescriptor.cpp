@@ -23,6 +23,7 @@
 
 BleDescriptor::BleDescriptor(const uint16_t maxLength,
                              const BleClientAccessMode clientAccess)
+    : BleAttribute(BleTypeDescriptor)
 {
     _initialised = false;
     _connected = false;

@@ -188,9 +188,6 @@ void setup() {
   /* Set a name for the BLE device */
   CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
 
-  /* First, initialise the BLE device */
-  CHECK_STATUS(blePeripheral.init());
-
   /* Set a function to be called whenever a BLE GAP event occurs */
   blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
   blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
@@ -198,7 +195,7 @@ void setup() {
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
 
   /* Add the Automation I/O Service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addPrimaryService(ioService));
+  CHECK_STATUS(blePeripheral.addAttribute(ioService));
 
   /* Add characteristics for the Digital Inputs */
   for (unsigned i = 0; i < ARRAY_SIZE(digitalInputPins); i++) {
@@ -218,12 +215,12 @@ void setup() {
      */
     CHECK_STATUS(pin->characteristic.addPresentationFormat(0x2, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
-    CHECK_STATUS(ioService.addCharacteristic(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = digitalRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(DIGITAL_PIN_STATE_TO_VAL(pin->pin, pin->val)));
     /* Add a number_of_digitals descriptor for this characteristic */
-    CHECK_STATUS(pin->characteristic.addDescriptor(pin->numDigitalsDesc));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
     CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
 
@@ -245,11 +242,11 @@ void setup() {
      */
     CHECK_STATUS(pin->characteristic.addPresentationFormat(0x2, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
-    CHECK_STATUS(ioService.addCharacteristic(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventCallback(digitalOutputCharEventCb, (void*)pin->pin);
     /* Add a number_of_digitals descriptor for this characteristic */
-    CHECK_STATUS(pin->characteristic.addDescriptor(pin->numDigitalsDesc));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
     CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
 
@@ -268,7 +265,7 @@ void setup() {
      */
     CHECK_STATUS(pin->characteristic.addPresentationFormat(0x6, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
-    CHECK_STATUS(ioService.addCharacteristic(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = analogRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(pin->val));
@@ -289,7 +286,7 @@ void setup() {
      */
     CHECK_STATUS(pin->characteristic.addPresentationFormat(0x6, 0, 0x2700, 0x1, pin->pin + 1));
     /* Add the characteristic for this pin */
-    CHECK_STATUS(ioService.addCharacteristic(pin->characteristic));
+    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventCallback(analogOutputCharEventCb, (void*)pin->pin);
   }

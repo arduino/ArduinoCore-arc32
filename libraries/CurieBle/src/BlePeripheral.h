@@ -65,6 +65,7 @@ public:
      * Default Constructor for BLE Peripheral Device
      */
     BlePeripheral(void);
+    virtual ~BlePeripheral();
 
     int begin();
     void poll();
@@ -119,6 +120,43 @@ public:
     BleCentral central();
     bool connected();
 
+    BleStatus addAttribute(BleAttribute& attribute);
+
+    /**
+     * Provide a function to be called when events related to this Device are raised
+     *
+     * @param event    Event type for callback
+     * @param callback Pointer to callback function to invoke when an event occurs.
+     */
+    void setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback);
+
+    /**
+     * Get the current Bluetooth Device Address (MAC) of this Device
+     *
+     * @param address Current Bluetooth Device Address
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleStatus getLocalAddress(BleDeviceAddress &address) const;
+
+private:
+    /**
+     * Start advertising / accept connections
+     *
+     * @param advTimeout  Advertising timeout (0 = no timeout)
+     * @param autoRestart Re-start advertising automatically (unless stop() is called)
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleStatus start(uint16_t advTimeout = 0, boolean_t autoRestart = true);
+
+    /**
+     * Stop advertising / disconnect
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleStatus stop(void);
+
     /**
      * Initialise the BLE Peripheral Device
      *
@@ -157,15 +195,6 @@ public:
     BleStatus getState(BlePeripheralState &state) const;
 
     /**
-     * Get the current Bluetooth Device Address (MAC) of this Device
-     *
-     * @param address Current Bluetooth Device Address
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getLocalAddress(BleDeviceAddress &address) const;
-
-    /**
      * Get the Bluetooth Device Address (MAC) of the connected peer (if in the connected state)
      *
      * @param address Current Bluetooth Device Address
@@ -173,32 +202,6 @@ public:
      * @return BleStatus indicating success or error
      */
     BleStatus getPeerAddress(BleDeviceAddress &address) const;
-
-    /**
-     * Provide a function to be called when events related to this Device are raised
-     *
-     * @param event    Event type for callback
-     * @param callback Pointer to callback function to invoke when an event occurs.
-     */
-    void setEventCallback(BlePeripheralEvent event, BlePeripheralEventCb callback);
-
-private:
-    /**
-     * Start advertising / accept connections
-     *
-     * @param advTimeout  Advertising timeout (0 = no timeout)
-     * @param autoRestart Re-start advertising automatically (unless stop() is called)
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus start(uint16_t advTimeout = 0, boolean_t autoRestart = true);
-
-    /**
-     * Stop advertising / disconnect
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus stop(void);
 
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
@@ -228,6 +231,9 @@ private:
 
     BleService *_services[BLE_MAX_PRIMARY_SERVICES];
     uint32_t    _num_services;
+
+    BleAttribute** _attributes;
+    unsigned char _numAttributes;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

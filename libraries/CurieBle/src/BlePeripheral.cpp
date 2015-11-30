@@ -137,7 +137,9 @@ BlePeripheral::_advDataInit(void)
 }
 
 BlePeripheral::BlePeripheral(void) :
-    _central(this)
+    _central(this),
+    _attributes(NULL),
+    _numAttributes(0)
 {
     _num_services = 0;
     _appearance = 0;
@@ -148,8 +150,41 @@ BlePeripheral::BlePeripheral(void) :
     ble_client_get_factory_config(&_local_bda, _localName);
 }
 
+BlePeripheral::~BlePeripheral(void)
+{
+    if (this->_attributes) {
+        free(this->_attributes);
+    }
+}
+
 int BlePeripheral::begin()
 {
+    init();
+
+    BleService* lastService = NULL;
+    BleCharacteristic *lastCharacteristic = NULL;
+
+    for (int i = 0; i < _numAttributes; i++) {
+        BleAttribute* attribute = _attributes[i];
+        BleAttributeType type = _attributes[i]->type();
+
+        if (BleTypeService == type) {
+            lastService = (BleService*)attribute;
+            addPrimaryService(*lastService);
+        } else if (BleTypeCharacteristic == type) {
+            if (lastService) {
+                lastCharacteristic = (BleCharacteristic*)attribute;
+                lastService->addCharacteristic(*lastCharacteristic);
+            }
+        } else if (BleTypeDescriptor == type) {
+            if (lastCharacteristic) {
+                BleDescriptor *descriptor = (BleDescriptor*)attribute;
+
+                lastCharacteristic->addDescriptor(*descriptor);
+            }
+        }
+    }
+
     return (BLE_STATUS_SUCCESS == start());
 }
 
@@ -193,9 +228,6 @@ BlePeripheral::setAdvertisedServiceUuid(struct bt_uuid uuid)
 BleStatus
 BlePeripheral::setLocalName(const char localName[])
 {
-    if (BLE_PERIPH_STATE_NOT_READY != _state)
-        return BLE_STATUS_WRONG_STATE;
-
     memset(_localName, 0, sizeof(_localName));
     if (localName && localName[0]) {
         int len = strlen(localName);
@@ -216,9 +248,6 @@ BlePeripheral::getLocalName(char localName[]) const
 BleStatus
 BlePeripheral::setAppearance(const uint16_t appearance)
 {
-    if (BLE_PERIPH_STATE_NOT_READY != _state)
-        return BLE_STATUS_WRONG_STATE;
-
     _appearance = appearance;
 
     return BLE_STATUS_SUCCESS;
@@ -458,4 +487,17 @@ BlePeripheral::_setConnectedState(boolean_t connected)
 
     for (unsigned i = 0; i < _num_services; i++)
         _services[i]->_setConnectedState(connected);
+}
+
+BleStatus
+BlePeripheral::addAttribute(BleAttribute& attribute)
+{
+    if (_attributes == NULL) {
+        _attributes = (BleAttribute**)malloc(BleAttribute::numAttributes() * sizeof(BleAttribute*));
+    }
+
+    _attributes[_numAttributes] = &attribute;
+    _numAttributes++;
+
+    return BLE_STATUS_SUCCESS;
 }

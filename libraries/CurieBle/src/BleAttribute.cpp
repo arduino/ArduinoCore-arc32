@@ -17,36 +17,20 @@
  *
  */
 
-#ifndef _BLE_CENTRAL_H_INCLUDED
-#define _BLE_CENTRAL_H_INCLUDED
+#include "BleAttribute.h"
 
-#include "BleAddress.h"
-#include "BleCommon.h"
+unsigned char BleAttribute::_numAttributes = 0;
 
-class BlePeripheral;
+BleAttribute::BleAttribute(enum BleAttributeType type) :
+  _type(type)
+{
+    _numAttributes++;
+}
 
-class BleCentral {
-    friend class BlePeripheral;
+enum BleAttributeType BleAttribute::type() const {
+  return this->_type;
+}
 
-    public:
-        operator bool() const;
-        bool operator==(const BleCentral& rhs) const;
-        bool operator!=(const BleCentral& rhs) const;
-
-        bool connected();
-        BleDeviceAddress address() const;
-        void poll();
-
-        BleStatus disconnect();
-
-    // protected:
-        BleCentral(BlePeripheral* peripheral);
-        void setAddress(BleDeviceAddress address);
-        void clearAddress();
-
-    private:
-        BlePeripheral* _peripheral;
-        BleDeviceAddress  _address;
-};
-
-#endif
+unsigned char BleAttribute::numAttributes() {
+    return _numAttributes;
+}

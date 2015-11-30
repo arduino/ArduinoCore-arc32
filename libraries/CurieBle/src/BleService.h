@@ -20,6 +20,7 @@
 #ifndef _BLE_SERVICE_H_INCLUDED
 #define _BLE_SERVICE_H_INCLUDED
 
+#include "BleAttribute.h"
 #include "BleCommon.h"
 #include "BleCharacteristic.h"
 
@@ -31,7 +32,7 @@ class BlePeripheral;
 /**
  * BLE GATT Service
  */
-class BleService {
+class BleService : public BleAttribute {
 public:
     /**
      * Constructor for BLE Service with 16-bit UUID
@@ -49,6 +50,7 @@ public:
 
     struct bt_uuid uuid();
 
+protected:
     /**
      * Add a BLE Characteristic for this Service
      *

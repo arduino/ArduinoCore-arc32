@@ -111,13 +111,6 @@ void setup() {
    * The name can be changed but must not exceed 20 characters in length */
   CHECK_STATUS(blePeripheral.setLocalName("AE_BATTMON"));
 
-  /* First, initialise the BLE device */
-  CHECK_STATUS(blePeripheral.init());
-
-  /* Now, we can read the local MAC address of the Intel Curie BLE device */
-  CHECK_STATUS(blePeripheral.getLocalAddress(localAddress));
-  printBleDeviceAddress(localAddress, "local");
-
   /* Set a function to be called whenever a BLE GAP event occurs */
   blePeripheral.setEventCallback(BLE_PERIPH_EVENT_CONNECTED, blePeripheralConnectedEventCb);
   blePeripheral.setEventCallback(BLE_PERIPH_EVENT_DISCONNECTED, blePeripheralDisconnectedEventCb);
@@ -127,11 +120,11 @@ void setup() {
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
 
   /* Add the BLE Battery service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addPrimaryService(battSvc));
+  CHECK_STATUS(blePeripheral.addAttribute(battSvc));
 
   /* This service will have just one characteristic that reflects the current
    * percentage-charge level of the "battery" */
-  CHECK_STATUS(battSvc.addCharacteristic(battLvlChar));
+  CHECK_STATUS(blePeripheral.addAttribute(battLvlChar));
 
   /* Set an initial value for this characteristic; refreshed later the loop() function */
   CHECK_STATUS(battLvlChar.setValue(oldBattLvl));
@@ -141,6 +134,10 @@ void setup() {
    * (e.g smartphones) until it receives a new connection */
   blePeripheral.begin();
   LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
+
+  /* Now, we can read the local MAC address of the Intel Curie BLE device */
+  CHECK_STATUS(blePeripheral.getLocalAddress(localAddress));
+  printBleDeviceAddress(localAddress, "local");
 }
 
 void loop() {

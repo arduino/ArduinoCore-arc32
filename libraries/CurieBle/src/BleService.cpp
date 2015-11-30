@@ -19,7 +19,8 @@
 
 #include "BleService.h"
 
-BleService::BleService(void)
+BleService::BleService(void) :
+    BleAttribute(BleTypeService)
 {
     _initialised = false;
     _connected = false;
