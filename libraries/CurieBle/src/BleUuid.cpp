@@ -21,29 +21,29 @@
 
 BleUuid::BleUuid(const char * str)
 {
-  char temp[] = {0, 0, 0};
-  int strLenth = strlen(str);
-  int length = 0;
+    char temp[] = {0, 0, 0};
+    int strLenth = strlen(str);
+    int length = 0;
 
-  for (int i = 0; i < strLenth && length < MAX_UUID_SIZE; i +=2) {
-    if (str[i] == '-') {
-        i--;
-        continue;
+    for (int i = 0; i < strLenth && length < MAX_UUID_SIZE; i +=2) {
+        if (str[i] == '-') {
+            i--;
+            continue;
+        }
+
+        temp[0] = str[i - 1];
+        temp[1] = str[i];
+
+        _uuid.uuid128[length] = strtoul(temp, NULL, 16);
+
+        length++;
     }
 
-    temp[0] = str[i - 1];
-    temp[1] = str[i];
-
-    _uuid.uuid128[length] = strtoul(temp, NULL, 16);
-
-    length++;
-  }
-
-  if (length == 2) {
-    _uuid.type = BT_UUID16;
-  } else {
-    _uuid.type = BT_UUID128;
-  }
+    if (length == 2) {
+        _uuid.type = BT_UUID16;
+    } else {
+        _uuid.type = BT_UUID128;
+    }
 }
 
 bt_uuid BleUuid::uuid() const
