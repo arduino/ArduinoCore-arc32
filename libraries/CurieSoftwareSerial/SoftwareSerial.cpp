@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Implementation of SoftwareSerial Library for Arduino 101
 
 CurieSoftwareSerial library is a work in progress
-Currently only 38400 and 57600 bps is the supported baud rate for RX
-RX is only fully functional on pins 2, 4, 7, 8, 10, 11, 12.
+Rx is only functional up to 57600 bps
+Rx does not work for pin 13
 */
 
 // When set, _DEBUG co-opts pins 11 and 13 for debugging with an
@@ -57,6 +57,7 @@ int initRxCenteringDelay;
 bool firstStartBit = true;
 bool bufferOverflow = true;
 bool invertedLogic = false;
+bool isSOCGpio = false;
 
 //
 // Debugging
@@ -126,7 +127,7 @@ void SoftwareSerial::recv()
   if (invertedLogic ? digitalRead(rxPin) : !digitalRead(rxPin))
   {
     // The very first start bit the sketch receives takes about 5us longer
-    if(firstStartBit)
+    if(firstStartBit && !isSOCGpio)
     {
       delayTicks(initRxCenteringDelay);
     }
@@ -140,7 +141,7 @@ void SoftwareSerial::recv()
       // compensate for the centering delay if the ISR was too late and missed the center of the start bit.
       if(i == 8) 
       {
-        if(firstStartBit) 
+        if(firstStartBit && !isSOCGpio) 
         {
           delayTicks(initRxIntraBitDelay);
         }
@@ -175,9 +176,24 @@ void SoftwareSerial::recv()
       bufferOverflow = true;
     }
 
-    // skip the stop bit/s
-    //TODO: tweak this value depending on which gpio is used
-    delayTicks(bitDelay >> 2);
+    // wait until we see a stop bit/s or timeout;
+    uint8_t loopTimeout = 8;
+    if(invertedLogic)
+    {
+      while(digitalRead(rxPin) && (loopTimeout >0))
+      {
+        delayTicks(bitDelay >> 4);
+        loopTimeout--;
+      }
+    }
+    else
+    {
+      while(!digitalRead(rxPin) && (loopTimeout >0))
+      {
+        delayTicks(bitDelay >> 4);
+        loopTimeout--;
+      }
+    }
     DebugPulse(_DEBUG_PIN1, 1);
   }
   interrupts();
@@ -261,7 +277,11 @@ void SoftwareSerial::begin(long speed)
   _rx_delay_centering = _rx_delay_intrabit = _rx_delay_stopbit = _tx_delay = 0;
   //pre-calculate delays
   bitDelay = (F_CPU/speed);
-
+  PinDescription *p = &g_APinDescription[rxPin];
+  if (p->ulGPIOType == SOC_GPIO)
+  {
+    isSOCGpio = true;
+  }
   //toggling a pin takes about 62 ticks
   _tx_delay = bitDelay - 62;
   //reading a pin takes about 70 ticks

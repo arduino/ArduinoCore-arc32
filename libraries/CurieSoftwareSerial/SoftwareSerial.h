@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Implementation of SoftwareSerial Library for Arduino 101
 
 CurieSoftwareSerial library is a work in progress
-Currently only 38400 and 57600 bps is the supported baud rate for RX
-RX is only fully functional on pins 2, 4, 7, 8, 10, 11, 12.
+Rx is only functional up to 57600 bps
+Rx does not work for pin 13
 */
 
 #ifndef SoftwareSerial_h
