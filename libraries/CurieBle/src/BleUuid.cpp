@@ -22,12 +22,14 @@
 BleUuid::BleUuid(const char * str)
 {
     char temp[] = {0, 0, 0};
-    int strLenth = strlen(str);
+    int strLength = strlen(str);
     int length = 0;
 
-    for (int i = 0; i < strLenth && length < MAX_UUID_SIZE; i +=2) {
+    memset(&_uuid, 0x00, sizeof(_uuid));
+
+    for (int i = strLength - 1; i >= 0 && length < MAX_UUID_SIZE; i -= 2) {
         if (str[i] == '-') {
-            i--;
+            i++;
             continue;
         }
 
