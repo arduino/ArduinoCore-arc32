@@ -31,7 +31,7 @@
  * by a remote client to enable/disable receipt of notifications/indications
  */
 void
-_cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
+_cccdEventHandler(BleCentral& central, BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 {
     if (BLE_DESC_EVENT_WRITE == event) {
         BleStatus status;
@@ -47,11 +47,11 @@ _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 
         if (ch->_notifyEnabled || ch->_indicateEnabled) {
             if (ch->_event_handlers[BleSubscribed]) {
-                ch->_event_handlers[BleSubscribed](*ch);
+                ch->_event_handlers[BleSubscribed](central, *ch);
             }
         } else {
             if (ch->_event_handlers[BleUnsubscribed]) {
-                ch->_event_handlers[BleUnsubscribed](*ch);
+                ch->_event_handlers[BleUnsubscribed](central, *ch);
             }
         }
     }
@@ -65,6 +65,7 @@ BleCharacteristic::BleCharacteristic(const char* uuid,
 {
     _initialised = false;
     _connected = false;
+    _written = false;
     _notifyEnabled = false;
     _indicateEnabled = false;
 
@@ -164,9 +165,6 @@ BleCharacteristic::_setValue(void)
             status = ble_client_gatts_send_notif_ind(_handles.value_handle, _data_len, _data, 0, _indicateEnabled);
             if (BLE_STATUS_SUCCESS != status)
                 return status;
-
-            if (_indicateEnabled && _event_handlers[BleAcked])
-                _event_handlers[BleAcked](*this);
         }
     }
 
@@ -186,6 +184,23 @@ BleCharacteristic::setValue(const uint8_t value[], const uint16_t length)
     _data_len = length;
 
     return _setValue();
+}
+
+void
+BleCharacteristic::setValue(BleCentral& central, const uint8_t* value, uint16_t length)
+{
+    if (length > _char_data.max_len) {
+        length = _char_data.max_len;
+    }
+
+    memcpy(_data, value, length);
+    _data_len = length;
+
+    _written = true;
+
+    if (_event_handlers[BleUnsubscribed]) {
+        _event_handlers[BleWritten](central, *this);
+    }
 }
 
 BleStatus
@@ -386,6 +401,23 @@ uint8_t
 BleCharacteristic::operator[] (int offset) const
 {
     return _data[offset];
+}
+
+
+boolean_t
+BleCharacteristic::written()
+{
+    boolean_t written = _written;
+
+    _written = false;
+
+    return written;
+}
+
+boolean_t
+BleCharacteristic::subscribed()
+{
+    return (_notifyEnabled || _indicateEnabled);
 }
 
 void

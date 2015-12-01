@@ -72,22 +72,19 @@ void
 blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param)
 {
     BlePeripheral *p = (BlePeripheral *)param;
+    BleCentral c = p->central();
     BleCharacteristic *ch;
     BleDescriptor *desc;
 
     switch (event) {
     case BLE_CLIENT_GATTS_EVENT_WRITE: {
         if ((ch = p->_matchCharacteristic(event_data->wr.attr_handle))) {
-            ch->_data_len = event_data->wr.len > ch->_char_data.max_len ? ch->_char_data.max_len : event_data->wr.len;
-            memcpy(ch->_data, event_data->wr.data, ch->_data_len);
-            if (ch->_event_handlers[BleWritten]) {
-                ch->_event_handlers[BleWritten](*ch);
-            }
+            ch->setValue(c, event_data->wr.data, event_data->wr.len);
         } else if ((desc = p->_matchDescriptor(event_data->wr.attr_handle))) {
             if (desc->_event_cb) {
                 desc->_desc.length = event_data->wr.len > sizeof(desc->_data) ? sizeof(desc->_data) : event_data->wr.len;
                 memcpy(desc->_data, event_data->wr.data, desc->_desc.length);
-                desc->_event_cb(*desc, BLE_DESC_EVENT_WRITE, desc->_event_cb_arg);
+                desc->_event_cb(c, *desc, BLE_DESC_EVENT_WRITE, desc->_event_cb_arg);
             }
         }
     }

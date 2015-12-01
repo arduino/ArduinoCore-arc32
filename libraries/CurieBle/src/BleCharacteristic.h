@@ -21,6 +21,7 @@
 #define _BLE_CHARACTERISTIC_H_INCLUDED
 
 #include "BleAttribute.h"
+#include "BleCentral.h"
 #include "BleCommon.h"
 #include "BleDescriptor.h"
 
@@ -33,9 +34,8 @@ enum BleCharacteristicEvent {
     BleWritten = 0,
     BleSubscribed = 1,
     BleUnsubscribed = 2,
-    BleAcked = 3,
 
-    BleCharacteristicEventLast = 4
+    BleCharacteristicEventLast = 3
 };
 
 /* Forward declaration needed for callback function prototype below */
@@ -44,7 +44,7 @@ class BleService;
 class BlePeripheral;
 
 /** Function prototype for BLE Characteristic event callback */
-typedef void (*BleCharacteristicEventHandler)(BleCharacteristic &characteristic);
+typedef void (*BleCharacteristicEventHandler)(BleCentral &central, BleCharacteristic &characteristic);
 
 enum BleProperty {
   // BleBroadcast            = 0x01,
@@ -103,6 +103,9 @@ public:
     uint16_t valueLength() const;
     uint8_t operator[] (int offset) const;
 
+    boolean_t written();
+    boolean_t subscribed();
+
     /**
      * Provide a function to be called when events related to this Characteristic are raised
      *
@@ -110,6 +113,8 @@ public:
      * @param arg      [Optional] Opaque argument which will be passed in the callback.
      */
     void setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback);
+
+    void setValue(BleCentral& central, const uint8_t value[], uint16_t length);
 
 private:
     /**
@@ -197,7 +202,7 @@ private:
     friend class BlePeripheral;
     friend class BleService;
     friend void  blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
-    friend void _cccdEventHandler(BleDescriptor &cccd, BleDescriptorEvent event, void *arg);
+    friend void _cccdEventHandler(BleCentral &central, BleDescriptor &cccd, BleDescriptorEvent event, void *arg);
 
     BleCharacteristic(const uint16_t maxLength,
                       const uint8_t properties);
@@ -212,6 +217,7 @@ private:
 
     boolean_t                _initialised;
     boolean_t                _connected;
+    boolean_t                _written;
     uint8_t                  _properties;
     BleCharacteristicEventHandler _event_handlers[BleCharacteristicEventLast];
 

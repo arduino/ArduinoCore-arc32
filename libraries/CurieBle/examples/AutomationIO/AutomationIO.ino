@@ -156,7 +156,7 @@ void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
-void digitalOutputCharWrittenEventCb(BleCharacteristic &characteristic)
+void digitalOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &characteristic)
 {
   for(unsigned int i = 0; i < ARRAY_SIZE(digitalOutputPins); i++) {
     if (&digitalOutputPins[i].characteristic == &characteristic) {
@@ -172,7 +172,7 @@ void digitalOutputCharWrittenEventCb(BleCharacteristic &characteristic)
 }
 
 /* This function will be called when a connected remote peer sets a new value for an analog output characteristic */
-void analogOutputCharWrittenEventCb(BleCharacteristic &characteristic)
+void analogOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &characteristic)
 {
   for(unsigned int i = 0; i < ARRAY_SIZE(analogOutputPins); i++) {
     if (&analogOutputPins[i].characteristic == &characteristic) {

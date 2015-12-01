@@ -21,6 +21,7 @@
 #define _BLE_DESCRIPTOR_H_INCLUDED
 
 #include "BleAttribute.h"
+#include "BleCentral.h"
 #include "BleCommon.h"
 
 #include "internal/ble_client.h"
@@ -37,7 +38,7 @@ class BleCharacteristic;
 class BleDescriptor;
 
 /** Function prototype for BLE Characteristic event callback */
-typedef void (*BleDescriptorEventCb)(BleDescriptor &descriptor, BleDescriptorEvent event, void *arg);
+typedef void (*BleDescriptorEventCb)(BleCentral& central, BleDescriptor &descriptor, BleDescriptorEvent event, void *arg);
 
 /**
  * BLE GATT Descriptor class
