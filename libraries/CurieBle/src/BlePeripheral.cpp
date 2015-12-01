@@ -28,68 +28,17 @@
 void
 blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param)
 {
-    BlePeripheral *p = (BlePeripheral *)param;
-    BleCentral c = p->central();
-    BleDeviceAddress peerAddress;
-    switch (event) {
-    case BLE_CLIENT_GAP_EVENT_CONNECTED:
-        p->_state = BLE_PERIPH_STATE_CONNECTED;
-        p->_peer_bda = event_data->connected.peer_bda;
-        p->_setConnectedState(true);
-        p->getPeerAddress(peerAddress);
-        p->_central.setAddress(peerAddress);
-        if (p->_event_handlers[BleConnected])
-            p->_event_handlers[BleConnected](c);
-        break;
-    case BLE_CLIENT_GAP_EVENT_DISCONNECTED:
-        if (p->_event_handlers[BleDisconnected])
-            p->_event_handlers[BleDisconnected](c);
-        p->_state = BLE_PERIPH_STATE_READY;
-        p->_setConnectedState(false);
-        p->_central.clearAddress();
-        /* Restart advertising automatically, unless disconnected by local host */
-        if (p->_adv_auto_restart && (event_data->disconnected.hci_reason != BLE_DISCONNECT_REASON_LOCAL_TERMINATION))
-            p->start();
-        break;
-    case BLE_CLIENT_GAP_EVENT_ADV_TIMEOUT:
-        p->_state = BLE_PERIPH_STATE_READY;
+    BlePeripheral* p = (BlePeripheral*)param;
 
-        if (p->_adv_auto_restart)
-            p->start();
-        break;
-    case BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT:
-        p->_state = BLE_PERIPH_STATE_READY;
-        p->_setConnectedState(false);
-        if (p->_adv_auto_restart)
-            p->start();
-        break;
-    default:
-        break;
-    };
+    p->handleGapEvent(event, event_data);
 }
 
 void
 blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param)
 {
-    BlePeripheral *p = (BlePeripheral *)param;
-    BleCentral c = p->central();
-    BleCharacteristic *ch;
-    BleDescriptor *desc;
+    BlePeripheral* p = (BlePeripheral*)param;
 
-    switch (event) {
-    case BLE_CLIENT_GATTS_EVENT_WRITE: {
-        if ((ch = p->_matchCharacteristic(event_data->wr.attr_handle))) {
-            ch->setValue(c, event_data->wr.data, event_data->wr.len);
-        } else if ((desc = p->_matchDescriptor(event_data->wr.attr_handle))) {
-            if (desc->_event_cb) {
-                desc->_desc.length = event_data->wr.len > sizeof(desc->_data) ? sizeof(desc->_data) : event_data->wr.len;
-                memcpy(desc->_data, event_data->wr.data, desc->_desc.length);
-                desc->_event_cb(c, *desc, BLE_DESC_EVENT_WRITE, desc->_event_cb_arg);
-            }
-        }
-    }
-        break;
-    };
+    p->handleGattsEvent(event, event_data);
 }
 
 void
@@ -156,7 +105,7 @@ BleStatus BlePeripheral::begin()
 {
     BleStatus status;
 
-    status = init();
+    status = _init();
     if (status != BLE_STATUS_SUCCESS) {
         return status;
     }
@@ -170,7 +119,7 @@ BleStatus BlePeripheral::begin()
 
         if (BleTypeService == type) {
             lastService = (BleService*)attribute;
-            status = addPrimaryService(*lastService);
+            status = _addPrimaryService(*lastService);
         } else if (BleTypeCharacteristic == type) {
             if (lastService) {
                 lastCharacteristic = (BleCharacteristic*)attribute;
@@ -203,7 +152,7 @@ BleStatus BlePeripheral::begin()
         }
     }
 
-    return start();
+    return _startAdvertising();
 }
 
 void
@@ -214,7 +163,7 @@ BlePeripheral::poll()
 void
 BlePeripheral::end()
 {
-    stop();
+    _stop();
 }
 
 BleStatus
@@ -263,24 +212,12 @@ BlePeripheral::setLocalName(const char localName[])
     return BLE_STATUS_SUCCESS;
 }
 
-void
-BlePeripheral::getLocalName(char localName[]) const
-{
-    strcpy(localName, _local_name);
-}
-
 BleStatus
 BlePeripheral::setAppearance(const uint16_t appearance)
 {
     _appearance = appearance;
 
     return BLE_STATUS_SUCCESS;
-}
-
-void
-BlePeripheral::getAppearance(uint16_t &appearance) const
-{
-    appearance = _appearance;
 }
 
 BleStatus
@@ -313,9 +250,10 @@ BlePeripheral::connected()
 }
 
 BleStatus
-BlePeripheral::init(int8_t txPower)
+BlePeripheral::_init()
 {
     BleStatus status;
+    int8_t txPower = 127;
 
     if (BLE_PERIPH_STATE_NOT_READY != _state)
         return BLE_STATUS_WRONG_STATE;
@@ -341,7 +279,7 @@ BlePeripheral::init(int8_t txPower)
 }
 
 BleStatus
-BlePeripheral::addPrimaryService(BleService &service)
+BlePeripheral::_addPrimaryService(BleService &service)
 {
     BleStatus status;
 
@@ -357,7 +295,6 @@ BlePeripheral::addPrimaryService(BleService &service)
         return status;
 
     service._initialised = true;
-    service._primary = true;
     _services[_num_services++] = &service;
 
     return BLE_STATUS_SUCCESS;
@@ -371,11 +308,6 @@ BlePeripheral::_matchService(uint16_t svc_handle) const
         BleService *primary = _services[i];
         if (svc_handle == primary->_svc_handle)
             return primary;
-
-        /* Check secondary services */
-        BleService *secondary = primary->_matchService(svc_handle);
-        if (secondary)
-            return secondary;
     }
 
     /* Not found */
@@ -413,14 +345,7 @@ BlePeripheral::_matchDescriptor(uint16_t handle) const
 }
 
 BleStatus
-BlePeripheral::getState(BlePeripheralState &state) const
-{
-    state = _state;
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BlePeripheral::start(uint16_t advTimeout, boolean_t autoRestart)
+BlePeripheral::_startAdvertising()
 {
     BleStatus status;
 
@@ -435,8 +360,7 @@ BlePeripheral::start(uint16_t advTimeout, boolean_t autoRestart)
         _adv_data_set = true;
     }
 
-    _adv_auto_restart = autoRestart;
-    status = ble_client_gap_start_advertise(advTimeout);
+    status = ble_client_gap_start_advertise(0); // 0 = no timeout
     if (BLE_STATUS_SUCCESS != status)
         return status;
 
@@ -445,7 +369,7 @@ BlePeripheral::start(uint16_t advTimeout, boolean_t autoRestart)
 }
 
 BleStatus
-BlePeripheral::stop(void)
+BlePeripheral::_stop(void)
 {
     BleStatus status;
 
@@ -469,44 +393,9 @@ BlePeripheral::setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandl
   }
 }
 
-BleStatus
-BlePeripheral::getPeerAddress(BleDeviceAddress &address) const
-{
-    if (_state != BLE_PERIPH_STATE_CONNECTED)
-        return BLE_STATUS_WRONG_STATE;
-
-    address.type = (BleDeviceAddressType) _peer_bda.type;
-    memcpy(address.addr, _peer_bda.addr, sizeof(address.addr));
-
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BlePeripheral::getLocalAddress(BleDeviceAddress &address) const
-{
-    BleStatus status;
-
-    if ((BLE_PERIPH_STATE_READY != _state) &&
-        (BLE_PERIPH_STATE_CONNECTED != _state))
-        return BLE_STATUS_WRONG_STATE;
-
-    ble_addr_t bda;
-    memset(&bda, 0, sizeof(ble_addr_t));
-    status = ble_client_gap_get_bda(&bda);
-    if (BLE_STATUS_SUCCESS != status)
-        return status;
-
-    address.type = (BleDeviceAddressType) bda.type;
-    memcpy(address.addr, bda.addr, sizeof(address.addr));
-
-    return BLE_STATUS_SUCCESS;
-}
-
 void
 BlePeripheral::_setConnectedState(boolean_t connected)
 {
-    _connected = connected;
-
     /* Cascade the connected-state update to primary services */
 
     for (unsigned i = 0; i < _num_services; i++)
@@ -524,4 +413,52 @@ BlePeripheral::addAttribute(BleAttribute& attribute)
     _num_attributes++;
 
     return BLE_STATUS_SUCCESS;
+}
+
+void
+BlePeripheral::handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data)
+{
+    if (BLE_CLIENT_GAP_EVENT_CONNECTED == event) {
+        _state = BLE_PERIPH_STATE_CONNECTED;
+        _central.setAddress(event_data->connected.peer_bda);
+        _setConnectedState(true);
+
+        if (_event_handlers[BleConnected]) {
+            _event_handlers[BleConnected](_central);
+        }
+    } else if (BLE_CLIENT_GAP_EVENT_DISCONNECTED == event) {
+        if (_event_handlers[BleDisconnected])
+            _event_handlers[BleDisconnected](_central);
+
+        _state = BLE_PERIPH_STATE_READY;
+        _setConnectedState(false);
+        _central.clearAddress();
+
+        _startAdvertising();
+    } else if (BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT == event) {
+        _state = BLE_PERIPH_STATE_READY;
+        _setConnectedState(false);
+
+        _startAdvertising();
+    }
+}
+
+void BlePeripheral::handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data)
+{
+    if (BLE_CLIENT_GATTS_EVENT_WRITE == event) {
+        BleCharacteristic *ch;
+        BleDescriptor *desc;
+        BleCentral c = central();
+        uint16_t handle = event_data->wr.attr_handle;
+
+        if ((ch = _matchCharacteristic(handle))) {
+            ch->setValue(c, event_data->wr.data, event_data->wr.len);
+        } else if ((desc = _matchDescriptor(handle))) {
+            if (desc->_event_cb) {
+                desc->_desc.length = event_data->wr.len > sizeof(desc->_data) ? sizeof(desc->_data) : event_data->wr.len;
+                memcpy(desc->_data, event_data->wr.data, desc->_desc.length);
+                desc->_event_cb(c, *desc, BLE_DESC_EVENT_WRITE, desc->_event_cb_arg);
+            }
+        }
+    }
 }

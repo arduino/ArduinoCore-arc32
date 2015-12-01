@@ -53,6 +53,7 @@ public:
     uint16_t valueLength() const;
     uint8_t operator[] (int offset) const;
 
+protected:
     /**
      * Set the current value of the Descriptor
      *
@@ -65,40 +66,6 @@ public:
     BleStatus setValue(const uint8_t value[],
                        const uint16_t length);
 
-    /* Alternative methods to set descriptor value */
-    BleStatus setValue(const String &str);
-    BleStatus setValue(const char *cstr);
-    BleStatus setValue(const char &value);
-    BleStatus setValue(const unsigned char &value);
-    BleStatus setValue(const short &value);
-    BleStatus setValue(const unsigned short &value);
-    BleStatus setValue(const int &value);
-    BleStatus setValue(const unsigned int &value);
-    BleStatus setValue(const long &value);
-    BleStatus setValue(const unsigned long &value);
-
-    /**
-     * Get the current value of the Descriptor
-     *
-     * @param value  Current value, as a byte array.  Data is read from internal copy.
-     * @param length Length, in bytes, of valid data read into the array.
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getValue(uint8_t value[], uint16_t &length) const;
-
-    /* Alternative methods to get descriptor value */
-    BleStatus getValue(String &str) const; /* WARNING - assumes characteristic value is a null-terminated string */
-    BleStatus getValue(char *cstr) const;  /* WARNING - ensure cstr buffer size is big enough */
-    BleStatus getValue(char &value) const;
-    BleStatus getValue(unsigned char &value) const;
-    BleStatus getValue(short &value) const;
-    BleStatus getValue(unsigned short &value) const;
-    BleStatus getValue(int &value) const;
-    BleStatus getValue(unsigned int &value) const;
-    BleStatus getValue(long &value) const;
-    BleStatus getValue(unsigned long &value) const;
-
     /**
      * Provide a function to be called when events related to this Descriptor are raised
      *
@@ -107,7 +74,6 @@ public:
      */
     void setEventCallback(BleDescriptorEventCb callback, void *arg = NULL);
 
-private:
     /**
      * Constructor for BLE Descriptor with 16-bit UUID
      *
@@ -119,21 +85,18 @@ private:
                   const uint16_t maxLength,
                   const BleClientAccessMode clientAccess);
 
-
+    friend class BlePeripheral;
     friend class BleCharacteristic;
-    friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
+private:
     BleDescriptor(const uint16_t maxLength,
                   const BleClientAccessMode clientAccess);
 
     BleStatus _setValue(void);
-    void      _setConnectedState(boolean_t connected);
 
     struct ble_gatts_descriptor _desc;
     uint16_t                    _handle;
-    uint16_t                    _char_handle;
     boolean_t                   _initialised;
-    boolean_t                   _connected;
     BleDescriptorEventCb        _event_cb;
     void                        *_event_cb_arg;
 

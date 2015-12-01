@@ -34,26 +34,10 @@ void
 _cccdEventHandler(BleCentral& central, BleDescriptor &cccd, BleDescriptorEvent event, void *arg)
 {
     if (BLE_DESC_EVENT_WRITE == event) {
-        BleStatus status;
-        uint16_t cccdVal;
+        uint16_t cccdVal = *(uint16_t*)cccd.value();
         BleCharacteristic *ch = (BleCharacteristic *)arg;
 
-        status = cccd.getValue(cccdVal);
-        if (BLE_STATUS_SUCCESS != status)
-            return;
-
-        ch->_notifyEnabled = (cccdVal & BLE_CCCD_NOTIFY_EN_MASK) ? true : false;
-        ch->_indicateEnabled = (cccdVal & BLE_CCCD_INDICATE_EN_MASK) ? true : false;
-
-        if (ch->_notifyEnabled || ch->_indicateEnabled) {
-            if (ch->_event_handlers[BleSubscribed]) {
-                ch->_event_handlers[BleSubscribed](central, *ch);
-            }
-        } else {
-            if (ch->_event_handlers[BleUnsubscribed]) {
-                ch->_event_handlers[BleUnsubscribed](central, *ch);
-            }
-        }
+        ch->onCccdWrite(central, cccdVal);
     }
 }
 
@@ -203,182 +187,6 @@ BleCharacteristic::setValue(BleCentral& central, const uint8_t* value, uint16_t 
     }
 }
 
-BleStatus
-BleCharacteristic::setValue(const String &str)
-{
-    str.getBytes((unsigned char *)&_data, (unsigned int)_char_data.max_len, 0U);
-    _data_len = str.length() + 1;
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const char *cstr)
-{
-    return setValue((uint8_t *)cstr, (uint16_t) (strlen(cstr)));
-}
-
-BleStatus
-BleCharacteristic::setValue(const char &value)
-{
-    uint8_t *p = _data;
-    INT8_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const unsigned char &value)
-{
-    uint8_t *p = _data;
-    UINT8_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const short &value)
-{
-    uint8_t *p = _data;
-    INT16_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const unsigned short &value)
-{
-    uint8_t *p = _data;
-    UINT16_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const int &value)
-{
-    uint8_t *p = _data;
-    INT32_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const unsigned int &value)
-{
-    uint8_t *p = _data;
-    UINT32_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const long &value)
-{
-    uint8_t *p = _data;
-    INT32_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::setValue(const unsigned long &value)
-{
-    uint8_t *p = _data;
-    UINT32_TO_LESTREAM(p, value);
-    _data_len = sizeof(value);
-    return _setValue();
-}
-
-BleStatus
-BleCharacteristic::getValue(uint8_t value[], uint16_t &length) const
-{
-    if (!_initialised)
-        return BLE_STATUS_WRONG_STATE;
-
-    memcpy(value, _data, _data_len);
-    length = _data_len;
-
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(String &str) const
-{
-    str = (char *)_data;
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(char *cstr) const
-{
-    memcpy(cstr, _data, _data_len);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(char &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_INT8(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(unsigned char &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_UINT8(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(short &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_INT16(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(unsigned short &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_UINT16(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(int &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_INT32(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(unsigned int &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_UINT32(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(long &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_INT32(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
-BleStatus
-BleCharacteristic::getValue(unsigned long &value) const
-{
-    const uint8_t *p = _data;
-    LESTREAM_TO_UINT32(p, value);
-    return BLE_STATUS_SUCCESS;
-}
-
 uint16_t
 BleCharacteristic::valueSize() const
 {
@@ -402,7 +210,6 @@ BleCharacteristic::operator[] (int offset) const
 {
     return _data[offset];
 }
-
 
 boolean_t
 BleCharacteristic::written()
@@ -483,15 +290,26 @@ BleCharacteristic::_addCCCDescriptor(void)
 void
 BleCharacteristic::_setConnectedState(boolean_t connected)
 {
-    _connected = connected;
-
     /* Reset the state of these internal variables when connection is dropped */
     if (!connected) {
         _notifyEnabled = false;
         _indicateEnabled = false;
     }
+}
 
-    /* Cascade the connected-state update to descriptors */
-    for (unsigned i = 0; i < _num_descriptors; i++)
-        _descriptors[i]->_setConnectedState(connected);
+void
+BleCharacteristic::onCccdWrite(BleCentral& central, uint16_t value)
+{
+    _notifyEnabled = (value & BLE_CCCD_NOTIFY_EN_MASK) ? true : false;
+    _indicateEnabled = (value & BLE_CCCD_INDICATE_EN_MASK) ? true : false;
+
+    if (_notifyEnabled || _indicateEnabled) {
+        if (_event_handlers[BleSubscribed]) {
+            _event_handlers[BleSubscribed](central, *this);
+        }
+    } else {
+        if (_event_handlers[BleUnsubscribed]) {
+            _event_handlers[BleUnsubscribed](central, *this);
+        }
+    }
 }

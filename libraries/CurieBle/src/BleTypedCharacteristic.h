@@ -68,7 +68,7 @@ template<typename T> BleStatus BleTypedCharacteristic<T>::setValueLE(T value) {
 }
 
 template<typename T> T BleTypedCharacteristic<T>::valueLE() {
-    return getValue();
+    return value();
 }
 
 template<typename T> BleStatus BleTypedCharacteristic<T>::setValueBE(T value) {

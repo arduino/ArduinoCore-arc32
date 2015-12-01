@@ -29,28 +29,32 @@ BleCentral::BleCentral(BlePeripheral* peripheral) :
 }
 
 BleCentral::operator bool() const {
-    BleDeviceAddress zero;
+    ble_addr_t zero;
 
     memset(&zero, 0, sizeof(zero));
 
     return (memcmp(&_address, &zero, sizeof(_address)) != 0);
 }
 
-bool BleCentral::operator==(const BleCentral& rhs) const {
+bool
+BleCentral::operator==(const BleCentral& rhs) const {
     return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
 }
 
-bool BleCentral::operator!=(const BleCentral& rhs) const {
+bool
+BleCentral::operator!=(const BleCentral& rhs) const {
     return !(*this == rhs);
 }
 
-bool BleCentral::connected() {
+bool
+BleCentral::connected() {
     poll();
 
     return (*this && *this == _peripheral->central());
 }
 
-const char* BleCentral::address() const {
+const char* 
+BleCentral::address() const {
     static String address = "";
 
     for (int i = 5; i >= 0; i--) {
@@ -70,11 +74,13 @@ const char* BleCentral::address() const {
     return address.c_str();
 }
 
-void BleCentral::poll() {
+void
+BleCentral::poll() {
     _peripheral->poll();
 }
 
-BleStatus BleCentral::disconnect() {
+BleStatus
+BleCentral::disconnect() {
     if (connected()) {
         return _peripheral->disconnect();
     }
@@ -82,10 +88,12 @@ BleStatus BleCentral::disconnect() {
     return BLE_STATUS_WRONG_STATE;
 }
 
-void BleCentral::setAddress(BleDeviceAddress address) {
+void
+BleCentral::setAddress(ble_addr_t address) {
     _address = address;
 }
 
-void BleCentral::clearAddress() {
+void
+BleCentral::clearAddress() {
     memset(&_address, 0x00, sizeof(_address));
 }

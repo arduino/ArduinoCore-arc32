@@ -217,7 +217,6 @@ void setup() {
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
-    CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
 
   /* Add characteristics for the Digital Outputs */
@@ -235,7 +234,6 @@ void setup() {
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
-    CHECK_STATUS(pin->numDigitalsDesc.setValue((uint8_t) 1));
   }
 
   /* Add characteristics for the Analog Inputs */

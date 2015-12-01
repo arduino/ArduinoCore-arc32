@@ -114,9 +114,7 @@ public:
      */
     void setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback);
 
-    void setValue(BleCentral& central, const uint8_t value[], uint16_t length);
-
-private:
+protected:
     /**
      * Add an optional User-Description descriptor
      *
@@ -155,38 +153,6 @@ private:
                                     const uint8_t  nameSpace,
                                     const uint16_t description);
 
-private:
-    BleStatus setValue(const unsigned char &value);
-    BleStatus setValue(const short &value);
-    BleStatus setValue(const unsigned short &value);
-    BleStatus setValue(const int &value);
-    BleStatus setValue(const unsigned int &value);
-    BleStatus setValue(const long &value);
-    BleStatus setValue(const unsigned long &value);
-
-    /**
-     * Get the current value of the Characteristic
-     *
-     * @param value  Current value, as a byte array.  Data is read from internal copy.
-     * @param length Length, in bytes, of valid data read into the array.
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getValue(uint8_t value[], uint16_t &length) const;
-
-    /* Alternative methods to get characteristic value */
-    BleStatus getValue(String &str) const; /* WARNING - assumes characteristic value is a null-terminated string */
-    BleStatus getValue(char *cstr) const;  /* WARNING - ensure cstr buffer size is big enough */
-    BleStatus getValue(char &value) const;
-    BleStatus getValue(unsigned char &value) const;
-    BleStatus getValue(short &value) const;
-    BleStatus getValue(unsigned short &value) const;
-    BleStatus getValue(int &value) const;
-    BleStatus getValue(unsigned int &value) const;
-    BleStatus getValue(long &value) const;
-    BleStatus getValue(unsigned long &value) const;
-
-protected:
     /**
      * Add a BLE Descriptor for this Characteristic
      *
@@ -198,12 +164,15 @@ protected:
      */
     BleStatus addDescriptor(BleDescriptor &descriptor);
 
-private:
-    friend class BlePeripheral;
-    friend class BleService;
-    friend void  blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
     friend void _cccdEventHandler(BleCentral &central, BleDescriptor &cccd, BleDescriptorEvent event, void *arg);
 
+    void onCccdWrite(BleCentral& central, uint16_t value);
+    void setValue(BleCentral& central, const uint8_t value[], uint16_t length);
+
+    friend class BlePeripheral;
+    friend class BleService;
+
+private:
     BleCharacteristic(const uint16_t maxLength,
                       const uint8_t properties);
 

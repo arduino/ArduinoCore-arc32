@@ -20,7 +20,6 @@
 #ifndef _BLE_CENTRAL_H_INCLUDED
 #define _BLE_CENTRAL_H_INCLUDED
 
-#include "BleAddress.h"
 #include "BleCommon.h"
 
 class BlePeripheral;
@@ -39,14 +38,14 @@ class BleCentral {
 
         BleStatus disconnect();
 
-    // protected:
+    protected:
         BleCentral(BlePeripheral* peripheral);
-        void setAddress(BleDeviceAddress address);
+        void setAddress(ble_addr_t address);
         void clearAddress();
 
     private:
         BlePeripheral* _peripheral;
-        BleDeviceAddress  _address;
+        ble_addr_t     _address;
 };
 
 #endif

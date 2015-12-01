@@ -20,23 +20,12 @@
 #ifndef _BLE_PERIPHERAL_H_INCLUDED
 #define _BLE_PERIPHERAL_H_INCLUDED
 
-#include "BleAddress.h"
 #include "BleCentral.h"
 #include "BleService.h"
 #include "BleTypedCharacteristics.h"
 
 /**
- * BLE Peripheral Device State
- */
-enum BlePeripheralState {
-    BLE_PERIPH_STATE_NOT_READY = 0,
-    BLE_PERIPH_STATE_READY,
-    BLE_PERIPH_STATE_ADVERTISING,
-    BLE_PERIPH_STATE_CONNECTED,
-};
-
-/**
- * BLE Peripheral Device Events
+ * BLE Peripheral Events
  */
 enum BlePeripheralEvent {
   BleConnected = 0,
@@ -44,17 +33,12 @@ enum BlePeripheralEvent {
 
   BlePeripheralEventLast = 2
 };
-/* Forward declaration needed for callback function prototype below */
-class BlePeripheral;
 
 /** Function prototype for BLE Peripheral Device event callback */
 typedef void (*BlePeripheralEventHandler)(BleCentral &central);
 
-/* TODO - consider splitting this into a BleDevice base class, and derive
- * BlePeripheral and BleCentral classes from it.  For now, we only support Peripheral mode
- */
 /**
- * BLE Peripheral Device
+ * BLE Peripheral
  */
 class BlePeripheral {
 public:
@@ -83,14 +67,6 @@ public:
     BleStatus setLocalName(const char *localName);
 
     /**
-     * Get the current broadcast name for the BLE Peripheral Device
-     *
-     * @param localName  Array to be filled with a copy of the name string.
-     *                   Array size must be at least 20 bytes.
-     */
-    void getLocalName(char localName[]) const;
-
-    /**
      * Set the broadcast appearance type for the BLE Peripheral Device
      *
      * See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
@@ -104,13 +80,6 @@ public:
      * @note This method must be called before the init method
      */
     BleStatus setAppearance(const uint16_t appearance);
-
-    /**
-     * Get the current apperance type for the BLE Peripheral Device
-     *
-     * @param appearance Appearance category identifier currently set for this device
-     */
-    void getAppearance(uint16_t &appearance) const;
 
     BleStatus disconnect();
 
@@ -131,36 +100,26 @@ private:
     /**
      * Start advertising / accept connections
      *
-     * @param advTimeout  Advertising timeout (0 = no timeout)
-     * @param autoRestart Re-start advertising automatically (unless stop() is called)
-     *
      * @return BleStatus indicating success or error
      */
-    BleStatus start(uint16_t advTimeout = 0, boolean_t autoRestart = true);
+    BleStatus _startAdvertising();
 
     /**
      * Stop advertising / disconnect
      *
      * @return BleStatus indicating success or error
      */
-    BleStatus stop(void);
+    BleStatus _stop(void);
 
     /**
      * Initialise the BLE Peripheral Device
-     *
-     * @param name       [Optional] User-defined name for this device.  This defaults
-     *                   to "Arduino101nnnn" where nnnn will be substituted with the
-     *                   last 4 digits of the Bluetooth MAC address assigned for this
-     *                   device.
-     * @param appearance [Optional] Appearance 16-bit UUID from BLE Standard
-     * @param txPower    [Optional] Transmit Power in dB. Defaults to maximum +127 dB
      *
      * @return BleStatus indicating success or error
      *
      * @note This method must be called only once, and before any other methods
      *       in this class (except setName or setAppearance)
      */
-    BleStatus init(int8_t txPower = 127);
+    BleStatus _init();
 
     /**
      * Add a BLE Primary Service for this Device
@@ -171,37 +130,25 @@ private:
      *
      * @note This method must be called only before advertising is started.
      */
-    BleStatus addPrimaryService(BleService &service_uuid);
+    BleStatus _addPrimaryService(BleService &service_uuid);
 
-    /**
-     * Get the current state of this Device
-     *
-     * @param state Current state of this Device
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getState(BlePeripheralState &state) const;
-
-    /**
-     * Get the Bluetooth Device Address (MAC) of the connected peer (if in the connected state)
-     *
-     * @param address Current Bluetooth Device Address
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getPeerAddress(BleDeviceAddress &address) const;
-
-    /**
-     * Get the current Bluetooth Device Address (MAC) of this Device
-     *
-     * @param address Current Bluetooth Device Address
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus getLocalAddress(BleDeviceAddress &address) const;
-
+protected:
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
     friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
+
+    void handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data);
+    void handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data);
+
+private:
+    /**
+     * BLE Peripheral Device State
+     */
+    enum BlePeripheralState {
+        BLE_PERIPH_STATE_NOT_READY = 0,
+        BLE_PERIPH_STATE_READY,
+        BLE_PERIPH_STATE_ADVERTISING,
+        BLE_PERIPH_STATE_CONNECTED,
+    };
 
     BleService        *_matchService(uint16_t svc_handle) const;
     BleCharacteristic *_matchCharacteristic(uint16_t handle) const;
@@ -212,16 +159,12 @@ private:
 
     BlePeripheralState   _state;
 
-    boolean_t  _initialised;
     char       _local_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
     boolean_t  _adv_data_set;
-    boolean_t  _adv_auto_restart;
     ble_addr_t _local_bda;
-    ble_addr_t _peer_bda;
-    boolean_t  _connected;
     BleCentral _central;
 
     BlePeripheralEventHandler _event_handlers[BlePeripheralEventLast];

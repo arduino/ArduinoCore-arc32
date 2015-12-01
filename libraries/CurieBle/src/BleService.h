@@ -58,35 +58,17 @@ protected:
      */
     BleStatus addCharacteristic(BleCharacteristic &characteristic);
 
-    /**
-     * Add a Secondary (included) BLE Service to this Service
-     *
-     * @param service BLE Secondary Service reference
-     *
-     * @return BleStatus indicating success or error
-     *
-     * @note This method must be called only before advertising is started.
-     */
-    BleStatus addSecondaryService(BleService &service);
+
+    friend class BlePeripheral;
 
 private:
-    friend class BlePeripheral;
-    friend void  blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
-    BleService(void);
-
-    BleService        *_matchService(uint16_t svc_handle) const;
     BleCharacteristic *_matchCharacteristic(uint16_t value_handle) const;
     BleDescriptor     *_matchDescriptor(uint16_t handle) const;
     void              _setConnectedState(boolean_t connected);
 
     boolean_t      _initialised;
-    boolean_t      _connected;
-    boolean_t      _primary;
     uint16_t       _svc_handle;
-
-    BleService *_services[BLE_MAX_INCLUDED_SERVICES];
-    uint32_t    _num_services;
 
     BleCharacteristic *_characteristics[BLE_MAX_CHARACTERISTICS];
     uint32_t           _num_characteristics;
