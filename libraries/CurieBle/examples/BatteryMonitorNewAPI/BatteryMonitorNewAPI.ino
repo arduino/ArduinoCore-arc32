@@ -82,6 +82,7 @@ void loop() {
       unsigned long currentMillis = millis();
 
       if (currentMillis - previousMillis >= 200) {
+        previousMillis = currentMillis;
         updateBatteryLevel();
       }
     }
