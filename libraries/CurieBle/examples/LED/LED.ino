@@ -24,7 +24,7 @@ BlePeripheral blePeripheral;
 BleService ledService("19B10000-E8F2-537E-4F6C-D104768A1214");
 
 /* BLE Switch Characteristic - custom 128-bit UUID, read and writable by central */
-BleUnsignedCharCharacteristic switchCharacteristic("19B10000E8F2537E4F6CD104768A1214", BleRead | BleWrite);
+BleUnsignedCharCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
 
 const int ledPin = 13; // pin to use for the LED
 
