@@ -23,7 +23,7 @@
 const int ledPin = 13; // set ledPin to use on-board LED
 BlePeripheral blePeripheral; // create peripheral instance
 
-BleService ledService("19b10000e8f2537e4f6cd104768a1214"); // create service
+BleService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
 
 // create switch characteristic and allow remote device to read and write
 BleCharCharacteristic switchChar("0x2015", BleRead | BleWrite);

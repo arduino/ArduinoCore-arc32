@@ -24,13 +24,13 @@ const int ledPin = 13; // set ledPin to on-board LED
 const int buttonPin = 4; // set buttonPin to digital pin 4
 
 BlePeripheral blePeripheral; // create peripheral instance
-BleService ledService("19b10010e8f2537e4f6cd104768a1214"); // create service
+BleService ledService("19B10010-E8F2-537E-4F6C-D104768A1214"); // create service
 
 
 // create switch characteristic and allow remote device to read and write
-BleCharCharacteristic switchCharacteristic("19b10011e8f2537e4f6cd104768a1214", BleRead | BleWrite);
+BleCharCharacteristic switchCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
 // create button characteristic and allow remote device to get notifications
-BleCharCharacteristic buttonCharacteristic("19b10012e8f2537e4f6cd104768a1214", BleRead | BleNotify); // allows remote device to get notifications
+BleCharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BleRead | BleNotify); // allows remote device to get notifications
 
 void setup() {
   Serial.begin(9600);
