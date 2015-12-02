@@ -5,9 +5,9 @@
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
 name=Intel Curie (32-bit) Boards
-version=1.6.4
+version=1.0.3
 
-# SAM3 compile variables
+# Arduino 101 compile variables
 # ----------------------
 
 compiler.prefix=arc-elf32
@@ -24,8 +24,10 @@ compiler.ar.cmd=arc-elf32-ar
 compiler.ar.flags=rcs
 compiler.objcopy.cmd=arc-elf32-objcopy
 compiler.objcopy.eep.flags=-O ihex
-compiler.elf2hex.flags=-S -O binary -R .note -R .comment -R COMMON -R .eh_frame
+compiler.elf2hex.flags=-S -O ihex -R .note -R .comment -R COMMON -R .eh_frame
 compiler.elf2hex.cmd=arc-elf32-objcopy
+compiler.elf2bin.flags=-S -O binary -R .note -R .comment -R COMMON -R .eh_frame
+compiler.elf2bin.cmd=arc-elf32-objcopy
 compiler.ldflags=
 compiler.size.cmd=arc-elf32-size
 compiler.define=-DARDUINO=
@@ -69,10 +71,17 @@ recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compil
 recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
 ## Create output (.bin file)
-recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 
 ## Create output (.elf file)
 recipe.objcopy.eep.pattern="{compiler.path}{compiler.strip.cmd}" "{build.path}/{build.project_name}.elf"
+
+## Create output (.hex file)
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+
+## Save hex
+recipe.output.tmp_file={build.project_name}.hex
+recipe.output.save_file={build.project_name}.{build.variant}.hex
 
 ## Compute size
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
