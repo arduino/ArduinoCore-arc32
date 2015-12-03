@@ -45,6 +45,7 @@ blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_
 
 BlePeripheral::BlePeripheral(void) :
     _state(BLE_PERIPH_STATE_NOT_READY),
+    _advertise_service_uuid(NULL),
     _appearance(0),
     _central(this),
     _attributes(NULL),
@@ -125,31 +126,7 @@ BlePeripheral::end()
 BleStatus
 BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
-    BleUuid bleUuid = BleUuid(advertisedServiceUuid);
-    struct bt_uuid uuid = bleUuid.uuid();
-
-
-    /* Append UUID to advertising data
-     * TODO - we could pack multiple UUIDs of the same type together
-     *        to conserve bytes in the advertising data payload
-     */
-    if ((BT_UUID16 == uuid.type) &&
-        (_adv_data_len + 2 + sizeof(uint16_t) <= BLE_MAX_ADV_SIZE)) {
-        uint8_t *adv_tmp = &_adv_data[_adv_data_len];
-        *adv_tmp++ = (1 + sizeof(uint16_t)); /* Segment data length */
-        *adv_tmp++ = BLE_ADV_TYPE_INC_16_UUID;
-        UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
-        _adv_data_len += (2 + sizeof(uint16_t));
-    } else if ((BT_UUID128 == uuid.type) &&
-               (_adv_data_len + 2 + MAX_UUID_SIZE <= BLE_MAX_ADV_SIZE)) {
-        uint8_t *adv_tmp = &_adv_data[_adv_data_len];
-        *adv_tmp++ = (1 + MAX_UUID_SIZE); /* Segment data length */
-        *adv_tmp++ = BLE_ADV_TYPE_INC_128_UUID;
-        memcpy(adv_tmp, uuid.uuid128, MAX_UUID_SIZE);
-        _adv_data_len += (2 + MAX_UUID_SIZE);
-    } else {
-        /* Not enough space in advertising PDU for service UUID */
-    }
+    _advertise_service_uuid = advertisedServiceUuid;
 
     return BLE_STATUS_SUCCESS;
 }
@@ -293,6 +270,25 @@ BlePeripheral::_advDataInit(void)
         *adv_tmp++ = BLE_ADV_TYPE_APPEARANCE;
         UINT16_TO_LESTREAM(adv_tmp, _appearance);
         _adv_data_len += 4;
+    }
+
+    if (_advertise_service_uuid) {
+        BleUuid bleUuid = BleUuid(_advertise_service_uuid);
+        struct bt_uuid uuid = bleUuid.uuid();
+
+        if (BT_UUID16 == uuid.type) {
+            uint8_t *adv_tmp = &_adv_data[_adv_data_len];
+            *adv_tmp++ = (1 + sizeof(uint16_t)); /* Segment data length */
+            *adv_tmp++ = BLE_ADV_TYPE_INC_16_UUID;
+            UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
+            _adv_data_len += (2 + sizeof(uint16_t));
+        } else if (BT_UUID128 == uuid.type) {
+            uint8_t *adv_tmp = &_adv_data[_adv_data_len];
+            *adv_tmp++ = (1 + MAX_UUID_SIZE); /* Segment data length */
+            *adv_tmp++ = BLE_ADV_TYPE_INC_128_UUID;
+            memcpy(adv_tmp, uuid.uuid128, MAX_UUID_SIZE);
+            _adv_data_len += (2 + MAX_UUID_SIZE);
+        }
     }
 
     /* Add device name (truncated if too long) */

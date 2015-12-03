@@ -174,6 +174,7 @@ private:
 
     BlePeripheralState   _state;
 
+    const char* _advertise_service_uuid;
     char       _local_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
