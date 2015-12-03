@@ -49,6 +49,7 @@ void setup() {
   // assign event handlers for characteristic
   switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
 
+  switchChar.setValue(0);
 
   // advertise the service
   blePeripheral.begin();
