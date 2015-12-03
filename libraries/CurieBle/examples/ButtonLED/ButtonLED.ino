@@ -47,6 +47,9 @@ void setup() {
   blePeripheral.addAttribute(ledCharacteristic);
   blePeripheral.addAttribute(buttonCharacteristic);
 
+  ledCharacteristic.setValue(0);
+  buttonCharacteristic.setValue(0);
+
   // advertise the service
   blePeripheral.begin();
 
