@@ -28,7 +28,7 @@ BleService ledService("19B10010-E8F2-537E-4F6C-D104768A1214"); // create service
 
 
 // create switch characteristic and allow remote device to read and write
-BleCharCharacteristic switchCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
+BleCharCharacteristic ledCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
 // create button characteristic and allow remote device to get notifications
 BleCharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BleRead | BleNotify); // allows remote device to get notifications
 
@@ -38,13 +38,13 @@ void setup() {
   pinMode(buttonPin, INPUT); // use button pin 4 as an input
 
   // set a name for the BLE peripheral. Max length is 20 characters:
-  blePeripheral.setLocalName("Curie LED_Switch Sketch");
+  blePeripheral.setLocalName("Curie ButtonLed Sketch");
   // set the UUID for the service this peripheral advertises:
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 
   // add service and characteristics
   blePeripheral.addAttribute(ledService);
-  blePeripheral.addAttribute(switchCharacteristic);
+  blePeripheral.addAttribute(ledCharacteristic);
   blePeripheral.addAttribute(buttonCharacteristic);
 
   // advertise the service
@@ -65,13 +65,13 @@ void loop() {
 
   if (buttonChanged) {
     // button state changed, update characteristics
-    switchCharacteristic.setValue(buttonValue);
+    ledCharacteristic.setValue(buttonValue);
     buttonCharacteristic.setValue(buttonValue);
   }
 
-  if (switchCharacteristic.written() || buttonChanged) {
+  if (ledCharacteristic.written() || buttonChanged) {
     // update LED, either central has written to characteristic or button state has changed
-    if (switchCharacteristic.value()) {
+    if (ledCharacteristic.value()) {
       Serial.println("LED on");
       digitalWrite(ledPin, HIGH);
     } else {
