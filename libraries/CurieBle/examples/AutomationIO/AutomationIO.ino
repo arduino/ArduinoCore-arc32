@@ -183,7 +183,6 @@ void analogOutputCharWrittenEventCb(BLECentral &central, BLECharacteristic &char
 }
 
 void setup() {
-  while(!Serial);
   Serial.begin(9600);
 
   /* Set a name for the BLE device */
