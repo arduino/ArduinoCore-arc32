@@ -176,7 +176,7 @@ BLECharacteristic::add(uint16_t serviceHandle)
     if (_properties & (BLEWriteWithoutResponse | BLEWrite)) {
         char_data.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     } else {
-        char_data.perms.rd = GAP_SEC_NO_PERMISSION;
+        char_data.perms.wr = GAP_SEC_NO_PERMISSION;
     }
 
     char_data.init_len = _value_length;
