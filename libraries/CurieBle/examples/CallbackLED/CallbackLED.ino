@@ -26,7 +26,7 @@ BlePeripheral blePeripheral; // create peripheral instance
 BleService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
 
 // create switch characteristic and allow remote device to read and write
-BleCharCharacteristic switchChar("0x2015", BleRead | BleWrite);
+BleCharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
 
 void setup() {
   Serial.begin(9600);
