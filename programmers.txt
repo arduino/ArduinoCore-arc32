@@ -1,0 +1,6 @@
+arduino101fw.name=Arduino/Genuino 101 Firmware Updater
+arduino101fw.communication=USB
+arduino101fw.protocol=
+arduino101fw.program.protocol=
+arduino101fw.program.tool=arduino101load
+arduino101fw.program.extra_params=

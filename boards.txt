@@ -28,6 +28,8 @@ arduino_101.build.variant_system_lib=arc32drv_arduino101
 arduino_101.build.vid=0x8087
 arduino_101.build.pid=0x0AB6
 
+arduino_101.bootloader.tool=arduino101load
+
 ##############################################################
 
 

@@ -5,7 +5,7 @@
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
 name=Intel Curie (32-bit) Boards
-version=1.0.6
+version=1.0.7
 
 # Arduino 101 compile variables
 # ----------------------
@@ -99,3 +99,12 @@ tools.arduino101load.upload.params.verbose=verbose
 tools.arduino101load.upload.params.quiet=quiet
 
 tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" {build.path}/{build.project_name}.bin {serial.port} "{upload.verbose}"
+
+# This is needed to avoid an error on unexistent fields
+tools.arduino101load.erase.params.verbose=
+tools.arduino101load.erase.params.quiet=
+tools.arduino101load.erase.pattern=
+tools.arduino101load.bootloader.params.verbose=
+tools.arduino101load.bootloader.params.quiet=
+tools.arduino101load.bootloader.pattern={runtime.tools.flashpack.path}/flash_dfu.sh
+tools.arduino101load.bootloader.pattern.windows={runtime.tools.flashpack.path}/flash_dfu.bat
