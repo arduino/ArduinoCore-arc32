@@ -182,7 +182,13 @@ BleCharacteristic::add(uint16_t serviceHandle)
     }
 
     if (_presentation_format) {
-        memcpy(&pf_desc, _presentation_format->value(), sizeof(pf_desc));
+        const uint8_t* pfValue = _presentation_format->value();
+
+        pf_desc.format = pfValue[0];
+        pf_desc.exp = pfValue[1];
+        pf_desc.unit = (pfValue[3] << 8) | pfValue[2];
+        pf_desc.name_spc = pfValue[4];
+        pf_desc.descr = (pfValue[6] << 8) | pfValue[5];
 
         char_data.p_char_pf_desc = &pf_desc;
     }

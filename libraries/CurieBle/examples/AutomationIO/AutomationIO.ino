@@ -63,13 +63,13 @@ struct AnalogPinConfig {
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x2, 0, 0x27, 0x00, 0x1, pin + 1}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x2, 0, 0x27, 0x00, 0x1, pin + 1}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0, 0x27, 0x00, 0x1, pin + 1}, 7} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0, 0x27, 0x00, 0x1, pin + 1}, 7} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins
