@@ -98,7 +98,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setAppearance(const uint16_t appearance);
+    BleStatus setAppearance(const unsigned short appearance);
 
     /**
      * Add an attribute to the BLE Peripheral Device

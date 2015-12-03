@@ -67,8 +67,8 @@ public:
      * @param maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
      */
     BLECharacteristic(const char* uuid,
-                      const uint8_t properties,
-                      const uint16_t maxLength);
+                      const unsigned char properties,
+                      const unsigned short maxLength);
 
     /**
      * Constructor for BLE Characteristic
@@ -78,7 +78,7 @@ public:
      * @param value        String value for characteristic (string length (<= BLE_MAX_ATTR_DATA_LEN))
      */
     BLECharacteristic(const char* uuid,
-                      const uint8_t properties,
+                      const unsigned char properties,
                       const char* value);
 
     /**
@@ -90,51 +90,51 @@ public:
      *
      * @return BleStatus indicating success or error
      */
-    BleStatus setValue(const uint8_t value[], uint16_t length);
+    BleStatus setValue(const unsigned char value[], unsigned short length);
 
     /**
      * Get the property mask of the Characteristic
      *
      * @return uint8_t property mask of the Characteristic
      */
-    uint8_t properties(void) const;
+    unsigned char properties(void) const;
 
     /**
      * Get the size of the Characteristic
      *
-     * @return uint16_t size of characateristic in bytes
+     * @return unsigned size of characateristic in bytes
      */
-    uint16_t valueSize(void) const;
+    unsigned short valueSize(void) const;
 
     /**
      * Get data pointer to the value of the Characteristic
      *
-     * @return const uint8_t* pointer to the value of the Characteristic
+     * @return const unsigned char* pointer to the value of the Characteristic
      */
-    const uint8_t* value(void) const;
+    const unsigned char* value(void) const;
 
     /**
      * Get the length of the value of the Characteristic
      *
-     * @return uint16_t size of characateristic value in bytes
+     * @return unsigned short size of characateristic value in bytes
      */
-    uint16_t valueLength() const;
+    unsigned short valueLength() const;
 
-    uint8_t operator[] (int offset) const;
+    unsigned char operator[] (int offset) const;
 
     /**
      * Has the value of the Characteristic been written by a central
      *
-     * @return boolean_t true is central has updated characteristic value, otherwise false
+     * @return bool true is central has updated characteristic value, otherwise false
      */
-    boolean_t written(void);
+    bool written(void);
 
     /**
      * Is a central listening for notifications or indications of the Characteristic
      *
-     * @return boolean_t true is central is subscribed, otherwise false
+     * @return bool true is central is subscribed, otherwise false
      */
-    boolean_t subscribed(void);
+    bool subscribed(void);
 
     /**
      * Provide a function to be called when events related to this Characteristic are raised
@@ -163,11 +163,12 @@ private:
     void _setValue(const uint8_t value[], uint16_t length);
 
 private:
-    uint8_t _properties;
-    uint16_t _max_len;
-    uint8_t  _data[BLE_MAX_ATTR_DATA_LEN];
-    uint16_t _data_len;
-    boolean_t _written;
+    unsigned char _properties;
+    unsigned short _max_len;
+    unsigned char  _data[BLE_MAX_ATTR_DATA_LEN];
+    unsigned short _data_len;
+    bool _written;
+
     uint16_t _cccd_value;
     uint16_t _value_handle;
     uint16_t _cccd_handle;

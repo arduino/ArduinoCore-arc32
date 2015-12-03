@@ -33,7 +33,7 @@ class BLECentral {
          *
          * @return boolean_t true if the central is connected, otherwise false
          */
-        boolean_t connected(void);
+        bool connected(void);
 
         /**
          * Get the address of the Central in string form
@@ -55,8 +55,8 @@ class BLECentral {
         void poll(void);
 
         operator bool(void) const;
-        boolean_t operator==(const BLECentral& rhs) const;
-        boolean_t operator!=(const BLECentral& rhs) const;
+        bool operator==(const BLECentral& rhs) const;
+        bool operator!=(const BLECentral& rhs) const;
 
     protected:
         BLECentral(BLEPeripheral* peripheral);

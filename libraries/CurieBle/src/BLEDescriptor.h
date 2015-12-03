@@ -34,7 +34,7 @@ public:
      * @param value       Value of descriptor, as a byte array.  Data is stored in internal copy.
      * @param valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
      */
-    BLEDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength);
+    BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength);
 
     /**
      * Constructor for BLE Descriptor
@@ -48,19 +48,19 @@ public:
     /**
      * Get data pointer to the value of the Descriptor
      *
-     * @return const uint8_t* pointer to the value of the Descriptor
+     * @return const unsigned char* pointer to the value of the Descriptor
      */
-    const uint8_t* value(void) const;
+    const unsigned char* value(void) const;
 
     /**
      * Get the length of the value of the Descriptor
      *
-     * @return uint16_t size of Descriptor value in bytes
+     * @return unsigned short size of Descriptor value in bytes
      */
-    uint16_t valueLength(void) const;
+    unsigned short valueLength(void) const;
 
 
-    uint8_t operator[] (int offset) const;
+    unsigned char operator[] (int offset) const;
 
 protected:
     BleStatus add(uint16_t serviceHandle);

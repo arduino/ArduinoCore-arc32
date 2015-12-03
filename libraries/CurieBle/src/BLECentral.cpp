@@ -36,17 +36,17 @@ BLECentral::operator bool() const {
     return (memcmp(&_address, &zero, sizeof(_address)) != 0);
 }
 
-boolean_t
+bool
 BLECentral::operator==(const BLECentral& rhs) const {
     return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
 }
 
-boolean_t
+bool
 BLECentral::operator!=(const BLECentral& rhs) const {
     return !(*this == rhs);
 }
 
-boolean_t
+bool
 BLECentral::connected() {
     poll();
 

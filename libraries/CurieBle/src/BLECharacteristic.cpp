@@ -24,8 +24,8 @@
 #define BLE_CCCD_INDICATE_EN_MASK 0x2
 
 BLECharacteristic::BLECharacteristic(const char* uuid,
-                      const uint8_t properties,
-                      const uint16_t maxLength) :
+                      const unsigned char properties,
+                      const unsigned short maxLength) :
     BLEAttribute(uuid, BLETypeCharacteristic),
     _properties(properties),
     _data_len(0),
@@ -42,21 +42,21 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
 }
 
 BLECharacteristic::BLECharacteristic(const char* uuid,
-                      const uint8_t properties,
+                      const unsigned char properties,
                       const char* value) :
     BLECharacteristic(uuid, properties, strlen(value))
 {
     setValue((const uint8_t*)value, strlen(value));
 }
 
-uint8_t
+unsigned char
 BLECharacteristic::properties() const
 {
     return _properties;
 }
 
 BleStatus
-BLECharacteristic::setValue(const uint8_t value[], uint16_t length)
+BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
 {
     BleStatus status;
 
@@ -82,7 +82,7 @@ BLECharacteristic::setValue(const uint8_t value[], uint16_t length)
 }
 
 void
-BLECharacteristic::setValue(BLECentral& central, const uint8_t* value, uint16_t length)
+BLECharacteristic::setValue(BLECentral& central, const unsigned char* value, unsigned short length)
 {
     _setValue(value, length);
 
@@ -93,31 +93,31 @@ BLECharacteristic::setValue(BLECentral& central, const uint8_t* value, uint16_t 
     }
 }
 
-uint16_t
+unsigned short
 BLECharacteristic::valueSize() const
 {
     return _max_len;
 }
 
-const uint8_t*
+const unsigned char*
 BLECharacteristic::value() const
 {
     return _data;
 }
 
-uint16_t
+unsigned short
 BLECharacteristic::valueLength() const
 {
     return _data_len;
 }
 
-uint8_t
+unsigned char
 BLECharacteristic::operator[] (int offset) const
 {
     return _data[offset];
 }
 
-boolean_t
+bool
 BLECharacteristic::written()
 {
     boolean_t written = _written;
@@ -127,7 +127,7 @@ BLECharacteristic::written()
     return written;
 }
 
-boolean_t
+bool
 BLECharacteristic::subscribed()
 {
     return (_cccd_value & (BLE_CCCD_NOTIFY_EN_MASK | BLE_CCCD_INDICATE_EN_MASK));

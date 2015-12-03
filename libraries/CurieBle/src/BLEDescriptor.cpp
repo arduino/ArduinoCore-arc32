@@ -21,7 +21,7 @@
 
 #include "internal/ble_client.h"
 
-BLEDescriptor::BLEDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength) :
+BLEDescriptor::BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength) :
     BLEAttribute(uuid, BLETypeDescriptor)
 {
     if (valueLength > BLE_MAX_ATTR_DATA_LEN) {
@@ -37,19 +37,19 @@ BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
 {
 }
 
-const uint8_t*
+const unsigned char*
 BLEDescriptor::BLEDescriptor::value() const
 {
     return _data;
 }
 
-uint16_t
+unsigned short
 BLEDescriptor::valueLength() const
 {
     return _data_len;
 }
 
-uint8_t
+unsigned char
 BLEDescriptor::operator[] (int offset) const
 {
     return _data[offset];
