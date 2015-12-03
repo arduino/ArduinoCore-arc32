@@ -46,6 +46,7 @@ blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_
 BlePeripheral::BlePeripheral(void) :
     _state(BLE_PERIPH_STATE_NOT_READY),
     _advertise_service_uuid(NULL),
+    _local_name(NULL),
     _appearance(0),
     _central(this),
     _attributes(NULL),
@@ -54,7 +55,7 @@ BlePeripheral::BlePeripheral(void) :
 {
     memset(_event_handlers, 0x00, sizeof(_event_handlers));
 
-    ble_client_get_factory_config(&_local_bda, _local_name);
+    ble_client_get_factory_config(&_local_bda, _device_name);
 }
 
 BlePeripheral::~BlePeripheral(void)
@@ -70,6 +71,15 @@ BleStatus BlePeripheral::begin()
 
     status = _init();
     if (status != BLE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    /* Populate advertising data
+     */
+    _advDataInit();
+
+    status = ble_client_gap_wr_adv_data(_adv_data, _adv_data_len);
+    if (BLE_STATUS_SUCCESS != status) {
         return status;
     }
 
@@ -132,14 +142,22 @@ BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 }
 
 BleStatus
-BlePeripheral::setLocalName(const char localName[])
+BlePeripheral::setLocalName(const char* localName)
 {
-    memset(_local_name, 0, sizeof(_local_name));
-    if (localName && localName[0]) {
-        int len = strlen(localName);
+    _local_name = localName;
+
+    return BLE_STATUS_SUCCESS;
+}
+
+BleStatus
+BlePeripheral::setDeviceName(const char deviceName[])
+{
+    memset(_device_name, 0, sizeof(_device_name));
+    if (_device_name && _device_name[0]) {
+        int len = strlen(deviceName);
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
-        memcpy(_local_name, localName, len);
+        memcpy(_device_name, deviceName, len);
     }
 
     return BLE_STATUS_SUCCESS;
@@ -235,15 +253,10 @@ BlePeripheral::_init()
         return status;
     }
 
-    status = ble_client_gap_set_enable_config(_local_name, &_local_bda, _appearance, txPower);
+    status = ble_client_gap_set_enable_config(_device_name, &_local_bda, _appearance, txPower);
     if (BLE_STATUS_SUCCESS != status) {
         return status;
     }
-
-    /* Populate initial advertising data
-     * This may be extended later with Service UUIDs
-     */
-    _advDataInit();
 
     _state = BLE_PERIPH_STATE_READY;
     return BLE_STATUS_SUCCESS;
@@ -254,7 +267,6 @@ BlePeripheral::_advDataInit(void)
 {
     uint8_t *adv_tmp = _adv_data;
 
-    _adv_data_set = false;
     memset(_adv_data, 0, sizeof(_adv_data));
 
     /* Add flags */
@@ -282,20 +294,24 @@ BlePeripheral::_advDataInit(void)
         }
     }
 
-    /* Add device name (truncated if too long) */
-    uint8_t calculated_len;
-    adv_tmp = &_adv_data[_adv_data_len];
-    if (_adv_data_len + strlen(_local_name) + 2 <= BLE_MAX_ADV_SIZE) {
-        *adv_tmp++ = strlen(_local_name) + 1;
-        *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
-        calculated_len = strlen(_local_name);
-    } else {
-        *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
-        *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
-        calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
+    if (_local_name) {
+        /* Add device name (truncated if too long) */
+        uint8_t calculated_len;
+
+        adv_tmp = &_adv_data[_adv_data_len];
+        if (_adv_data_len + strlen(_local_name) + 2 <= BLE_MAX_ADV_SIZE) {
+            *adv_tmp++ = strlen(_local_name) + 1;
+            *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
+            calculated_len = strlen(_local_name);
+        } else {
+            *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
+            *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
+            calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
+        }
+
+        memcpy(adv_tmp, _local_name, calculated_len);
+        _adv_data_len += calculated_len + 2;
     }
-    memcpy(adv_tmp, _local_name, calculated_len);
-    _adv_data_len += calculated_len + 2;
 }
 
 BleStatus
@@ -305,14 +321,6 @@ BlePeripheral::_startAdvertising()
 
     if (_state != BLE_PERIPH_STATE_READY)
         return BLE_STATUS_WRONG_STATE;
-
-    /* Advertising data can only be set once in this way */
-    if (!_adv_data_set) {
-        status = ble_client_gap_wr_adv_data(_adv_data, _adv_data_len);
-        if (BLE_STATUS_SUCCESS != status)
-            return status;
-        _adv_data_set = true;
-    }
 
     status = ble_client_gap_start_advertise(0); // 0 = no timeout
     if (BLE_STATUS_SUCCESS != status)

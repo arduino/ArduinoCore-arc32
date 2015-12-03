@@ -56,7 +56,7 @@ public:
     virtual ~BlePeripheral(void);
 
     /**
-     * Set the service UUID thatthe BLE Peripheral Device advertises
+     * Set the service UUID that the BLE Peripheral Device advertises
      *
      * @param advertisedServiceUuid  16-bit or 128-bit UUID to advertis
      *                               (in string form)
@@ -66,16 +66,25 @@ public:
     BleStatus setAdvertisedServiceUuid(const char* advertisedServiceUuid);
 
     /**
-     * Set the broadcast name for the BLE Peripheral Device
+     * Set the local name that the BLE Peripheral Device advertises
      *
-     * If broadcast name is not set, a default name will be used instead
+     * @param localName  local name to advertise
      *
-     * @param localName  User-defined name string for this device.  Truncated if
+     * @note This method must be called before the begin method
+     */
+    BleStatus setLocalName(const char* localName);
+
+    /**
+     * Set the device name for the BLE Peripheral Device
+     *
+     * If device name is not set, a default name will be used instead
+     *
+     * @param device  User-defined name string for this device.  Truncated if
      *                   more than maximum allowed string length (20 bytes).
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setLocalName(const char *localName);
+    BleStatus setDeviceName(const char *deviceName);
 
     /**
      * Set the appearance type for the BLE Peripheral Device
@@ -174,11 +183,11 @@ private:
     BlePeripheralState   _state;
 
     const char* _advertise_service_uuid;
-    char       _local_name[BLE_MAX_DEVICE_NAME+1];
+    const char* _local_name;
+    char       _device_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
-    boolean_t  _adv_data_set;
     ble_addr_t _local_bda;
     BleCentral _central;
 
