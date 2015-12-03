@@ -108,6 +108,7 @@ void
 BlePeripheral::poll()
 {
     // no-op for now
+    delay(1);
 }
 
 void
