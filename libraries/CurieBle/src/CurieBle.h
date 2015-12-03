@@ -17,9 +17,9 @@
  *
  */
 
-#include "BleCharacteristic.h"
-#include "BleCommon.h"
-#include "BleDescriptor.h"
-#include "BleService.h"
-#include "BlePeripheral.h"
-#include "BleTypedCharacteristics.h"
+#include "BLECharacteristic.h"
+#include "BLECommon.h"
+#include "BLEDescriptor.h"
+#include "BLEService.h"
+#include "BLEPeripheral.h"
+#include "BLETypedCharacteristics.h"

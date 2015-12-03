@@ -20,17 +20,17 @@
 #ifndef _BLE_ATTRIBUTE_H_INCLUDED
 #define _BLE_ATTRIBUTE_H_INCLUDED
 
-#include "BleCommon.h"
+#include "BLECommon.h"
 
-enum BleAttributeType {
-    BleTypeService        = 0x2800,
-    BleTypeCharacteristic = 0x2803,
-    BleTypeDescriptor     = 0x2900
+enum BLEAttributeType {
+    BLETypeService        = 0x2800,
+    BLETypeCharacteristic = 0x2803,
+    BLETypeDescriptor     = 0x2900
 };
 
-class BlePeripheral;
+class BLEPeripheral;
 
-class BleAttribute {
+class BLEAttribute {
 public:
     
     /**
@@ -41,15 +41,14 @@ public:
     const char* uuid(void) const;
 
 protected:
-    friend BlePeripheral;
+    friend BLEPeripheral;
 
-    BleAttribute(const char* uuid, enum BleAttributeType type);
+    BLEAttribute(const char* uuid, enum BLEAttributeType type);
 
-    BleAttributeType type(void) const;
+    BLEAttributeType type(void) const;
     bt_uuid btUuid(void) const;
     uint16_t handle(void);
     void setHandle(uint16_t handle);
-
 
     static unsigned char numAttributes(void);
 
@@ -57,7 +56,7 @@ private:
     static unsigned char _numAttributes;
 
     const char* _uuid;
-    enum BleAttributeType _type;
+    enum BLEAttributeType _type;
     uint16_t _handle;
 };
 

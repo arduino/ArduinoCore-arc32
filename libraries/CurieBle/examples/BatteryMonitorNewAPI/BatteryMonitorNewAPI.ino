@@ -23,14 +23,14 @@
  */
 
 /* BLE Peripheral Device (this Intel Curie device) */
-BlePeripheral blePeripheral;
+BLEPeripheral blePeripheral;
 
 /* BLE Battery Service */
-BleService battSvc("180F");
+BLEService battSvc("180F");
 
 /* BLE Battery Level Characteristic */
-BleUnsignedCharCharacteristic battLvlChar("2A19",     /* standard 16-bit characteristic UUID */
-                              BleRead | BleNotify /* remote clients will be able to get notifications if this characteristic changes */
+BLEUnsignedCharCharacteristic battLvlChar("2A19",     /* standard 16-bit characteristic UUID */
+                              BLERead | BLENotify /* remote clients will be able to get notifications if this characteristic changes */
                               );  
 
 /* Variable to keep track of last battery level reading from analog input */
@@ -67,7 +67,7 @@ void setup() {
 }
 
 void loop() {
-  BleCentral central = blePeripheral.central();
+  BLECentral central = blePeripheral.central();
 
   if (central) {
     // central connected to peripheral

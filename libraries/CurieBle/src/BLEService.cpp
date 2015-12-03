@@ -19,15 +19,15 @@
 
 #include "internal/ble_client.h"
 
-#include "BleService.h"
+#include "BLEService.h"
 
-BleService::BleService(const char* uuid) :
-    BleAttribute(uuid, BleTypeService)
+BLEService::BLEService(const char* uuid) :
+    BLEAttribute(uuid, BLETypeService)
 {
 }
 
 BleStatus
-BleService::add() {
+BLEService::add() {
     bt_uuid uuid = btUuid();
     uint16_t handle = 0;
 

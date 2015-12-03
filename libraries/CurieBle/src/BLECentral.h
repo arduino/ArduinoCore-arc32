@@ -20,12 +20,12 @@
 #ifndef _BLE_CENTRAL_H_INCLUDED
 #define _BLE_CENTRAL_H_INCLUDED
 
-#include "BleCommon.h"
+#include "BLECommon.h"
 
-class BlePeripheral;
+class BLEPeripheral;
 
-class BleCentral {
-    friend class BlePeripheral;
+class BLECentral {
+    friend class BLEPeripheral;
 
     public:
         /**
@@ -55,16 +55,16 @@ class BleCentral {
         void poll(void);
 
         operator bool(void) const;
-        boolean_t operator==(const BleCentral& rhs) const;
-        boolean_t operator!=(const BleCentral& rhs) const;
+        boolean_t operator==(const BLECentral& rhs) const;
+        boolean_t operator!=(const BLECentral& rhs) const;
 
     protected:
-        BleCentral(BlePeripheral* peripheral);
+        BLECentral(BLEPeripheral* peripheral);
         void setAddress(ble_addr_t address);
         void clearAddress();
 
     private:
-        BlePeripheral* _peripheral;
+        BLEPeripheral* _peripheral;
         ble_addr_t     _address;
 };
 

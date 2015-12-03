@@ -20,12 +20,12 @@
 #ifndef _BLE_DESCRIPTOR_H_INCLUDED
 #define _BLE_DESCRIPTOR_H_INCLUDED
 
-#include "BleAttribute.h"
+#include "BLEAttribute.h"
 
 /**
  * BLE GATT Descriptor class
  */
-class BleDescriptor : public BleAttribute {
+class BLEDescriptor : public BLEAttribute {
 public:
     /**
      * Constructor for BLE Descriptor
@@ -34,7 +34,7 @@ public:
      * @param value       Value of descriptor, as a byte array.  Data is stored in internal copy.
      * @param valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
      */
-    BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength);
+    BLEDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength);
 
     /**
      * Constructor for BLE Descriptor
@@ -43,7 +43,7 @@ public:
      * @param value       String value of descriptor.  Data is stored in internal copy. 
      *                    (String length <= BLE_MAX_ATTR_DATA_LEN)
      */
-    BleDescriptor(const char* uuid, const char* value);
+    BLEDescriptor(const char* uuid, const char* value);
 
     /**
      * Get data pointer to the value of the Descriptor
@@ -65,7 +65,7 @@ public:
 protected:
     BleStatus add(uint16_t serviceHandle);
 
-    friend BlePeripheral;
+    friend BLEPeripheral;
 
 private:
     uint8_t _data[BLE_MAX_ATTR_DATA_LEN];

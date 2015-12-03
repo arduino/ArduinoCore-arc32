@@ -17,12 +17,12 @@
  *
  */
 
-#include "BlePeripheral.h"
+#include "BLEPeripheral.h"
 
-#include "BleCharacteristic.h"
-#include "BleDescriptor.h"
-#include "BleService.h"
-#include "BleUuid.h"
+#include "BLECharacteristic.h"
+#include "BLEDescriptor.h"
+#include "BLEService.h"
+#include "BLEUuid.h"
 
 
 #define BLE_DISCONNECT_REASON_LOCAL_TERMINATION 0x16
@@ -30,7 +30,7 @@
 void
 blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param)
 {
-    BlePeripheral* p = (BlePeripheral*)param;
+    BLEPeripheral* p = (BLEPeripheral*)param;
 
     p->handleGapEvent(event, event_data);
 }
@@ -38,12 +38,12 @@ blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event 
 void
 blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param)
 {
-    BlePeripheral* p = (BlePeripheral*)param;
+    BLEPeripheral* p = (BLEPeripheral*)param;
 
     p->handleGattsEvent(event, event_data);
 }
 
-BlePeripheral::BlePeripheral(void) :
+BLEPeripheral::BLEPeripheral(void) :
     _state(BLE_PERIPH_STATE_NOT_READY),
     _advertise_service_uuid(NULL),
     _local_name(NULL),
@@ -58,14 +58,14 @@ BlePeripheral::BlePeripheral(void) :
     ble_client_get_factory_config(&_local_bda, _device_name);
 }
 
-BlePeripheral::~BlePeripheral(void)
+BLEPeripheral::~BLEPeripheral(void)
 {
     if (this->_attributes) {
         free(this->_attributes);
     }
 }
 
-BleStatus BlePeripheral::begin()
+BleStatus BLEPeripheral::begin()
 {
     BleStatus status;
 
@@ -86,21 +86,21 @@ BleStatus BlePeripheral::begin()
     uint16_t lastServiceHandle = 0;
 
     for (int i = 0; i < _num_attributes; i++) {
-        BleAttribute* attribute = _attributes[i];
-        BleAttributeType type = attribute->type();
+        BLEAttribute* attribute = _attributes[i];
+        BLEAttributeType type = attribute->type();
 
-        if (BleTypeService == type) {
-            BleService* service = (BleService*)attribute;
+        if (BLETypeService == type) {
+            BLEService* service = (BLEService*)attribute;
 
             status = service->add();
 
             lastServiceHandle = service->handle();
-        } else if (BleTypeCharacteristic == type) {
-            BleCharacteristic* characteristic = (BleCharacteristic*)attribute;
+        } else if (BLETypeCharacteristic == type) {
+            BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
 
             characteristic->add(lastServiceHandle);
-        } else if (BleTypeDescriptor == type) {
-            BleDescriptor *descriptor = (BleDescriptor*)attribute;
+        } else if (BLETypeDescriptor == type) {
+            BLEDescriptor *descriptor = (BLEDescriptor*)attribute;
 
             if (strcmp(descriptor->uuid(), "2901") == 0 ||
                 strcmp(descriptor->uuid(), "2902") == 0 ||
@@ -121,20 +121,20 @@ BleStatus BlePeripheral::begin()
 }
 
 void
-BlePeripheral::poll()
+BLEPeripheral::poll()
 {
     // no-op for now
     delay(1);
 }
 
 void
-BlePeripheral::end()
+BLEPeripheral::end()
 {
     _stop();
 }
 
 BleStatus
-BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
+BLEPeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
     _advertise_service_uuid = advertisedServiceUuid;
 
@@ -142,7 +142,7 @@ BlePeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 }
 
 BleStatus
-BlePeripheral::setLocalName(const char* localName)
+BLEPeripheral::setLocalName(const char* localName)
 {
     _local_name = localName;
 
@@ -150,7 +150,7 @@ BlePeripheral::setLocalName(const char* localName)
 }
 
 BleStatus
-BlePeripheral::setDeviceName(const char deviceName[])
+BLEPeripheral::setDeviceName(const char deviceName[])
 {
     memset(_device_name, 0, sizeof(_device_name));
     if (_device_name && _device_name[0]) {
@@ -164,7 +164,7 @@ BlePeripheral::setDeviceName(const char deviceName[])
 }
 
 BleStatus
-BlePeripheral::setAppearance(const uint16_t appearance)
+BLEPeripheral::setAppearance(const uint16_t appearance)
 {
     _appearance = appearance;
 
@@ -172,7 +172,7 @@ BlePeripheral::setAppearance(const uint16_t appearance)
 }
 
 void
-BlePeripheral::setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandler callback)
+BLEPeripheral::setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandler callback)
 {
   if (event < sizeof(_event_handlers)) {
     _event_handlers[event] = callback;
@@ -180,22 +180,22 @@ BlePeripheral::setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandl
 }
 
 BleStatus
-BlePeripheral::addAttribute(BleAttribute& attribute)
+BLEPeripheral::addAttribute(BLEAttribute& attribute)
 {
     if (_attributes == NULL) {
-        _attributes = (BleAttribute**)malloc(BleAttribute::numAttributes() * sizeof(BleAttribute*));
+        _attributes = (BLEAttribute**)malloc(BLEAttribute::numAttributes() * sizeof(BLEAttribute*));
     }
 
     _attributes[_num_attributes] = &attribute;
     _num_attributes++;
 
-    BleAttributeType type = attribute.type();
+    BLEAttributeType type = attribute.type();
 
-    if (BleTypeCharacteristic == type) {
-        _last_added_characteritic = (BleCharacteristic*)&attribute;
-    } else if (BleTypeDescriptor == type) {
+    if (BLETypeCharacteristic == type) {
+        _last_added_characteritic = (BLECharacteristic*)&attribute;
+    } else if (BLETypeDescriptor == type) {
         if (_last_added_characteritic) {
-            BleDescriptor* descriptor = (BleDescriptor*)&attribute;
+            BLEDescriptor* descriptor = (BLEDescriptor*)&attribute;
 
             if (strcmp("2901", descriptor->uuid()) == 0) {
                 _last_added_characteritic->setUserDescription(descriptor);
@@ -210,7 +210,7 @@ BlePeripheral::addAttribute(BleAttribute& attribute)
 
 
 BleStatus
-BlePeripheral::disconnect()
+BLEPeripheral::disconnect()
 {
     BleStatus status;
 
@@ -222,8 +222,8 @@ BlePeripheral::disconnect()
     return status;
 }
 
-BleCentral
-BlePeripheral::central()
+BLECentral
+BLEPeripheral::central()
 {
     poll();
 
@@ -231,7 +231,7 @@ BlePeripheral::central()
 }
 
 boolean_t
-BlePeripheral::connected()
+BLEPeripheral::connected()
 {
     poll();
 
@@ -239,7 +239,7 @@ BlePeripheral::connected()
 }
 
 BleStatus
-BlePeripheral::_init()
+BLEPeripheral::_init()
 {
     BleStatus status;
     int8_t txPower = 127;
@@ -263,7 +263,7 @@ BlePeripheral::_init()
 }
 
 void
-BlePeripheral::_advDataInit(void)
+BLEPeripheral::_advDataInit(void)
 {
     uint8_t *adv_tmp = _adv_data;
 
@@ -276,7 +276,7 @@ BlePeripheral::_advDataInit(void)
     _adv_data_len = 3;
 
     if (_advertise_service_uuid) {
-        BleUuid bleUuid = BleUuid(_advertise_service_uuid);
+        BLEUuid bleUuid = BLEUuid(_advertise_service_uuid);
         struct bt_uuid uuid = bleUuid.uuid();
 
         if (BT_UUID16 == uuid.type) {
@@ -315,7 +315,7 @@ BlePeripheral::_advDataInit(void)
 }
 
 BleStatus
-BlePeripheral::_startAdvertising()
+BLEPeripheral::_startAdvertising()
 {
     BleStatus status;
 
@@ -331,7 +331,7 @@ BlePeripheral::_startAdvertising()
 }
 
 BleStatus
-BlePeripheral::_stop(void)
+BLEPeripheral::_stop(void)
 {
     BleStatus status;
 
@@ -348,29 +348,29 @@ BlePeripheral::_stop(void)
 }
 
 void
-BlePeripheral::handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data)
+BLEPeripheral::handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data)
 {
     if (BLE_CLIENT_GAP_EVENT_CONNECTED == event) {
         _state = BLE_PERIPH_STATE_CONNECTED;
         _central.setAddress(event_data->connected.peer_bda);
 
-        if (_event_handlers[BleConnected]) {
-            _event_handlers[BleConnected](_central);
+        if (_event_handlers[BLEConnected]) {
+            _event_handlers[BLEConnected](_central);
         }
     } else if (BLE_CLIENT_GAP_EVENT_DISCONNECTED == event) {
 
         for (int i = 0; i < _num_attributes; i++) {
-            BleAttribute* attribute = _attributes[i];
+            BLEAttribute* attribute = _attributes[i];
 
-            if (attribute->type() == BleTypeCharacteristic) {
-                BleCharacteristic* characteristic = (BleCharacteristic*)attribute;
+            if (attribute->type() == BLETypeCharacteristic) {
+                BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
 
                 characteristic->setCccdValue(_central, 0x0000); // reset CCCD
             }
         }
 
-        if (_event_handlers[BleDisconnected])
-            _event_handlers[BleDisconnected](_central);
+        if (_event_handlers[BLEDisconnected])
+            _event_handlers[BLEDisconnected](_central);
 
         _state = BLE_PERIPH_STATE_READY;
         _central.clearAddress();
@@ -383,19 +383,20 @@ BlePeripheral::handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event
     }
 }
 
-void BlePeripheral::handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data)
+void
+BLEPeripheral::handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data)
 {
     if (BLE_CLIENT_GATTS_EVENT_WRITE == event) {
         uint16_t handle = event_data->wr.attr_handle;
 
         for (int i = 0; i < _num_attributes; i++) {
-            BleAttribute* attribute = _attributes[i];
+            BLEAttribute* attribute = _attributes[i];
 
-            if (attribute->type() != BleTypeCharacteristic) {
+            if (attribute->type() != BLETypeCharacteristic) {
                 continue;
             }
 
-            BleCharacteristic* characteristic = (BleCharacteristic*)attribute;
+            BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
 
             if (characteristic->valueHandle() == handle) {
                 characteristic->setValue(_central, event_data->wr.data, event_data->wr.len);

@@ -20,44 +20,44 @@
 #ifndef _BLE_CHARACTERISTIC_H_INCLUDED
 #define _BLE_CHARACTERISTIC_H_INCLUDED
 
-#include "BleAttribute.h"
-#include "BleCentral.h"
-#include "BleDescriptor.h"
+#include "BLEAttribute.h"
+#include "BLECentral.h"
+#include "BLEDescriptor.h"
 
 /**
  * BLE Characteristic Events
  */
-enum BleCharacteristicEvent {
-    BleWritten = 0,
-    BleSubscribed = 1,
-    BleUnsubscribed = 2,
+enum BLECharacteristicEvent {
+    BLEWritten = 0,
+    BLESubscribed = 1,
+    BLEUnsubscribed = 2,
 
-    BleCharacteristicEventLast = 3
+    BLECharacteristicEventLast = 3
 };
 
 /* Forward declaration needed for callback function prototype below */
-class BleCharacteristic;
-class BlePeripheral;
+class BLECharacteristic;
+class BLEPeripheral;
 
 /** Function prototype for BLE Characteristic event callback */
-typedef void (*BleCharacteristicEventHandler)(BleCentral &central, BleCharacteristic &characteristic);
+typedef void (*BLECharacteristicEventHandler)(BLECentral &central, BLECharacteristic &characteristic);
 
 /**
  * BLE Characteristic Property types
  */
-enum BleProperty {
+enum BLEProperty {
     // broadcast (0x01) not supported
-    BleRead                 = 0x02,
-    BleWriteWithoutResponse = 0x04,
-    BleWrite                = 0x08,
-    BleNotify               = 0x10,
-    BleIndicate             = 0x20
+    BLERead                 = 0x02,
+    BLEWriteWithoutResponse = 0x04,
+    BLEWrite                = 0x08,
+    BLENotify               = 0x10,
+    BLEIndicate             = 0x20
 };
 
 /**
  * BLE GATT Characteristic
  */
-class BleCharacteristic : public BleAttribute {
+class BLECharacteristic : public BLEAttribute {
 public:
     /**
      * Constructor for BLE Characteristic
@@ -66,7 +66,7 @@ public:
      * @param properties   Characteristic property mask
      * @param maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
      */
-    BleCharacteristic(const char* uuid,
+    BLECharacteristic(const char* uuid,
                       const uint8_t properties,
                       const uint16_t maxLength);
 
@@ -77,7 +77,7 @@ public:
      * @param properties   Characteristic property mask
      * @param value        String value for characteristic (string length (<= BLE_MAX_ATTR_DATA_LEN))
      */
-    BleCharacteristic(const char* uuid,
+    BLECharacteristic(const char* uuid,
                       const uint8_t properties,
                       const char* value);
 
@@ -142,7 +142,7 @@ public:
      * @param event Event type to set event handler for
      * @param callback  Pointer to callback function to invoke when the event occurs.
      */
-    void setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback);
+    void setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback);
 
 protected:
     BleStatus add(uint16_t serviceHandle);
@@ -151,13 +151,13 @@ protected:
 
     uint16_t cccdHandle(void);
 
-    void setValue(BleCentral& central, const uint8_t value[], uint16_t length);
-    void setCccdValue(BleCentral& central, uint16_t value);
+    void setValue(BLECentral& central, const uint8_t value[], uint16_t length);
+    void setCccdValue(BLECentral& central, uint16_t value);
 
-    void setUserDescription(BleDescriptor *descriptor);
-    void setPresentationFormat(BleDescriptor *descriptor);
+    void setUserDescription(BLEDescriptor *descriptor);
+    void setPresentationFormat(BLEDescriptor *descriptor);
 
-    friend class BlePeripheral;
+    friend class BLEPeripheral;
 
 private:
     void _setValue(const uint8_t value[], uint16_t length);
@@ -172,10 +172,10 @@ private:
     uint16_t _value_handle;
     uint16_t _cccd_handle;
 
-    BleDescriptor* _user_description;
-    BleDescriptor* _presentation_format;
+    BLEDescriptor* _user_description;
+    BLEDescriptor* _presentation_format;
     
-    BleCharacteristicEventHandler _event_handlers[BleCharacteristicEventLast];
+    BLECharacteristicEventHandler _event_handlers[BLECharacteristicEventLast];
 };
 
 #endif // _BLE_CHARACTERISTIC_H_INCLUDED

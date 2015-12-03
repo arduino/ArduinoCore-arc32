@@ -22,12 +22,12 @@
 
 #include "Arduino.h"
 
-#include "BleCharacteristic.h"
+#include "BLECharacteristic.h"
 
-template<typename T> class BleTypedCharacteristic : public BleCharacteristic
+template<typename T> class BLETypedCharacteristic : public BLECharacteristic
 {
 public:
-    BleTypedCharacteristic(const char* uuid, unsigned char properties);
+    BLETypedCharacteristic(const char* uuid, unsigned char properties);
 
     BleStatus setValue(T value);
     T value(void);
@@ -42,8 +42,8 @@ private:
     T byteSwap(T value);
 };
 
-template<typename T> BleTypedCharacteristic<T>::BleTypedCharacteristic(const char* uuid, unsigned char properties) :
-  BleCharacteristic(uuid, properties, sizeof(T))
+template<typename T> BLETypedCharacteristic<T>::BLETypedCharacteristic(const char* uuid, unsigned char properties) :
+  BLECharacteristic(uuid, properties, sizeof(T))
 {
     T value;
     memset(&value, 0x00, sizeof(value));
@@ -51,35 +51,35 @@ template<typename T> BleTypedCharacteristic<T>::BleTypedCharacteristic(const cha
     setValue(value);
 }
 
-template<typename T> BleStatus BleTypedCharacteristic<T>::setValue(T value) {
-    return BleCharacteristic::setValue((unsigned char*)&value, sizeof(T));
+template<typename T> BleStatus BLETypedCharacteristic<T>::setValue(T value) {
+    return BLECharacteristic::setValue((unsigned char*)&value, sizeof(T));
 }
 
-template<typename T> T BleTypedCharacteristic<T>::value() {
+template<typename T> T BLETypedCharacteristic<T>::value() {
     T value;
 
-    memcpy(&value, (unsigned char*)BleCharacteristic::value(), BleCharacteristic::valueSize());
+    memcpy(&value, (unsigned char*)BLECharacteristic::value(), BLECharacteristic::valueSize());
 
     return value;
 }
 
-template<typename T> BleStatus BleTypedCharacteristic<T>::setValueLE(T value) {
+template<typename T> BleStatus BLETypedCharacteristic<T>::setValueLE(T value) {
     return setValue(value);
 }
 
-template<typename T> T BleTypedCharacteristic<T>::valueLE() {
+template<typename T> T BLETypedCharacteristic<T>::valueLE() {
     return value();
 }
 
-template<typename T> BleStatus BleTypedCharacteristic<T>::setValueBE(T value) {
+template<typename T> BleStatus BLETypedCharacteristic<T>::setValueBE(T value) {
     return setValue(byteSwap(value));
 }
 
-template<typename T> T BleTypedCharacteristic<T>::valueBE() {
+template<typename T> T BLETypedCharacteristic<T>::valueBE() {
     return byteSwap(value());
 }
 
-template<typename T> T BleTypedCharacteristic<T>::byteSwap(T value) {
+template<typename T> T BLETypedCharacteristic<T>::byteSwap(T value) {
     T result;
     unsigned char* src = (unsigned char*)&value;
     unsigned char* dst = (unsigned char*)&result;

@@ -17,12 +17,12 @@
  *
  */
 
-#include "BleDescriptor.h"
+#include "BLEDescriptor.h"
 
 #include "internal/ble_client.h"
 
-BleDescriptor::BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength) :
-    BleAttribute(uuid, BleTypeDescriptor)
+BLEDescriptor::BLEDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength) :
+    BLEAttribute(uuid, BLETypeDescriptor)
 {
     if (valueLength > BLE_MAX_ATTR_DATA_LEN) {
         valueLength = BLE_MAX_ATTR_DATA_LEN;
@@ -32,31 +32,31 @@ BleDescriptor::BleDescriptor(const char* uuid, const uint8_t value[], uint16_t v
     memcpy(_data, value, _data_len);
 }
 
-BleDescriptor::BleDescriptor(const char* uuid, const char* value) :
-    BleDescriptor(uuid, (const uint8_t*)value, strlen(value))
+BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
+    BLEDescriptor(uuid, (const uint8_t*)value, strlen(value))
 {
 }
 
 const uint8_t*
-BleDescriptor::BleDescriptor::value() const
+BLEDescriptor::BLEDescriptor::value() const
 {
     return _data;
 }
 
 uint16_t
-BleDescriptor::valueLength() const
+BLEDescriptor::valueLength() const
 {
     return _data_len;
 }
 
 uint8_t
-BleDescriptor::operator[] (int offset) const
+BLEDescriptor::operator[] (int offset) const
 {
     return _data[offset];
 }
 
 BleStatus
-BleDescriptor::add(uint16_t serviceHandle)
+BLEDescriptor::add(uint16_t serviceHandle)
 {
     bt_uuid uuid = btUuid();
     struct ble_gatts_descriptor desc;

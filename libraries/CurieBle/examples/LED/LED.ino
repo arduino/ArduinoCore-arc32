@@ -18,13 +18,13 @@
 #include <CurieBle.h>
 
 /* BLE Peripheral (this Intel Curie device) */
-BlePeripheral blePeripheral;
+BLEPeripheral blePeripheral;
 
 /* BLE LED Service */
-BleService ledService("19B10000-E8F2-537E-4F6C-D104768A1214");
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214");
 
 /* BLE Switch Characteristic - custom 128-bit UUID, read and writable by central */
-BleUnsignedCharCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
+BLEUnsignedCharCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 const int ledPin = 13; // pin to use for the LED
 
@@ -49,7 +49,7 @@ void setup() {
 }
 
 void loop() {
-  BleCentral central = blePeripheral.central();
+  BLECentral central = blePeripheral.central();
 
   if (central) {
     // central connected to peripheral

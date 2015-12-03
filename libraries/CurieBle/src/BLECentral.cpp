@@ -17,18 +17,18 @@
  *
  */
 
-#include "BleCentral.h"
+#include "BLECentral.h"
 
-#include "BlePeripheral.h"
+#include "BLEPeripheral.h"
 
 
-BleCentral::BleCentral(BlePeripheral* peripheral) :
+BLECentral::BLECentral(BLEPeripheral* peripheral) :
   _peripheral(peripheral)
 {
     clearAddress();
 }
 
-BleCentral::operator bool() const {
+BLECentral::operator bool() const {
     ble_addr_t zero;
 
     memset(&zero, 0, sizeof(zero));
@@ -37,24 +37,24 @@ BleCentral::operator bool() const {
 }
 
 boolean_t
-BleCentral::operator==(const BleCentral& rhs) const {
+BLECentral::operator==(const BLECentral& rhs) const {
     return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
 }
 
 boolean_t
-BleCentral::operator!=(const BleCentral& rhs) const {
+BLECentral::operator!=(const BLECentral& rhs) const {
     return !(*this == rhs);
 }
 
 boolean_t
-BleCentral::connected() {
+BLECentral::connected() {
     poll();
 
     return (*this && *this == _peripheral->central());
 }
 
 const char* 
-BleCentral::address() const {
+BLECentral::address() const {
     static char address[18];
 
     String addressStr = "";
@@ -79,12 +79,12 @@ BleCentral::address() const {
 }
 
 void
-BleCentral::poll() {
+BLECentral::poll() {
     _peripheral->poll();
 }
 
 BleStatus
-BleCentral::disconnect() {
+BLECentral::disconnect() {
     if (connected()) {
         return _peripheral->disconnect();
     }
@@ -93,11 +93,11 @@ BleCentral::disconnect() {
 }
 
 void
-BleCentral::setAddress(ble_addr_t address) {
+BLECentral::setAddress(ble_addr_t address) {
     _address = address;
 }
 
 void
-BleCentral::clearAddress() {
+BLECentral::clearAddress() {
     memset(&_address, 0x00, sizeof(_address));
 }

@@ -6,25 +6,25 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-BleAttribute	KEYWORD1
-BleCentral	KEYWORD1
-BleCharacteristic	KEYWORD1
-BleDescriptor	KEYWORD1
-BlePeripheral	KEYWORD1
-BleService	KEYWORD1
-BleTypedCharacteristic	KEYWORD1
-BleUuid	KEYWORD1
+BLEAttribute	KEYWORD1
+BLECentral	KEYWORD1
+BLECharacteristic	KEYWORD1
+BLEDescriptor	KEYWORD1
+BLEPeripheral	KEYWORD1
+BLEService	KEYWORD1
+BLETypedCharacteristic	KEYWORD1
+BLEUuid	KEYWORD1
 
-BleCharCharacteristic	KEYWORD1
-BleUnsignedCharCharacteristic	KEYWORD1
-BleShortCharacteristic	KEYWORD1
-BleUnsignedShortCharacteristic	KEYWORD1
-BleIntCharacteristic	KEYWORD1
-BleUnsignedIntCharacteristic	KEYWORD1
-BleLongCharacteristic	KEYWORD1
-BleUnsignedLongCharacteristic	KEYWORD1
-BleFloatCharacteristic	KEYWORD1
-BleDoubleCharacteristic	KEYWORD1
+BLECharCharacteristic	KEYWORD1
+BLEUnsignedCharCharacteristic	KEYWORD1
+BLEShortCharacteristic	KEYWORD1
+BLEUnsignedShortCharacteristic	KEYWORD1
+BLEIntCharacteristic	KEYWORD1
+BLEUnsignedIntCharacteristic	KEYWORD1
+BLELongCharacteristic	KEYWORD1
+BLEUnsignedLongCharacteristic	KEYWORD1
+BLEFloatCharacteristic	KEYWORD1
+BLEDoubleCharacteristic	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -69,20 +69,20 @@ length	KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-BleTypeService	LITERAL1
-BleTypeCharacteristic	LITERAL1
-BleTypeDescriptor	LITERAL1
+BLETypeService	LITERAL1
+BLETypeCharacteristic	LITERAL1
+BLETypeDescriptor	LITERAL1
 
-BleBroadcast	LITERAL1
-BleRead	LITERAL1
-BleWriteWithoutResponse	LITERAL1
-BleWrite	LITERAL1
-BleNotify	LITERAL1
-BleIndicate	LITERAL1
+BLEBroadcast	LITERAL1
+BLERead	LITERAL1
+BLEWriteWithoutResponse	LITERAL1
+BLEWrite	LITERAL1
+BLENotify	LITERAL1
+BLEIndicate	LITERAL1
 
-BleConnected	LITERAL1
-BleDisconnected	LITERAL1
+BLEConnected	LITERAL1
+BLEDisconnected	LITERAL1
 
-BleWritten	LITERAL1
-BleSubscribed	LITERAL1
-BleUnsubscribed	LITERAL1
+BLEWritten	LITERAL1
+BLESubscribed	LITERAL1
+BLEUnsubscribed	LITERAL1

@@ -23,7 +23,7 @@
  */
 
 /* BLE Peripheral Device (this Intel Curie device) */
-BlePeripheral blePeripheral;
+BLEPeripheral blePeripheral;
 
 /* UUID for Battery service */
 #define SERVICE_UUID_BATTERY    "180F"
@@ -48,11 +48,11 @@ BlePeripheral blePeripheral;
   } while(0)
 
 /* BLE Battery Service */
-BleService battSvc(SERVICE_UUID_BATTERY);
+BLEService battSvc(SERVICE_UUID_BATTERY);
 
 /* BLE Battery Level Characteristic */
-BleUnsignedCharCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
-                              BleRead | BleNotify /* remote clients will be able to get notifications if this characteristic changes */
+BLEUnsignedCharCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
+                              BLERead | BLENotify /* remote clients will be able to get notifications if this characteristic changes */
                               );
 
 /* Variable to keep track of last battery level reading from analog input */
@@ -60,14 +60,14 @@ unsigned char oldBattLvl = 0;
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
-void blePeripheralConnectedEventCb(BleCentral &bleCentral)
+void blePeripheralConnectedEventCb(BLECentral &bleCentral)
 {
   /* We've got a new connection.  Lets print the MAC address of the remote device */
   LOG_SERIAL.println("Got CONNECTED event");
   LOG_SERIAL.println(bleCentral.address());
 }
 
-void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
+void blePeripheralDisconnectedEventCb(BLECentral &bleCentral)
 {
   LOG_SERIAL.println("Got DISCONNECTED event");
 }
@@ -83,8 +83,8 @@ void setup() {
   CHECK_STATUS(blePeripheral.setLocalName("AE_BATTMON"));
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventHandler(BleConnected, blePeripheralConnectedEventCb);
-  blePeripheral.setEventHandler(BleDisconnected, blePeripheralDisconnectedEventCb);
+  blePeripheral.setEventHandler(BLEConnected, blePeripheralConnectedEventCb);
+  blePeripheral.setEventHandler(BLEDisconnected, blePeripheralDisconnectedEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
 

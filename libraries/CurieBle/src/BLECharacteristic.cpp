@@ -17,16 +17,16 @@
  *
  */
 
-#include "BleCharacteristic.h"
+#include "BLECharacteristic.h"
 #include "internal/ble_client.h"
 
 #define BLE_CCCD_NOTIFY_EN_MASK   0x1
 #define BLE_CCCD_INDICATE_EN_MASK 0x2
 
-BleCharacteristic::BleCharacteristic(const char* uuid,
+BLECharacteristic::BLECharacteristic(const char* uuid,
                       const uint8_t properties,
                       const uint16_t maxLength) :
-    BleAttribute(uuid, BleTypeCharacteristic),
+    BLEAttribute(uuid, BLETypeCharacteristic),
     _properties(properties),
     _data_len(0),
     _written(false),
@@ -41,22 +41,22 @@ BleCharacteristic::BleCharacteristic(const char* uuid,
     memset(_event_handlers, 0, sizeof(_event_handlers));
 }
 
-BleCharacteristic::BleCharacteristic(const char* uuid,
+BLECharacteristic::BLECharacteristic(const char* uuid,
                       const uint8_t properties,
                       const char* value) :
-    BleCharacteristic(uuid, properties, strlen(value))
+    BLECharacteristic(uuid, properties, strlen(value))
 {
     setValue((const uint8_t*)value, strlen(value));
 }
 
 uint8_t
-BleCharacteristic::properties() const
+BLECharacteristic::properties() const
 {
     return _properties;
 }
 
 BleStatus
-BleCharacteristic::setValue(const uint8_t value[], uint16_t length)
+BLECharacteristic::setValue(const uint8_t value[], uint16_t length)
 {
     BleStatus status;
 
@@ -82,43 +82,43 @@ BleCharacteristic::setValue(const uint8_t value[], uint16_t length)
 }
 
 void
-BleCharacteristic::setValue(BleCentral& central, const uint8_t* value, uint16_t length)
+BLECharacteristic::setValue(BLECentral& central, const uint8_t* value, uint16_t length)
 {
     _setValue(value, length);
 
     _written = true;
 
-    if (_event_handlers[BleWritten]) {
-        _event_handlers[BleWritten](central, *this);
+    if (_event_handlers[BLEWritten]) {
+        _event_handlers[BLEWritten](central, *this);
     }
 }
 
 uint16_t
-BleCharacteristic::valueSize() const
+BLECharacteristic::valueSize() const
 {
     return _max_len;
 }
 
 const uint8_t*
-BleCharacteristic::value() const
+BLECharacteristic::value() const
 {
     return _data;
 }
 
 uint16_t
-BleCharacteristic::valueLength() const
+BLECharacteristic::valueLength() const
 {
     return _data_len;
 }
 
 uint8_t
-BleCharacteristic::operator[] (int offset) const
+BLECharacteristic::operator[] (int offset) const
 {
     return _data[offset];
 }
 
 boolean_t
-BleCharacteristic::written()
+BLECharacteristic::written()
 {
     boolean_t written = _written;
 
@@ -128,13 +128,13 @@ BleCharacteristic::written()
 }
 
 boolean_t
-BleCharacteristic::subscribed()
+BLECharacteristic::subscribed()
 {
     return (_cccd_value & (BLE_CCCD_NOTIFY_EN_MASK | BLE_CCCD_INDICATE_EN_MASK));
 }
 
 void
-BleCharacteristic::setEventHandler(BleCharacteristicEvent event, BleCharacteristicEventHandler callback)
+BLECharacteristic::setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback)
 {
     noInterrupts();
     if (event < sizeof(_event_handlers)) {
@@ -144,7 +144,7 @@ BleCharacteristic::setEventHandler(BleCharacteristicEvent event, BleCharacterist
 }
 
 BleStatus
-BleCharacteristic::add(uint16_t serviceHandle)
+BLECharacteristic::add(uint16_t serviceHandle)
 {
     bt_uuid uuid = btUuid();
 
@@ -158,13 +158,13 @@ BleCharacteristic::add(uint16_t serviceHandle)
     char_data.p_uuid = &uuid;
     char_data.props.props = _properties;
 
-    if (_properties & (BleRead | BleNotify | BleIndicate)) {
+    if (_properties & (BLERead | BLENotify | BLEIndicate)) {
         char_data.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     } else {
         char_data.perms.rd = GAP_SEC_NO_PERMISSION;
     }
 
-    if (_properties & (BleWriteWithoutResponse | BleWrite)) {
+    if (_properties & (BLEWriteWithoutResponse | BLEWrite)) {
         char_data.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     } else {
         char_data.perms.rd = GAP_SEC_NO_PERMISSION;
@@ -203,48 +203,49 @@ BleCharacteristic::add(uint16_t serviceHandle)
 }
 
 uint16_t
-BleCharacteristic::valueHandle()
+BLECharacteristic::valueHandle()
 {
     return _value_handle;
 }
 
 uint16_t
-BleCharacteristic::cccdHandle()
+BLECharacteristic::cccdHandle()
 {
     return _cccd_handle;
 }
 
 void
-BleCharacteristic::setCccdValue(BleCentral& central, uint16_t value)
+BLECharacteristic::setCccdValue(BLECentral& central, uint16_t value)
 {
     if (_cccd_value != value) {
         _cccd_value = value;
 
         if (subscribed()) {
-            if (_event_handlers[BleSubscribed]) {
-                _event_handlers[BleSubscribed](central, *this);
+            if (_event_handlers[BLESubscribed]) {
+                _event_handlers[BLESubscribed](central, *this);
             }
         } else {
-            if (_event_handlers[BleUnsubscribed]) {
-                _event_handlers[BleUnsubscribed](central, *this);
+            if (_event_handlers[BLEUnsubscribed]) {
+                _event_handlers[BLEUnsubscribed](central, *this);
             }
         }
     }
 }
 
 void
-BleCharacteristic::setUserDescription(BleDescriptor *descriptor)
+BLECharacteristic::setUserDescription(BLEDescriptor *descriptor)
 {
     _user_description = descriptor;
 }
 
-void BleCharacteristic::setPresentationFormat(BleDescriptor *descriptor)
+void
+BLECharacteristic::setPresentationFormat(BLEDescriptor *descriptor)
 {
     _presentation_format = descriptor;
 }
 
 void
-BleCharacteristic::_setValue(const uint8_t value[], uint16_t length)
+BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
 {
     if (length > _max_len) {
         length = _max_len;

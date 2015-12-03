@@ -22,38 +22,38 @@
 
 #include "internal/ble_client.h"
 
-#include "BleAttribute.h"
-#include "BleCentral.h"
-#include "BleCharacteristic.h"
-#include "BleCommon.h"
+#include "BLEAttribute.h"
+#include "BLECentral.h"
+#include "BLECharacteristic.h"
+#include "BLECommon.h"
 
 /**
  * BLE Peripheral Events
  */
-enum BlePeripheralEvent {
-  BleConnected = 0,
-  BleDisconnected = 1,
+enum BLEPeripheralEvent {
+  BLEConnected = 0,
+  BLEDisconnected = 1,
 
-  BlePeripheralEventLast = 2
+  BLEPeripheralEventLast = 2
 };
 
 /** Function prototype for BLE Peripheral Device event callback */
-typedef void (*BlePeripheralEventHandler)(BleCentral &central);
+typedef void (*BLEPeripheralEventHandler)(BLECentral &central);
 
 /**
  * BLE Peripheral
  */
-class BlePeripheral {
+class BLEPeripheral {
 public:
     /**
      * Default Constructor for BLE Peripheral Device
      */
-    BlePeripheral(void);
+    BLEPeripheral(void);
 
     /**
      * Destructor for BLE Peripheral Device
      */
-    virtual ~BlePeripheral(void);
+    virtual ~BLEPeripheral(void);
 
     /**
      * Set the service UUID that the BLE Peripheral Device advertises
@@ -109,7 +109,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus addAttribute(BleAttribute& attribute);
+    BleStatus addAttribute(BLEAttribute& attribute);
 
     /**
      * Provide a function to be called when events related to this Device are raised
@@ -117,7 +117,7 @@ public:
      * @param event    Event type for callback
      * @param callback Pointer to callback function to invoke when an event occurs.
      */
-    void setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandler callback);
+    void setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandler callback);
 
     /**
      * Setup attributes and start advertising
@@ -148,7 +148,7 @@ public:
      *
      * @return BleStatus indicating success or error
      */
-    BleCentral central(void);
+    BLECentral central(void);
 
     /**
      * Is a central connected?
@@ -173,14 +173,14 @@ private:
 
 private:
 
-    enum BlePeripheralState {
+    enum BLEPeripheralState {
         BLE_PERIPH_STATE_NOT_READY = 0,
         BLE_PERIPH_STATE_READY,
         BLE_PERIPH_STATE_ADVERTISING,
         BLE_PERIPH_STATE_CONNECTED,
     };
 
-    BlePeripheralState   _state;
+    BLEPeripheralState _state;
 
     const char* _advertise_service_uuid;
     const char* _local_name;
@@ -189,14 +189,14 @@ private:
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
     ble_addr_t _local_bda;
-    BleCentral _central;
+    BLECentral _central;
 
-    BlePeripheralEventHandler _event_handlers[BlePeripheralEventLast];
+    BLEPeripheralEventHandler _event_handlers[BLEPeripheralEventLast];
 
-    BleAttribute** _attributes;
+    BLEAttribute** _attributes;
     uint16_t _num_attributes;
 
-    BleCharacteristic* _last_added_characteritic;
+    BLECharacteristic* _last_added_characteritic;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

@@ -43,19 +43,19 @@
 struct DigitalPinConfig {
   unsigned                      pin;
   const char                    *name;
-  BleUnsignedCharCharacteristic characteristic;
-  BleDescriptor                 userDescription;
-  BleDescriptor                 presentationFormat;
-  BleDescriptor                 numDigitalsDesc;
+  BLEUnsignedCharCharacteristic characteristic;
+  BLEDescriptor                 userDescription;
+  BLEDescriptor                 presentationFormat;
+  BLEDescriptor                 numDigitalsDesc;
   uint8_t                       val;
 };
 
 struct AnalogPinConfig {
   unsigned                       pin;
   const char                     *name;
-  BleUnsignedShortCharacteristic characteristic;
-  BleDescriptor                  userDescription;
-  BleDescriptor                  presentationFormat;
+  BLEUnsignedShortCharacteristic characteristic;
+  BLEDescriptor                  userDescription;
+  BLEDescriptor                  presentationFormat;
   uint16_t                       val;
 };
 
@@ -63,13 +63,13 @@ struct AnalogPinConfig {
  * Note that input pins are only readable by the remote device, while output pins are
  * only writable.  Different characteristic UUIDs are used for digital and analog pins */
 #define DIGITAL_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BLERead | BLENotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define DIGITAL_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_DIGITAL, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
+  { (pin), #pin, {CHAR_UUID_DIGITAL, BLEWriteWithoutResponse | BLEWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x02, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7}, {DESC_UUID_NUMDIGITALS, (uint8_t[]){1}, sizeof(uint8_t)} }
 #define ANALOG_INPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleRead | BleNotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BLERead | BLENotify}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
 #define ANALOG_OUTPUT_PINCONFIG(pin) \
-  { (pin), #pin, {CHAR_UUID_ANALOG, BleWriteWithoutResponse | BleWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
+  { (pin), #pin, {CHAR_UUID_ANALOG, BLEWriteWithoutResponse | BLEWrite}, {"2901", #pin}, {"2904", (uint8_t[]){0x6, 0x00, 0x00, 0x027, 0x1, pin + 1, 00}, 7} }
 
 /* The following lists of pins are configured and presented to
  * the remote BLE device as digital/analog input/output pins
@@ -111,10 +111,10 @@ struct AnalogPinConfig analogOutputPins[] = {
 };
 
 /* BLE Peripheral Device (this Intel Curie device) */
-BlePeripheral blePeripheral;
+BLEPeripheral blePeripheral;
 
 /* BLE Automation I/O Service */
-BleService ioService(SERVICE_UUID_AUTOMATIONIO);
+BLEService ioService(SERVICE_UUID_AUTOMATIONIO);
 
 /* The standard allows for multiple digital pins to be included per characteristic,
  * where the pin states are encapsulated as an array of 2-bit values
@@ -145,18 +145,18 @@ BleService ioService(SERVICE_UUID_AUTOMATIONIO);
 
 /* This function will be called when a BLE GAP event is detected by the
  * Intel Curie BLE device */
-void blePeripheralConnectedEventCb(BleCentral &bleCentral)
+void blePeripheralConnectedEventCb(BLECentral &bleCentral)
 {
   LOG_SERIAL.println("Got CONNECTED event");
 }
 
-void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
+void blePeripheralDisconnectedEventCb(BLECentral &bleCentral)
 {
   LOG_SERIAL.println("Got DISCONNECTED event");
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
-void digitalOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &characteristic)
+void digitalOutputCharWrittenEventCb(BLECentral &central, BLECharacteristic &characteristic)
 {
   for(unsigned int i = 0; i < ARRAY_SIZE(digitalOutputPins); i++) {
     if (&digitalOutputPins[i].characteristic == &characteristic) {
@@ -172,7 +172,7 @@ void digitalOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &cha
 }
 
 /* This function will be called when a connected remote peer sets a new value for an analog output characteristic */
-void analogOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &characteristic)
+void analogOutputCharWrittenEventCb(BLECentral &central, BLECharacteristic &characteristic)
 {
   for(unsigned int i = 0; i < ARRAY_SIZE(analogOutputPins); i++) {
     if (&analogOutputPins[i].characteristic == &characteristic) {
@@ -193,8 +193,8 @@ void setup() {
   CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
 
   /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventHandler(BleConnected, blePeripheralConnectedEventCb);
-  blePeripheral.setEventHandler(BleDisconnected, blePeripheralDisconnectedEventCb);
+  blePeripheral.setEventHandler(BLEConnected, blePeripheralConnectedEventCb);
+  blePeripheral.setEventHandler(BLEDisconnected, blePeripheralDisconnectedEventCb);
 
   CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
 
@@ -229,7 +229,7 @@ void setup() {
     /* Add the characteristic for this pin */
     CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventHandler(BleWritten, digitalOutputCharWrittenEventCb);
+    pin->characteristic.setEventHandler(BLEWritten, digitalOutputCharWrittenEventCb);
     /* Add a number_of_digitals descriptor for this characteristic */
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
@@ -258,7 +258,7 @@ void setup() {
     CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
     CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
     /* Add a callback to be triggered if the remote device updates the value for this pin */
-    pin->characteristic.setEventHandler(BleWritten, analogOutputCharWrittenEventCb);
+    pin->characteristic.setEventHandler(BLEWritten, analogOutputCharWrittenEventCb);
   }
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE

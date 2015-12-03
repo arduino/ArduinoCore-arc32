@@ -17,28 +17,38 @@
  *
  */
 
-#ifndef _BLE_SERVICE_H_INCLUDED
-#define _BLE_SERVICE_H_INCLUDED
+#include "BLEUuid.h"
 
-#include "BleAttribute.h"
-#include "BleCommon.h"
+BLEUuid::BLEUuid(const char * str)
+{
+    char temp[] = {0, 0, 0};
+    int strLength = strlen(str);
+    int length = 0;
 
-/**
- * BLE GATT Service
- */
-class BleService : public BleAttribute {
-public:
-    /**
-     * Constructor for BLE Service
-     *
-     * @param uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
-     */
-    BleService(const char* uuid);
+    memset(&_uuid, 0x00, sizeof(_uuid));
 
-protected:
-    friend BlePeripheral;
+    for (int i = strLength - 1; i >= 0 && length < MAX_UUID_SIZE; i -= 2) {
+        if (str[i] == '-') {
+            i++;
+            continue;
+        }
 
-    BleStatus add(void);
-};
+        temp[0] = str[i - 1];
+        temp[1] = str[i];
 
-#endif // _BLE_SERVICE_H_INCLUDED
+        _uuid.uuid128[length] = strtoul(temp, NULL, 16);
+
+        length++;
+    }
+
+    if (length == 2) {
+        _uuid.type = BT_UUID16;
+    } else {
+        _uuid.type = BT_UUID128;
+    }
+}
+
+bt_uuid BLEUuid::uuid() const
+{
+    return _uuid;
+}

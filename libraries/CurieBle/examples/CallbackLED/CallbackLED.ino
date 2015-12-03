@@ -21,12 +21,12 @@
 #include <CurieBle.h>
 
 const int ledPin = 13; // set ledPin to use on-board LED
-BlePeripheral blePeripheral; // create peripheral instance
+BLEPeripheral blePeripheral; // create peripheral instance
 
-BleService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
 
 // create switch characteristic and allow remote device to read and write
-BleCharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BleRead | BleWrite);
+BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 void setup() {
   Serial.begin(9600);
@@ -43,11 +43,11 @@ void setup() {
   blePeripheral.addAttribute(switchChar);
 
   // assign event handlers for connected, disconnected to peripheral
-  blePeripheral.setEventHandler(BleConnected, blePeripheralConnectHandler);
-  blePeripheral.setEventHandler(BleDisconnected, blePeripheralDisconnectHandler);
+  blePeripheral.setEventHandler(BLEConnected, blePeripheralConnectHandler);
+  blePeripheral.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
 
   // assign event handlers for characteristic
-  switchChar.setEventHandler(BleWritten, switchCharacteristicWritten);
+  switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
 
 
   // advertise the service
@@ -56,26 +56,24 @@ void setup() {
   Serial.println(("Bluetooth device active, waiting for connections..."));
 }
 
-
-
 void loop() {
   // poll peripheral
   blePeripheral.poll();
 }
 
-void blePeripheralConnectHandler(BleCentral& central) {
+void blePeripheralConnectHandler(BLECentral& central) {
   // central connected event handler
   Serial.print("Connected event, central: ");
   Serial.println(central.address());
 }
 
-void blePeripheralDisconnectHandler(BleCentral& central) {
+void blePeripheralDisconnectHandler(BLECentral& central) {
   // central disconnected event handler
   Serial.print("Disconnected event, central: ");
   Serial.println(central.address());
 }
 
-void switchCharacteristicWritten(BleCentral& central, BleCharacteristic& characteristic) {
+void switchCharacteristicWritten(BLECentral& central, BLECharacteristic& characteristic) {
   // central wrote new value to characteristic, update LED
   Serial.print("Characteristic event, writen: ");
 

@@ -17,38 +17,49 @@
  *
  */
 
-#include "BleUuid.h"
+#include "BLEAttribute.h"
 
-BleUuid::BleUuid(const char * str)
+#include "BLEUuid.h"
+
+unsigned char BLEAttribute::_numAttributes = 0;
+
+BLEAttribute::BLEAttribute(const char* uuid, enum BLEAttributeType type) :
+    _uuid(uuid),
+    _type(type),
+    _handle(0)
 {
-    char temp[] = {0, 0, 0};
-    int strLength = strlen(str);
-    int length = 0;
-
-    memset(&_uuid, 0x00, sizeof(_uuid));
-
-    for (int i = strLength - 1; i >= 0 && length < MAX_UUID_SIZE; i -= 2) {
-        if (str[i] == '-') {
-            i++;
-            continue;
-        }
-
-        temp[0] = str[i - 1];
-        temp[1] = str[i];
-
-        _uuid.uuid128[length] = strtoul(temp, NULL, 16);
-
-        length++;
-    }
-
-    if (length == 2) {
-        _uuid.type = BT_UUID16;
-    } else {
-        _uuid.type = BT_UUID128;
-    }
+    _numAttributes++;
 }
 
-bt_uuid BleUuid::uuid() const
-{
+const char*
+BLEAttribute::uuid() const {
     return _uuid;
+}
+
+enum BLEAttributeType
+BLEAttribute::type() const {
+    return this->_type;
+}
+
+uint16_t
+BLEAttribute::handle() {
+    return _handle;
+}
+
+void
+BLEAttribute::setHandle(uint16_t handle) {
+    _handle = handle;
+}
+
+
+bt_uuid
+BLEAttribute::btUuid() const {
+    BLEUuid bleUuid = BLEUuid(uuid());
+    
+    return bleUuid.uuid();
+}
+
+unsigned char
+BLEAttribute::numAttributes() {
+    return _numAttributes;
 }

@@ -17,20 +17,28 @@
  *
  */
 
-#ifndef _BLE_UUID_H_INCLUDED
-#define _BLE_UUID_H_INCLUDED
+#ifndef _BLE_SERVICE_H_INCLUDED
+#define _BLE_SERVICE_H_INCLUDED
 
-#include "BleCommon.h"
+#include "BLEAttribute.h"
+#include "BLECommon.h"
 
-class BleUuid
-{
+/**
+ * BLE GATT Service
+ */
+class BLEService : public BLEAttribute {
 public:
-    BleUuid(const char * str);
+    /**
+     * Constructor for BLE Service
+     *
+     * @param uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
+     */
+    BLEService(const char* uuid);
 
-    bt_uuid uuid(void) const;
+protected:
+    friend BLEPeripheral;
 
-private:
-    struct bt_uuid _uuid;
+    BleStatus add(void);
 };
 
-#endif // _BLE_UUID_H_INCLUDED
+#endif // _BLE_SERVICE_H_INCLUDED
