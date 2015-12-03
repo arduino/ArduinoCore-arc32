@@ -45,7 +45,8 @@ value	KEYWORD2
 valueLength	KEYWORD2
 setValue	KEYWORD2
 setEventHandler	KEYWORD2
-
+written	KEYWORD2
+subscribed	KEYWORD2
 
 begin	KEYWORD2
 setAdvertisedServiceUuid	KEYWORD2
@@ -63,7 +64,6 @@ str	KEYWORD2
 data	KEYWORD2
 length	KEYWORD2
 
-setEventListener	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -73,7 +73,7 @@ BleTypeService	LITERAL1
 BleTypeCharacteristic	LITERAL1
 BleTypeDescriptor	LITERAL1
 
-//BleBroadcast	LITERAL1
+BleBroadcast	LITERAL1
 BleRead	LITERAL1
 BleWriteWithoutResponse	LITERAL1
 BleWrite	LITERAL1
@@ -82,3 +82,7 @@ BleIndicate	LITERAL1
 
 BleConnected	LITERAL1
 BleDisconnected	LITERAL1
+
+BleWritten	LITERAL1
+BleSubscribed	LITERAL1
+BleUnsubscribed	LITERAL1
