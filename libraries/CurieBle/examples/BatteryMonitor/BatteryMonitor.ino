@@ -74,7 +74,7 @@ void blePeripheralDisconnectedEventCb(BleCentral &bleCentral)
 
 void setup() {
   pinMode(13, OUTPUT);
-  LOG_SERIAL.begin(115200);
+  LOG_SERIAL.begin(9600);
 
   /* Set a name for the BLE device
    * We give it an arbitrary name which will appear in advertising packets

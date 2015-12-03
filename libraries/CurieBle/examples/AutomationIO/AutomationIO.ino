@@ -187,7 +187,7 @@ void analogOutputCharWrittenEventCb(BleCentral &central, BleCharacteristic &char
 }
 
 void setup() {
-  LOG_SERIAL.begin(115200);
+  LOG_SERIAL.begin(9600);
 
   /* Set a name for the BLE device */
   CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
