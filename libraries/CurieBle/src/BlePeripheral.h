@@ -78,11 +78,10 @@ public:
     BleStatus setLocalName(const char *localName);
 
     /**
-     * Set the broadcast appearance type for the BLE Peripheral Device
+     * Set the appearance type for the BLE Peripheral Device
      *
      * See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
-     * for available options.  If not set, no appearance type will be specified
-     * in broadcast information.
+     * for available options.
      *
      * @param appearance Appearance category identifier as defined by BLE Standard
      *

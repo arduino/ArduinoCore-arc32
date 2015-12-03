@@ -263,15 +263,6 @@ BlePeripheral::_advDataInit(void)
     *adv_tmp++ = BLE_SVC_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     _adv_data_len = 3;
 
-    if (_appearance) {
-        /* Add appearance */
-        adv_tmp = &_adv_data[_adv_data_len];
-        *adv_tmp++ = 3;
-        *adv_tmp++ = BLE_ADV_TYPE_APPEARANCE;
-        UINT16_TO_LESTREAM(adv_tmp, _appearance);
-        _adv_data_len += 4;
-    }
-
     if (_advertise_service_uuid) {
         BleUuid bleUuid = BleUuid(_advertise_service_uuid);
         struct bt_uuid uuid = bleUuid.uuid();
