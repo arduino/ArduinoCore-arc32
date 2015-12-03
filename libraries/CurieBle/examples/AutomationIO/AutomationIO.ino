@@ -126,19 +126,15 @@ BLEService ioService(SERVICE_UUID_AUTOMATIONIO);
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x)[0])
 
-/* Serial port to use for printing informational messages to the user */
-#define LOG_SERIAL Serial
-
 /* For convenience, this macro will invoke a specified function call and will
  * check the status value returned to ensure it is successful.  If not, it will
  * print an error message to the serial port and will return from the current function
  */
 #define CHECK_STATUS(op)                               \
   do {                                                 \
-    BleStatus status = op;                             \
-    if (BLE_STATUS_SUCCESS != status) {                \
-      LOG_SERIAL.print(#op" returned error status: "); \
-      LOG_SERIAL.println(status);                      \
+    bool result = op;                             \
+    if (!result) {                \
+      Serial.println(#op" failed "); \
       return;                                          \
     }                                                  \
   } while(0)
@@ -147,12 +143,12 @@ BLEService ioService(SERVICE_UUID_AUTOMATIONIO);
  * Intel Curie BLE device */
 void blePeripheralConnectedEventCb(BLECentral &bleCentral)
 {
-  LOG_SERIAL.println("Got CONNECTED event");
+  Serial.println("Got CONNECTED event");
 }
 
 void blePeripheralDisconnectedEventCb(BLECentral &bleCentral)
 {
-  LOG_SERIAL.println("Got DISCONNECTED event");
+  Serial.println("Got DISCONNECTED event");
 }
 
 /* This function will be called when a connected remote peer sets a new value for a digital output characteristic */
@@ -187,19 +183,20 @@ void analogOutputCharWrittenEventCb(BLECentral &central, BLECharacteristic &char
 }
 
 void setup() {
-  LOG_SERIAL.begin(9600);
+  while(!Serial);
+  Serial.begin(9600);
 
   /* Set a name for the BLE device */
-  CHECK_STATUS(blePeripheral.setLocalName(LOCAL_NAME));
+  blePeripheral.setLocalName(LOCAL_NAME);
 
   /* Set a function to be called whenever a BLE GAP event occurs */
   blePeripheral.setEventHandler(BLEConnected, blePeripheralConnectedEventCb);
   blePeripheral.setEventHandler(BLEDisconnected, blePeripheralDisconnectedEventCb);
 
-  CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(ioService.uuid()));
+  blePeripheral.setAdvertisedServiceUuid(ioService.uuid());
 
   /* Add the Automation I/O Service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addAttribute(ioService));
+  blePeripheral.addAttribute(ioService);
 
   /* Add characteristics for the Digital Inputs */
   for (unsigned i = 0; i < ARRAY_SIZE(digitalInputPins); i++) {
@@ -209,14 +206,14 @@ void setup() {
     pinMode(pin->pin, INPUT);
 
     /* Add the characteristic for this pin */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
+    blePeripheral.addAttribute(pin->characteristic);
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = digitalRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(DIGITAL_PIN_STATE_TO_VAL(pin->pin, pin->val)));
     /* Add a number_of_digitals descriptor for this characteristic */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
+    blePeripheral.addAttribute(pin->userDescription);
+    blePeripheral.addAttribute(pin->presentationFormat);
+    blePeripheral.addAttribute(pin->numDigitalsDesc);
   }
 
   /* Add characteristics for the Digital Outputs */
@@ -227,13 +224,13 @@ void setup() {
     pinMode(pin->pin, OUTPUT);
 
     /* Add the characteristic for this pin */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
+    blePeripheral.addAttribute(pin->characteristic);
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventHandler(BLEWritten, digitalOutputCharWrittenEventCb);
     /* Add a number_of_digitals descriptor for this characteristic */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->numDigitalsDesc));
+    blePeripheral.addAttribute(pin->userDescription);
+    blePeripheral.addAttribute(pin->presentationFormat);
+    blePeripheral.addAttribute(pin->numDigitalsDesc);
   }
 
   /* Add characteristics for the Analog Inputs */
@@ -241,9 +238,9 @@ void setup() {
     AnalogPinConfig *pin = &analogInputPins[i];
 
     /* Add the characteristic for this pin */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
+    blePeripheral.addAttribute(pin->characteristic);
+    blePeripheral.addAttribute(pin->userDescription);
+    blePeripheral.addAttribute(pin->presentationFormat);
     /* Set an initial value for this characteristic; refreshed later in the loop() function */
     pin->val = analogRead(pin->pin);
     CHECK_STATUS(pin->characteristic.setValue(pin->val));
@@ -254,9 +251,9 @@ void setup() {
     AnalogPinConfig *pin = &analogOutputPins[i];
 
     /* Add the characteristic for this pin */
-    CHECK_STATUS(blePeripheral.addAttribute(pin->characteristic));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->userDescription));
-    CHECK_STATUS(blePeripheral.addAttribute(pin->presentationFormat));
+    blePeripheral.addAttribute(pin->characteristic);
+    blePeripheral.addAttribute(pin->userDescription);
+    blePeripheral.addAttribute(pin->presentationFormat);
     /* Add a callback to be triggered if the remote device updates the value for this pin */
     pin->characteristic.setEventHandler(BLEWritten, analogOutputCharWrittenEventCb);
   }
@@ -265,7 +262,7 @@ void setup() {
    * advertising packets and thus become visible to remote BLE central devices
    * (e.g smartphones) until it receives a new connection */
   CHECK_STATUS(blePeripheral.begin());
-  LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
+  Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {

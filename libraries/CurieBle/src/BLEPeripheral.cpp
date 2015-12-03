@@ -65,13 +65,13 @@ BLEPeripheral::~BLEPeripheral(void)
     }
 }
 
-BleStatus BLEPeripheral::begin()
+bool BLEPeripheral::begin()
 {
     BleStatus status;
 
     status = _init();
     if (status != BLE_STATUS_SUCCESS) {
-        return status;
+        return false;
     }
 
     /* Populate advertising data
@@ -80,7 +80,7 @@ BleStatus BLEPeripheral::begin()
 
     status = ble_client_gap_wr_adv_data(_adv_data, _adv_data_len);
     if (BLE_STATUS_SUCCESS != status) {
-        return status;
+        return false;
     }
 
     uint16_t lastServiceHandle = 0;
@@ -88,17 +88,18 @@ BleStatus BLEPeripheral::begin()
     for (int i = 0; i < _num_attributes; i++) {
         BLEAttribute* attribute = _attributes[i];
         BLEAttributeType type = attribute->type();
+        bool addResult = false;
 
         if (BLETypeService == type) {
             BLEService* service = (BLEService*)attribute;
 
-            status = service->add();
+            addResult = service->add();
 
             lastServiceHandle = service->handle();
         } else if (BLETypeCharacteristic == type) {
             BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
 
-            characteristic->add(lastServiceHandle);
+            addResult = characteristic->add(lastServiceHandle);
         } else if (BLETypeDescriptor == type) {
             BLEDescriptor *descriptor = (BLEDescriptor*)attribute;
 
@@ -109,15 +110,15 @@ BleStatus BLEPeripheral::begin()
                 continue; // skip
             }
 
-            status = descriptor->add(lastServiceHandle);
+            addResult = descriptor->add(lastServiceHandle);
         }
 
-        if (status != BLE_STATUS_SUCCESS) {
-            return status;
+        if (!addResult) {
+            return false;
         }
     }
 
-    return _startAdvertising();
+    return (_startAdvertising() == BLE_STATUS_SUCCESS);
 }
 
 void
@@ -133,23 +134,19 @@ BLEPeripheral::end()
     _stop();
 }
 
-BleStatus
+void
 BLEPeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
     _advertise_service_uuid = advertisedServiceUuid;
-
-    return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BLEPeripheral::setLocalName(const char* localName)
 {
     _local_name = localName;
-
-    return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BLEPeripheral::setDeviceName(const char deviceName[])
 {
     memset(_device_name, 0, sizeof(_device_name));
@@ -159,16 +156,12 @@ BLEPeripheral::setDeviceName(const char deviceName[])
             len = BLE_MAX_DEVICE_NAME;
         memcpy(_device_name, deviceName, len);
     }
-
-    return BLE_STATUS_SUCCESS;
 }
 
-BleStatus
+void
 BLEPeripheral::setAppearance(const uint16_t appearance)
 {
     _appearance = appearance;
-
-    return BLE_STATUS_SUCCESS;
 }
 
 void
@@ -179,7 +172,7 @@ BLEPeripheral::setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandl
   }
 }
 
-BleStatus
+void
 BLEPeripheral::addAttribute(BLEAttribute& attribute)
 {
     if (_attributes == NULL) {
@@ -204,22 +197,20 @@ BLEPeripheral::addAttribute(BLEAttribute& attribute)
             }
         }
     }
-
-    return BLE_STATUS_SUCCESS;
 }
 
-
-BleStatus
+bool
 BLEPeripheral::disconnect()
 {
     BleStatus status;
 
-    if (BLE_PERIPH_STATE_CONNECTED == _state)
+    if (BLE_PERIPH_STATE_CONNECTED == _state) {
         status = ble_client_gap_disconnect(BLE_DISCONNECT_REASON_LOCAL_TERMINATION);
-    else
+    } else {
         status = BLE_STATUS_WRONG_STATE;
+    }
 
-    return status;
+    return (status == BLE_STATUS_SUCCESS);
 }
 
 BLECentral
@@ -230,7 +221,7 @@ BLEPeripheral::central()
     return _central;
 }
 
-boolean_t
+bool
 BLEPeripheral::connected()
 {
     poll();

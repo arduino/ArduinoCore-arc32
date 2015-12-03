@@ -45,9 +45,8 @@ class BLECentral {
         /**
          * Disconnect the central if it is connected
          *
-         * @return BleStatus result of operation
          */
-        BleStatus disconnect(void);
+        bool disconnect(void);
 
         /**
          * Poll the central for events

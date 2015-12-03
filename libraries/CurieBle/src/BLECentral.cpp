@@ -83,13 +83,13 @@ BLECentral::poll() {
     _peripheral->poll();
 }
 
-BleStatus
+bool
 BLECentral::disconnect() {
     if (connected()) {
         return _peripheral->disconnect();
     }
 
-    return BLE_STATUS_WRONG_STATE;
+    return false;
 }
 
 void

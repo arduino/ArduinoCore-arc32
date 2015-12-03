@@ -29,13 +29,13 @@ template<typename T> class BLETypedCharacteristic : public BLECharacteristic
 public:
     BLETypedCharacteristic(const char* uuid, unsigned char properties);
 
-    BleStatus setValue(T value);
+    bool setValue(T value);
     T value(void);
 
-    BleStatus setValueLE(T value);
+    bool setValueLE(T value);
     T valueLE(void);
 
-    BleStatus setValueBE(T value);
+    bool setValueBE(T value);
     T valueBE(void);
 
 private:
@@ -51,7 +51,7 @@ template<typename T> BLETypedCharacteristic<T>::BLETypedCharacteristic(const cha
     setValue(value);
 }
 
-template<typename T> BleStatus BLETypedCharacteristic<T>::setValue(T value) {
+template<typename T> bool BLETypedCharacteristic<T>::setValue(T value) {
     return BLECharacteristic::setValue((unsigned char*)&value, sizeof(T));
 }
 
@@ -63,7 +63,7 @@ template<typename T> T BLETypedCharacteristic<T>::value() {
     return value;
 }
 
-template<typename T> BleStatus BLETypedCharacteristic<T>::setValueLE(T value) {
+template<typename T> bool BLETypedCharacteristic<T>::setValueLE(T value) {
     return setValue(value);
 }
 
@@ -71,7 +71,7 @@ template<typename T> T BLETypedCharacteristic<T>::valueLE() {
     return value();
 }
 
-template<typename T> BleStatus BLETypedCharacteristic<T>::setValueBE(T value) {
+template<typename T> bool BLETypedCharacteristic<T>::setValueBE(T value) {
     return setValue(byteSwap(value));
 }
 

@@ -55,7 +55,7 @@ BLECharacteristic::properties() const
     return _properties;
 }
 
-BleStatus
+bool
 BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
 {
     BleStatus status;
@@ -65,7 +65,7 @@ BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
     if (_value_handle) {
         status = ble_client_gatts_set_attribute_value(_value_handle, _data_len, _data, 0);
         if (BLE_STATUS_SUCCESS != status) {
-            return status;
+            return false;
         }
 
         if (subscribed()) {
@@ -73,12 +73,12 @@ BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
 
             status = ble_client_gatts_send_notif_ind(_value_handle, _data_len, _data, 0, indication);
             if (BLE_STATUS_SUCCESS != status) {
-                return status;
+                return false;
             }
         }
     }
 
-    return BLE_STATUS_SUCCESS;
+    return true;
 }
 
 void
@@ -143,7 +143,7 @@ BLECharacteristic::setEventHandler(BLECharacteristicEvent event, BLECharacterist
     interrupts();
 }
 
-BleStatus
+bool
 BLECharacteristic::add(uint16_t serviceHandle)
 {
     bt_uuid uuid = btUuid();
@@ -199,7 +199,7 @@ BLECharacteristic::add(uint16_t serviceHandle)
         _cccd_handle = handles.cccd_handle;
     }
 
-    return status;
+    return (BLE_STATUS_SUCCESS == status);
 }
 
 uint16_t

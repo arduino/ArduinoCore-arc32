@@ -88,14 +88,14 @@ public:
      * @param length Length, in bytes, of valid data in the array to write.
      *               Must not exceed maxLength set for this characteristic.
      *
-     * @return BleStatus indicating success or error
+     * @return bool true set value success, false on error
      */
-    BleStatus setValue(const unsigned char value[], unsigned short length);
+    bool setValue(const unsigned char value[], unsigned short length);
 
     /**
      * Get the property mask of the Characteristic
      *
-     * @return uint8_t property mask of the Characteristic
+     * @return unsigned char property mask of the Characteristic
      */
     unsigned char properties(void) const;
 
@@ -145,7 +145,7 @@ public:
     void setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback);
 
 protected:
-    BleStatus add(uint16_t serviceHandle);
+    bool add(uint16_t serviceHandle);
 
     uint16_t valueHandle(void);
 

@@ -26,7 +26,7 @@ BLEService::BLEService(const char* uuid) :
 {
 }
 
-BleStatus
+bool
 BLEService::add() {
     bt_uuid uuid = btUuid();
     uint16_t handle = 0;
@@ -36,5 +36,5 @@ BLEService::add() {
         setHandle(handle);
     }
 
-    return status;
+    return (BLE_STATUS_SUCCESS == status);
 }

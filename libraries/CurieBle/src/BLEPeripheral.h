@@ -63,7 +63,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setAdvertisedServiceUuid(const char* advertisedServiceUuid);
+    void setAdvertisedServiceUuid(const char* advertisedServiceUuid);
 
     /**
      * Set the local name that the BLE Peripheral Device advertises
@@ -72,7 +72,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setLocalName(const char* localName);
+    void setLocalName(const char* localName);
 
     /**
      * Set the device name for the BLE Peripheral Device
@@ -84,7 +84,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setDeviceName(const char *deviceName);
+    void setDeviceName(const char *deviceName);
 
     /**
      * Set the appearance type for the BLE Peripheral Device
@@ -98,7 +98,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus setAppearance(const unsigned short appearance);
+    void setAppearance(const unsigned short appearance);
 
     /**
      * Add an attribute to the BLE Peripheral Device
@@ -109,7 +109,7 @@ public:
      *
      * @note This method must be called before the begin method
      */
-    BleStatus addAttribute(BLEAttribute& attribute);
+    void addAttribute(BLEAttribute& attribute);
 
     /**
      * Provide a function to be called when events related to this Device are raised
@@ -122,9 +122,9 @@ public:
     /**
      * Setup attributes and start advertising
      *
-     * @return BleStatus indicating success or error
+     * @return bool indicating success or error
      */
-    BleStatus begin(void);
+    bool begin(void);
 
     /**
      * Poll the peripheral for events
@@ -139,9 +139,9 @@ public:
     /**
      * Disconnect the central connected if there is one connected
      *
-     * @return BleStatus indicating success or error
+     * @return bool indicating success or error
      */
-    BleStatus disconnect(void);
+    bool disconnect(void);
 
     /**
      * Setup attributes and start advertising
@@ -155,7 +155,7 @@ public:
      *
      * @return boolean_t true if central connected, otherwise false
      */
-    boolean_t connected(void);
+    bool connected(void);
 
 protected:
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);

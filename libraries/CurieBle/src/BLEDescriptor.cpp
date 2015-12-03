@@ -55,7 +55,7 @@ BLEDescriptor::operator[] (int offset) const
     return _data[offset];
 }
 
-BleStatus
+bool
 BLEDescriptor::add(uint16_t serviceHandle)
 {
     bt_uuid uuid = btUuid();
@@ -73,5 +73,5 @@ BLEDescriptor::add(uint16_t serviceHandle)
     desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     desc.perms.wr = GAP_SEC_NO_PERMISSION;
 
-    return ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle); 
+    return (ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle) == BLE_STATUS_SUCCESS); 
 }

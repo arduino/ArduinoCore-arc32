@@ -38,7 +38,7 @@ public:
 protected:
     friend BLEPeripheral;
 
-    BleStatus add(void);
+    bool add(void);
 };
 
 #endif // _BLE_SERVICE_H_INCLUDED

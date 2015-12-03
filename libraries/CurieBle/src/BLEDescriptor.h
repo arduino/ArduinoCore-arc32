@@ -63,7 +63,7 @@ public:
     unsigned char operator[] (int offset) const;
 
 protected:
-    BleStatus add(uint16_t serviceHandle);
+    bool add(uint16_t serviceHandle);
 
     friend BLEPeripheral;
 
