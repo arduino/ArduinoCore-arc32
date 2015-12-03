@@ -36,17 +36,17 @@ BleCentral::operator bool() const {
     return (memcmp(&_address, &zero, sizeof(_address)) != 0);
 }
 
-bool
+boolean_t
 BleCentral::operator==(const BleCentral& rhs) const {
     return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
 }
 
-bool
+boolean_t
 BleCentral::operator!=(const BleCentral& rhs) const {
     return !(*this == rhs);
 }
 
-bool
+boolean_t
 BleCentral::connected() {
     poll();
 
@@ -55,23 +55,27 @@ BleCentral::connected() {
 
 const char* 
 BleCentral::address() const {
-    static String address = "";
+    static char address[18];
+
+    String addressStr = "";
 
     for (int i = 5; i >= 0; i--) {
         unsigned char a = _address.addr[i];
 
         if (a < 0x10) {
-            address += "0";
+            addressStr += "0";
         }
 
-        address += String(a, 16);
+        addressStr += String(a, 16);
 
         if (i > 0) {
-            address += ":";
+            addressStr += ":";
         }
     }
 
-    return address.c_str();
+    strcpy(address, addressStr.c_str());
+
+    return address;
 }
 
 void

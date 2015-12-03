@@ -28,15 +28,35 @@ class BleCentral {
     friend class BlePeripheral;
 
     public:
-        operator bool() const;
-        bool operator==(const BleCentral& rhs) const;
-        bool operator!=(const BleCentral& rhs) const;
+        /**
+         * Is the Central connected
+         *
+         * @return boolean_t true if the central is connected, otherwise false
+         */
+        boolean_t connected(void);
 
-        bool connected();
-        const char* address() const;
-        void poll();
+        /**
+         * Get the address of the Central in string form
+         *
+         * @return const char* address of the Central in string form
+         */
+        const char* address(void) const;
+        
+        /**
+         * Disconnect the central if it is connected
+         *
+         * @return BleStatus result of operation
+         */
+        BleStatus disconnect(void);
 
-        BleStatus disconnect();
+        /**
+         * Poll the central for events
+         */
+        void poll(void);
+
+        operator bool(void) const;
+        boolean_t operator==(const BleCentral& rhs) const;
+        boolean_t operator!=(const BleCentral& rhs) const;
 
     protected:
         BleCentral(BlePeripheral* peripheral);

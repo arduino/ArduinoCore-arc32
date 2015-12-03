@@ -24,23 +24,42 @@
 unsigned char BleAttribute::_numAttributes = 0;
 
 BleAttribute::BleAttribute(const char* uuid, enum BleAttributeType type) :
-    _uuidStr(uuid),
-    _type(type)
+    _uuid(uuid),
+    _type(type),
+    _handle(0)
 {
-    BleUuid bleUuid(uuid);
-
-    _uuid = bleUuid.uuid();
     _numAttributes++;
 }
 
-const char* BleAttribute::uuid() const {
-    return _uuidStr;
+const char*
+BleAttribute::uuid() const {
+    return _uuid;
 }
 
-enum BleAttributeType BleAttribute::type() const {
+enum BleAttributeType
+BleAttribute::type() const {
     return this->_type;
 }
 
-unsigned char BleAttribute::numAttributes() {
+uint16_t
+BleAttribute::handle() {
+    return _handle;
+}
+
+void
+BleAttribute::setHandle(uint16_t handle) {
+    _handle = handle;
+}
+
+
+bt_uuid
+BleAttribute::btUuid() const {
+    BleUuid bleUuid = BleUuid(uuid());
+    
+    return bleUuid.uuid();
+}
+
+unsigned char
+BleAttribute::numAttributes() {
     return _numAttributes;
 }

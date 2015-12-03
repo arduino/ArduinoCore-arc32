@@ -28,23 +28,37 @@ enum BleAttributeType {
     BleTypeDescriptor     = 0x2900
 };
 
+class BlePeripheral;
+
 class BleAttribute {
 public:
-    BleAttribute(const char* uuid, enum BleAttributeType type);
-
-    const char* uuid() const;
-    enum BleAttributeType type() const;
+    
+    /**
+     * Get the string representation of the Attribute
+     *
+     * @return const char* string representation of the Attribute
+     */
+    const char* uuid(void) const;
 
 protected:
-    static unsigned char numAttributes();
+    friend BlePeripheral;
 
-    struct bt_uuid _uuid;
+    BleAttribute(const char* uuid, enum BleAttributeType type);
+
+    BleAttributeType type(void) const;
+    bt_uuid btUuid(void) const;
+    uint16_t handle(void);
+    void setHandle(uint16_t handle);
+
+
+    static unsigned char numAttributes(void);
 
 private:
     static unsigned char _numAttributes;
 
-    const char* _uuidStr;
+    const char* _uuid;
     enum BleAttributeType _type;
+    uint16_t _handle;
 };
 
 #endif // _BLE_ATTRIBUTE_H_INCLUDED

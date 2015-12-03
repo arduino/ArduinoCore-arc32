@@ -21,36 +21,15 @@
 
 #include "internal/ble_client.h"
 
-BleDescriptor::BleDescriptor(const char* uuid, 
-                             const uint16_t maxLength,
-                             const BleClientAccessMode clientAccess)
-    : BleAttribute(uuid, BleTypeDescriptor)
-{
-    _initialised = false;
-
-    _desc.p_uuid = &_uuid;
-
-    memset(_data, 0, maxLength);
-    _desc.length = maxLength;
-    _desc.p_value = _data;
-
-    if ((clientAccess == BLE_CLIENT_ACCESS_READ_ONLY) ||
-        (clientAccess == BLE_CLIENT_ACCESS_READ_WRITE))
-        _desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    else
-        _desc.perms.rd = GAP_SEC_NO_PERMISSION;
-
-    if ((clientAccess == BLE_CLIENT_ACCESS_WRITE_ONLY) ||
-        (clientAccess == BLE_CLIENT_ACCESS_READ_WRITE))
-        _desc.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    else
-        _desc.perms.wr = GAP_SEC_NO_PERMISSION;
-}
-
 BleDescriptor::BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength) :
-    BleDescriptor(uuid, valueLength, BLE_CLIENT_ACCESS_READ_ONLY)
+    BleAttribute(uuid, BleTypeDescriptor)
 {
-    setValue(value, valueLength);
+    if (valueLength > BLE_MAX_ATTR_DATA_LEN) {
+        valueLength = BLE_MAX_ATTR_DATA_LEN;
+    }
+    _data_len = valueLength;
+
+    memcpy(_data, value, _data_len);
 }
 
 BleDescriptor::BleDescriptor(const char* uuid, const char* value) :
@@ -58,64 +37,45 @@ BleDescriptor::BleDescriptor(const char* uuid, const char* value) :
 {
 }
 
-uint16_t
-BleDescriptor::valueSize() const
-{
-    return _desc.length;
-}
-
 const uint8_t*
 BleDescriptor::BleDescriptor::value() const
 {
-    return _desc.p_value;
+    return _data;
 }
 
 uint16_t
 BleDescriptor::valueLength() const
 {
-    return _desc.length;
+    return _data_len;
 }
 
 uint8_t
 BleDescriptor::operator[] (int offset) const
 {
-    return _desc.p_value[offset];
+    return _data[offset];
 }
 
 BleStatus
-BleDescriptor::_setValue(void)
+BleDescriptor::add(uint16_t serviceHandle)
 {
-    if (!_initialised)
-        return BLE_STATUS_WRONG_STATE;
+    bt_uuid uuid = btUuid();
+    struct ble_gatts_descriptor desc;
+    uint16_t handle = 0;
 
-    if (_desc.length > BLE_MAX_ATTR_DATA_LEN)
-        return BLE_STATUS_NOT_ALLOWED;
+    memset(&desc, 0, sizeof(desc));
 
-    return ble_client_gatts_set_attribute_value(_handle, _desc.length, _data, 0);
-}
+    desc.p_uuid = &uuid;
 
-BleStatus
-BleDescriptor::setValue(const uint8_t value[],
-                        const uint16_t length)
-{
-    if (!value)
-        return BLE_STATUS_NOT_ALLOWED;
-    if (length > BLE_MAX_ATTR_DATA_LEN)
-        return BLE_STATUS_NOT_ALLOWED;
+    // this class only supports read-only descriptors
+    desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
+    desc.perms.wr = GAP_SEC_NO_PERMISSION;
 
-    /* Cache the value locally */
-    memcpy(_data, value, length);
-    _desc.length = length;
+    BleStatus status = ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle);
 
-    return _setValue();
-}
+    if (BLE_STATUS_SUCCESS == status) {
+        setHandle(handle);
+        status = ble_client_gatts_set_attribute_value(handle, _data_len, _data, 0);
+    }
 
-void
-BleDescriptor::setEventCallback(BleDescriptorEventCb callback,
-                                void *arg)
-{
-    noInterrupts();
-    _event_cb = callback; /* callback disabled if NULL */
-    _event_cb_arg = arg;
-    interrupts();
+    return status; 
 }

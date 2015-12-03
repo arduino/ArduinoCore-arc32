@@ -20,9 +20,11 @@
 #ifndef _BLE_PERIPHERAL_H_INCLUDED
 #define _BLE_PERIPHERAL_H_INCLUDED
 
+#include "internal/ble_client.h"
+
+#include "BleAttribute.h"
 #include "BleCentral.h"
-#include "BleService.h"
-#include "BleTypedCharacteristics.h"
+#include "BleCommon.h"
 
 /**
  * BLE Peripheral Events
@@ -46,12 +48,20 @@ public:
      * Default Constructor for BLE Peripheral Device
      */
     BlePeripheral(void);
-    virtual ~BlePeripheral();
 
-    BleStatus begin();
-    void poll();
-    void end();
+    /**
+     * Destructor for BLE Peripheral Device
+     */
+    virtual ~BlePeripheral(void);
 
+    /**
+     * Set the service UUID thatthe BLE Peripheral Device advertises
+     *
+     * @param advertisedServiceUuid  16-bit or 128-bit UUID to advertis
+     *                               (in string form)
+     *
+     * @note This method must be called before the begin method
+     */
     BleStatus setAdvertisedServiceUuid(const char* advertisedServiceUuid);
 
     /**
@@ -62,7 +72,7 @@ public:
      * @param localName  User-defined name string for this device.  Truncated if
      *                   more than maximum allowed string length (20 bytes).
      *
-     * @note This method must be called before the init method
+     * @note This method must be called before the begin method
      */
     BleStatus setLocalName(const char *localName);
 
@@ -77,15 +87,19 @@ public:
      *
      * @return BleStatus indicating success or error
      *
-     * @note This method must be called before the init method
+     * @note This method must be called before the begin method
      */
     BleStatus setAppearance(const uint16_t appearance);
 
-    BleStatus disconnect();
-
-    BleCentral central();
-    bool connected();
-
+    /**
+     * Add an attribute to the BLE Peripheral Device
+     *
+     * @param attribute Attribute to add to Peripheral
+     *
+     * @return BleStatus indicating success or error
+     *
+     * @note This method must be called before the begin method
+     */
     BleStatus addAttribute(BleAttribute& attribute);
 
     /**
@@ -96,41 +110,43 @@ public:
      */
     void setEventHandler(BlePeripheralEvent event, BlePeripheralEventHandler callback);
 
-private:
     /**
-     * Start advertising / accept connections
+     * Setup attributes and start advertising
      *
      * @return BleStatus indicating success or error
      */
-    BleStatus _startAdvertising();
+    BleStatus begin(void);
 
     /**
-     * Stop advertising / disconnect
-     *
-     * @return BleStatus indicating success or error
+     * Poll the peripheral for events
      */
-    BleStatus _stop(void);
+    void poll(void);
 
     /**
-     * Initialise the BLE Peripheral Device
-     *
-     * @return BleStatus indicating success or error
-     *
-     * @note This method must be called only once, and before any other methods
-     *       in this class (except setName or setAppearance)
+     * Stop advertising and disconnect a central if connected
      */
-    BleStatus _init();
+    void end(void);
 
     /**
-     * Add a BLE Primary Service for this Device
-     *
-     * @param service   BLE Primary Service object reference
+     * Disconnect the central connected if there is one connected
      *
      * @return BleStatus indicating success or error
-     *
-     * @note This method must be called only before advertising is started.
      */
-    BleStatus _addPrimaryService(BleService &service_uuid);
+    BleStatus disconnect(void);
+
+    /**
+     * Setup attributes and start advertising
+     *
+     * @return BleStatus indicating success or error
+     */
+    BleCentral central(void);
+
+    /**
+     * Is a central connected?
+     *
+     * @return boolean_t true if central connected, otherwise false
+     */
+    boolean_t connected(void);
 
 protected:
     friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
@@ -140,22 +156,20 @@ protected:
     void handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data);
 
 private:
-    /**
-     * BLE Peripheral Device State
-     */
+    BleStatus _init(void);
+    BleStatus _startAdvertising(void);
+    BleStatus _stop(void);
+
+    void _advDataInit(void);
+
+private:
+
     enum BlePeripheralState {
         BLE_PERIPH_STATE_NOT_READY = 0,
         BLE_PERIPH_STATE_READY,
         BLE_PERIPH_STATE_ADVERTISING,
         BLE_PERIPH_STATE_CONNECTED,
     };
-
-    BleService        *_matchService(uint16_t svc_handle) const;
-    BleCharacteristic *_matchCharacteristic(uint16_t handle) const;
-    BleDescriptor     *_matchDescriptor(uint16_t handle) const;
-    void              _setConnectedState(boolean_t connected);
-
-    void _advDataInit(void);
 
     BlePeripheralState   _state;
 
@@ -169,11 +183,8 @@ private:
 
     BlePeripheralEventHandler _event_handlers[BlePeripheralEventLast];
 
-    BleService *_services[BLE_MAX_PRIMARY_SERVICES];
-    uint32_t    _num_services;
-
     BleAttribute** _attributes;
-    unsigned char _num_attributes;
+    uint16_t _num_attributes;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

@@ -27,7 +27,7 @@ class BleUuid
 public:
     BleUuid(const char * str);
 
-    bt_uuid uuid() const;
+    bt_uuid uuid(void) const;
 
 private:
     struct bt_uuid _uuid;

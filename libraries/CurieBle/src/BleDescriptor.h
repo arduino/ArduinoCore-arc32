@@ -21,86 +21,55 @@
 #define _BLE_DESCRIPTOR_H_INCLUDED
 
 #include "BleAttribute.h"
-#include "BleCentral.h"
-#include "BleCommon.h"
-
-#include "internal/ble_client.h"
-
-/**
- * BLE Descriptor Events
- */
-enum BleDescriptorEvent {
-    BLE_DESC_EVENT_WRITE = 0,
-};
-
-/* Forward declaration needed for callback function prototype below */
-class BleCharacteristic;
-class BleDescriptor;
-
-/** Function prototype for BLE Characteristic event callback */
-typedef void (*BleDescriptorEventCb)(BleCentral& central, BleDescriptor &descriptor, BleDescriptorEvent event, void *arg);
 
 /**
  * BLE GATT Descriptor class
  */
 class BleDescriptor : public BleAttribute {
 public:
+    /**
+     * Constructor for BLE Descriptor
+     *
+     * @param uuid        16-bit UUID (in string form) defined by BLE standard
+     * @param value       Value of descriptor, as a byte array.  Data is stored in internal copy.
+     * @param valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
+     */
     BleDescriptor(const char* uuid, const uint8_t value[], uint16_t valueLength);
+
+    /**
+     * Constructor for BLE Descriptor
+     *
+     * @param uuid        16-bit UUID (in string form) defined by BLE standard
+     * @param value       String value of descriptor.  Data is stored in internal copy. 
+     *                    (String length <= BLE_MAX_ATTR_DATA_LEN)
+     */
     BleDescriptor(const char* uuid, const char* value);
 
-    uint16_t valueSize() const;
-    const uint8_t* value() const;
-    uint16_t valueLength() const;
+    /**
+     * Get data pointer to the value of the Descriptor
+     *
+     * @return const uint8_t* pointer to the value of the Descriptor
+     */
+    const uint8_t* value(void) const;
+
+    /**
+     * Get the length of the value of the Descriptor
+     *
+     * @return uint16_t size of Descriptor value in bytes
+     */
+    uint16_t valueLength(void) const;
+
+
     uint8_t operator[] (int offset) const;
 
 protected:
-    /**
-     * Set the current value of the Descriptor
-     *
-     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
-     * @param length Length, in bytes, of valid data in the array to write.
-     *               Must not exceed BLE_MAX_ATTR_DATA_LEN.
-     *
-     * @return BleStatus indicating success or error
-     */
-    BleStatus setValue(const uint8_t value[],
-                       const uint16_t length);
+    BleStatus add(uint16_t serviceHandle);
 
-    /**
-     * Provide a function to be called when events related to this Descriptor are raised
-     *
-     * @param callback Pointer to callback function to invoke when an event occurs, or NULL to disable.
-     * @param arg      [Optional] Opaque argument which will be passed in the callback.
-     */
-    void setEventCallback(BleDescriptorEventCb callback, void *arg = NULL);
-
-    /**
-     * Constructor for BLE Descriptor with 16-bit UUID
-     *
-     * @param uuid16       16-bit UUID defined by BLE standard
-     * @param maxLength    Maximum data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
-     * @param clientAccess Access permissions for remote client
-     */
-    BleDescriptor(const char* uuid,
-                  const uint16_t maxLength,
-                  const BleClientAccessMode clientAccess);
-
-    friend class BlePeripheral;
-    friend class BleCharacteristic;
+    friend BlePeripheral;
 
 private:
-    BleDescriptor(const uint16_t maxLength,
-                  const BleClientAccessMode clientAccess);
-
-    BleStatus _setValue(void);
-
-    struct ble_gatts_descriptor _desc;
-    uint16_t                    _handle;
-    boolean_t                   _initialised;
-    BleDescriptorEventCb        _event_cb;
-    void                        *_event_cb_arg;
-
     uint8_t _data[BLE_MAX_ATTR_DATA_LEN];
+    uint16_t _data_len;
 };
 
 #endif // _BLE_DESCRIPTOR_H_INCLUDED

@@ -30,13 +30,13 @@ public:
     BleTypedCharacteristic(const char* uuid, unsigned char properties);
 
     BleStatus setValue(T value);
-    T value();
+    T value(void);
 
     BleStatus setValueLE(T value);
-    T valueLE();
+    T valueLE(void);
 
     BleStatus setValueBE(T value);
-    T valueBE();
+    T valueBE(void);
 
 private:
     T byteSwap(T value);

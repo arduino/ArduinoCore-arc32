@@ -17,79 +17,24 @@
  *
  */
 
-#include "BleUuid.h"
+#include "internal/ble_client.h"
 
 #include "BleService.h"
 
 BleService::BleService(const char* uuid) :
     BleAttribute(uuid, BleTypeService)
 {
-    _initialised = false;
 }
 
 BleStatus
-BleService::addCharacteristic(BleCharacteristic &ch)
-{
-    BleStatus status;
+BleService::add() {
+    bt_uuid uuid = btUuid();
+    uint16_t handle = 0;
 
-    if (!_initialised)
-        return BLE_STATUS_WRONG_STATE;
-    if (_num_characteristics >= BLE_MAX_CHARACTERISTICS)
-        return BLE_STATUS_ERROR;
-
-    /* If this service has a 128-bit UUID, it shall be inherited
-     * by included services, characteristics, and descriptors
-     */
-    if ((BT_UUID128 == _uuid.type) && (BT_UUID16 == ch._uuid.type))
-        BLE_UUID16_TO_UUID128(ch._uuid, _uuid);
-
-    status = ble_client_gatts_add_characteristic(_svc_handle,
-                                                 &ch._char_data,
-                                                 &ch._handles);
+    BleStatus status = ble_client_gatts_add_service(&uuid, BLE_GATT_SVC_PRIMARY, &handle);
     if (BLE_STATUS_SUCCESS == status) {
-        ch._initialised = true;
-        ch._svc_handle = _svc_handle;
-        ch._setValue();
-        ch._addCCCDescriptor();
-        _characteristics[_num_characteristics++] = &ch;
+        setHandle(handle);
     }
 
     return status;
-}
-
-BleCharacteristic *
-BleService::_matchCharacteristic(uint16_t handle) const
-{
-    for (unsigned i = 0; i < _num_characteristics; i++) {
-        BleCharacteristic *ch = _characteristics[i];
-        if (handle == ch->_handles.value_handle)
-            return ch;
-    }
-
-    /* Not found */
-    return NULL;
-}
-
-BleDescriptor *
-BleService::_matchDescriptor(uint16_t handle) const
-{
-    for (unsigned i = 0; i < _num_characteristics; i++) {
-        /* Check primary services */
-        BleCharacteristic *ch = _characteristics[i];
-        BleDescriptor *desc = ch->_matchDescriptor(handle);
-        if (desc) /* We've found a match, so return here */
-            return desc;
-    }
-
-    /* Not found */
-    return NULL;
-}
-
-void
-BleService::_setConnectedState(boolean_t connected)
-{
-    /* Cascade the connected-state update to characteristics */
-
-    for (unsigned i = 0; i < _num_characteristics; i++)
-        _characteristics[i]->_setConnectedState(connected);
 }
