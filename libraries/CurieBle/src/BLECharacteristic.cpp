@@ -28,7 +28,7 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
                       const unsigned short maxLength) :
     BLEAttribute(uuid, BLETypeCharacteristic),
     _properties(properties),
-    _data_len(0),
+    _value_length(0),
     _written(false),
     _cccd_value(0),
     _value_handle(0),
@@ -36,7 +36,8 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
     _user_description(NULL),
     _presentation_format(NULL)
 {
-    _max_len = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
+    _value_size = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
+    _value = (unsigned char*)malloc(_value_length);
 
     memset(_event_handlers, 0, sizeof(_event_handlers));
 }
@@ -47,6 +48,14 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
     BLECharacteristic(uuid, properties, strlen(value))
 {
     setValue((const uint8_t*)value, strlen(value));
+}
+
+BLECharacteristic::~BLECharacteristic()
+{
+    if (_value) {
+        free(_value);
+        _value = NULL;
+    }
 }
 
 unsigned char
@@ -63,7 +72,7 @@ BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
      _setValue(value, length);
 
     if (_value_handle) {
-        status = ble_client_gatts_set_attribute_value(_value_handle, _data_len, _data, 0);
+        status = ble_client_gatts_set_attribute_value(_value_handle, _value_length, _value, 0);
         if (BLE_STATUS_SUCCESS != status) {
             return false;
         }
@@ -71,7 +80,7 @@ BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
         if (subscribed()) {
             boolean_t indication = (_cccd_value & BLE_CCCD_INDICATE_EN_MASK);
 
-            status = ble_client_gatts_send_notif_ind(_value_handle, _data_len, _data, 0, indication);
+            status = ble_client_gatts_send_notif_ind(_value_handle, _value_length, _value, 0, indication);
             if (BLE_STATUS_SUCCESS != status) {
                 return false;
             }
@@ -96,25 +105,25 @@ BLECharacteristic::setValue(BLECentral& central, const unsigned char* value, uns
 unsigned short
 BLECharacteristic::valueSize() const
 {
-    return _max_len;
+    return _value_size;
 }
 
 const unsigned char*
 BLECharacteristic::value() const
 {
-    return _data;
+    return _value;
 }
 
 unsigned short
 BLECharacteristic::valueLength() const
 {
-    return _data_len;
+    return _value_length;
 }
 
 unsigned char
 BLECharacteristic::operator[] (int offset) const
 {
-    return _data[offset];
+    return _value[offset];
 }
 
 bool
@@ -170,9 +179,9 @@ BLECharacteristic::add(uint16_t serviceHandle)
         char_data.perms.rd = GAP_SEC_NO_PERMISSION;
     }
 
-    char_data.init_len = _data_len;
-    char_data.max_len = _max_len;
-    char_data.p_value = _data;
+    char_data.init_len = _value_length;
+    char_data.max_len = _value_size;
+    char_data.p_value = _value;
 
     if (_user_description) {
         user_desc.buffer = (uint8_t*)_user_description->value();
@@ -247,10 +256,10 @@ BLECharacteristic::setPresentationFormat(BLEDescriptor *descriptor)
 void
 BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
 {
-    if (length > _max_len) {
-        length = _max_len;
+    if (length > _value_size) {
+        length = _value_size;
     }
 
-    memcpy(_data, value, length);
-    _data_len = length;
+    memcpy(_value, value, length);
+    _value_length = length;
 }

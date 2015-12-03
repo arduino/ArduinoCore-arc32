@@ -81,6 +81,8 @@ public:
                       const unsigned char properties,
                       const char* value);
 
+    virtual ~BLECharacteristic();
+
     /**
      * Set the current value of the Characteristic
      *
@@ -100,7 +102,7 @@ public:
     unsigned char properties(void) const;
 
     /**
-     * Get the size of the Characteristic
+     * Get the (maximum) size of the Characteristic
      *
      * @return unsigned size of characateristic in bytes
      */
@@ -114,7 +116,7 @@ public:
     const unsigned char* value(void) const;
 
     /**
-     * Get the length of the value of the Characteristic
+     * Get the current length of the value of the Characteristic
      *
      * @return unsigned short size of characateristic value in bytes
      */
@@ -164,9 +166,9 @@ private:
 
 private:
     unsigned char _properties;
-    unsigned short _max_len;
-    unsigned char  _data[BLE_MAX_ATTR_DATA_LEN];
-    unsigned short _data_len;
+    unsigned short _value_size;
+    unsigned short _value_length;
+    unsigned char* _value;
     bool _written;
 
     uint16_t _cccd_value;

@@ -36,6 +36,8 @@ public:
      */
     BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength);
 
+    virtual ~BLEDescriptor();
+
     /**
      * Constructor for BLE Descriptor
      *
@@ -68,8 +70,8 @@ protected:
     friend BLEPeripheral;
 
 private:
-    uint8_t _data[BLE_MAX_ATTR_DATA_LEN];
-    uint16_t _data_len;
+    unsigned short _value_length;
+    unsigned char* _value;
 };
 
 #endif // _BLE_DESCRIPTOR_H_INCLUDED

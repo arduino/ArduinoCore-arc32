@@ -27,9 +27,17 @@ BLEDescriptor::BLEDescriptor(const char* uuid, const unsigned char value[], unsi
     if (valueLength > BLE_MAX_ATTR_DATA_LEN) {
         valueLength = BLE_MAX_ATTR_DATA_LEN;
     }
-    _data_len = valueLength;
+    _value_length = valueLength;
+    _value = (unsigned char*)malloc(_value_length);
 
-    memcpy(_data, value, _data_len);
+    memcpy(_value, value, _value_length);
+}
+
+BLEDescriptor::~BLEDescriptor() {
+    if (_value) {
+        free(_value);
+        _value = NULL;
+    }
 }
 
 BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
@@ -40,19 +48,19 @@ BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
 const unsigned char*
 BLEDescriptor::BLEDescriptor::value() const
 {
-    return _data;
+    return _value;
 }
 
 unsigned short
 BLEDescriptor::valueLength() const
 {
-    return _data_len;
+    return _value_length;
 }
 
 unsigned char
 BLEDescriptor::operator[] (int offset) const
 {
-    return _data[offset];
+    return _value[offset];
 }
 
 bool
@@ -66,8 +74,8 @@ BLEDescriptor::add(uint16_t serviceHandle)
 
     desc.p_uuid = &uuid;
 
-    desc.p_value = _data;
-    desc.length = _data_len;
+    desc.p_value = _value;
+    desc.length = _value_length;
 
     // this class only supports read-only descriptors
     desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
