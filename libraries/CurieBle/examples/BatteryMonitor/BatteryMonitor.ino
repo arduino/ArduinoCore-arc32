@@ -25,115 +25,94 @@
 /* BLE Peripheral Device (this Intel Curie device) */
 BLEPeripheral blePeripheral;
 
-/* UUID for Battery service */
-#define SERVICE_UUID_BATTERY    "180F"
-/* UUID for Battery Level characteristic */
-#define CHAR_UUID_BATTERY_LEVEL "2A19"
-
-/* Serial port to use for printing informational messages to the user */
-#define LOG_SERIAL Serial
-
-/* For convenience, this macro will invoke a specified function call and will
- * check the status value returned to ensure it is successful.  If not, it will
- * print an error message to the serial port and will return from the current function
- */
-#define CHECK_STATUS(op)                               \
-  do {                                                 \
-    BleStatus status = op;                             \
-    if (BLE_STATUS_SUCCESS != status) {                \
-      LOG_SERIAL.print(#op" returned error status: "); \
-      LOG_SERIAL.println(status);                      \
-      return;                                          \
-    }                                                  \
-  } while(0)
-
 /* BLE Battery Service */
-BLEService battSvc(SERVICE_UUID_BATTERY);
+BLEService battSvc("180F");
 
 /* BLE Battery Level Characteristic */
-BLEUnsignedCharCharacteristic battLvlChar(CHAR_UUID_BATTERY_LEVEL,     /* standard 16-bit characteristic UUID */
+BLEUnsignedCharCharacteristic battLvlChar("2A19",     /* standard 16-bit characteristic UUID */
                               BLERead | BLENotify /* remote clients will be able to get notifications if this characteristic changes */
                               );
 
 /* Variable to keep track of last battery level reading from analog input */
-unsigned char oldBattLvl = 0;
-
-/* This function will be called when a BLE GAP event is detected by the
- * Intel Curie BLE device */
-void blePeripheralConnectedEventCb(BLECentral &bleCentral)
-{
-  /* We've got a new connection.  Lets print the MAC address of the remote device */
-  LOG_SERIAL.println("Got CONNECTED event");
-  LOG_SERIAL.println(bleCentral.address());
-}
-
-void blePeripheralDisconnectedEventCb(BLECentral &bleCentral)
-{
-  LOG_SERIAL.println("Got DISCONNECTED event");
-}
+uint8_t oldBattLvl = 0;
+unsigned long previousMillis = 0;
 
 void setup() {
+  Serial.begin(9600);
+
   pinMode(13, OUTPUT);
-  LOG_SERIAL.begin(9600);
 
   /* Set a name for the BLE device
    * We give it an arbitrary name which will appear in advertising packets
    * and can be used by remote peers to identify this BLE device
    * The name can be changed but must not exceed 20 characters in length */
-  CHECK_STATUS(blePeripheral.setLocalName("AE_BATTMON"));
-
-  /* Set a function to be called whenever a BLE GAP event occurs */
-  blePeripheral.setEventHandler(BLEConnected, blePeripheralConnectedEventCb);
-  blePeripheral.setEventHandler(BLEDisconnected, blePeripheralDisconnectedEventCb);
-
-  CHECK_STATUS(blePeripheral.setAdvertisedServiceUuid(battSvc.uuid()));
+  blePeripheral.setLocalName("AE_BATTMON");
+  blePeripheral.setAdvertisedServiceUuid(battSvc.uuid());
 
   /* Add the BLE Battery service, and include the UUID in BLE advertising data */
-  CHECK_STATUS(blePeripheral.addAttribute(battSvc));
+  blePeripheral.addAttribute(battSvc);
 
   /* This service will have just one characteristic that reflects the current
    * percentage-charge level of the "battery" */
-  CHECK_STATUS(blePeripheral.addAttribute(battLvlChar));
+  blePeripheral.addAttribute(battLvlChar);
 
   /* Set an initial value for this characteristic; refreshed later the loop() function */
-  CHECK_STATUS(battLvlChar.setValue(oldBattLvl));
+  battLvlChar.setValue(oldBattLvl);
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE
    * advertising packets and thus become visible to remote BLE central devices
    * (e.g smartphones) until it receives a new connection */
-  CHECK_STATUS(blePeripheral.begin());
-  LOG_SERIAL.println("Bluetooth device active, waiting for connections...");
+  blePeripheral.begin();
+  Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {
-  static int ledState;
+  BLECentral central = blePeripheral.central();
 
-  blePeripheral.poll();
+  if (central) {
+    // central connected to peripheral
+    Serial.print(F("Connected to central: "));
+    Serial.println(central.address());
 
-  /* Blink the on-board LED (just to show some activity) */
-  digitalWrite(13, ledState ? HIGH : LOW);
-  ledState = !ledState;
+    digitalWrite(13, HIGH);
 
+    while (central.connected()) {
+      // central still connected to peripheral
+
+      unsigned long currentMillis = millis();
+
+      if (currentMillis - previousMillis >= 200) {
+        previousMillis = currentMillis;
+        updateBatteryLevel();
+      }
+    }
+
+    digitalWrite(13, LOW);
+
+    // central disconnected
+    Serial.print(F("Disconnected from central: "));
+    Serial.println(central.address());   
+  }
+}
+
+void updateBatteryLevel() {
   /* Read the current voltage level on the A0 analog input pin.
    * This is used here to simulate the charge level of a "battery".
    * The following tutorial shows how a potentiometer could be used
    * to vary the voltage on an analog input pin:
    * https://www.arduino.cc/en/Tutorial/Potentiometer
    */
-  unsigned char battLvl = map(analogRead(A0), 0, 1023, 0, 100);
+  uint8_t battLvl = map(analogRead(A0), 0, 1023, 0, 100);
 
   if (battLvl != oldBattLvl) {
-    LOG_SERIAL.print("Battery Level % is now: ");
-    LOG_SERIAL.println(battLvl);
-
+    Serial.print("Battery Level % is now: ");
+    Serial.println(battLvl);
+  
     /* If the voltage level has changed, we update the value of the
      * Battery Level BLE characteristic.  Because we have enabled
      * notifications for this characteristic, the remote device can
      * receive automatic updates when this value is changed. */
-    CHECK_STATUS(battLvlChar.setValue(battLvl));
+    battLvlChar.setValue(battLvl);
     oldBattLvl = battLvl;
   }
-
-  /* Repeat the loop every 200ms - can be changed if desired */
-  delay(200);
 }
