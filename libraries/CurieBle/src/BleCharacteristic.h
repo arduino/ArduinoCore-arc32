@@ -22,6 +22,7 @@
 
 #include "BleAttribute.h"
 #include "BleCentral.h"
+#include "BleDescriptor.h"
 
 /**
  * BLE Characteristic Events
@@ -153,6 +154,9 @@ protected:
     void setValue(BleCentral& central, const uint8_t value[], uint16_t length);
     void setCccdValue(BleCentral& central, uint16_t value);
 
+    void setUserDescription(BleDescriptor *descriptor);
+    void setPresentationFormat(BleDescriptor *descriptor);
+
     friend class BlePeripheral;
 
 private:
@@ -167,6 +171,9 @@ private:
     uint16_t _cccd_value;
     uint16_t _value_handle;
     uint16_t _cccd_handle;
+
+    BleDescriptor* _user_description;
+    BleDescriptor* _presentation_format;
     
     BleCharacteristicEventHandler _event_handlers[BleCharacteristicEventLast];
 };

@@ -66,16 +66,12 @@ BleDescriptor::add(uint16_t serviceHandle)
 
     desc.p_uuid = &uuid;
 
+    desc.p_value = _data;
+    desc.length = _data_len;
+
     // this class only supports read-only descriptors
     desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
     desc.perms.wr = GAP_SEC_NO_PERMISSION;
 
-    BleStatus status = ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle);
-
-    if (BLE_STATUS_SUCCESS == status) {
-        setHandle(handle);
-        status = ble_client_gatts_set_attribute_value(handle, _data_len, _data, 0);
-    }
-
-    return status; 
+    return ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle); 
 }

@@ -32,7 +32,9 @@ BleCharacteristic::BleCharacteristic(const char* uuid,
     _written(false),
     _cccd_value(0),
     _value_handle(0),
-    _cccd_handle(0)
+    _cccd_handle(0),
+    _user_description(NULL),
+    _presentation_format(NULL)
 {
     _max_len = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
 
@@ -148,6 +150,8 @@ BleCharacteristic::add(uint16_t serviceHandle)
 
     struct ble_gatts_characteristic char_data;
     struct ble_gatts_char_handles handles;
+    struct ble_gatt_char_user_desc user_desc;
+    struct ble_gatt_pf_desc pf_desc;
 
     memset(&char_data, 0, sizeof(char_data));
 
@@ -169,6 +173,19 @@ BleCharacteristic::add(uint16_t serviceHandle)
     char_data.init_len = _data_len;
     char_data.max_len = _max_len;
     char_data.p_value = _data;
+
+    if (_user_description) {
+        user_desc.buffer = (uint8_t*)_user_description->value();
+        user_desc.len = _user_description->valueLength();
+
+        char_data.p_user_desc = &user_desc;
+    }
+
+    if (_presentation_format) {
+        memcpy(&pf_desc, _presentation_format->value(), sizeof(pf_desc));
+
+        char_data.p_char_pf_desc = &pf_desc;
+    }
 
     BleStatus status = ble_client_gatts_add_characteristic(serviceHandle, &char_data, &handles);
     if (BLE_STATUS_SUCCESS == status) {
@@ -207,6 +224,17 @@ BleCharacteristic::setCccdValue(BleCentral& central, uint16_t value)
             }
         }
     }
+}
+
+void
+BleCharacteristic::setUserDescription(BleDescriptor *descriptor)
+{
+    _user_description = descriptor;
+}
+
+void BleCharacteristic::setPresentationFormat(BleDescriptor *descriptor)
+{
+    _presentation_format = descriptor;
 }
 
 void

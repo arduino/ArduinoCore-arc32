@@ -24,6 +24,7 @@
 
 #include "BleAttribute.h"
 #include "BleCentral.h"
+#include "BleCharacteristic.h"
 #include "BleCommon.h"
 
 /**
@@ -185,6 +186,8 @@ private:
 
     BleAttribute** _attributes;
     uint16_t _num_attributes;
+
+    BleCharacteristic* _last_added_characteritic;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

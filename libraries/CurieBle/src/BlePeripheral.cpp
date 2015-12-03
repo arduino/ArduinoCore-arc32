@@ -44,13 +44,13 @@ blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_
 }
 
 BlePeripheral::BlePeripheral(void) :
+    _state(BLE_PERIPH_STATE_NOT_READY),
+    _appearance(0),
     _central(this),
     _attributes(NULL),
-    _num_attributes(0)
+    _num_attributes(0),
+    _last_added_characteritic(NULL)
 {
-    _appearance = 0;
-    _state = BLE_PERIPH_STATE_NOT_READY;
-
     memset(_event_handlers, 0x00, sizeof(_event_handlers));
 
     ble_client_get_factory_config(&_local_bda, _local_name);
@@ -89,9 +89,14 @@ BleStatus BlePeripheral::begin()
 
             characteristic->add(lastServiceHandle);
         } else if (BleTypeDescriptor == type) {
-            // TODO: handle UUID 0x2901 and 0x2904 in a special way
-
             BleDescriptor *descriptor = (BleDescriptor*)attribute;
+
+            if (strcmp(descriptor->uuid(), "2901") == 0 ||
+                strcmp(descriptor->uuid(), "2902") == 0 ||
+                strcmp(descriptor->uuid(), "2903") == 0 ||
+                strcmp(descriptor->uuid(), "2904") == 0) {
+                continue; // skip
+            }
 
             status = descriptor->add(lastServiceHandle);
         }
@@ -188,6 +193,22 @@ BlePeripheral::addAttribute(BleAttribute& attribute)
 
     _attributes[_num_attributes] = &attribute;
     _num_attributes++;
+
+    BleAttributeType type = attribute.type();
+
+    if (BleTypeCharacteristic == type) {
+        _last_added_characteritic = (BleCharacteristic*)&attribute;
+    } else if (BleTypeDescriptor == type) {
+        if (_last_added_characteritic) {
+            BleDescriptor* descriptor = (BleDescriptor*)&attribute;
+
+            if (strcmp("2901", descriptor->uuid()) == 0) {
+                _last_added_characteritic->setUserDescription(descriptor);
+            } else if (strcmp("2904", descriptor->uuid()) == 0) {
+                _last_added_characteritic->setPresentationFormat(descriptor);
+            }
+        }
+    }
 
     return BLE_STATUS_SUCCESS;
 }
