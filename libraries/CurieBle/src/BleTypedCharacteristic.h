@@ -22,7 +22,7 @@
 
 #include "Arduino.h"
 
-#include "BLECharacteristic.h"
+#include "BleCharacteristic.h"
 
 template<typename T> class BleTypedCharacteristic : public BleCharacteristic
 {
