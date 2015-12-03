@@ -42,6 +42,8 @@ void setup() {
   blePeripheral.addAttribute(ledService);
   blePeripheral.addAttribute(switchCharacteristic);
 
+  switchCharacteristic.setValue(0);
+
   // begin initialization
   blePeripheral.begin();
 
