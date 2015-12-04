@@ -37,8 +37,8 @@ void setup() {
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
   pinMode(buttonPin, INPUT); // use button pin 4 as an input
 
-  // set a name for the BLE peripheral. Max length is 20 characters:
-  blePeripheral.setLocalName("Curie ButtonLed Sketch");
+  // set the local name peripheral advertises
+  blePeripheral.setLocalName("ButtonLED");
   // set the UUID for the service this peripheral advertises:
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 

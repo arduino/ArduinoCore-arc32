@@ -38,7 +38,7 @@ void setup() {
   Serial.begin(9600);    // initialize serial communication
   pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
 
-  /* Set a name for the BLE device
+  /* Set a local name for the BLE device
      This name will appear in advertising packets
      and can be used by remote devices to identify this BLE device
      The name can be changed but must not exceed 20 characters in length */
