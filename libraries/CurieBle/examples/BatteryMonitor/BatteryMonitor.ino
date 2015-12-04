@@ -1,118 +1,100 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+   Copyright (c) 2015 Intel Corporation.  All rights reserved.
 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- */
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 #include <CurieBle.h>
 
 /*
- * This sketch example partially implements the standard Bluetooth Low-Energy "Battery" service.
- * For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
- */
+   This sketch example partially implements the standard Bluetooth Low-Energy Battery service.
+   For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
+*/
 
-/* BLE Peripheral Device (this Intel Curie device) */
-BLEPeripheral blePeripheral;
+/*  */
+BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're programming)
+BLEService batteryService("180F"); // BLE Battery Service
 
-/* BLE Battery Service */
-BLEService battSvc("180F");
+// BLE Battery Level Characteristic"
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID
+    BLERead | BLENotify);     // remote clients will be able to
+// get notifications if this characteristic changes
 
-/* BLE Battery Level Characteristic */
-BLEUnsignedCharCharacteristic battLvlChar("2A19",     /* standard 16-bit characteristic UUID */
-                              BLERead | BLENotify /* remote clients will be able to get notifications if this characteristic changes */
-                              );
-
-/* Variable to keep track of last battery level reading from analog input */
-uint8_t oldBattLvl = 0;
-unsigned long previousMillis = 0;
+int oldBatteryLevel = 0;  // last battery level reading from analog input
+long previousMillis = 0;  // last time the battery level was checked, in ms
 
 void setup() {
-  Serial.begin(9600);
-
-  pinMode(13, OUTPUT);
+  Serial.begin(9600);    // initialize serial communication
+  pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
 
   /* Set a name for the BLE device
-   * We give it an arbitrary name which will appear in advertising packets
-   * and can be used by remote peers to identify this BLE device
-   * The name can be changed but must not exceed 20 characters in length */
-  blePeripheral.setLocalName("AE_BATTMON");
-  blePeripheral.setAdvertisedServiceUuid(battSvc.uuid());
-
-  /* Add the BLE Battery service, and include the UUID in BLE advertising data */
-  blePeripheral.addAttribute(battSvc);
-
-  /* This service will have just one characteristic that reflects the current
-   * percentage-charge level of the "battery" */
-  blePeripheral.addAttribute(battLvlChar);
-
-  /* Set an initial value for this characteristic; refreshed later the loop() function */
-  battLvlChar.setValue(oldBattLvl);
+     This name will appear in advertising packets
+     and can be used by remote devices to identify this BLE device
+     The name can be changed but must not exceed 20 characters in length */
+  blePeripheral.setLocalName("BatteryMonitorSketch");
+  blePeripheral.setAdvertisedServiceUuid(batteryService.uuid());  // add the service UUID
+  blePeripheral.addAttribute(batteryService);   // Add the BLE Battery service
+  blePeripheral.addAttribute(batteryLevelChar); // add the battery level characteristic
+  batteryLevelChar.setValue(oldBatteryLevel);   // initial value for this characteristic
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE
-   * advertising packets and thus become visible to remote BLE central devices
-   * (e.g smartphones) until it receives a new connection */
+     advertising packets and will be visible to remote BLE central devices
+     until it receives a new connection */
   blePeripheral.begin();
   Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {
+  // listen for BLE peripherals to connect:
   BLECentral central = blePeripheral.central();
 
+  // if a central is connected to peripheral:
   if (central) {
-    // central connected to peripheral
-    Serial.print(F("Connected to central: "));
+    Serial.print("Connected to central: ");
+    // print the central's MAC address:
     Serial.println(central.address());
-
+    // turn on the LED to indicate the connection:
     digitalWrite(13, HIGH);
 
+    // check the battery level every 200ms
+    // as long as the central is still connected:
     while (central.connected()) {
-      // central still connected to peripheral
-
-      unsigned long currentMillis = millis();
-
+      long currentMillis = millis();
+      // if 200ms have passed, check the battery level:
       if (currentMillis - previousMillis >= 200) {
         previousMillis = currentMillis;
         updateBatteryLevel();
       }
     }
-
+    // when the central disconnects, turn off the LED:
     digitalWrite(13, LOW);
-
-    // central disconnected
-    Serial.print(F("Disconnected from central: "));
-    Serial.println(central.address());   
+    Serial.print("Disconnected from central: ");
+    Serial.println(central.address());
   }
 }
 
 void updateBatteryLevel() {
   /* Read the current voltage level on the A0 analog input pin.
-   * This is used here to simulate the charge level of a "battery".
-   * The following tutorial shows how a potentiometer could be used
-   * to vary the voltage on an analog input pin:
-   * https://www.arduino.cc/en/Tutorial/Potentiometer
-   */
-  uint8_t battLvl = map(analogRead(A0), 0, 1023, 0, 100);
+     This is used here to simulate the charge level of a battery.
+  */
+  int battery = analogRead(A0);
+  int batteryLevel = map(battery, 0, 1023, 0, 100);
 
-  if (battLvl != oldBattLvl) {
-    Serial.print("Battery Level % is now: ");
-    Serial.println(battLvl);
-  
-    /* If the voltage level has changed, we update the value of the
-     * Battery Level BLE characteristic.  Because we have enabled
-     * notifications for this characteristic, the remote device can
-     * receive automatic updates when this value is changed. */
-    battLvlChar.setValue(battLvl);
-    oldBattLvl = battLvl;
+  if (batteryLevel != oldBatteryLevel) {      // if the battery level has changed
+    Serial.print("Battery Level % is now: "); // print it
+    Serial.println(batteryLevel);
+    batteryLevelChar.setValue(batteryLevel);  // and update the battery level characteristic
+    oldBatteryLevel = batteryLevel;           // save the level for next comparison
   }
 }

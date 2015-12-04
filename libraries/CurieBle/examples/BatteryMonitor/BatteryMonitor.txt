@@ -1,1 +1,0 @@
-Reads voltage level from analog input and presents as Battery Level reading via Bluetooth Low-Energy service

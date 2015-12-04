@@ -30,11 +30,10 @@ BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead
 
 void setup() {
   Serial.begin(9600);
-
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
 
   // set a name for the local peripheral
-  blePeripheral.setLocalName("Curie LED Sketch");
+  blePeripheral.setLocalName("LEDCallback");
   // set the UUID for the service this peripheral advertises
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 
@@ -48,12 +47,11 @@ void setup() {
 
   // assign event handlers for characteristic
   switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
-
+// set an initial value for the characteristic
   switchChar.setValue(0);
 
   // advertise the service
   blePeripheral.begin();
-
   Serial.println(("Bluetooth device active, waiting for connections..."));
 }
 
@@ -76,7 +74,7 @@ void blePeripheralDisconnectHandler(BLECentral& central) {
 
 void switchCharacteristicWritten(BLECentral& central, BLECharacteristic& characteristic) {
   // central wrote new value to characteristic, update LED
-  Serial.print("Characteristic event, writen: ");
+  Serial.print("Characteristic event, written: ");
 
   if (switchChar.value()) {
     Serial.println("LED on");
