@@ -8,8 +8,6 @@
 
 CurieImuClass	KEYWORD1
 BMI160Class	KEYWORD1
-CurieImu	KEYWORD1
-BMI160	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -192,6 +190,13 @@ setInterruptDrive	KEYWORD2
 getInterruptLatch	KEYWORD2
 setInterruptLatch	KEYWORD2
 resetInterrupt	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+CurieImu	KEYWORD2
+BMI160	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
