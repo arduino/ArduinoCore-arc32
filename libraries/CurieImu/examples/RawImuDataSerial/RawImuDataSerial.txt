@@ -1,1 +1,1 @@
-Continuously reads raw accelerometer and gyroscope data values and prints them to the Serial port
+Continuously reads accelerometer and gyroscope data values and sends them via Serial to Processing which creates a 3D representation of the board’s orientation. 
