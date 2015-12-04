@@ -41,7 +41,7 @@ void setup() {
   /* Set a local name for the BLE device
      This name will appear in advertising packets
      and can be used by remote devices to identify this BLE device
-     The name can be changed but must not exceed 20 characters in length */
+     The name can be changed but maybe be truncated based on space left in advertisement packet */
   blePeripheral.setLocalName("BatteryMonitorSketch");
   blePeripheral.setAdvertisedServiceUuid(batteryService.uuid());  // add the service UUID
   blePeripheral.addAttribute(batteryService);   // Add the BLE Battery service
