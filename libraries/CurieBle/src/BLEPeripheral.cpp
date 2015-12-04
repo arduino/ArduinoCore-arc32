@@ -150,7 +150,7 @@ void
 BLEPeripheral::setDeviceName(const char deviceName[])
 {
     memset(_device_name, 0, sizeof(_device_name));
-    if (_device_name && _device_name[0]) {
+    if (deviceName && deviceName[0]) {
         int len = strlen(deviceName);
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
