@@ -1,1 +1,0 @@
-Configures the Intel Curie IMU to detect tap events and prints notifications to the Serial port when they occur

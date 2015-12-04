@@ -1,1 +1,0 @@
-Configures the Intel Curie IMU as a step counter (pedometer) and prints notifications to the Serial port when the count changes
