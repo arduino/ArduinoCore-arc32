@@ -32,7 +32,7 @@ void setup() {
   pinMode(ledPin, OUTPUT);
 
   // set advertised local name and service UUID:
-  blePeripheral.setLocalName("LED Sketch");
+  blePeripheral.setLocalName("LED");
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 
   // add service and characteristic:

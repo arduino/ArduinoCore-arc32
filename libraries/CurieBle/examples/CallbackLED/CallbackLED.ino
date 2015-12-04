@@ -33,7 +33,7 @@ void setup() {
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
 
   // set the local name peripheral advertises
-  blePeripheral.setLocalName("LEDCallback");
+  blePeripheral.setLocalName("LEDCB");
   // set the UUID for the service this peripheral advertises
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
 
