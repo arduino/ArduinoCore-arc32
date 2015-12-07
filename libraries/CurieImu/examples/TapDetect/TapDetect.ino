@@ -24,26 +24,8 @@
 
 #include "CurieImu.h"
 
-static void eventCallback(void)
-{
-    if (CurieImu.getIntDoubleTapStatus()) {
-     if (CurieImu.getXNegTapDetected())
-        Serial.println("Double Tap detected on negative X-axis");
-     if (CurieImu.getXPosTapDetected())
-        Serial.println("Double Tap detected on positive X-axis");
-     if (CurieImu.getYNegTapDetected())
-        Serial.println("Double Tap detected on negative Y-axis");
-     if (CurieImu.getYPosTapDetected())
-        Serial.println("Double Tap detected on positive Y-axis");
-     if (CurieImu.getZNegTapDetected())
-        Serial.println("Double Tap detected on negative Z-axis");
-     if (CurieImu.getZPosTapDetected())
-        Serial.println("Double Tap detected on positive Z-axis");
-  }
-}
-
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     // Initialise the IMU
     CurieImu.initialize();
@@ -68,4 +50,24 @@ void setup() {
 }
 
 void loop() {
+  // nothing happens in the loop because all the action happens
+  // in the callback function. 
+}
+
+static void eventCallback()
+{
+    if (CurieImu.getIntDoubleTapStatus()) {
+     if (CurieImu.getXNegTapDetected())
+        Serial.println("Double Tap detected on negative X-axis");
+     if (CurieImu.getXPosTapDetected())
+        Serial.println("Double Tap detected on positive X-axis");
+     if (CurieImu.getYNegTapDetected())
+        Serial.println("Double Tap detected on negative Y-axis");
+     if (CurieImu.getYPosTapDetected())
+        Serial.println("Double Tap detected on positive Y-axis");
+     if (CurieImu.getZNegTapDetected())
+        Serial.println("Double Tap detected on negative Z-axis");
+     if (CurieImu.getZPosTapDetected())
+        Serial.println("Double Tap detected on positive Z-axis");
+  }
 }
