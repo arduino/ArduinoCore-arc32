@@ -1,1 +1,0 @@
-Provides access to digital and analog I/O pins via Bluetooth Low-Energy service

@@ -26,30 +26,6 @@
 #include "services/ble/ble_service_gatt.h"
 #include "services/ble/ble_service_gatts_api.h"
 
-typedef enum {
-    BLE_CLIENT_ACCESS_NONE = 0,
-    BLE_CLIENT_ACCESS_READ_ONLY,
-    BLE_CLIENT_ACCESS_WRITE_ONLY,
-    BLE_CLIENT_ACCESS_READ_WRITE,
-} BleClientAccessMode;
-
-typedef enum {
-    BLE_CLIENT_NOTIFY_DISABLED = 0,
-    BLE_CLIENT_NOTIFY_ENABLED,  /* send Notification to client when characteristic updated */
-    BLE_CLIENT_NOTIFY_WITH_ACK, /* send Indication to client when characteristic updated  */
-} BleClientNotifyMode;
-
-
-/* Arbitrary maximum limits which can be increased if needed (at a cost of increased RAM usage) */
-/*   Max number of primary services allowed */
-#define BLE_MAX_PRIMARY_SERVICES   8
-/*   Max number of included services per primary service allowed */
-#define BLE_MAX_INCLUDED_SERVICES  8
-/*   Max number of characteristics per service */
-#define BLE_MAX_CHARACTERISTICS   16
-/*   Max number of descriptors per characteristic */
-#define BLE_MAX_DESCRIPTORS        8
-
 /* Theoretically we should be able to support attribute lengths up to 512 bytes
  * but this involves splitting it across multiple packets.  For simplicity,
  * we will just limit this to 20 bytes for now, which will fit in a single packet

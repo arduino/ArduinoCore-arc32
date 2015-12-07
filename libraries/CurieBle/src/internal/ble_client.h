@@ -31,7 +31,7 @@
 #ifndef _BLE_CLIENT_H_INCLUDED
 #define _BLE_CLIENT_H_INCLUDED
 
-#include "BleCommon.h"
+#include "BLECommon.h"
 
 /* Borrowed from ble_service_utils.h */
 #define UINT8_TO_LESTREAM(p, i) \
