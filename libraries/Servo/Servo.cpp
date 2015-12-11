@@ -72,7 +72,7 @@ static void timer1_isr_servo(void)
 
     Channel++;    // increment to the next channel
 
-    if(Channel < ServoCount) {
+    if(Channel < (int32_t)ServoCount) {
         total_count +=  servos[Channel].ticks;
         timer1_init_servo(servos[Channel].ticks);
         if (servos[Channel].Pin.isActive == true) {
