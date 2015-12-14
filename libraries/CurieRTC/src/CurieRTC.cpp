@@ -29,7 +29,7 @@
 
 unsigned long now()
 {
-    return *(int*)RTC_CCVR;
+    return *RTC_CCVR;
 }
 
 struct tm* nowTm() {
@@ -82,7 +82,7 @@ int second()
 
 void setTime(unsigned long t)
 {
-    *(int*)RTC_CLR = t;
+    *RTC_CLR = t;
 }
 
 void setTime(int hour, int minute, int second, int day, int month, int year)
