@@ -1,10 +1,10 @@
-#include <CurieRTC.h>
+#include <CurieTime.h>
 
 void setup() {
   while (!Serial);
   Serial.begin(9600);
 
-  Serial.println("CurieRTC Read Test");
+  Serial.println("CurieTime Read Test");
   Serial.println("-------------------");
 }
 

@@ -1,4 +1,4 @@
-#include <CurieRTC.h>
+#include <CurieTime.h>
 
 const char *monthName[12] = {
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",

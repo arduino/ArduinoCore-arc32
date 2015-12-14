@@ -1,9 +1,9 @@
 /*
- * CurieRTC.h - RTC library for Arduino101
+ * CurieTime.h - Time library for Arduino101
  */
 
-#ifndef CurieRTC_h
-#define CurieRTC_h
+#ifndef CurieTime_h
+#define CurieTime_h
 
 #define RTC_CCVR    (volatile int*)0xb0000400 // Current Counter Value Register
 #define RTC_CMR     0xb0000404 // Counter Match Register

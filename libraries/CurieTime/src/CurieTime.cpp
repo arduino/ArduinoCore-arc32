@@ -1,5 +1,5 @@
 /*
- * CurieRTC.c - RTC library for Arduino101
+ * CurieTime.cpp - Time library for Arduino101
   
   Copyright (c) 2015 Intel Corporation.  All rights reserved
   This library is intended to be uses with Arduino Time.h library functions
@@ -22,7 +22,7 @@
 
 #include <time.h>
 
-#include "CurieRTC.h"
+#include "CurieTime.h"
 
 #define YEAR_OFFSET     1900
 #define MONTH_OFFSET    1
