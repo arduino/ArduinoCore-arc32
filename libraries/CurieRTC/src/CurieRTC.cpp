@@ -20,23 +20,85 @@
   
  */
 
+#include <time.h>
+
 #include "CurieRTC.h"
 
-CurieRTC::CurieRTC()
+#define YEAR_OFFSET     1900
+#define MONTH_OFFSET    1
+
+unsigned long now()
 {
+    return *(int*)RTC_CCVR;
 }
+
+struct tm* nowTm() {
+    time_t t = now();
   
-// PUBLIC FUNCTIONS
-time_t CurieRTC::get()
-{
-  // Read the value of the RTC_CCVR register
-  return *(int*)RTC_CCVR;
+    return gmtime(&t);
 }
 
-void CurieRTC::set(time_t t)
+int year()
 {
-  // Write t into the RTC_CLR register
-  *(int*)RTC_CLR = t;
+    struct tm* tm = nowTm();
+
+    return (tm->tm_year + YEAR_OFFSET);
 }
 
-CurieRTC RTC = CurieRTC(); // create an instance for the user
+int month()
+{
+    struct tm* tm = nowTm();
+
+    return (tm->tm_mon + MONTH_OFFSET);
+}
+
+int day()
+{
+    struct tm* tm = nowTm();
+
+    return tm->tm_mday;
+}
+
+int hour()
+{
+    struct tm* tm = nowTm();
+
+    return tm->tm_hour;
+}
+
+int minute()
+{
+    struct tm* tm = nowTm();
+
+    return tm->tm_min;
+}
+
+int second()
+{
+    struct tm* tm = nowTm();
+
+    return tm->tm_sec;
+}
+
+void setTime(unsigned long t)
+{
+    *(int*)RTC_CLR = t;
+}
+
+void setTime(int hour, int minute, int second, int day, int month, int year)
+{
+    struct tm tm;
+    time_t t;
+
+    tm.tm_year = year - YEAR_OFFSET;
+    tm.tm_mon = month - MONTH_OFFSET;
+    tm.tm_mday = day;
+    tm.tm_hour = hour;
+    tm.tm_min = minute;
+    tm.tm_sec = second;
+    tm.tm_isdst = -1;
+
+    t = mktime(&tm);
+
+    setTime(t);
+}

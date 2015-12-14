@@ -1,6 +1,5 @@
 /*
  * CurieRTC.h - RTC library for Arduino101
- * This library is intended to be uses with Arduino Time.h library functions
  */
 
 #ifndef CurieRTC_h
@@ -14,24 +13,16 @@
 #define RTC_RSTAT   0xb0000414 // Interrupt Raw Status Register
 #define RTC_EOI     0xb0000418 // End of Interrupt Register
 
-#include <Time.h>
+unsigned long now(); // current time as seconds since Jan 1 1970 
 
-// library interface description
-class CurieRTC
-{
-  // user-accessible "public" interface
-  public:
-    CurieRTC();
-    static time_t get();
-    static void set(time_t t);
-};
+int year(); // current year as an integer
+int month(); // current month as an integer (1 - 12)
+int day(); // current day as an integer (1 - 31)
+int hour(); // current hour as an integer (0 - 23)
+int minute(); // current minute as an integer (0 - 59)
+int second(); // current second as an integer (0 - 59)
 
-#ifdef RTC
-#undef RTC // workaround for Arduino Due, which defines "RTC"...
-#endif
-
-extern CurieRTC RTC;
+void setTime(int hour, int minute, int second, int day, int month, int year); // set the current time
+void setTime(unsigned long t); // set the current time from seconds since Jan 1 1970
 
 #endif
- 
-

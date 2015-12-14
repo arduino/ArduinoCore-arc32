@@ -1,4 +1,3 @@
-#include <TimeLib.h>
 #include <CurieRTC.h>
 
 const char *monthName[12] = {
@@ -6,29 +5,21 @@ const char *monthName[12] = {
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-tmElements_t tm;
+int Hour, Min, Sec;
+int Day, Month, Year;
 
 void setup() {
-  bool parse=false;
-  bool config=false;
-  time_t t;
+  while(!Serial);
+  Serial.begin(9600);
   
   // get the date and time the compiler was run
   if (getDate(__DATE__) && getTime(__TIME__)) {
-    t = makeTime(tm);
-    RTC.set(t);
-    parse = true;
-    config = true;
-  }
-
-  Serial.begin(115200);
-  delay(3000);
-  
-  if (parse && config) {
     Serial.print("Curie configured Time=");
     Serial.print(__TIME__);
     Serial.print(", Date=");
     Serial.println(__DATE__);
+
+    setTime(Hour, Min, Sec, Day, Month, Year);
   } else {
     Serial.print("Could not parse info from the compiler, Time=\"");
     Serial.print(__TIME__);
@@ -39,33 +30,53 @@ void setup() {
 }
 
 void loop() {
+  Serial.print("Time now is: ");
+
+  print2digits(hour());
+  Serial.print(":");
+  print2digits(minute());
+  Serial.print(":");
+  print2digits(second());
+
+  Serial.print(" ");
+
+  Serial.print(day());
+  Serial.print("/");
+  Serial.print(month());
+  Serial.print("/");
+  Serial.print(year());
+
+  Serial.println();
+
+  delay(1000);
 }
 
 bool getTime(const char *str)
 {
-  int Hour, Min, Sec;
-
   if (sscanf(str, "%d:%d:%d", &Hour, &Min, &Sec) != 3) return false;
-  tm.Hour = Hour;
-  tm.Minute = Min;
-  tm.Second = Sec;
   return true;
 }
 
 bool getDate(const char *str)
 {
-  char Month[12];
-  int Day, Year;
-  uint8_t monthIndex;
+  char monthString[12];
 
-  if (sscanf(str, "%s %d %d", Month, &Day, &Year) != 3) return false;
-  for (monthIndex = 0; monthIndex < 12; monthIndex++) {
-    if (strcmp(Month, monthName[monthIndex]) == 0) break;
+  if (sscanf(str, "%s %d %d", monthString, &Day, &Year) != 3) {
+    return false;
   }
-  if (monthIndex >= 12) return false;
-  tm.Day = Day;
-  tm.Month = monthIndex + 1;
-  tm.Year = CalendarYrToTm(Year);
-  return true;
+
+  for (Month = 1; Month <= 12; Month++) {
+    if (strcmp(monthString, monthName[Month - 1]) == 0) {
+      break;
+    }
+  }
+
+  return (Month <= 12);
 }
 
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.print('0');
+  }
+  Serial.print(number);
+}

@@ -1,30 +1,26 @@
-#include <TimeLib.h>
 #include <CurieRTC.h>
 
 void setup() {
-  Serial.begin(115200);
-  delay(200);
+  while(!Serial);
+  Serial.begin(9600);
+
   Serial.println("CurieRTC Read Test");
   Serial.println("-------------------");
 }
 
-void loop() {
-  tmElements_t tm;
-  time_t t = RTC.get();
-  breakTime(t, tm);
-  
+void loop() {  
   Serial.print("Ok, Time = ");
-  print2digits(tm.Hour);
+  print2digits(hour());
   Serial.write(':');
-  print2digits(tm.Minute);
+  print2digits(minute());
   Serial.write(':');
-  print2digits(tm.Second);
+  print2digits(second());
   Serial.print(", Date (D/M/Y) = ");
-  Serial.print(tm.Day);
+  Serial.print(day());
   Serial.write('/');
-  Serial.print(tm.Month);
+  Serial.print(month());
   Serial.write('/');
-  Serial.print(tmYearToCalendar(tm.Year));
+  Serial.print(year());
   Serial.println();
   delay(1000);
 }
