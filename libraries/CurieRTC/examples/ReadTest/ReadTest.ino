@@ -1,14 +1,14 @@
 #include <CurieRTC.h>
 
 void setup() {
-  while(!Serial);
+  while (!Serial);
   Serial.begin(9600);
 
   Serial.println("CurieRTC Read Test");
   Serial.println("-------------------");
 }
 
-void loop() {  
+void loop() {
   Serial.print("Ok, Time = ");
   print2digits(hour());
   Serial.write(':');
