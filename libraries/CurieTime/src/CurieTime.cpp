@@ -32,50 +32,93 @@ unsigned long now()
     return *RTC_CCVR;
 }
 
-struct tm* nowTm() {
-    time_t t = now();
+struct tm* tTm(unsigned long  t)
+{
+    time_t time = t;
   
-    return gmtime(&t);
+    return gmtime(&time);
 }
 
 int year()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return year(t);
+}
+
+int year(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return (tm->tm_year + YEAR_OFFSET);
 }
 
 int month()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return month(t);
+}
+
+int month(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return (tm->tm_mon + MONTH_OFFSET);
 }
 
 int day()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return day(t);
+}
+
+int day(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return tm->tm_mday;
 }
 
 int hour()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return hour(t);
+}
+
+int hour(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return tm->tm_hour;
 }
 
 int minute()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return minute(t);
+}
+
+int minute(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return tm->tm_min;
 }
 
 int second()
 {
-    struct tm* tm = nowTm();
+    unsigned long t = now();
+
+    return second(t);
+}
+
+int second(unsigned long t)
+{
+    struct tm* tm = tTm(t);
 
     return tm->tm_sec;
 }
