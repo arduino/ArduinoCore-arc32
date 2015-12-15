@@ -231,6 +231,14 @@ THE SOFTWARE.
 #define BMI160_RA_STEP_CONF_0       0x7A
 #define BMI160_RA_STEP_CONF_1       0x7B
 
+#define BMI160_RA_STEP_CONF_0_NOR   0x15
+#define BMI160_RA_STEP_CONF_0_SEN   0x2D
+#define BMI160_RA_STEP_CONF_0_ROB   0x1D
+#define BMI160_RA_STEP_CONF_1_NOR   0x03
+#define BMI160_RA_STEP_CONF_1_SEN   0x00
+#define BMI160_RA_STEP_CONF_1_ROB   0x07
+
+
 #define BMI160_GYRO_RANGE_SEL_BIT   0
 #define BMI160_GYRO_RANGE_SEL_LEN   3
 
@@ -351,6 +359,7 @@ typedef enum {
     BMI160_STEP_MODE_NORMAL = 0,
     BMI160_STEP_MODE_SENSITIVE,
     BMI160_STEP_MODE_ROBUST,
+    BMI160_STEP_MODE_UNKNOWN,
 } BMI160StepMode;
 
 /**
@@ -539,6 +548,7 @@ class BMI160Class {
         uint8_t getDoubleTapDetectionDuration();
         void setDoubleTapDetectionDuration(uint8_t duration);
 
+        uint8_t getStepDetectionMode();
         void setStepDetectionMode(BMI160StepMode mode);
         bool getStepCountEnabled();
         void setStepCountEnabled(bool enabled);
@@ -603,7 +613,6 @@ class BMI160Class {
         bool getYPosShockDetected();
         bool getZNegShockDetected();
         bool getZPosShockDetected();
-        bool getZeroShockDetected();
 
         bool getXNegMotionDetected();
         bool getXPosMotionDetected();
@@ -611,7 +620,6 @@ class BMI160Class {
         bool getYPosMotionDetected();
         bool getZNegMotionDetected();
         bool getZPosMotionDetected();
-        bool getZeroMotionDetected();
 
         bool getXNegTapDetected();
         bool getXPosTapDetected();

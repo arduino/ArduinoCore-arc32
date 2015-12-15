@@ -807,6 +807,35 @@ void BMI160Class::setShockDetectionDuration(uint8_t duration) {
     reg_write(BMI160_RA_INT_LOWHIGH_3, duration);
 }
 
+/** Get Step Detection mode.
+ * Returns an enum value which corresponds to current mode
+ * 0 = Normal Mode
+ * 1 = Sensitive Mode
+ * 2 = Robust Mode
+ * 3 = Unkown Mode
+ * For more details on the Step Detection, see Section
+ * 2.11.37 of the BMI160 Data Sheet.
+ *
+ * @return Current configuration of the step detector
+ * @see BMI160_RA_STEP_CONF_0
+ * @see BMI160_RA_STEP_CONF_1
+ */
+uint8_t BMI160Class::getStepDetectionMode() {
+    uint8_t ret_step_conf0, ret_min_step_buf;
+
+    ret_step_conf0 = reg_read(BMI160_RA_STEP_CONF_0);
+    ret_min_step_buf = reg_read(BMI160_RA_STEP_CONF_1);
+
+    if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_NOR) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_NOR))
+        return BMI160_STEP_MODE_NORMAL;
+    else if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_SEN) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_SEN))
+	return BMI160_STEP_MODE_SENSITIVE;
+    else if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_ROB) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_ROB))
+        return BMI160_STEP_MODE_ROBUST;
+    else
+        return BMI160_STEP_MODE_UNKNOWN;
+}
+
 /** Set Step Detection mode.
  * Sets the step detection mode to one of 3 predefined sensitivity settings:
  *
@@ -849,6 +878,7 @@ void BMI160Class::setStepDetectionMode(BMI160StepMode mode) {
                    BMI160_STEP_BUF_MIN_BIT,
                    BMI160_STEP_BUF_MIN_LEN);
 }
+
 
 /** Get Step Counter enabled status.
  * Once enabled and configured correctly (@see setStepDetectionMode()), the
