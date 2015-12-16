@@ -46,7 +46,6 @@ volatile uint8_t SoftwareSerial::_receive_buffer_head = 0;
 //
 // Globals
 //
-uint8_t txPin;
 uint8_t rxPin;
 uint16_t bitDelay;
 uint16_t rxIntraBitDelay;
@@ -95,8 +94,16 @@ bool SoftwareSerial::listen()
     bufferOverflow = false;
     _receive_buffer_head = _receive_buffer_tail = 0;
     active_object = this;
-
-    setRxIntMsk(true);
+    rxPin = _receivePin;
+    if(invertedLogic)
+    {
+      attachInterrupt(rxPin, recv, HIGH);
+    }
+    else
+    {
+      attachInterrupt(rxPin, recv, LOW);
+    }
+    
     return true;
   }
 
@@ -108,8 +115,8 @@ bool SoftwareSerial::stopListening()
 {
   if (active_object == this)
   {
-    setRxIntMsk(false);
     active_object = NULL;
+    detachInterrupt(rxPin);
     return true;
   }
   return false;
@@ -230,9 +237,9 @@ SoftwareSerial::SoftwareSerial(uint32_t receivePin, uint32_t transmitPin, bool i
 {
   invertedLogic = inverse_logic;
   setTX(transmitPin);
-  txPin = transmitPin;
+  _transmitPin = transmitPin;
   setRX(receivePin);
-  rxPin = receivePin;
+  _receivePin = receivePin;
 }
 
 //
@@ -313,22 +320,7 @@ void SoftwareSerial::begin(long speed)
   pinMode(_DEBUG_PIN1, OUTPUT);
   pinMode(_DEBUG_PIN2, OUTPUT);
 #endif
-  digitalRead(rxPin);
-  if(invertedLogic)
-  {
-    attachInterrupt(rxPin, recv, HIGH);
-  }
-  else
-  {
-    attachInterrupt(rxPin, recv, LOW);
-  }
-  
   listen();
-}
-
-void SoftwareSerial::setRxIntMsk(bool enable)
-{
-
 }
 
 void SoftwareSerial::end()
@@ -380,9 +372,9 @@ size_t SoftwareSerial::write(uint8_t b)
 
   // Write the start bit
   if (invertedLogic)
-    digitalWrite(txPin, HIGH);
+    digitalWrite(_transmitPin, HIGH);
   else
-    digitalWrite(txPin, LOW);
+    digitalWrite(_transmitPin, LOW);
 
   delayTicks(delay);
 
@@ -390,9 +382,9 @@ size_t SoftwareSerial::write(uint8_t b)
   for (uint8_t i = 8; i > 0; --i)
   {
     if (b & 1) // choose bit
-      digitalWrite(txPin, HIGH);
+      digitalWrite(_transmitPin, HIGH);
     else
-      digitalWrite(txPin, LOW);
+      digitalWrite(_transmitPin, LOW);
 
     delayTicks(delay);
     b >>= 1;
@@ -400,9 +392,9 @@ size_t SoftwareSerial::write(uint8_t b)
 
   // restore pin to natural state
   if (invertedLogic)
-    digitalWrite(txPin, LOW);
+    digitalWrite(_transmitPin, LOW);
   else
-    digitalWrite(txPin, HIGH);
+    digitalWrite(_transmitPin, HIGH);
 
   interrupts();
   delayTicks(delay);

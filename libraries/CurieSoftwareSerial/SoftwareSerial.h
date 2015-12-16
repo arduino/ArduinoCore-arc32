@@ -39,6 +39,7 @@ class SoftwareSerial : public Stream
 private:
   // per object data
   uint32_t _receivePin;
+  uint32_t _transmitPin;
   uint32_t _receiveBitMask;
   volatile uint32_t *_receivePortRegister;
   uint32_t _transmitBitMask;
@@ -66,7 +67,6 @@ private:
   void tx_pin_write(uint32_t pin_state) __attribute__((__always_inline__));
   void setTX(uint8_t transmitPin);
   void setRX(uint8_t receivePin);
-  void setRxIntMsk(bool enable);
 
   // Return num - sub, or 1 if the result would be < 1
   static uint16_t subtract_cap(uint16_t num, uint16_t sub);
