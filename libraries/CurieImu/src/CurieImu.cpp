@@ -21,6 +21,8 @@
 #include "internal/ss_spi.h"
 #include "interrupt.h"
 
+#define CURIE_IMU_CHIP_ID 0xD1
+
 #define BMI160_GPIN_AON_PIN 4
 
 /******************************************************************************/
@@ -30,7 +32,7 @@
  * on the Curie module, before calling BMI160::initialize() to activate the
  * BMI160 accelerometer and gyroscpoe with default settings.
  */
-void CurieImuClass::initialize()
+bool CurieImuClass::begin()
 {
     /* Configure pin-mux settings on the Intel Curie module to 
      * enable SPI mode usage */
@@ -47,6 +49,644 @@ void CurieImuClass::initialize()
 
     /* The SPI interface is ready - now invoke the base class initialization */
     BMI160Class::initialize();
+
+    /** Verify the SPI connection.
+     * MakgetGyroRatee sure the device is connected and responds as expected.
+     * @return True if connection is valid, false otherwise
+     */
+    return (CURIE_IMU_CHIP_ID == getDeviceID());
+}
+
+int CurieImuClass::getGyroRange()
+{
+    uint8_t fullScaleGyroRange = getFullScaleGyroRange();
+
+    switch (fullScaleGyroRange) {
+        case BMI160_GYRO_RANGE_2000:
+            return 2000;
+
+        case BMI160_GYRO_RANGE_1000:
+            return 1000;
+
+        case BMI160_GYRO_RANGE_500:
+            return 500;
+
+        case BMI160_GYRO_RANGE_250:
+            return 250;
+
+        case BMI160_GYRO_RANGE_125:
+            return 125;
+
+        default:
+            return -1;
+    }
+}
+
+void CurieImuClass::setGyroRange(int range)
+{
+    uint8_t fullScaleGyroRange;
+
+    if (range >= 2000) {
+        fullScaleGyroRange = BMI160_GYRO_RANGE_2000;
+    } else if (range >= 1000) {
+        fullScaleGyroRange = BMI160_GYRO_RANGE_1000;
+    } else if (range >= 500) {
+        fullScaleGyroRange = BMI160_GYRO_RANGE_500;
+    } else if (range >= 250) {
+        fullScaleGyroRange = BMI160_GYRO_RANGE_250;
+    } else {
+        fullScaleGyroRange = BMI160_GYRO_RANGE_125;
+    }
+
+    setFullScaleGyroRange(fullScaleGyroRange);
+}
+
+int CurieImuClass::getAccelerometerRange()
+{
+    uint8_t fullScaleAccelRange = getFullScaleAccelRange();
+
+    switch (fullScaleAccelRange) {
+        case BMI160_ACCEL_RANGE_2G:
+            return 2;
+
+        case BMI160_ACCEL_RANGE_4G:
+            return 4;
+
+        case BMI160_ACCEL_RANGE_8G:
+            return 8;
+
+        case BMI160_ACCEL_RANGE_16G:
+            return 16;
+
+        default:
+            return -1;
+    }
+}
+
+void CurieImuClass::setAccelerometerRange(int range)
+{
+    uint8_t fullScaleAccelRange;
+
+    if (range >= 16) {
+        fullScaleAccelRange = BMI160_ACCEL_RANGE_16G;
+    } else if (range >= 8) {
+        fullScaleAccelRange = BMI160_ACCEL_RANGE_8G;
+    } else if (range >= 4) {
+        fullScaleAccelRange = BMI160_ACCEL_RANGE_4G;
+    } else {
+        fullScaleAccelRange = BMI160_ACCEL_RANGE_2G;
+    }
+
+    setFullScaleAccelRange(fullScaleAccelRange);
+}
+
+void CurieImuClass::autoCalibrateGyroOffset()
+{
+    BMI160Class::autoCalibrateGyroOffset();
+}
+
+void CurieImuClass::autoCalibrateAccelerometerOffset(int axis, int target)
+{
+    switch (axis) {
+        case X_AXIS:
+            autoCalibrateXAccelOffset(target);
+            break;
+
+        case Y_AXIS:
+            autoCalibrateYAccelOffset(target);
+            break;
+
+        case Z_AXIS:
+            autoCalibrateZAccelOffset(target);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void CurieImuClass::enableGyroOffset(bool state)
+{
+    setGyroOffsetEnabled(state);
+}
+
+void CurieImuClass::enableAccelerometerOffset(bool state)
+{
+    setAccelOffsetEnabled(state);
+}
+
+bool CurieImuClass::gyroOffsetEnabled()
+{
+    return getGyroOffsetEnabled();
+}
+
+bool CurieImuClass::accelerometerOffsetEnabled()
+{
+    return getAccelOffsetEnabled();
+}
+
+int CurieImuClass::getGyroOffset(int axis)
+{
+    switch (axis) {
+        case X_AXIS:
+            return getXGyroOffset();
+
+        case Y_AXIS:
+            return getYGyroOffset();
+
+        case Z_AXIS:
+            return getZGyroOffset();
+
+        default:
+            return -1;
+    }
+}
+
+int CurieImuClass::getAccelerometerOffset(int axis)
+{
+    switch (axis) {
+        case X_AXIS:
+            return getXAccelOffset();
+
+        case Y_AXIS:
+            return getYAccelOffset();
+
+        case Z_AXIS:
+            return getZAccelOffset();
+
+        default:
+            return -1;
+    }
+}
+
+void CurieImuClass::setGyroOffset(int axis, int offset)
+{
+    switch (axis) {
+        case X_AXIS:
+            setXGyroOffset(axis);
+            break;
+
+        case Y_AXIS:
+            setYGyroOffset(axis);
+            break;
+
+        case Z_AXIS:
+            setZGyroOffset(axis);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void CurieImuClass::setAccelerometerOffset(int axis, int offset)
+{
+    switch (axis) {
+        case X_AXIS:
+            setXAccelOffset(axis);
+            break;
+
+        case Y_AXIS:
+            setYAccelOffset(axis);
+            break;
+
+        case Z_AXIS:
+            setZAccelOffset(axis);
+            break;
+
+        default:
+            break;
+    }
+}
+
+int CurieImuClass::getDetectionThreshold(int feature)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            return getFreefallDetectionThreshold();
+
+        case CURIE_IMU_SHOCK:
+            return getShockDetectionThreshold();
+
+        case CURIE_IMU_MOTION:
+            return getMotionDetectionThreshold();
+
+        case CURIE_IMU_ZERO_MOTION:
+            return getZeroMotionDetectionThreshold();
+
+        case CURIE_IMU_TAP:
+            return getTapDetectionThreshold();
+
+        case CURIE_IMU_STEP:
+        case CURIE_IMU_TAP_SHOCK:
+        case CURIE_IMU_TAP_QUIET:
+        case CURIE_IMU_DOUBLE_TAP:
+        case CURIE_IMU_FIFO_FULL:
+        case CURIE_IMU_DATA_READY:
+        default:
+            return -1;
+    }
+}
+
+void CurieImuClass::setDetectionThreshold(int feature, int threshold)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            setFreefallDetectionThreshold(threshold);
+            break;
+
+        case CURIE_IMU_SHOCK:
+            setShockDetectionThreshold(threshold);
+            break;
+
+        case CURIE_IMU_MOTION:
+            setMotionDetectionThreshold(threshold);
+            break;
+
+        case CURIE_IMU_ZERO_MOTION:
+            setZeroMotionDetectionThreshold(threshold);
+            break;
+
+        case CURIE_IMU_TAP:
+            setTapDetectionThreshold(threshold);
+            break;
+
+        case CURIE_IMU_STEP:
+        case CURIE_IMU_TAP_SHOCK:
+        case CURIE_IMU_TAP_QUIET:
+        case CURIE_IMU_DOUBLE_TAP:
+        case CURIE_IMU_FIFO_FULL:
+        case CURIE_IMU_DATA_READY:
+        default:
+            break;
+    }
+}
+
+int CurieImuClass::getDetectionDuration(int feature)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            return getFreefallDetectionDuration();
+
+        case CURIE_IMU_SHOCK:
+            return getShockDetectionDuration();
+
+        case CURIE_IMU_MOTION:
+            return getMotionDetectionDuration();
+
+        case CURIE_IMU_TAP_SHOCK:
+            return getTapShockDuration();
+
+        case CURIE_IMU_ZERO_MOTION:
+            return getZeroMotionDetectionThreshold();
+
+        case CURIE_IMU_TAP_QUIET:
+            return getTapQuietDuration();
+
+        case CURIE_IMU_DOUBLE_TAP:
+            return getDoubleTapDetectionDuration();
+
+        case CURIE_IMU_TAP:
+        case CURIE_IMU_STEP:
+        case CURIE_IMU_FIFO_FULL:
+        case CURIE_IMU_DATA_READY:
+        default:
+            return -1;
+    }
+}
+
+void CurieImuClass::setDetectionDuration(int feature, int value)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            setFreefallDetectionDuration(value);
+            break;
+
+        case CURIE_IMU_SHOCK:
+            setShockDetectionDuration(value);
+            break;
+
+        case CURIE_IMU_MOTION:
+            setMotionDetectionDuration(value);
+            break;
+
+        case CURIE_IMU_TAP_SHOCK:
+            setTapShockDuration(value);
+            break;
+
+        case CURIE_IMU_ZERO_MOTION:
+            setZeroMotionDetectionThreshold(value);
+            break;
+
+        case CURIE_IMU_TAP_QUIET:
+            setTapQuietDuration(value);
+            break;
+
+        case CURIE_IMU_DOUBLE_TAP:
+            setDoubleTapDetectionDuration(value);
+            break;
+
+        case CURIE_IMU_TAP:
+        case CURIE_IMU_STEP:
+        case CURIE_IMU_FIFO_FULL:
+        case CURIE_IMU_DATA_READY:
+        default:
+            break;
+    }
+}
+
+void CurieImuClass::enableInterrupt(int feature, bool enabled)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            setIntFreefallEnabled(enabled);
+            break;
+
+        case CURIE_IMU_SHOCK:
+            setIntShockEnabled(enabled);
+            break;
+
+        case CURIE_IMU_STEP:
+            setIntStepEnabled(enabled);
+            break;
+
+        case CURIE_IMU_MOTION:
+            setIntMotionEnabled(enabled);
+            break;
+
+        case CURIE_IMU_ZERO_MOTION:
+            setIntZeroMotionEnabled(enabled);
+            break;
+
+       case CURIE_IMU_TAP:
+            setIntTapEnabled(enabled);
+            break;
+
+        case CURIE_IMU_DOUBLE_TAP:
+            setIntDoubleTapEnabled(enabled);
+            break;
+
+        case CURIE_IMU_FIFO_FULL:
+            setIntFIFOBufferFullEnabled(enabled);
+            break;
+
+        case CURIE_IMU_DATA_READY:
+            setIntDataReadyEnabled(enabled);
+            break;
+
+        case CURIE_IMU_TAP_QUIET:
+        case CURIE_IMU_TAP_SHOCK:
+        default:
+            break;
+    }
+}
+
+bool CurieImuClass::interruptEnabled(int feature)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            return getIntFreefallEnabled();
+
+        case CURIE_IMU_SHOCK:
+            return getIntShockEnabled();
+
+        case CURIE_IMU_STEP:
+            return getIntStepEnabled();
+
+        case CURIE_IMU_MOTION:
+            return getIntMotionEnabled();
+
+        case CURIE_IMU_ZERO_MOTION:
+            return getIntZeroMotionEnabled();
+
+       case CURIE_IMU_TAP:
+            return getIntTapEnabled();
+
+        case CURIE_IMU_DOUBLE_TAP:
+            return getIntDoubleTapEnabled();
+
+        case CURIE_IMU_FIFO_FULL:
+            return getIntFIFOBufferFullEnabled();
+
+        case CURIE_IMU_DATA_READY:
+            return getIntDataReadyEnabled();
+
+        case CURIE_IMU_TAP_QUIET:
+        case CURIE_IMU_TAP_SHOCK:
+        default:
+            return -1;
+    }
+}
+
+int CurieImuClass::getInterruptStatus(int feature)
+{
+    switch (feature) {
+        case CURIE_IMU_FREEFALL:
+            return getIntFreefallStatus();
+
+        case CURIE_IMU_SHOCK:
+            return getIntShockStatus();
+
+        case CURIE_IMU_STEP:
+            return getIntStepStatus();
+
+        case CURIE_IMU_MOTION:
+            return getIntMotionStatus();
+
+        case CURIE_IMU_ZERO_MOTION:
+            return getIntZeroMotionStatus();
+
+        case CURIE_IMU_TAP:
+            return getIntTapStatus();
+
+        case CURIE_IMU_DOUBLE_TAP:
+            return getIntDoubleTapStatus();
+
+        case CURIE_IMU_FIFO_FULL:
+            return getIntFIFOBufferFullStatus();
+
+        case CURIE_IMU_DATA_READY:
+            return getIntDataReadyStatus();
+
+        case CURIE_IMU_TAP_QUIET:
+        case CURIE_IMU_TAP_SHOCK:
+        default:
+            return -1;
+    }
+}
+
+CurieIMUStepMode CurieImuClass::getStepDetectionMode()
+{
+    return (CurieIMUStepMode)BMI160Class::getStepDetectionMode();
+}
+
+void CurieImuClass::setStepDetectionMode(int mode)
+{
+    BMI160Class::setStepDetectionMode((BMI160StepMode)mode);
+}
+
+void CurieImuClass::readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz)
+{
+    getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+}
+
+void CurieImuClass::readAcceleration(short& x, short& y, short& z)
+{
+    getAcceleration(&x, &y, &z);
+}
+
+void CurieImuClass::readRotation(short& x, short& y, short& z)
+{
+    getRotation(&x, &y, &z);
+}
+
+short CurieImuClass::readAccelerometer(int axis)
+{
+    switch (axis) {
+        case X_AXIS:
+            return getAccelerationX();
+
+        case Y_AXIS:
+            return getAccelerationY();
+
+        case Z_AXIS:
+            return getAccelerationZ();
+
+        default:
+            return -1;
+    }
+}
+
+short CurieImuClass::readGyro(int axis)
+{
+    switch (axis) {
+        case X_AXIS:
+            return getRotationX();
+
+        case Y_AXIS:
+            return getRotationY();
+
+        case Z_AXIS:
+            return getRotationZ();
+
+        default:
+            return -1;
+    }
+}
+
+short CurieImuClass::readTemperature()
+{
+    return getTemperature();
+}
+
+bool CurieImuClass::shockDetected(int axis, int direction)
+{
+    if (direction == POSITIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXPosShockDetected();
+
+            case Y_AXIS:
+                return getYPosShockDetected();
+
+            case Z_AXIS:
+                return getZPosShockDetected();
+
+            default:
+                return -1;
+        }
+    } else if (direction == NEGATIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXNegShockDetected();
+
+            case Y_AXIS:
+                return getYNegShockDetected();
+
+            case Z_AXIS:
+                return getZNegShockDetected();
+
+            default:
+                return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
+bool CurieImuClass::motionDetected(int axis, int direction)
+{
+    if (direction == POSITIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXPosMotionDetected();
+
+            case Y_AXIS:
+                return getYPosMotionDetected();
+
+            case Z_AXIS:
+                return getZPosMotionDetected();
+
+            default:
+                return -1;
+        }
+    } else if (direction == NEGATIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXNegMotionDetected();
+
+            case Y_AXIS:
+                return getYNegMotionDetected();
+
+            case Z_AXIS:
+                return getZNegMotionDetected();
+
+            default:
+                return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
+bool CurieImuClass::tapDetected(int axis, int direction)
+{
+    if (direction == POSITIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXPosTapDetected();
+
+            case Y_AXIS:
+                return getYPosTapDetected();
+
+            case Z_AXIS:
+                return getZPosTapDetected();
+
+            default:
+                return -1;
+        }
+    } else if (direction == NEGATIVE) {
+        switch (axis) {
+            case X_AXIS:
+                return getXNegTapDetected();
+
+            case Y_AXIS:
+                return getYNegTapDetected();
+
+            case Z_AXIS:
+                return getZNegTapDetected();
+
+            default:
+                return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
+bool CurieImuClass::stepsDetected()
+{
+    return getIntStepStatus();
 }
 
 /** Provides a serial buffer transfer implementation for the BMI160 base class
@@ -79,8 +719,8 @@ int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
 void bmi160_pin1_isr(void)
 {
     soc_gpio_mask_interrupt(SOC_GPIO_AON, BMI160_GPIN_AON_PIN);
-    if (CurieImu._user_callback)
-        CurieImu._user_callback();
+    if (CurieIMU._user_callback)
+        CurieIMU._user_callback();
     soc_gpio_unmask_interrupt(SOC_GPIO_AON, BMI160_GPIN_AON_PIN);
 }
 
@@ -117,4 +757,4 @@ void CurieImuClass::detachInterrupt(void)
 }
 
 /* Pre-instantiated Object for this class */
-CurieImuClass CurieImu;
+CurieImuClass CurieIMU;
