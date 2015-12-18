@@ -144,75 +144,49 @@ bool CurieImuClass::accelerometerOffsetEnabled()
 
 int CurieImuClass::getGyroOffset(int axis)
 {
-    switch (axis) {
-        case X_AXIS:
-            return getXGyroOffset();
-
-        case Y_AXIS:
-            return getYGyroOffset();
-
-        case Z_AXIS:
-            return getZGyroOffset();
-
-        default:
-            return -1;
+    if (axis == X_AXIS) {
+        return getXGyroOffset();
+    } else if (axis == Y_AXIS) {
+        return getYGyroOffset();
+    } else if (axis == Z_AXIS) {
+        return getZGyroOffset();
     }
+
+    return -1;
 }
 
 int CurieImuClass::getAccelerometerOffset(int axis)
 {
-    switch (axis) {
-        case X_AXIS:
-            return getXAccelOffset();
-
-        case Y_AXIS:
-            return getYAccelOffset();
-
-        case Z_AXIS:
-            return getZAccelOffset();
-
-        default:
-            return -1;
+    if (axis == X_AXIS) {
+        return getXAccelOffset();
+    } else if (axis == Y_AXIS) {
+        return getYAccelOffset();
+    } else if (axis == Z_AXIS) {
+        return getZAccelOffset();
     }
+
+    return -1;
 }
 
 void CurieImuClass::setGyroOffset(int axis, int offset)
 {
-    switch (axis) {
-        case X_AXIS:
-            setXGyroOffset(axis);
-            break;
-
-        case Y_AXIS:
-            setYGyroOffset(axis);
-            break;
-
-        case Z_AXIS:
-            setZGyroOffset(axis);
-            break;
-
-        default:
-            break;
+    if (axis == X_AXIS) {
+        setXGyroOffset(axis);
+    } else if (axis == Y_AXIS) {
+        setYGyroOffset(axis);
+    } else if (axis == Z_AXIS) {
+        setZGyroOffset(axis);
     }
 }
 
 void CurieImuClass::setAccelerometerOffset(int axis, int offset)
 {
-    switch (axis) {
-        case X_AXIS:
-            setXAccelOffset(axis);
-            break;
-
-        case Y_AXIS:
-            setYAccelOffset(axis);
-            break;
-
-        case Z_AXIS:
-            setZAccelOffset(axis);
-            break;
-
-        default:
-            break;
+    if (axis == X_AXIS) {
+        setXAccelOffset(axis);
+    } else if (axis == Y_AXIS) {
+        setYAccelOffset(axis);
+    } else if (axis == Z_AXIS) {
+        setZAccelOffset(axis);
     }
 }
 
@@ -431,7 +405,7 @@ bool CurieImuClass::interruptEnabled(int feature)
         case CURIE_IMU_TAP_QUIET:
         case CURIE_IMU_TAP_SHOCK:
         default:
-            return -1;
+            return false;
     }
 }
 
@@ -468,7 +442,7 @@ int CurieImuClass::getInterruptStatus(int feature)
         case CURIE_IMU_TAP_QUIET:
         case CURIE_IMU_TAP_SHOCK:
         default:
-            return -1;
+            return false;
     }
 }
 
@@ -499,36 +473,28 @@ void CurieImuClass::readRotation(short& x, short& y, short& z)
 
 short CurieImuClass::readAccelerometer(int axis)
 {
-    switch (axis) {
-        case X_AXIS:
-            return getAccelerationX();
-
-        case Y_AXIS:
-            return getAccelerationY();
-
-        case Z_AXIS:
-            return getAccelerationZ();
-
-        default:
-            return -1;
+    if (axis == X_AXIS) {
+        return getAccelerationX();
+    } else if (axis == Y_AXIS) {
+        return getAccelerationY();
+    } else if (axis == Z_AXIS) {
+        return getAccelerationZ();
     }
+
+    return 0; 
 }
 
 short CurieImuClass::readGyro(int axis)
 {
-    switch (axis) {
-        case X_AXIS:
-            return getRotationX();
-
-        case Y_AXIS:
-            return getRotationY();
-
-        case Z_AXIS:
-            return getRotationZ();
-
-        default:
-            return -1;
+    if (axis == X_AXIS) {
+        return getRotationX();
+    } else if (axis == Y_AXIS) {
+        return getRotationY();
+    } else if (axis == Z_AXIS) {
+        return getRotationZ();
     }
+
+    return 0;
 }
 
 short CurieImuClass::readTemperature()
@@ -539,106 +505,70 @@ short CurieImuClass::readTemperature()
 bool CurieImuClass::shockDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXPosShockDetected();
-
-            case Y_AXIS:
-                return getYPosShockDetected();
-
-            case Z_AXIS:
-                return getZPosShockDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXPosShockDetected();
+        } else if (axis == Y_AXIS) {
+            return getYPosShockDetected();
+        } else if (axis == Z_AXIS) {
+            return getZPosShockDetected();
         }
     } else if (direction == NEGATIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXNegShockDetected();
-
-            case Y_AXIS:
-                return getYNegShockDetected();
-
-            case Z_AXIS:
-                return getZNegShockDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXNegShockDetected();
+        } else if (axis == Y_AXIS) {
+            return getYNegShockDetected();
+        } else if (axis == Z_AXIS) {
+            return getZNegShockDetected();
         }
-    } else {
-        return -1;
     }
+
+    return false;
 }
 
 bool CurieImuClass::motionDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXPosMotionDetected();
-
-            case Y_AXIS:
-                return getYPosMotionDetected();
-
-            case Z_AXIS:
-                return getZPosMotionDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXPosMotionDetected();
+        } else if (axis == Y_AXIS) {
+            return getYPosMotionDetected();
+        } else if (axis == Z_AXIS) {
+            return getZPosMotionDetected();
         }
     } else if (direction == NEGATIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXNegMotionDetected();
-
-            case Y_AXIS:
-                return getYNegMotionDetected();
-
-            case Z_AXIS:
-                return getZNegMotionDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXNegMotionDetected();
+        } else if (axis == Y_AXIS) {
+            return getYNegMotionDetected();
+        } else if (axis == Z_AXIS) {
+            return getZNegMotionDetected();
         }
-    } else {
-        return -1;
     }
+
+    return false;
 }
 
 bool CurieImuClass::tapDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXPosTapDetected();
-
-            case Y_AXIS:
-                return getYPosTapDetected();
-
-            case Z_AXIS:
-                return getZPosTapDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXPosTapDetected();
+        } else if (axis == Y_AXIS) {
+            return getYPosTapDetected();
+        } else if (axis == Z_AXIS) {
+            return getZPosTapDetected();
         }
     } else if (direction == NEGATIVE) {
-        switch (axis) {
-            case X_AXIS:
-                return getXNegTapDetected();
-
-            case Y_AXIS:
-                return getYNegTapDetected();
-
-            case Z_AXIS:
-                return getZNegTapDetected();
-
-            default:
-                return -1;
+        if (axis == X_AXIS) {
+            return getXNegTapDetected();
+        } else if (axis == Y_AXIS) {
+            return getYNegTapDetected();
+        } else if (axis == Z_AXIS) {
+            return getZNegTapDetected();
         }
-    } else {
-        return -1;
     }
+
+    return false;
 }
 
 bool CurieImuClass::stepsDetected()
