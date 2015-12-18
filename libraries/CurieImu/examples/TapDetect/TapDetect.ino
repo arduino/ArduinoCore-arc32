@@ -32,16 +32,16 @@ void setup() {
     CurieIMU.attachInterrupt(eventCallback);
 
     // Increase Accelerometer range to allow detection of stronger taps (< 4g)
-    CurieIMU.setAccelerometerRange(4);
+    CurieIMU.setAccelerometerRange(CURIE_IMU_ACCELEROMETER_RANGE_4G);
 
     // Reduce threshold to allow detection of weaker taps (>= 750mg)
-    CurieIMU.setDetectionThreshold(CURIE_IMU_TAP,6); // (6 x 125mg)
+    CurieIMU.setDetectionThreshold(CURIE_IMU_TAP, 6); // (6 x 125mg)
 
     // Set the time window for 2 taps to be registered as a double-tap (<= 250 milliseconds)
-    CurieIMU.setDetectionDuration(CURIE_IMU_DOUBLE_TAP,250);
+    CurieIMU.setDetectionDuration(CURIE_IMU_DOUBLE_TAP, CURIE_IMU_DOUBLE_TAP_DURATION_250MS);
 
     // Enable Double-Tap detection
-    CurieIMU.enableInterrupt(CURIE_IMU_DOUBLE_TAP,true);
+    CurieIMU.enableInterrupt(CURIE_IMU_DOUBLE_TAP, true);
 
     // Enable Interrupts Notifications
     CurieIMU.setIntEnabled(true);

@@ -108,7 +108,7 @@ void setup() {
     Serial.println(CurieIMU.getGyroOffset(Z_AXIS));
 
     Serial.println("Enabling Gyroscope/Acceleration offset compensation");
-    CurieIMU.enableGyroOffset(false);
+    CurieIMU.enableGyroOffset(true);
     CurieIMU.enableAccelerometerOffset(true);
 
     Serial.println(CurieIMU.accelerometerOffsetEnabled());

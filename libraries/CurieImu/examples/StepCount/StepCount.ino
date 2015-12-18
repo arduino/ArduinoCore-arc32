@@ -52,7 +52,7 @@ void setup() {
     // attach the eventCallback function as the
     // step event handler:
     CurieIMU.attachInterrupt(eventCallback);
-    CurieIMU.enableInterrupt(CURIE_IMU_STEP,true);  // turn on step detection
+    CurieIMU.enableInterrupt(CURIE_IMU_STEP, true);  // turn on step detection
     CurieIMU.setIntEnabled(true);            // enable interrupts
 
     Serial.println("IMU initialisation complete, waiting for events...");
