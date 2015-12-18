@@ -55,17 +55,17 @@ void loop() {
 static void eventCallback(void)
 {
   if (CurieIMU.getInterruptStatus(CURIE_IMU_SHOCK)) {
-    if (CurieIMU.shockDetected(X_AXIS,POSITIVE))
+    if (CurieIMU.shockDetected(X_AXIS, POSITIVE))
       Serial.println("Negative shock detected on X-axis");
-    if (CurieIMU.shockDetected(X_AXIS,NEGATIVE))
+    if (CurieIMU.shockDetected(X_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on X-axis");
-    if (CurieIMU.shockDetected(Y_AXIS,POSITIVE))
+    if (CurieIMU.shockDetected(Y_AXIS, POSITIVE))
       Serial.println("Negative shock detected on Y-axis");
-    if (CurieIMU.shockDetected(Y_AXIS,NEGATIVE))
+    if (CurieIMU.shockDetected(Y_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on Y-axis");
-    if (CurieIMU.shockDetected(Z_AXIS,POSITIVE))
+    if (CurieIMU.shockDetected(Z_AXIS, POSITIVE))
       Serial.println("Negative shock detected on Z-axis");
-    if (CurieIMU.shockDetected(Z_AXIS,NEGATIVE))
+    if (CurieIMU.shockDetected(Z_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on Z-axis");
   }
 }
