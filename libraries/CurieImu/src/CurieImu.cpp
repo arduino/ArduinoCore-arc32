@@ -57,6 +57,26 @@ bool CurieImuClass::begin()
     return (CURIE_IMU_CHIP_ID == getDeviceID());
 }
 
+int CurieImuClass::getGyroRate()
+{
+    return BMI160Class::getGyroRate();
+}
+
+void CurieImuClass::setGyroRate(int rate)
+{
+    BMI160Class::setGyroRate(rate);
+}
+
+int CurieImuClass::getAccelerometerRate()
+{
+    return getAccelRate();
+}
+
+void CurieImuClass::setAccelerometerRate(int rate)
+{
+    setAccelRate(rate);
+}
+
 int CurieImuClass::getGyroRange()
 {
     return getFullScaleGyroRange();
