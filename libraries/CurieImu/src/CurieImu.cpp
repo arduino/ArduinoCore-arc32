@@ -59,85 +59,22 @@ bool CurieImuClass::begin()
 
 int CurieImuClass::getGyroRange()
 {
-    uint8_t fullScaleGyroRange = getFullScaleGyroRange();
-
-    switch (fullScaleGyroRange) {
-        case BMI160_GYRO_RANGE_2000:
-            return 2000;
-
-        case BMI160_GYRO_RANGE_1000:
-            return 1000;
-
-        case BMI160_GYRO_RANGE_500:
-            return 500;
-
-        case BMI160_GYRO_RANGE_250:
-            return 250;
-
-        case BMI160_GYRO_RANGE_125:
-            return 125;
-
-        default:
-            return -1;
-    }
+    return getFullScaleGyroRange();
 }
 
 void CurieImuClass::setGyroRange(int range)
 {
-    uint8_t fullScaleGyroRange;
-
-    if (range >= 2000) {
-        fullScaleGyroRange = BMI160_GYRO_RANGE_2000;
-    } else if (range >= 1000) {
-        fullScaleGyroRange = BMI160_GYRO_RANGE_1000;
-    } else if (range >= 500) {
-        fullScaleGyroRange = BMI160_GYRO_RANGE_500;
-    } else if (range >= 250) {
-        fullScaleGyroRange = BMI160_GYRO_RANGE_250;
-    } else {
-        fullScaleGyroRange = BMI160_GYRO_RANGE_125;
-    }
-
-    setFullScaleGyroRange(fullScaleGyroRange);
+    setFullScaleGyroRange(range);
 }
 
 int CurieImuClass::getAccelerometerRange()
 {
-    uint8_t fullScaleAccelRange = getFullScaleAccelRange();
-
-    switch (fullScaleAccelRange) {
-        case BMI160_ACCEL_RANGE_2G:
-            return 2;
-
-        case BMI160_ACCEL_RANGE_4G:
-            return 4;
-
-        case BMI160_ACCEL_RANGE_8G:
-            return 8;
-
-        case BMI160_ACCEL_RANGE_16G:
-            return 16;
-
-        default:
-            return -1;
-    }
+    return getFullScaleAccelRange();
 }
 
 void CurieImuClass::setAccelerometerRange(int range)
 {
-    uint8_t fullScaleAccelRange;
-
-    if (range >= 16) {
-        fullScaleAccelRange = BMI160_ACCEL_RANGE_16G;
-    } else if (range >= 8) {
-        fullScaleAccelRange = BMI160_ACCEL_RANGE_8G;
-    } else if (range >= 4) {
-        fullScaleAccelRange = BMI160_ACCEL_RANGE_4G;
-    } else {
-        fullScaleAccelRange = BMI160_ACCEL_RANGE_2G;
-    }
-
-    setFullScaleAccelRange(fullScaleAccelRange);
+    setFullScaleAccelRange(range);
 }
 
 void CurieImuClass::autoCalibrateGyroOffset()

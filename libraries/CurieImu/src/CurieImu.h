@@ -70,6 +70,29 @@ typedef enum {
 } CurieIMUFeature;
 
 /**
+ * Accelerometer Sensitivity Range options
+ * @see setAccelerometerRange()
+ */
+typedef enum {
+    CURIE_IMU_ACCEL_RANGE_2G = BMI160_ACCEL_RANGE_2G,
+    CURIE_IMU_ACCEL_RANGE_4G = BMI160_ACCEL_RANGE_4G,
+    CURIE_IMU_ACCEL_RANGE_8G = BMI160_ACCEL_RANGE_8G,
+    CURIE_IMU_ACCEL_RANGE_16G = BMI160_ACCEL_RANGE_16G
+} CurieIMUAccelRange;
+
+/**
+ * Gyroscope Sensitivity Range options
+ * @see setGyroRange()
+ */
+typedef enum {
+    CURIE_IMU_GYRO_RANGE_2000 = BMI160_GYRO_RANGE_2000,
+    CURIE_IMU_GYRO_RANGE_1000 = BMI160_GYRO_RANGE_1000,
+    CURIE_IMU_GYRO_RANGE_500 = BMI160_GYRO_RANGE_500,
+    CURIE_IMU_GYRO_RANGE_250 = BMI160_GYRO_RANGE_250,
+    CURIE_IMU_GYRO_RANGE_125 = BMI160_GYRO_RANGE_125
+} CurieIMUGyroRange;
+
+/**
  * Step Detection Mode options
  * @see setStepDetectionMode()
  */
