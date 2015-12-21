@@ -34,19 +34,6 @@ void setup() {
 
   // Set the accelerometer range to 2G
   CurieIMU.setAccelerometerRange(CURIE_IMU_ACCELEROMETER_RANGE_2G);
-
-  Serial.println("About to calibrate accelerometer. Make sure your board is stable and upright");
-  delay(5000);
-
-  // start accelerometer
-  Serial.print("Starting accelerometer calibration...");
-  CurieIMU.autoCalibrateAccelerometerOffset(X_AXIS, 0);
-  CurieIMU.autoCalibrateAccelerometerOffset(Y_AXIS, 0);
-  CurieIMU.autoCalibrateAccelerometerOffset(Z_AXIS, 1);
-  Serial.println(" Done");
-
-  Serial.println("Enabling accelerometer offset compensation");
-  CurieIMU.enableAccelerometerOffset(true);
 }
 
 void loop() {

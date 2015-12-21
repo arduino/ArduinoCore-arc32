@@ -34,17 +34,6 @@ void setup() {
 
   // Set the accelerometer range to 250 degrees/second
   CurieIMU.setGyroRange(CURIE_IMU_GYRO_RANGE_250);
-
-  Serial.println("About to calibrate gyro. Make sure your board is stable and upright");
-  delay(5000);
-
-  // start gyro
-  Serial.print("Starting gyro calibration...");
-  CurieIMU.autoCalibrateGyroOffset();
-  Serial.println(" Done");
-
-  Serial.println("Enabling gyro offset compensation");
-  CurieIMU.enableGyroOffset(true);
 }
 
 void loop() {
