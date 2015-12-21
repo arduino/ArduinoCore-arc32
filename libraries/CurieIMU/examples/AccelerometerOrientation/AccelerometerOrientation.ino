@@ -52,9 +52,9 @@ int orientation = - 1;   // the board's orientation
     5: portrait, USB connector down
   */
   // read accelerometer:
-  short x = CurieIMU.readAccelerometer(X_AXIS);
-  short y = CurieIMU.readAccelerometer(Y_AXIS);
-  short z = CurieIMU.readAccelerometer(Z_AXIS);
+  int x = CurieIMU.readAccelerometer(X_AXIS);
+  int y = CurieIMU.readAccelerometer(Y_AXIS);
+  int z = CurieIMU.readAccelerometer(Z_AXIS);
 
   // calculate the absolute values, to determine the largest
   int absX = abs(x);
@@ -85,8 +85,8 @@ int orientation = - 1;   // the board's orientation
       orientationString = "connector up";
       orientation = 4;
     } else {
-      orientationString = "connector up";
-      orientation = 4;
+      orientationString = "connector down";
+      orientation = 5;
     }
   }
 

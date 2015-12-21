@@ -31,8 +31,8 @@
 */
 
 #include "CurieIMU.h"
-short int ax, ay, az;         // accelerometer values
-short int gx, gy, gz;         // gyrometer values
+int ax, ay, az;         // accelerometer values
+int gx, gy, gz;         // gyrometer values
 
 const int ledPin = 13;      // activity LED pin
 boolean blinkState = false; // state of the LED

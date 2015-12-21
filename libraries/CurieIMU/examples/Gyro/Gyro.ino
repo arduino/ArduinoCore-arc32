@@ -48,7 +48,7 @@ void setup() {
 }
 
 void loop() {
-  short int gxRaw, gyRaw, gzRaw;         // raw gyro values
+  int gxRaw, gyRaw, gzRaw;         // raw gyro values
   float gx, gy, gz;
 
   // read raw gyro measurements from device
@@ -72,7 +72,7 @@ void loop() {
   delay(5000);
 }
 
-float convertRawGyro(short gRaw) {
+float convertRawGyro(int gRaw) {
   // since we are using 250 degrees/seconds range
   // -250 maps to a raw value of -32768
   // +250 maps to a raw value of 32767

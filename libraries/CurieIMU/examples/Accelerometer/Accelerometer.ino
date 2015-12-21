@@ -50,7 +50,7 @@ void setup() {
 }
 
 void loop() {
-  short int axRaw, ayRaw, azRaw;         // raw accelerometer values
+  int axRaw, ayRaw, azRaw;         // raw accelerometer values
   float ax, ay, az;
 
   // read raw accelerometer measurements from device
@@ -74,7 +74,7 @@ void loop() {
   delay(5000);
 }
 
-float convertRawAcceleration(short aRaw) {
+float convertRawAcceleration(int aRaw) {
   // since we are using 2G range
   // -2g maps to a raw value of -32768
   // +2g maps to a raw value of 32767

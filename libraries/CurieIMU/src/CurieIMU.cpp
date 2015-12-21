@@ -456,22 +456,43 @@ void CurieIMUClass::setStepDetectionMode(int mode)
     BMI160Class::setStepDetectionMode((BMI160StepMode)mode);
 }
 
-void CurieIMUClass::readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz)
+void CurieIMUClass::readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy, int& gz)
 {
-    getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    short sax, say, saz, sgx, sgy, sgz;
+
+    getMotion6(&sax, &say, &saz, &sgx, &sgy, &sgz);
+
+    ax = sax;
+    ay = say;
+    az = saz;
+    gx = sgx;
+    gy = sgy;
+    gz = sgz;
 }
 
-void CurieIMUClass::readAccelerometer(short& x, short& y, short& z)
+void CurieIMUClass::readAccelerometer(int& x, int& y, int& z)
 {
-    getAcceleration(&x, &y, &z);
+    short sx, sy, sz;
+
+    getAcceleration(&sx, &sy, &sz);
+
+    x = sx;
+    y = sy;
+    z = sz;
 }
 
-void CurieIMUClass::readGyro(short& x, short& y, short& z)
+void CurieIMUClass::readGyro(int& x, int& y, int& z)
 {
-    getRotation(&x, &y, &z);
+    short sx, sy, sz;
+
+    getRotation(&sx, &sy, &sz);
+
+    x = sx;
+    y = sy;
+    z = sz;
 }
 
-short CurieIMUClass::readAccelerometer(int axis)
+int CurieIMUClass::readAccelerometer(int axis)
 {
     if (axis == X_AXIS) {
         return getAccelerationX();
@@ -484,7 +505,7 @@ short CurieIMUClass::readAccelerometer(int axis)
     return 0; 
 }
 
-short CurieIMUClass::readGyro(int axis)
+int CurieIMUClass::readGyro(int axis)
 {
     if (axis == X_AXIS) {
         return getRotationX();
@@ -497,7 +518,7 @@ short CurieIMUClass::readGyro(int axis)
     return 0;
 }
 
-short CurieIMUClass::readTemperature()
+int CurieIMUClass::readTemperature()
 {
     return getTemperature();
 }
