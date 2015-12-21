@@ -22,7 +22,7 @@
    Intel(R) Curie(TM) module can be used to detect tap events
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 
 void setup() {
   Serial.begin(9600);

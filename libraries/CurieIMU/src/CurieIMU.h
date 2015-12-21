@@ -235,11 +235,11 @@ typedef enum {
     CURIE_IMU_ZERO_MOTION_DURATION_409_60S = BMI160_ZERO_MOTION_DURATION_409_60S,
     CURIE_IMU_ZERO_MOTION_DURATION_419_84S = BMI160_ZERO_MOTION_DURATION_419_84S,
     CURIE_IMU_ZERO_MOTION_DURATION_430_08S = BMI160_ZERO_MOTION_DURATION_430_08S
-} CurieImuZeroMotionDuration;
+} CurieIMUZeroMotionDuration;
 
-/* Note that this CurieImuClass class inherits methods from the BMI160Class which
+/* Note that this CurieIMUClass class inherits methods from the BMI160Class which
  * is defined in BMI160.h.  BMI160Class provides methods for configuring and
- * accessing features of the BMI160 IMU device.  This CurieImuClass extends that
+ * accessing features of the BMI160 IMU device.  This CurieIMUClass extends that
  * class with implementation of details specific to the integration of the BMI160
  * device on the Intel Curie module, such as the serial communication interface
  * and interrupt signalling.
@@ -247,7 +247,7 @@ typedef enum {
  * Please refer to the respective .cpp files for documentation on each of the
  * methods provided by these classes.
  */
-class CurieImuClass : public BMI160Class {
+class CurieIMUClass : public BMI160Class {
     friend void bmi160_pin1_isr(void);
 
     public:
@@ -314,6 +314,6 @@ class CurieImuClass : public BMI160Class {
         void (*_user_callback)(void);
 };
 
-extern CurieImuClass CurieIMU;
+extern CurieIMUClass CurieIMU;
 
 #endif /* _CURIEIMU_H_ */

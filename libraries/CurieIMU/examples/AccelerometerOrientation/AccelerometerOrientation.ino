@@ -23,7 +23,7 @@
    and translate it to an orientation
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 
 int lastOrientation = - 1; // previous orientation (for comparison)
 

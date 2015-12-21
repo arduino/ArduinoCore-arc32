@@ -17,7 +17,7 @@
  *
  */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 #include "internal/ss_spi.h"
 #include "interrupt.h"
 
@@ -32,7 +32,7 @@
  * on the Curie module, before calling BMI160::initialize() to activate the
  * BMI160 accelerometer and gyroscpoe with default settings.
  */
-bool CurieImuClass::begin()
+bool CurieIMUClass::begin()
 {
     /* Configure pin-mux settings on the Intel Curie module to 
      * enable SPI mode usage */
@@ -57,52 +57,52 @@ bool CurieImuClass::begin()
     return (CURIE_IMU_CHIP_ID == getDeviceID());
 }
 
-int CurieImuClass::getGyroRate()
+int CurieIMUClass::getGyroRate()
 {
     return BMI160Class::getGyroRate();
 }
 
-void CurieImuClass::setGyroRate(int rate)
+void CurieIMUClass::setGyroRate(int rate)
 {
     BMI160Class::setGyroRate(rate);
 }
 
-int CurieImuClass::getAccelerometerRate()
+int CurieIMUClass::getAccelerometerRate()
 {
     return getAccelRate();
 }
 
-void CurieImuClass::setAccelerometerRate(int rate)
+void CurieIMUClass::setAccelerometerRate(int rate)
 {
     setAccelRate(rate);
 }
 
-int CurieImuClass::getGyroRange()
+int CurieIMUClass::getGyroRange()
 {
     return getFullScaleGyroRange();
 }
 
-void CurieImuClass::setGyroRange(int range)
+void CurieIMUClass::setGyroRange(int range)
 {
     setFullScaleGyroRange(range);
 }
 
-int CurieImuClass::getAccelerometerRange()
+int CurieIMUClass::getAccelerometerRange()
 {
     return getFullScaleAccelRange();
 }
 
-void CurieImuClass::setAccelerometerRange(int range)
+void CurieIMUClass::setAccelerometerRange(int range)
 {
     setFullScaleAccelRange(range);
 }
 
-void CurieImuClass::autoCalibrateGyroOffset()
+void CurieIMUClass::autoCalibrateGyroOffset()
 {
     BMI160Class::autoCalibrateGyroOffset();
 }
 
-void CurieImuClass::autoCalibrateAccelerometerOffset(int axis, int target)
+void CurieIMUClass::autoCalibrateAccelerometerOffset(int axis, int target)
 {
     switch (axis) {
         case X_AXIS:
@@ -122,27 +122,27 @@ void CurieImuClass::autoCalibrateAccelerometerOffset(int axis, int target)
     }
 }
 
-void CurieImuClass::enableGyroOffset(bool state)
+void CurieIMUClass::enableGyroOffset(bool state)
 {
     setGyroOffsetEnabled(state);
 }
 
-void CurieImuClass::enableAccelerometerOffset(bool state)
+void CurieIMUClass::enableAccelerometerOffset(bool state)
 {
     setAccelOffsetEnabled(state);
 }
 
-bool CurieImuClass::gyroOffsetEnabled()
+bool CurieIMUClass::gyroOffsetEnabled()
 {
     return getGyroOffsetEnabled();
 }
 
-bool CurieImuClass::accelerometerOffsetEnabled()
+bool CurieIMUClass::accelerometerOffsetEnabled()
 {
     return getAccelOffsetEnabled();
 }
 
-int CurieImuClass::getGyroOffset(int axis)
+int CurieIMUClass::getGyroOffset(int axis)
 {
     if (axis == X_AXIS) {
         return getXGyroOffset();
@@ -155,7 +155,7 @@ int CurieImuClass::getGyroOffset(int axis)
     return -1;
 }
 
-int CurieImuClass::getAccelerometerOffset(int axis)
+int CurieIMUClass::getAccelerometerOffset(int axis)
 {
     if (axis == X_AXIS) {
         return getXAccelOffset();
@@ -168,7 +168,7 @@ int CurieImuClass::getAccelerometerOffset(int axis)
     return -1;
 }
 
-void CurieImuClass::setGyroOffset(int axis, int offset)
+void CurieIMUClass::setGyroOffset(int axis, int offset)
 {
     if (axis == X_AXIS) {
         setXGyroOffset(axis);
@@ -179,7 +179,7 @@ void CurieImuClass::setGyroOffset(int axis, int offset)
     }
 }
 
-void CurieImuClass::setAccelerometerOffset(int axis, int offset)
+void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
 {
     if (axis == X_AXIS) {
         setXAccelOffset(axis);
@@ -190,7 +190,7 @@ void CurieImuClass::setAccelerometerOffset(int axis, int offset)
     }
 }
 
-int CurieImuClass::getDetectionThreshold(int feature)
+int CurieIMUClass::getDetectionThreshold(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -219,7 +219,7 @@ int CurieImuClass::getDetectionThreshold(int feature)
     }
 }
 
-void CurieImuClass::setDetectionThreshold(int feature, int threshold)
+void CurieIMUClass::setDetectionThreshold(int feature, int threshold)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -253,7 +253,7 @@ void CurieImuClass::setDetectionThreshold(int feature, int threshold)
     }
 }
 
-int CurieImuClass::getDetectionDuration(int feature)
+int CurieIMUClass::getDetectionDuration(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -286,7 +286,7 @@ int CurieImuClass::getDetectionDuration(int feature)
     }
 }
 
-void CurieImuClass::setDetectionDuration(int feature, int value)
+void CurieIMUClass::setDetectionDuration(int feature, int value)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -326,7 +326,7 @@ void CurieImuClass::setDetectionDuration(int feature, int value)
     }
 }
 
-void CurieImuClass::enableInterrupt(int feature, bool enabled)
+void CurieIMUClass::enableInterrupt(int feature, bool enabled)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -372,7 +372,7 @@ void CurieImuClass::enableInterrupt(int feature, bool enabled)
     }
 }
 
-bool CurieImuClass::interruptEnabled(int feature)
+bool CurieIMUClass::interruptEnabled(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -409,7 +409,7 @@ bool CurieImuClass::interruptEnabled(int feature)
     }
 }
 
-int CurieImuClass::getInterruptStatus(int feature)
+int CurieIMUClass::getInterruptStatus(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -446,32 +446,32 @@ int CurieImuClass::getInterruptStatus(int feature)
     }
 }
 
-CurieIMUStepMode CurieImuClass::getStepDetectionMode()
+CurieIMUStepMode CurieIMUClass::getStepDetectionMode()
 {
     return (CurieIMUStepMode)BMI160Class::getStepDetectionMode();
 }
 
-void CurieImuClass::setStepDetectionMode(int mode)
+void CurieIMUClass::setStepDetectionMode(int mode)
 {
     BMI160Class::setStepDetectionMode((BMI160StepMode)mode);
 }
 
-void CurieImuClass::readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz)
+void CurieIMUClass::readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz)
 {
     getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 }
 
-void CurieImuClass::readAccelerometer(short& x, short& y, short& z)
+void CurieIMUClass::readAccelerometer(short& x, short& y, short& z)
 {
     getAcceleration(&x, &y, &z);
 }
 
-void CurieImuClass::readGyro(short& x, short& y, short& z)
+void CurieIMUClass::readGyro(short& x, short& y, short& z)
 {
     getRotation(&x, &y, &z);
 }
 
-short CurieImuClass::readAccelerometer(int axis)
+short CurieIMUClass::readAccelerometer(int axis)
 {
     if (axis == X_AXIS) {
         return getAccelerationX();
@@ -484,7 +484,7 @@ short CurieImuClass::readAccelerometer(int axis)
     return 0; 
 }
 
-short CurieImuClass::readGyro(int axis)
+short CurieIMUClass::readGyro(int axis)
 {
     if (axis == X_AXIS) {
         return getRotationX();
@@ -497,12 +497,12 @@ short CurieImuClass::readGyro(int axis)
     return 0;
 }
 
-short CurieImuClass::readTemperature()
+short CurieIMUClass::readTemperature()
 {
     return getTemperature();
 }
 
-bool CurieImuClass::shockDetected(int axis, int direction)
+bool CurieIMUClass::shockDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
         if (axis == X_AXIS) {
@@ -525,7 +525,7 @@ bool CurieImuClass::shockDetected(int axis, int direction)
     return false;
 }
 
-bool CurieImuClass::motionDetected(int axis, int direction)
+bool CurieIMUClass::motionDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
         if (axis == X_AXIS) {
@@ -548,7 +548,7 @@ bool CurieImuClass::motionDetected(int axis, int direction)
     return false;
 }
 
-bool CurieImuClass::tapDetected(int axis, int direction)
+bool CurieIMUClass::tapDetected(int axis, int direction)
 {
     if (direction == POSITIVE) {
         if (axis == X_AXIS) {
@@ -571,7 +571,7 @@ bool CurieImuClass::tapDetected(int axis, int direction)
     return false;
 }
 
-bool CurieImuClass::stepsDetected()
+bool CurieIMUClass::stepsDetected()
 {
     return getIntStepStatus();
 }
@@ -580,7 +580,7 @@ bool CurieImuClass::stepsDetected()
  *  to use for accessing device registers.  This implementation uses the SPI
  *  bus on the Intel Curie module to communicate with the BMI160.
  */
-int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
+int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
 {
     int flags, status;
 
@@ -614,7 +614,7 @@ void bmi160_pin1_isr(void)
 /** Stores a user callback, and enables PIN1 interrupts from the
  *  BMI160 module.
  */
-void CurieImuClass::attachInterrupt(void (*callback)(void))
+void CurieIMUClass::attachInterrupt(void (*callback)(void))
 {
     gpio_cfg_data_t cfg;
 
@@ -636,7 +636,7 @@ void CurieImuClass::attachInterrupt(void (*callback)(void))
 
 /** Disables PIN1 interrupts from the BMI160 module.
  */
-void CurieImuClass::detachInterrupt(void)
+void CurieIMUClass::detachInterrupt(void)
 {
     setIntEnabled(false);
 
@@ -644,4 +644,4 @@ void CurieImuClass::detachInterrupt(void)
 }
 
 /* Pre-instantiated Object for this class */
-CurieImuClass CurieIMU;
+CurieIMUClass CurieIMU;

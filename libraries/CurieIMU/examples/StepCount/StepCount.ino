@@ -22,7 +22,7 @@
    Intel(R) Curie(TM) module can be used as a Step Counter (pedometer)
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 
 /* To get an interrupt notification for every step detected,
     set stepEventsEnabeled to true. Otherwise, the main loop will

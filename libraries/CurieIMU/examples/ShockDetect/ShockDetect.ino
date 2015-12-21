@@ -22,7 +22,7 @@
    Intel(R) Curie(TM) module can be used to detect shocks or sudden movements
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 
 boolean blinkState = false;          // state of the LED
 

@@ -30,7 +30,7 @@
   ===============================================
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 short int ax, ay, az;         // accelerometer values
 short int gx, gy, gz;         // gyrometer values
 
