@@ -461,12 +461,12 @@ void CurieImuClass::readMotionSensor(short& ax, short& ay, short& az, short& gx,
     getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 }
 
-void CurieImuClass::readAcceleration(short& x, short& y, short& z)
+void CurieImuClass::readAccelerometer(short& x, short& y, short& z)
 {
     getAcceleration(&x, &y, &z);
 }
 
-void CurieImuClass::readRotation(short& x, short& y, short& z)
+void CurieImuClass::readGyro(short& x, short& y, short& z)
 {
     getRotation(&x, &y, &z);
 }
