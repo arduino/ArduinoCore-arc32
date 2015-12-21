@@ -84,6 +84,10 @@ void CDCSerialClass::end( void )
 int CDCSerialClass::available( void )
 {
 #define SBS	SERIAL_BUFFER_SIZE
+
+  if (!_shared_data->device_open)
+    return (0);
+  else
     return (int)(SBS + _rx_buffer->head - _rx_buffer->tail) % SBS;
 }
 
@@ -102,7 +106,7 @@ int CDCSerialClass::availableForWrite(void)
 
 int CDCSerialClass::peek(void)
 {
-  if ( _rx_buffer->head == _rx_buffer->tail )
+  if ((!_shared_data->device_open) || ( _rx_buffer->head == _rx_buffer->tail ))
     return -1;
 
   return _rx_buffer->data[_rx_buffer->tail];
@@ -110,7 +114,7 @@ int CDCSerialClass::peek(void)
 
 int CDCSerialClass::read( void )
 {
-  if ( _rx_buffer->head == _rx_buffer->tail )
+  if ((!_shared_data->device_open) || ( _rx_buffer->head == _rx_buffer->tail ))
     return -1;
 
   uint8_t uc = _rx_buffer->data[_rx_buffer->tail];
