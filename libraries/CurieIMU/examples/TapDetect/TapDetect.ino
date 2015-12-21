@@ -43,9 +43,6 @@ void setup() {
   // Enable Double-Tap detection
   CurieIMU.enableInterrupt(CURIE_IMU_DOUBLE_TAP, true);
 
-  // Enable Interrupts Notifications
-  CurieIMU.setIntEnabled(true);
-
   Serial.println("IMU initialisation complete, waiting for events...");
 }
 

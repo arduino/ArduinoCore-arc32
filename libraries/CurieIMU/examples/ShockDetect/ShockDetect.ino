@@ -38,9 +38,6 @@ void setup() {
   CurieIMU.setDetectionDuration(CURIE_IMU_SHOCK, CURIE_IMU_TAP_SHOCK_DURATION_50MS);   // 50ms
   CurieIMU.enableInterrupt(CURIE_IMU_SHOCK, true);
 
-  /* Enable Interrupts Notifications */
-  CurieIMU.setIntEnabled(true);
-
   Serial.println("IMU initialisation complete, waiting for events...");
 }
 
