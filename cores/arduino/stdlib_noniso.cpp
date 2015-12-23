@@ -194,11 +194,13 @@ char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
     if (prec > 0) {
         *out = '.';
         ++out;
-
+	// Copy character by character to 'out' string
         for (unsigned char decShift = prec; decShift > 0; decShift--) {
             remainder *= 10.0;
+            sprintf(out, "%d", (int)remainder);
+            out++;
+            remainder -= (double)(int)remainder;
         }
-        sprintf(out, "%0*d", prec, (int)remainder);
     }
 
     return s;
