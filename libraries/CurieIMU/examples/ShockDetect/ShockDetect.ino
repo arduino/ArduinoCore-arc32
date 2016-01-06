@@ -22,7 +22,7 @@
    Intel(R) Curie(TM) module can be used to detect shocks or sudden movements
 */
 
-#include "CurieImu.h"
+#include "CurieIMU.h"
 
 boolean blinkState = false;          // state of the LED
 
@@ -30,16 +30,13 @@ void setup() {
   Serial.begin(9600);
 
   /* Initialise the IMU */
-  CurieImu.initialize();
-  CurieImu.attachInterrupt(eventCallback);
+  CurieIMU.begin();
+  CurieIMU.attachInterrupt(eventCallback);
 
   /* Enable Shock Detection */
-  CurieImu.setShockDetectionThreshold(192); // 1.5g
-  CurieImu.setShockDetectionDuration(11);   // 30ms
-  CurieImu.setIntShockEnabled(true);
-
-  /* Enable Interrupts Notifications */
-  CurieImu.setIntEnabled(true);
+  CurieIMU.setDetectionThreshold(CURIE_IMU_SHOCK, 192); // 1.5g
+  CurieIMU.setDetectionDuration(CURIE_IMU_SHOCK, CURIE_IMU_TAP_SHOCK_DURATION_50MS);   // 50ms
+  CurieIMU.enableInterrupt(CURIE_IMU_SHOCK, true);
 
   Serial.println("IMU initialisation complete, waiting for events...");
 }
@@ -54,18 +51,18 @@ void loop() {
 
 static void eventCallback(void)
 {
-  if (CurieImu.getIntShockStatus()) {
-    if (CurieImu.getXNegShockDetected())
+  if (CurieIMU.getInterruptStatus(CURIE_IMU_SHOCK)) {
+    if (CurieIMU.shockDetected(X_AXIS, POSITIVE))
       Serial.println("Negative shock detected on X-axis");
-    if (CurieImu.getXPosShockDetected())
+    if (CurieIMU.shockDetected(X_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on X-axis");
-    if (CurieImu.getYNegShockDetected())
+    if (CurieIMU.shockDetected(Y_AXIS, POSITIVE))
       Serial.println("Negative shock detected on Y-axis");
-    if (CurieImu.getYPosShockDetected())
+    if (CurieIMU.shockDetected(Y_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on Y-axis");
-    if (CurieImu.getZNegShockDetected())
+    if (CurieIMU.shockDetected(Z_AXIS, POSITIVE))
       Serial.println("Negative shock detected on Z-axis");
-    if (CurieImu.getZPosShockDetected())
+    if (CurieIMU.shockDetected(Z_AXIS, NEGATIVE))
       Serial.println("Positive shock detected on Z-axis");
   }
 }
