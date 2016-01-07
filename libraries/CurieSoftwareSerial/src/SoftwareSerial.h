@@ -40,20 +40,20 @@ private:
   // per object data
   uint32_t _receivePin;
   uint32_t _transmitPin;
-  uint32_t _receiveBitMask;
-  volatile uint32_t *_receivePortRegister;
-  uint32_t _transmitBitMask;
-  volatile uint32_t *_pcint_maskreg;
-  uint32_t _pcint_maskvalue;
+  uint32_t _isSOCGpio;
 
   // delays
-  uint32_t _rx_delay_centering;
-  uint32_t _rx_delay_intrabit;
-  uint32_t _rx_delay_stopbit;
-  uint32_t _tx_delay;
+  int _bit_delay;
+  int _rx_delay_centering;
+  int _rx_delay_init_centering;
+  int _rx_delay_init_intrabit;
+  int _rx_delay_first_intrabit;
+  int _rx_delay_intrabit;
+  int _rx_delay_stopbit;
+  int _tx_delay;
 
   uint32_t _buffer_overflow:1;
-  uint32_t _inverse_logic:1;
+  bool _inverse_logic = false;
 
   // static data
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
@@ -94,8 +94,6 @@ public:
   
   using Print::write;
 
-  // public only for easy access by interrupt handlers
-  static inline void handle_interrupt() __attribute__((__always_inline__));
 };
 
 // Arduino 0012 workaround
