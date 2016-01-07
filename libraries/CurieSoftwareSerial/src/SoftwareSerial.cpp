@@ -42,21 +42,17 @@ char SoftwareSerial::_receive_buffer[_SS_MAX_RX_BUFF];
 volatile uint8_t SoftwareSerial::_receive_buffer_tail = 0;
 volatile uint8_t SoftwareSerial::_receive_buffer_head = 0;
 
-
-//
-// Globals
-//
-uint8_t rxPin;
-uint16_t bitDelay;
-uint16_t rxIntraBitDelay;
-int rxCenteringDelay;
-int initRxIntraBitDelay;
-int firstIntraBitDelay;
-int initRxCenteringDelay;
-bool firstStartBit = true;
-bool bufferOverflow = true;
-bool invertedLogic = false;
-bool isSOCGpio = false;
+static uint8_t _rxPin;
+static uint16_t bitDelay;
+static uint16_t rxIntraBitDelay;
+static int rxCenteringDelay;
+static int initRxIntraBitDelay;
+static int firstIntraBitDelay;
+static int initRxCenteringDelay;
+static bool firstStartBit = true;
+static bool bufferOverflow = true;
+static bool invertedLogic = false;
+static bool isSOCGpio = false;
 
 //
 // Debugging
@@ -94,14 +90,21 @@ bool SoftwareSerial::listen()
     bufferOverflow = false;
     _receive_buffer_head = _receive_buffer_tail = 0;
     active_object = this;
-    rxPin = _receivePin;
+    _rxPin = _receivePin;
+    rxIntraBitDelay = _rx_delay_intrabit;
+    rxCenteringDelay = _rx_delay_centering;
+    initRxIntraBitDelay = _rx_delay_init_intrabit;
+    firstIntraBitDelay = _rx_delay_first_intrabit;
+    initRxCenteringDelay = _rx_delay_init_centering;
+    invertedLogic = _inverse_logic;
+    isSOCGpio = _isSOCGpio;
     if(invertedLogic)
     {
-      attachInterrupt(rxPin, recv, HIGH);
+      attachInterrupt(_rxPin, recv, HIGH);
     }
     else
     {
-      attachInterrupt(rxPin, recv, LOW);
+      attachInterrupt(_rxPin, recv, LOW);
     }
     
     return true;
@@ -116,7 +119,7 @@ bool SoftwareSerial::stopListening()
   if (active_object == this)
   {
     active_object = NULL;
-    detachInterrupt(rxPin);
+    detachInterrupt(_rxPin);
     return true;
   }
   return false;
@@ -131,7 +134,7 @@ void SoftwareSerial::recv()
   uint8_t d = 0;
   // If RX line is high, then we don't see any start bit
   // so interrupt is probably not for us
-  if (invertedLogic ? digitalRead(rxPin) : !digitalRead(rxPin))
+  if (invertedLogic ? digitalRead(_rxPin) : !digitalRead(_rxPin))
   {
     // The very first start bit the sketch receives takes about 5us longer
     if(firstStartBit && !isSOCGpio)
@@ -162,7 +165,7 @@ void SoftwareSerial::recv()
         delayTicks(rxIntraBitDelay);
       }
       d >>= 1;
-      if (digitalRead(rxPin))
+      if (digitalRead(_rxPin))
         d |= 0x80;
       firstStartBit = false;
     }
@@ -187,7 +190,7 @@ void SoftwareSerial::recv()
     uint8_t loopTimeout = 8;
     if(invertedLogic)
     {
-      while(digitalRead(rxPin) && (loopTimeout >0))
+      while(digitalRead(_rxPin) && (loopTimeout >0))
       {
         delayTicks(bitDelay >> 4);
         loopTimeout--;
@@ -195,7 +198,7 @@ void SoftwareSerial::recv()
     }
     else
     {
-      while(!digitalRead(rxPin) && (loopTimeout >0))
+      while(!digitalRead(_rxPin) && (loopTimeout >0))
       {
         delayTicks(bitDelay >> 4);
         loopTimeout--;
@@ -208,21 +211,9 @@ void SoftwareSerial::recv()
 
 uint32_t SoftwareSerial::rx_pin_read()
 {
-  return digitalRead(rxPin);
+  return digitalRead(_rxPin);
 }
 
-//
-// Interrupt handling
-//
-
-/* static */
-inline void SoftwareSerial::handle_interrupt()
-{
-  if (active_object)
-  {
-    active_object->recv();
-  }
-}
 
 //
 // Constructor
@@ -235,7 +226,7 @@ SoftwareSerial::SoftwareSerial(uint32_t receivePin, uint32_t transmitPin, bool i
   _buffer_overflow(false),
   _inverse_logic(inverse_logic)
 {
-  invertedLogic = inverse_logic;
+  _inverse_logic = inverse_logic;
   setTX(transmitPin);
   _transmitPin = transmitPin;
   setRX(receivePin);
@@ -283,37 +274,37 @@ void SoftwareSerial::begin(long speed)
 {
   _rx_delay_centering = _rx_delay_intrabit = _rx_delay_stopbit = _tx_delay = 0;
   //pre-calculate delays
-  bitDelay = (F_CPU/speed);
-  PinDescription *p = &g_APinDescription[rxPin];
+  _bit_delay = (F_CPU/speed);
+  PinDescription *p = &g_APinDescription[_rxPin];
   if (p->ulGPIOType == SOC_GPIO)
   {
-    isSOCGpio = true;
+    _isSOCGpio = true;
   }
   //toggling a pin takes about 62 ticks
-  _tx_delay = bitDelay - 62;
+  _tx_delay = _bit_delay - 62;
   //reading a pin takes about 70 ticks
-  rxIntraBitDelay = bitDelay - 70;
+  _rx_delay_intrabit = _bit_delay - 70;
   //it takes about 272 ticks from when the start bit is received to when the ISR is called
-  rxCenteringDelay = (bitDelay / 2 - 272 - 55);
-  if(rxCenteringDelay < 0)
+  _rx_delay_centering = (_bit_delay / 2 - 272 - 55);
+  if(_rx_delay_centering < 0)
   {
-    firstIntraBitDelay = rxIntraBitDelay + rxCenteringDelay;
-    if(firstIntraBitDelay < 0)
-      firstIntraBitDelay = 0;
-    rxCenteringDelay = 0;
+    _rx_delay_first_intrabit = _rx_delay_intrabit + _rx_delay_centering;
+    if(_rx_delay_first_intrabit < 0)
+      _rx_delay_first_intrabit = 0;
+    _rx_delay_centering = 0;
   }
   else
   {
-    firstIntraBitDelay = rxIntraBitDelay;
+    _rx_delay_first_intrabit = _rx_delay_intrabit;
   }
   //the first time the ISR is called is about 150 ticks longer
-  initRxCenteringDelay = rxCenteringDelay - 150;
-  if(initRxCenteringDelay < 0)
+  _rx_delay_init_centering = _rx_delay_centering - 150;
+  if(_rx_delay_init_centering < 0)
   {
-    initRxIntraBitDelay = rxIntraBitDelay + initRxCenteringDelay;
-      if(initRxIntraBitDelay < 0)
-        initRxIntraBitDelay = 0;
-    initRxCenteringDelay = 0;
+    _rx_delay_init_intrabit = _rx_delay_intrabit + _rx_delay_init_centering;
+      if(_rx_delay_init_intrabit < 0)
+        _rx_delay_init_intrabit = 0;
+    _rx_delay_init_centering = 0;
   }
    
 #if _DEBUG
