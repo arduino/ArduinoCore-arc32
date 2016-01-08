@@ -2,7 +2,7 @@
 
 ##############################################################
 
-arduino_101.name=Arduino 101
+arduino_101.name=Arduino/Genuino 101
 
 arduino_101.vid.0=0x8087
 arduino_101.pid.0=0x0AB6
