@@ -26,7 +26,6 @@
 
 #define EEPROM_SIZE 2048 //EEPROM size in bytes
 
-//#define EEPROM([(X)])=Y (EEPROM.write((X)*sizeof(uint32_t), Y))
 
 #include <inttypes.h>
 #include "Arduino.h"
@@ -56,6 +55,11 @@ public:
   //Functionality to 'get' and 'put' objects to and from EEPROM.
   template< typename T > T &get(uint32_t addr, T &t)
   {
+    //make sure address is valid
+    if((addr > 0x7FC) || (addr%4))
+    {
+      return t;
+    }
     int byteCount = sizeof(T);
     //return if size of object is greater than size of EEPROM
     if(byteCount > EEPROM_SIZE)
@@ -72,6 +76,11 @@ public:
   }
   template< typename T > T put(uint32_t addr, T t)
   {
+    //make sure address is valid
+    if((addr > 0x7FC) || (addr%4))
+    {
+      return t;
+    }
     uint32_t rom_wr_ctrl = 0;
     int byteCount = sizeof(T);
     //return if size of object is greater than size of EEPROM
@@ -100,7 +109,6 @@ public:
     }
     else
     {
-      Serial.println("Block is not empty. Clearing and rewriting");
       //read entire 2k of data
       uint32_t blockdata[EEPROM_SIZE/4];
       for(int i = 0; i < EEPROM_SIZE/4; i++)
