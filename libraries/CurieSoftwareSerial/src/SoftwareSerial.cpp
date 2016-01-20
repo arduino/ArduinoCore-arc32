@@ -187,7 +187,7 @@ void SoftwareSerial::recv()
     }
 
     // wait until we see a stop bit/s or timeout;
-    uint8_t loopTimeout = 8;
+    uint8_t loopTimeout = 32;
     if(invertedLogic)
     {
       while(digitalRead(_rxPin) && (loopTimeout >0))
@@ -305,6 +305,10 @@ void SoftwareSerial::begin(long speed)
       if(_rx_delay_init_intrabit < 0)
         _rx_delay_init_intrabit = 0;
     _rx_delay_init_centering = 0;
+  }
+  else
+  {
+    _rx_delay_init_intrabit = _rx_delay_first_intrabit;
   }
    
 #if _DEBUG
