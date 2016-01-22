@@ -125,7 +125,7 @@ class CurieTimer
     int pwmStart(unsigned int outputPin, int dutyRange, unsigned int periodUsec);
 
     // Stop software PWM.
-    inline void pwdStop(void) { return kill(); }
+    inline void pwmStop(void) { return kill(); }
 
     // Generic timer ISR.  It will call user call back routine if set.
     void timerIsr(void);
