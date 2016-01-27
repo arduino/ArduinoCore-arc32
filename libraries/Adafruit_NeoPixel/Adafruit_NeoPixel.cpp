@@ -1021,143 +1021,93 @@ void Adafruit_NeoPixel::show(void) {
 
 // Arduino 101  -----------------------------------------------------------
 
-  PinDescription *pindesc = &g_APinDescription[pin];
-  uint8_t        *p = pixels, *end = p + numBytes;
-  register uint8_t pix, mask;
+#define NOPx7{ __builtin_arc_nop(); \
+  __builtin_arc_nop(); __builtin_arc_nop(); \
+  __builtin_arc_nop(); __builtin_arc_nop(); \
+  __builtin_arc_nop(); __builtin_arc_nop(); }
 
+  PinDescription *pindesc = &g_APinDescription[pin];
+  register uint32_t loop = 8 * numBytes; // one loop to handle all bytes and all bits
+  register uint8_t *p = pixels;
+  register uint32_t currByte = (uint32_t) (*p);
+  register uint32_t currBit = 0x80 & currByte;
+  register uint32_t bitCounter = 0;
+  register uint32_t first = 1;
+
+  // The loop is unusual. Very first iteration puts all the way LOW to the wire -
+  // constant LOW does not affect NEOPIXEL, so there is no visible effect displayed.
+  // During that very first iteration CPU caches instructions in the loop.
+  // Because of the caching process, "CPU slows down". NEOPIXEL pulse is very time sensitive
+  // that's why we let the CPU cache first and we start regular pulse from 2nd iteration
   if (pindesc->ulGPIOType == SS_GPIO) {
     register uint32_t reg = pindesc->ulGPIOBase + SS_GPIO_SWPORTA_DR;
-    register uint32_t reg_val = __builtin_arc_lr((volatile uint32_t)reg);
+    uint32_t reg_val = __builtin_arc_lr((volatile uint32_t)reg);
     register uint32_t reg_bit_high = reg_val | (1 << pindesc->ulGPIOId);
     register uint32_t reg_bit_low  = reg_val & ~(1 << pindesc->ulGPIOId);
 
-    while(p < end) {
-      pix = *p++;
-      for(mask = 0x80; mask; mask >>= 1) {
-        __builtin_arc_sr(reg_bit_high, (volatile uint32_t)reg);
-        if(pix & mask) {
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_sr(reg_bit_low, (volatile uint32_t)reg);
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-        } else {
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_sr(reg_bit_low, (volatile uint32_t)reg);
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-        }
+    loop += 1; // include first, special iteration
+    while(loop--) {
+      if(!first) {
+        currByte <<= 1;
+        bitCounter++;
       }
+
+      // 1 is >550ns high and >450ns low; 0 is 200..500ns high and >450ns low
+      __builtin_arc_sr(first ? reg_bit_low : reg_bit_high, (volatile uint32_t)reg);
+      if(currBit) { // ~400ns HIGH (740ns overall)
+        NOPx7
+        NOPx7
+      }
+      // ~340ns HIGH
+      NOPx7
+     __builtin_arc_nop();
+
+      // 820ns LOW; per spec, max allowed low here is 5000ns */
+      __builtin_arc_sr(reg_bit_low, (volatile uint32_t)reg);
+      NOPx7
+      NOPx7
+
+      if(bitCounter >= 8) {
+        bitCounter = 0;
+        currByte = (uint32_t) (*++p);
+      }
+
+      currBit = 0x80 & currByte;
+      first = 0;
     }
   } else if(pindesc->ulGPIOType == SOC_GPIO) {
     register uint32_t reg = pindesc->ulGPIOBase + SOC_GPIO_SWPORTA_DR;
-    register uint32_t reg_val = MMIO_REG_VAL(reg);
+    uint32_t reg_val = MMIO_REG_VAL(reg);
     register uint32_t reg_bit_high = reg_val | (1 << pindesc->ulGPIOId);
     register uint32_t reg_bit_low  = reg_val & ~(1 << pindesc->ulGPIOId);
 
-    while(p < end) {
-      pix = *p++;
-      for(mask = 0x80; mask; mask >>= 1) {
-        MMIO_REG_VAL(reg) = reg_bit_high;
-        if(pix & mask) {
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          MMIO_REG_VAL(reg) = reg_bit_low;
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-        } else {
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          MMIO_REG_VAL(reg) = reg_bit_low;
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-          __builtin_arc_nop();
-        }
+    loop += 1; // include first, special iteration
+    while(loop--) {
+      if(!first) {
+        currByte <<= 1;
+        bitCounter++;
       }
+      MMIO_REG_VAL(reg) = first ? reg_bit_low : reg_bit_high;
+      if(currBit) { // ~430ns HIGH (740ns overall)
+        NOPx7
+        NOPx7
+        __builtin_arc_nop();
+      }
+      // ~310ns HIGH
+      NOPx7
+
+      // 850ns LOW; per spec, max allowed low here is 5000ns */
+      MMIO_REG_VAL(reg) = reg_bit_low;
+      NOPx7
+      NOPx7
+
+      if(bitCounter >= 8) {
+        bitCounter = 0;
+        currByte = (uint32_t) (*++p);
+      }
+
+      currBit = 0x80 & currByte;
+      first = 0;
     }
   }
 
