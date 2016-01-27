@@ -139,6 +139,9 @@ void CurieTimer::resume(void)
   aux_reg_write(timerCountAddr, pauseCount);
   aux_reg_write(timerControlAddr, pauseCntrl);
   currState = RUNNING;
+
+  // Re-enable timer interrupt once timer is reloaded with previous stop values.
+  interrupt_enable(timerIrqNum);
 }
 
 
