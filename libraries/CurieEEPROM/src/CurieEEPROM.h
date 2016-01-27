@@ -29,7 +29,6 @@
 
 #include <inttypes.h>
 #include "Arduino.h"
-#include <array>
 
 class CurieEEPROM 
 {
@@ -66,12 +65,13 @@ public:
     {
       return t;
     }
-    auto bytes = to_bytes(t); 
+    byte *bytes = to_bytes(t);
     for(int i = 0; i < byteCount; i++)
     {
       bytes[i] = read8(addr+i);
     }
     from_bytes(bytes, t);
+    delete bytes;
     return t;
   }
   template< typename T > T put(uint32_t addr, T t)
@@ -88,11 +88,13 @@ public:
     {
       return t;
     }
-    const auto dwords = to_dwords(t);
+    
+    size_t size = (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0));
+    uint32_t *dwords = to_dwords(t);
     
     //check if address is empty and available for writing new data
     bool blockAvailable = true;
-    for(int i =0; i < (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0)); i++)
+    for(int i =0; i < size; i++)
     {
       uint32_t data32 = read(addr+i*sizeof(uint32_t));
       if(data32 != 0xFFFFFFFF)
@@ -102,7 +104,7 @@ public:
     }
     if(blockAvailable)
     {
-      for(int i = 0; i<sizeof(dwords)/4; i++)
+      for(int i = 0; i<size; i++)
       {
         write(addr+i*sizeof(uint32_t), dwords[i]);
       }
@@ -117,7 +119,7 @@ public:
       }
       
       //update blockdata buffer
-      for(int i = 0; i<sizeof(dwords)/4; i++)
+      for(int i = 0; i<size; i++)
       {
         blockdata[addr/4 + i] = dwords[i];
       }
@@ -137,37 +139,32 @@ public:
         delay(3); //give it enough time to finish writing
       }
     }
+    delete dwords;
     return t;
   }
 
 private:
-  template< typename T > std::array< byte, sizeof(T) >  to_bytes(const T& object)
+  template< typename T > byte* to_bytes(const T& object)
   {
-    std::array< byte, sizeof(T) > bytes ;
+    size_t buffer_size = sizeof(object);
+    byte *buffer = new byte[buffer_size];
+    memcpy(buffer, &object, buffer_size);
 
-    const byte* begin = reinterpret_cast< const byte* >( std::addressof(object)) ;
-    const byte* end = begin + sizeof(T) ;
-    std::copy( begin, end, std::begin(bytes)) ;
-
-    return bytes;
+    return buffer;
   }
   
-  template< typename T > std::array< uint32_t, (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0)) >  to_dwords( const T& object )
+  template< typename T > uint32_t* to_dwords(const T& object)
   {
-    std::array< uint32_t, (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0)) > dwords;
-
-    const uint32_t* begin = reinterpret_cast< const uint32_t* >( std::addressof(object)) ;
-    const uint32_t* end = begin + (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0));
-    std::copy( begin, end, std::begin(dwords));
-
-    return dwords;
+    size_t buffer_size = sizeof(object);
+    uint32_t *buffer = new uint32_t[buffer_size];
+    memcpy(buffer, &object, buffer_size);
+ 
+    return buffer;
   }
   
-  template< typename T > T& from_bytes(std::array< byte, sizeof(T) >& bytes, T& object )
+  template< typename T > T& from_bytes(byte* bytes, T& object )
   {
-    byte* begin_object = reinterpret_cast< byte* >( std::addressof(object) ) ;
-    std::copy( std::begin(bytes), std::end(bytes), begin_object ) ;
-    
+    memcpy(&object, bytes, sizeof(object));
     return object;
   } 
 };
