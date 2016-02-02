@@ -18,7 +18,7 @@
 */
 
 
-#include <CurieBle.h>
+#include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLEPeripheral blePeripheral; // create peripheral instance
