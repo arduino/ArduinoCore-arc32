@@ -48,20 +48,6 @@
 #include "ble_client.h"
 #include "platform.h"
 
-enum {
-    UNIT_0_625_MS = 625,                            /**< Number of microseconds in 0.625 milliseconds. */
-    UNIT_1_25_MS = 1250,                            /**< Number of microseconds in 1.25 milliseconds. */
-    UNIT_10_MS = 10000                              /**< Number of microseconds in 10 milliseconds. */
-};
-
-#define MSEC_TO_UNITS(TIME, RESOLUTION) (((TIME) * 1000) / (RESOLUTION))
-
-/* Connection parameters used for Peripheral Preferred Connection Parameterss (PPCP) and update request */
-#define MIN_CONN_INTERVAL MSEC_TO_UNITS(80, UNIT_1_25_MS)
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(150, UNIT_1_25_MS)
-#define SLAVE_LATENCY 0
-#define CONN_SUP_TIMEOUT MSEC_TO_UNITS(6000, UNIT_10_MS)
-
 /* Advertising parameters */
 #define BLE_GAP_ADV_TYPE_ADV_IND          0x00   /**< Connectable undirected. */
 #define BLE_GAP_ADV_FP_ANY                0x00   /**< Allow scan requests and connect requests from any device. */
@@ -496,7 +482,9 @@ BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb, void *gap_even
 BleStatus ble_client_gap_set_enable_config(const char *name,
                                            const ble_addr_t *bda,
                                            const uint16_t appearance,
-                                           const int8_t tx_power)
+                                           const int8_t tx_power,
+                                           const uint16_t min_conn_interval,
+                                           const uint16_t max_conn_interval)
 {
     struct ble_wr_config config;
     BleStatus status;
@@ -505,12 +493,12 @@ BleStatus ble_client_gap_set_enable_config(const char *name,
     config.p_name = (uint8_t *)name;
     config.appearance = appearance;
     config.tx_power = tx_power;
-    config.peripheral_conn_params.interval_min = MIN_CONN_INTERVAL;
-    config.peripheral_conn_params.interval_max = MAX_CONN_INTERVAL;
+    config.peripheral_conn_params.interval_min = min_conn_interval;
+    config.peripheral_conn_params.interval_max = max_conn_interval;
     config.peripheral_conn_params.slave_latency = SLAVE_LATENCY;
     config.peripheral_conn_params.link_sup_to = CONN_SUP_TIMEOUT;
-    config.central_conn_params.interval_min = MIN_CONN_INTERVAL;
-    config.central_conn_params.interval_max = MAX_CONN_INTERVAL;
+    config.central_conn_params.interval_min = min_conn_interval;
+    config.central_conn_params.interval_max = max_conn_interval;
     config.central_conn_params.slave_latency = SLAVE_LATENCY;
     config.central_conn_params.link_sup_to = CONN_SUP_TIMEOUT;
 
