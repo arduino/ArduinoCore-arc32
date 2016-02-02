@@ -18,7 +18,7 @@
 */
 
 
-#include <CurieBle.h>
+#include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to on-board LED
 const int buttonPin = 4; // set buttonPin to digital pin 4

@@ -15,7 +15,7 @@
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <CurieBle.h>
+#include <CurieBLE.h>
 
 BLEPeripheral blePeripheral;  // BLE Peripheral Device (the board you're programming)
 BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // BLE LED Service
