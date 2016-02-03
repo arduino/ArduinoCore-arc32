@@ -21,7 +21,7 @@ rdRstTickCount	KEYWORD2
 pause		KEYWORD2
 resume		KEYWORD2
 pwmStart	KEYWORD2
-pwdStop		KEYWORD2
+pwmStop		KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
