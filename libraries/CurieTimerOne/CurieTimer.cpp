@@ -153,7 +153,8 @@ int CurieTimer::pwmStart(unsigned int outputPin, double dutyPercentage, unsigned
 {
   unsigned int pwmPeriod;
 
-  if(periodUsec == 0)
+  // Safe guard against periodUsec overflow when convert to hz.
+  if((periodUsec == 0) || (periodUsec >= MAX_PERIOD))
     return -(INVALID_PERIOD);
 
   if((dutyPercentage < 0.0) || (dutyPercentage > 100.0))
@@ -181,11 +182,20 @@ int CurieTimer::pwmStart(unsigned int outputPin, double dutyPercentage, unsigned
   dutyCycle = (unsigned int)(((double)pwmPeriod / 100.0) * dutyPercentage);
   nonDutyCycle = pwmPeriod - dutyCycle;
 
+  // S/w overhead is about 4-5 usec. The shortest up or down cycle is set to be 10 usec.
+  if(dutyCycle < (10 * HZ_USEC))
+    dutyCycle = (10 * HZ_USEC);
+  if(nonDutyCycle < (10 * HZ_USEC))
+    nonDutyCycle = (10 * HZ_USEC);
+
+  // Account for s/w overhead.
+  dutyCycle -= (4 *  HZ_USEC);
+  nonDutyCycle -= (4 *  HZ_USEC);
+
   dutyToggle = true;
   digitalWrite(pwmPin, HIGH);
-  init(dutyCycle, pwmCB);
-
-  return SUCCESS;
+  // Should return value back to caller.
+  return init(dutyCycle, pwmCB);
 }
 
 
@@ -257,14 +267,14 @@ inline void CurieTimer::timerIsr(void)
 {
   unsigned int reg;
 
-  // Clear the interrupt pending bit.
-  reg = aux_reg_read(timerControlAddr) & ~ARC_TIMER_INTR_PENDING_BIT_FLAG;
-  aux_reg_write(timerControlAddr, reg);
-
   tickCnt++;  // Account for the interrupt
 
   if(userCB != NULL)  // Call user ISR if available
     userCB();
+
+  // Clear the interrupt pending bit upon exit.
+  reg = aux_reg_read(timerControlAddr) & ~ARC_TIMER_INTR_PENDING_BIT_FLAG;
+  aux_reg_write(timerControlAddr, reg);
 }
 
 
