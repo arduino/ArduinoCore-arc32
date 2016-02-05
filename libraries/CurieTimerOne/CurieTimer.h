@@ -124,8 +124,8 @@ class CurieTimer
     // Start software PWM.  Use a range of 0-1023 for duty cycle. 0=always Low, 1023=always high
     int pwmStart(unsigned int outputPin, int dutyRange, unsigned int periodUsec);
 
-    // Stop software PWM.
-    inline void pwmStop(void) { return kill(); }
+    // Stop software PWM.  Put the time back to default and de-assert the selected port.
+    inline void pwmStop(void) { kill(); return digitalWrite(pwmPin, LOW); }
 
     // Generic timer ISR.  It will call user call back routine if set.
     void timerIsr(void);
