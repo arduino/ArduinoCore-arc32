@@ -170,6 +170,8 @@ int CurieTimer::pwmStart(unsigned int outputPin, double dutyPercentage, unsigned
   }
 
   if(dutyPercentage == 100.0) {
+    // If PWM is already running, reset the timer and set pin to HIGH
+    kill(); 
     digitalWrite(pwmPin, HIGH);
     return SUCCESS;
   }
