@@ -33,6 +33,22 @@
 
 #include "BLECommon.h"
 
+enum {
+    UNIT_0_625_MS = 625,                            /**< Number of microseconds in 0.625 milliseconds. */
+    UNIT_1_25_MS = 1250,                            /**< Number of microseconds in 1.25 milliseconds. */
+    UNIT_10_MS = 10000                              /**< Number of microseconds in 10 milliseconds. */
+};
+
+#define MSEC_TO_UNITS(TIME, RESOLUTION) (((TIME) * 1000) / (RESOLUTION))
+
+/* Connection parameters used for Peripheral Preferred Connection Parameterss (PPCP) and update request */
+#define DEFAULT_MIN_CONN_INTERVAL MSEC_TO_UNITS(80, UNIT_1_25_MS)
+#define DEFAULT_MAX_CONN_INTERVAL MSEC_TO_UNITS(150, UNIT_1_25_MS)
+#define MIN_CONN_INTERVAL 0x0006
+#define MAX_CONN_INTERVAL 0x095f
+#define SLAVE_LATENCY 0
+#define CONN_SUP_TIMEOUT MSEC_TO_UNITS(6000, UNIT_10_MS)
+
 /* Borrowed from ble_service_utils.h */
 #define UINT8_TO_LESTREAM(p, i) \
     do { *(p)++ = (uint8_t)(i); } \
@@ -98,7 +114,9 @@ BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb,
 BleStatus ble_client_gap_set_enable_config(const char *name,
                                            const ble_addr_t *bda,
                                            const uint16_t appearance,
-                                           const int8_t tx_power);
+                                           const int8_t tx_power,
+                                           const uint16_t min_conn_interval,
+                                           const uint16_t max_conn_interval);
 BleStatus ble_client_gap_get_bda(ble_addr_t *p_bda);
 BleStatus ble_client_gap_wr_adv_data(uint8_t *adv_data,
                                      const uint8_t adv_data_len);

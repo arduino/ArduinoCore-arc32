@@ -101,6 +101,16 @@ public:
     void setAppearance(const unsigned short appearance);
 
     /**
+     * Set the min and max connection interval BLE Peripheral Device
+     *
+     * @param minConnInterval Minimum connection interval (1.25 ms units), minimum 0x0006 (7.5ms)
+     * @param maxConnInterval Maximum connection interval (1.25 ms units), maximum 0x095f (2998.75ms)
+     *
+     * @note This method must be called before the begin method
+     */
+    void setConnectionInterval(const unsigned short minConnInterval, const unsigned short maxConnInterval);
+
+    /**
      * Add an attribute to the BLE Peripheral Device
      *
      * @param attribute Attribute to add to Peripheral
@@ -186,6 +196,8 @@ private:
     const char* _local_name;
     char       _device_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
+    uint16_t   _min_conn_interval;
+    uint16_t   _max_conn_interval;
     uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _adv_data_len;
     ble_addr_t _local_bda;

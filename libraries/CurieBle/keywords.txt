@@ -52,6 +52,7 @@ begin	KEYWORD2
 setAdvertisedServiceUuid	KEYWORD2
 setLocalName	KEYWORD2
 setAppearance	KEYWORD2
+setConnectionInterval	KEYWORD2
 addAttribute	KEYWORD2
 central	KEYWORD2
 

@@ -48,6 +48,8 @@ BLEPeripheral::BLEPeripheral(void) :
     _advertise_service_uuid(NULL),
     _local_name(NULL),
     _appearance(0),
+    _min_conn_interval(DEFAULT_MIN_CONN_INTERVAL),
+    _max_conn_interval(DEFAULT_MAX_CONN_INTERVAL),
     _central(this),
     _attributes(NULL),
     _num_attributes(0),
@@ -165,6 +167,25 @@ BLEPeripheral::setAppearance(const uint16_t appearance)
 }
 
 void
+BLEPeripheral::setConnectionInterval(const unsigned short minConnInterval, const unsigned short maxConnInterval)
+{
+    _min_conn_interval = minConnInterval;
+    _max_conn_interval = maxConnInterval;
+
+    if (_min_conn_interval < MIN_CONN_INTERVAL) {
+        _min_conn_interval = MIN_CONN_INTERVAL;
+    } else if (_min_conn_interval > MAX_CONN_INTERVAL) {
+        _min_conn_interval = MAX_CONN_INTERVAL;
+    }
+
+    if (_max_conn_interval < _min_conn_interval) {
+        _max_conn_interval = _min_conn_interval;
+    } else if (_max_conn_interval > MAX_CONN_INTERVAL) {
+        _max_conn_interval = MAX_CONN_INTERVAL;
+    }
+}
+
+void
 BLEPeripheral::setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandler callback)
 {
   if (event < sizeof(_event_handlers)) {
@@ -244,7 +265,7 @@ BLEPeripheral::_init()
         return status;
     }
 
-    status = ble_client_gap_set_enable_config(_device_name, &_local_bda, _appearance, txPower);
+    status = ble_client_gap_set_enable_config(_device_name, &_local_bda, _appearance, txPower, _min_conn_interval, _max_conn_interval);
     if (BLE_STATUS_SUCCESS != status) {
         return status;
     }
