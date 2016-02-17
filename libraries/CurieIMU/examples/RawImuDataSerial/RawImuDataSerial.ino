@@ -84,11 +84,11 @@ void setup() {
 
     // The board must be resting in a horizontal position for
     // the following calibration procedure to work correctly!
-    Serial.print("Starting Gyroscope calibration...");
+    Serial.print("Starting Gyroscope calibration and enabling offset compensation...");
     CurieIMU.autoCalibrateGyroOffset();
     Serial.println(" Done");
 
-    Serial.print("Starting Acceleration calibration...");
+    Serial.print("Starting Acceleration calibration and enabling offset compensation...");
     CurieIMU.autoCalibrateAccelerometerOffset(X_AXIS, 0);
     CurieIMU.autoCalibrateAccelerometerOffset(Y_AXIS, 0);
     CurieIMU.autoCalibrateAccelerometerOffset(Z_AXIS, 1);
@@ -106,13 +106,6 @@ void setup() {
     Serial.print(CurieIMU.getGyroOffset(Y_AXIS));
     Serial.print("\t"); // 0
     Serial.println(CurieIMU.getGyroOffset(Z_AXIS));
-
-    Serial.println("Enabling Gyroscope/Acceleration offset compensation");
-    CurieIMU.enableGyroOffset(true);
-    CurieIMU.enableAccelerometerOffset(true);
-
-    Serial.println(CurieIMU.accelerometerOffsetEnabled());
-    Serial.println(CurieIMU.gyroOffsetEnabled());
   }
   
   // configure Arduino LED for activity indicator

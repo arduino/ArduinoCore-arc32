@@ -70,59 +70,6 @@ typedef enum {
 } CurieIMUFeature;
 
 /**
- * Accelerometer Sensitivity Range options
- * @see setAccelerometerRange()
- */
-typedef enum {
-    CURIE_IMU_ACCELEROMETER_RANGE_2G = BMI160_ACCEL_RANGE_2G,
-    CURIE_IMU_ACCELEROMETER_RANGE_4G = BMI160_ACCEL_RANGE_4G,
-    CURIE_IMU_ACCELEROMETER_RANGE_8G = BMI160_ACCEL_RANGE_8G,
-    CURIE_IMU_ACCELEROMETER_RANGE_16G = BMI160_ACCEL_RANGE_16G
-} CurieIMUAccelerometerRange;
-
-/**
- * Gyroscope Sensitivity Range options
- * @see setGyroRange()
- */
-typedef enum {
-    CURIE_IMU_GYRO_RANGE_2000 = BMI160_GYRO_RANGE_2000,
-    CURIE_IMU_GYRO_RANGE_1000 = BMI160_GYRO_RANGE_1000,
-    CURIE_IMU_GYRO_RANGE_500 = BMI160_GYRO_RANGE_500,
-    CURIE_IMU_GYRO_RANGE_250 = BMI160_GYRO_RANGE_250,
-    CURIE_IMU_GYRO_RANGE_125 = BMI160_GYRO_RANGE_125
-} CurieIMUGyroRange;
-
-/**
- * Accelerometer Output Data Rate options
- * @see setAccelerometerRate()
- */
-typedef enum {
-    CURIE_IMU_ACCELEROMETER_RATE_25_2HZ = BMI160_ACCEL_RATE_25_2HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_25HZ = BMI160_ACCEL_RATE_25HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_50HZ = BMI160_ACCEL_RATE_50HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_100HZ = BMI160_ACCEL_RATE_100HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_200HZ = BMI160_ACCEL_RATE_200HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_400HZ = BMI160_ACCEL_RATE_400HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_800HZ = BMI160_ACCEL_RATE_800HZ,
-    CURIE_IMU_ACCELEROMETER_RATE_1600HZ = BMI160_ACCEL_RATE_1600HZ
-} CurieIMUAccelRate;
-
-/**
- * Gyroscope Output Data Rate options
- * @see setGyroRate()
- */
-typedef enum {
-    CURIE_IMU_GYRO_RATE_25HZ = BMI160_GYRO_RATE_25HZ,
-    CURIE_IMU_GYRO_RATE_50HZ = BMI160_GYRO_RATE_50HZ,
-    CURIE_IMU_GYRO_RATE_100HZ = BMI160_GYRO_RATE_100HZ,
-    CURIE_IMU_GYRO_RATE_200HZ = BMI160_GYRO_RATE_200HZ,
-    CURIE_IMU_GYRO_RATE_400HZ = BMI160_GYRO_RATE_400HZ,
-    CURIE_IMU_GYRO_RATE_800HZ = BMI160_GYRO_RATE_800HZ,
-    CURIE_IMU_GYRO_RATE_1600HZ = BMI160_GYRO_RATE_1600HZ,
-    CURIE_IMU_GYRO_RATE_3200HZ = BMI160_GYRO_RATE_3200HZ
-} CurieIMUGyroRate;
-
-/**
  * Step Detection Mode options
  * @see setStepDetectionMode()
  */
@@ -132,110 +79,6 @@ typedef enum {
     CURIE_IMU_STEP_MODE_ROBUST = BMI160_STEP_MODE_ROBUST,
     CURIE_IMU_STEP_MODE_UNKNOWN = BMI160_STEP_MODE_UNKNOWN
 } CurieIMUStepMode;
-
-/**
- * Tap Detection Shock Duration options
- * @see setDetectionThreshold(CURIE_IMU_TAP, ...)
- */
-typedef enum {
-    CURIE_IMU_TAP_SHOCK_DURATION_50MS = BMI160_TAP_SHOCK_DURATION_50MS,
-    CURIE_IMU_TAP_SHOCK_DURATION_75MS = BMI160_TAP_SHOCK_DURATION_75MS
-} CurieIMUTapShockDuration;
-
-/**
- * Tap Detection Quiet Duration options
- * @see setDetectionThreshold(CURIE_IMU_TAP_QUIET, ...)
- */
-typedef enum {
-    CURIE_IMU_TAP_QUIET_DURATION_30MS = BMI160_TAP_QUIET_DURATION_30MS,
-    CURIE_IMU_TAP_QUIET_DURATION_20MS = BMI160_TAP_QUIET_DURATION_20MS
-} CurieIMUTapQuietDuration;
-
-/**
- * Double-Tap Detection Duration options
- * @see setDetectionThreshold(CURIE_IMU_DOUBLE_TAP, ...)
- */
-typedef enum {
-    CURIE_IMU_DOUBLE_TAP_DURATION_50MS = BMI160_DOUBLE_TAP_DURATION_50MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_100MS = BMI160_DOUBLE_TAP_DURATION_100MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_150MS = BMI160_DOUBLE_TAP_DURATION_150MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_200MS = BMI160_DOUBLE_TAP_DURATION_200MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_250MS = BMI160_DOUBLE_TAP_DURATION_250MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_375MS = BMI160_DOUBLE_TAP_DURATION_375MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_500MS = BMI160_DOUBLE_TAP_DURATION_500MS,
-    CURIE_IMU_DOUBLE_TAP_DURATION_700MS = BMI160_DOUBLE_TAP_DURATION_700MS
-} CurieIMUDoubleTapDuration;
-
-/**
- * Zero-Motion Detection Duration options
- * @see setDetectionThreshold(CURIE_IMU_ZERO_MOTION, ...)
- */
-typedef enum {
-    CURIE_IMU_ZERO_MOTION_DURATION_1_28S = BMI160_ZERO_MOTION_DURATION_1_28S,
-    CURIE_IMU_ZERO_MOTION_DURATION_2_56S = BMI160_ZERO_MOTION_DURATION_2_56S,
-    CURIE_IMU_ZERO_MOTION_DURATION_3_84S = BMI160_ZERO_MOTION_DURATION_3_84S,
-    CURIE_IMU_ZERO_MOTION_DURATION_5_12S = BMI160_ZERO_MOTION_DURATION_5_12S,
-    CURIE_IMU_ZERO_MOTION_DURATION_6_40S = BMI160_ZERO_MOTION_DURATION_6_40S,
-    CURIE_IMU_ZERO_MOTION_DURATION_7_68S = BMI160_ZERO_MOTION_DURATION_7_68S,
-    CURIE_IMU_ZERO_MOTION_DURATION_8_96S = BMI160_ZERO_MOTION_DURATION_8_96S,
-    CURIE_IMU_ZERO_MOTION_DURATION_10_24S = BMI160_ZERO_MOTION_DURATION_10_24S,
-    CURIE_IMU_ZERO_MOTION_DURATION_11_52S = BMI160_ZERO_MOTION_DURATION_11_52S,
-    CURIE_IMU_ZERO_MOTION_DURATION_12_80S = BMI160_ZERO_MOTION_DURATION_12_80S,
-    CURIE_IMU_ZERO_MOTION_DURATION_14_08S = BMI160_ZERO_MOTION_DURATION_14_08S,
-    CURIE_IMU_ZERO_MOTION_DURATION_15_36S = BMI160_ZERO_MOTION_DURATION_15_36S,
-    CURIE_IMU_ZERO_MOTION_DURATION_16_64S = BMI160_ZERO_MOTION_DURATION_16_64S,
-    CURIE_IMU_ZERO_MOTION_DURATION_17_92S = BMI160_ZERO_MOTION_DURATION_17_92S,
-    CURIE_IMU_ZERO_MOTION_DURATION_19_20S = BMI160_ZERO_MOTION_DURATION_19_20S,
-    CURIE_IMU_ZERO_MOTION_DURATION_20_48S = BMI160_ZERO_MOTION_DURATION_20_48S,
-    CURIE_IMU_ZERO_MOTION_DURATION_25_60S = BMI160_ZERO_MOTION_DURATION_25_60S,
-    CURIE_IMU_ZERO_MOTION_DURATION_30_72S = BMI160_ZERO_MOTION_DURATION_30_72S,
-    CURIE_IMU_ZERO_MOTION_DURATION_35_84S = BMI160_ZERO_MOTION_DURATION_35_84S,
-    CURIE_IMU_ZERO_MOTION_DURATION_40_96S = BMI160_ZERO_MOTION_DURATION_40_96S,
-    CURIE_IMU_ZERO_MOTION_DURATION_46_08S = BMI160_ZERO_MOTION_DURATION_46_08S,
-    CURIE_IMU_ZERO_MOTION_DURATION_51_20S = BMI160_ZERO_MOTION_DURATION_51_20S,
-    CURIE_IMU_ZERO_MOTION_DURATION_56_32S = BMI160_ZERO_MOTION_DURATION_56_32S,
-    CURIE_IMU_ZERO_MOTION_DURATION_61_44S = BMI160_ZERO_MOTION_DURATION_61_44S,
-    CURIE_IMU_ZERO_MOTION_DURATION_66_56S = BMI160_ZERO_MOTION_DURATION_66_56S,
-    CURIE_IMU_ZERO_MOTION_DURATION_71_68S = BMI160_ZERO_MOTION_DURATION_71_68S,
-    CURIE_IMU_ZERO_MOTION_DURATION_76_80S = BMI160_ZERO_MOTION_DURATION_76_80S,
-    CURIE_IMU_ZERO_MOTION_DURATION_81_92S = BMI160_ZERO_MOTION_DURATION_81_92S,
-    CURIE_IMU_ZERO_MOTION_DURATION_87_04S = BMI160_ZERO_MOTION_DURATION_87_04S,
-    CURIE_IMU_ZERO_MOTION_DURATION_92_16S = BMI160_ZERO_MOTION_DURATION_92_16S,
-    CURIE_IMU_ZERO_MOTION_DURATION_97_28S = BMI160_ZERO_MOTION_DURATION_97_28S,
-    CURIE_IMU_ZERO_MOTION_DURATION_102_40S = BMI160_ZERO_MOTION_DURATION_102_40S,
-    CURIE_IMU_ZERO_MOTION_DURATION_112_64S = BMI160_ZERO_MOTION_DURATION_112_64S,
-    CURIE_IMU_ZERO_MOTION_DURATION_122_88S = BMI160_ZERO_MOTION_DURATION_122_88S,
-    CURIE_IMU_ZERO_MOTION_DURATION_133_12S = BMI160_ZERO_MOTION_DURATION_133_12S,
-    CURIE_IMU_ZERO_MOTION_DURATION_143_36S = BMI160_ZERO_MOTION_DURATION_143_36S,
-    CURIE_IMU_ZERO_MOTION_DURATION_153_60S = BMI160_ZERO_MOTION_DURATION_153_60S,
-    CURIE_IMU_ZERO_MOTION_DURATION_163_84S = BMI160_ZERO_MOTION_DURATION_163_84S,
-    CURIE_IMU_ZERO_MOTION_DURATION_174_08S = BMI160_ZERO_MOTION_DURATION_174_08S,
-    CURIE_IMU_ZERO_MOTION_DURATION_184_32S = BMI160_ZERO_MOTION_DURATION_184_32S,
-    CURIE_IMU_ZERO_MOTION_DURATION_194_56S = BMI160_ZERO_MOTION_DURATION_194_56S,
-    CURIE_IMU_ZERO_MOTION_DURATION_204_80S = BMI160_ZERO_MOTION_DURATION_204_80S,
-    CURIE_IMU_ZERO_MOTION_DURATION_215_04S = BMI160_ZERO_MOTION_DURATION_215_04S,
-    CURIE_IMU_ZERO_MOTION_DURATION_225_28S = BMI160_ZERO_MOTION_DURATION_225_28S,
-    CURIE_IMU_ZERO_MOTION_DURATION_235_52S = BMI160_ZERO_MOTION_DURATION_235_52S,
-    CURIE_IMU_ZERO_MOTION_DURATION_245_76S = BMI160_ZERO_MOTION_DURATION_245_76S,
-    CURIE_IMU_ZERO_MOTION_DURATION_256_00S = BMI160_ZERO_MOTION_DURATION_256_00S,
-    CURIE_IMU_ZERO_MOTION_DURATION_266_24S = BMI160_ZERO_MOTION_DURATION_266_24S,
-    CURIE_IMU_ZERO_MOTION_DURATION_276_48S = BMI160_ZERO_MOTION_DURATION_276_48S,
-    CURIE_IMU_ZERO_MOTION_DURATION_286_72S = BMI160_ZERO_MOTION_DURATION_286_72S,
-    CURIE_IMU_ZERO_MOTION_DURATION_296_96S = BMI160_ZERO_MOTION_DURATION_296_96S,
-    CURIE_IMU_ZERO_MOTION_DURATION_307_20S = BMI160_ZERO_MOTION_DURATION_307_20S,
-    CURIE_IMU_ZERO_MOTION_DURATION_317_44S = BMI160_ZERO_MOTION_DURATION_317_44S,
-    CURIE_IMU_ZERO_MOTION_DURATION_327_68S = BMI160_ZERO_MOTION_DURATION_327_68S,
-    CURIE_IMU_ZERO_MOTION_DURATION_337_92S = BMI160_ZERO_MOTION_DURATION_337_92S,
-    CURIE_IMU_ZERO_MOTION_DURATION_348_16S = BMI160_ZERO_MOTION_DURATION_348_16S,
-    CURIE_IMU_ZERO_MOTION_DURATION_358_40S = BMI160_ZERO_MOTION_DURATION_358_40S,
-    CURIE_IMU_ZERO_MOTION_DURATION_368_64S = BMI160_ZERO_MOTION_DURATION_368_64S,
-    CURIE_IMU_ZERO_MOTION_DURATION_378_88S = BMI160_ZERO_MOTION_DURATION_378_88S,
-    CURIE_IMU_ZERO_MOTION_DURATION_389_12S = BMI160_ZERO_MOTION_DURATION_389_12S,
-    CURIE_IMU_ZERO_MOTION_DURATION_399_36S = BMI160_ZERO_MOTION_DURATION_399_36S,
-    CURIE_IMU_ZERO_MOTION_DURATION_409_60S = BMI160_ZERO_MOTION_DURATION_409_60S,
-    CURIE_IMU_ZERO_MOTION_DURATION_419_84S = BMI160_ZERO_MOTION_DURATION_419_84S,
-    CURIE_IMU_ZERO_MOTION_DURATION_430_08S = BMI160_ZERO_MOTION_DURATION_430_08S
-} CurieIMUZeroMotionDuration;
 
 /* Note that this CurieIMUClass class inherits methods from the BMI160Class which
  * is defined in BMI160.h.  BMI160Class provides methods for configuring and
@@ -253,22 +96,27 @@ class CurieIMUClass : public BMI160Class {
     public:
         bool begin(void);
 
+        // supported values: 25, 50, 100, 200, 400, 800, 1600, 3200 (Hz)
         int getGyroRate();
         void setGyroRate(int rate);
 
-        int getAccelerometerRate();
-        void setAccelerometerRate(int rate);
+        // supported values: 12.5, 25, 50, 100, 200, 400, 800, 1600 (Hz)
+        float getAccelerometerRate();
+        void setAccelerometerRate(float rate);
 
+        // supported values: 125, 250, 500, 1000, 2000 (degrees/second)
         int getGyroRange();
         void setGyroRange(int range);
+
+        // supported values: 2, 4, 8, 16 (G)
         int getAccelerometerRange();
         void setAccelerometerRange(int range);
 
         void autoCalibrateGyroOffset();
         void autoCalibrateAccelerometerOffset(int axis, int target);
 
-        void enableGyroOffset(bool state);
-        void enableAccelerometerOffset(bool state);
+        void noGyroOffset();
+        void noAccelerometerOffset();
         bool gyroOffsetEnabled();
         bool accelerometerOffsetEnabled();
 
@@ -278,14 +126,56 @@ class CurieIMUClass : public BMI160Class {
         void setGyroOffset(int axis, int offset);
         void setAccelerometerOffset(int axis, int offset);
 
-        int getDetectionThreshold(int feature);
-        void setDetectionThreshold(int feature, int threshold);
+        // supported values:
+        //   CURIE_IMU_FREEFALL: 3.91 to 1995.46 (mg), in steps of 7.81 mg
+        //   CURIE_IMU_SHOCK:
+        //       2G: 3.91 to 1995.46 (mg), in steps of 7.81 mg
+        //       4G: 7.81 to 3993.46 (mg), in steps of 15.63 mg
+        //       8G: 15.63 to 7984.38 (mg), in steps of 31.25 mg 
+        //       16G: 31.25 to 15968.75 (mg), in steps of 62.50 mg
+        //   CURIE_IMU_MOTION:
+        //       2G: 0 to 997.05 (mg), in steps of 3.91 mg
+        //       4G: 0 to 1991.55 (mg), in steps of 7.81 mg
+        //       8G: 0 to 3985.65 (mg), in steps of 15.63 mg 
+        //       16G: 0 to 7968.75 (mg), in steps of 31.25 mg
+        //   CURIE_IMU_ZERO_MOTION:
+        //       2G: 0 to 997.05 (mg), in steps of 3.91 mg
+        //       4G: 0 to 1991.55 (mg), in steps of 7.81 mg
+        //       8G: 0 to 3985.65 (mg), in steps of 15.63 mg 
+        //       16G: 0 to 7968.75 (mg), in steps of 31.25 mg
+        //   CURIE_IMU_TAP:
+        //       2G: 31.25 to 7968.75 (mg), in steps of 62.5 mg
+        //       4G: 62.50 to 31937.50 (mg), in steps of 125.0 mg
+        //       8G: 125.0 to 63875.00 (mg), in steps of 250.0 mg 
+        //       16G: 250.0 to 127750.00 (mg), in steps of 500 mg
+        float getDetectionThreshold(int feature);
+        void setDetectionThreshold(int feature, float threshold);
 
-        int getDetectionDuration(int feature);
-        void setDetectionDuration(int feature, int value); //value (bool) duration or samples
+        // supported values:
+        //   CURIE_IMU_FREEFALL: 2.5 to 637.5 (ms), in steps of 2.5 ms
+        //   CURIE_IMU_SHOCK: 50, 75 (ms)
+        //   CURIE_IMU_MOTION: [1 - 4] / getAccelerometerRate() S
+        //   CURIE_IMU_ZERO_MOTION: 1.28, 2.56, 3.84, 5.12, 6.40, 7.68, 8.96, 
+        //                          10.24, 11.52, 12.80, 14.08, 15.36, 16.64,
+        //                          17.92, 19.20, 20.48, 25.60, 30.72, 35.84,
+        //                          40.96, 46.08, 51.20, 56.32, 61.44, 66.56,
+        //                          71.68, 76.80, 81.92, 87.04, 92.16, 97.28, 
+        //                          102.40, 112.64, 122.88, 133.12, 143.36,
+        //                          153.60, 163.84, 174.08, 184.32, 194.56, 
+        //                          204.80, 215.04, 225.28, 235.52, 245.76, 
+        //                          256.00, 266.24, 276.48, 286.72, 296.96, 
+        //                          307.20, 317.44, 327.68, 337.92, 348.16, 
+        //                          358.40, 368.64, 378.88, 389.12, 399.36,
+        //                          409.60, 419.84, 430.08 S
+        //   CURIE_IMU_DOUBLE_TAP: 50, 100, 150, 200, 250, 275, 500, 700 ms
+        //   CURIE_IMU_TAP_SHOCK: 50, 75 ms
+        //   CURIE_IMU_TAP_QUIET: 20, 30 ms
+        float getDetectionDuration(int feature);
+        void setDetectionDuration(int feature, float value); //value duration
 
-        void enableInterrupt(int feature, bool enabled);
-        bool interruptEnabled(int feature);
+        void interrupts(int feature);
+        void noInterrupts(int feature);
+        bool interruptsEnabled(int feature);
 
         int getInterruptStatus(int feature);
 
@@ -310,6 +200,34 @@ class CurieIMUClass : public BMI160Class {
 
     private:
         int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
+
+        float getFreefallDetectionThreshold();
+        void setFreefallDetectionThreshold(float threshold);
+        float getShockDetectionThreshold();
+        void setShockDetectionThreshold(float threshold);
+        float getMotionDetectionThreshold();
+        void setMotionDetectionThreshold(float threshold);
+        float getZeroMotionDetectionThreshold();
+        void setZeroMotionDetectionThreshold(float threshold);
+        float getTapDetectionThreshold();
+        void setTapDetectionThreshold(float threshold);
+
+        float getFreefallDetectionDuration();
+        void setFreefallDetectionDuration(float duration);
+        int getShockDetectionDuration();
+        void setShockDetectionDuration(int duration);
+        float getMotionDetectionDuration();
+        void setMotionDetectionDuration(float duration);
+        float getZeroMotionDetectionDuration();
+        void setZeroMotionDetectionDuration(float duration);
+        int getTapShockDuration();
+        void setTapShockDuration(int duration);
+        int getTapQuietDuration();
+        void setTapQuietDuration(int duration);
+        int getDoubleTapDetectionDuration();
+        void setDoubleTapDetectionDuration(int duration);
+
+        void enableInterrupt(int feature, bool enabled);
 
         void (*_user_callback)(void);
 };
