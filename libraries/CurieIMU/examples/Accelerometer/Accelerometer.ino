@@ -33,7 +33,7 @@ void setup() {
   CurieIMU.begin();
 
   // Set the accelerometer range to 2G
-  CurieIMU.setAccelerometerRange(CURIE_IMU_ACCELEROMETER_RANGE_2G);
+  CurieIMU.setAccelerometerRange(2);
 }
 
 void loop() {

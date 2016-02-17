@@ -33,7 +33,7 @@ void setup() {
   CurieIMU.begin();
 
   // Set the accelerometer range to 250 degrees/second
-  CurieIMU.setGyroRange(CURIE_IMU_GYRO_RANGE_250);
+  CurieIMU.setGyroRange(250);
 }
 
 void loop() {

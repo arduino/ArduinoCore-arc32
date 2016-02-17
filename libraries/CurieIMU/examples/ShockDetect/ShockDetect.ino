@@ -34,9 +34,9 @@ void setup() {
   CurieIMU.attachInterrupt(eventCallback);
 
   /* Enable Shock Detection */
-  CurieIMU.setDetectionThreshold(CURIE_IMU_SHOCK, 192); // 1.5g
-  CurieIMU.setDetectionDuration(CURIE_IMU_SHOCK, CURIE_IMU_TAP_SHOCK_DURATION_50MS);   // 50ms
-  CurieIMU.enableInterrupt(CURIE_IMU_SHOCK, true);
+  CurieIMU.setDetectionThreshold(CURIE_IMU_SHOCK, 1500); // 1.5g = 1500 mg
+  CurieIMU.setDetectionDuration(CURIE_IMU_SHOCK, 50);   // 50ms
+  CurieIMU.interrupts(CURIE_IMU_SHOCK);
 
   Serial.println("IMU initialisation complete, waiting for events...");
 }

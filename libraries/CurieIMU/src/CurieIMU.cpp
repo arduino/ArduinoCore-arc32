@@ -59,47 +59,235 @@ bool CurieIMUClass::begin()
 
 int CurieIMUClass::getGyroRate()
 {
-    return BMI160Class::getGyroRate();
+    int rate;
+
+    switch(BMI160Class::getGyroRate()) {
+        case BMI160_GYRO_RATE_25HZ:
+            rate = 25;
+            break;
+
+        case BMI160_GYRO_RATE_50HZ:
+            rate = 50;
+            break;
+
+        case BMI160_GYRO_RATE_100HZ:
+            rate = 100;
+            break;
+
+        case BMI160_GYRO_RATE_200HZ:
+            rate = 200;
+            break;
+
+        case BMI160_GYRO_RATE_400HZ:
+            rate = 400;
+            break;
+
+        case BMI160_GYRO_RATE_800HZ:
+            rate = 800;
+            break;
+
+        case BMI160_GYRO_RATE_1600HZ:
+            rate = 1600;
+            break;
+
+        case BMI160_GYRO_RATE_3200HZ:
+        default:
+            rate = 3200;
+            break;
+    }
+
+    return rate;
 }
 
 void CurieIMUClass::setGyroRate(int rate)
 {
-    BMI160Class::setGyroRate(rate);
+    BMI160GyroRate bmiRate;
+
+    if (rate <= 25) {
+        bmiRate = BMI160_GYRO_RATE_25HZ;
+    } else if (rate <= 50) {
+        bmiRate = BMI160_GYRO_RATE_50HZ;
+    } else if (rate <= 100) {
+        bmiRate = BMI160_GYRO_RATE_100HZ;
+    } else if (rate <= 200) {
+        bmiRate = BMI160_GYRO_RATE_200HZ;
+    } else if (rate <= 400) {
+        bmiRate = BMI160_GYRO_RATE_400HZ;
+    } else if (rate <= 800) {
+        bmiRate = BMI160_GYRO_RATE_800HZ;
+    } else if (rate <= 1600) {
+        bmiRate = BMI160_GYRO_RATE_1600HZ;
+    } else {
+        bmiRate = BMI160_GYRO_RATE_3200HZ;
+    }
+
+    BMI160Class::setGyroRate(bmiRate);
 }
 
-int CurieIMUClass::getAccelerometerRate()
+float CurieIMUClass::getAccelerometerRate()
 {
-    return getAccelRate();
+    float rate;
+
+    switch(BMI160Class::getAccelRate()) {
+        case BMI160_ACCEL_RATE_25_2HZ:
+            rate = 12.5;
+            break;
+
+        case BMI160_ACCEL_RATE_25HZ:
+            rate = 25;
+            break;
+
+        case BMI160_ACCEL_RATE_50HZ:
+            rate = 50;
+            break;
+
+        case BMI160_ACCEL_RATE_100HZ:
+            rate = 100;
+            break;
+
+        case BMI160_ACCEL_RATE_200HZ:
+            rate = 200;
+            break;
+
+        case BMI160_ACCEL_RATE_400HZ:
+            rate = 400;
+            break;
+
+        case BMI160_ACCEL_RATE_800HZ:
+            rate = 800;
+            break;
+
+        case BMI160_ACCEL_RATE_1600HZ:
+        default:
+            rate = 1600;
+            break;
+    }
+
+    return rate;
 }
 
-void CurieIMUClass::setAccelerometerRate(int rate)
+void CurieIMUClass::setAccelerometerRate(float rate)
 {
-    setAccelRate(rate);
+    BMI160AccelRate bmiRate;
+
+    if (rate <= 12.5) {
+        bmiRate = BMI160_ACCEL_RATE_25_2HZ;
+    } else if (rate <= 25) {
+        bmiRate = BMI160_ACCEL_RATE_25HZ;
+    } else if (rate <= 50) {
+        bmiRate = BMI160_ACCEL_RATE_50HZ;
+    } else if (rate <= 100) {
+        bmiRate = BMI160_ACCEL_RATE_100HZ;
+    } else if (rate <= 200) {
+        bmiRate = BMI160_ACCEL_RATE_200HZ;
+    } else if (rate <= 400) {
+        bmiRate = BMI160_ACCEL_RATE_400HZ;
+    } else if (rate <= 800) {
+        bmiRate = BMI160_ACCEL_RATE_800HZ;
+    } else {
+        bmiRate = BMI160_ACCEL_RATE_1600HZ;
+    }
+
+    setAccelRate(bmiRate);
 }
 
 int CurieIMUClass::getGyroRange()
 {
-    return getFullScaleGyroRange();
+    int range;
+
+    switch (getFullScaleGyroRange()) {
+        case BMI160_GYRO_RANGE_2000:
+            range = 2000;
+            break;
+
+        case BMI160_GYRO_RANGE_1000:
+            range = 1000;
+            break;
+
+        case BMI160_GYRO_RANGE_500:
+            range = 500;
+            break;
+
+        case BMI160_GYRO_RANGE_250:
+            range = 250;
+            break;
+
+        case BMI160_GYRO_RANGE_125:
+        default:
+            range = 125;
+            break;
+    }
+
+    return range;
 }
 
 void CurieIMUClass::setGyroRange(int range)
 {
-    setFullScaleGyroRange(range);
+    BMI160GyroRange bmiRange;
+
+    if (range >= 2000) {
+        bmiRange = BMI160_GYRO_RANGE_2000;
+    } else if (range >= 1000) {
+        bmiRange = BMI160_GYRO_RANGE_1000;
+    } else if (range >= 500) {
+        bmiRange = BMI160_GYRO_RANGE_500;
+    } else if (range >= 250) {
+        bmiRange = BMI160_GYRO_RANGE_250;
+    } else {
+        bmiRange = BMI160_GYRO_RANGE_125;
+    }
+
+    setFullScaleGyroRange(bmiRange);
 }
 
 int CurieIMUClass::getAccelerometerRange()
 {
-    return getFullScaleAccelRange();
+    int range;
+
+    switch (getFullScaleAccelRange()) {
+        case BMI160_ACCEL_RANGE_2G:
+            range = 2;
+            break;
+
+        case BMI160_ACCEL_RANGE_4G:
+            range = 4;
+            break;
+
+        case BMI160_ACCEL_RANGE_8G:
+            range = 8;
+            break;
+
+        case BMI160_ACCEL_RANGE_16G:
+        default:
+            range = 16;
+            break;
+    }
+
+    return range;
 }
 
 void CurieIMUClass::setAccelerometerRange(int range)
 {
-    setFullScaleAccelRange(range);
+    BMI160AccelRange bmiRange;
+
+    if (range <= 2) {
+        bmiRange = BMI160_ACCEL_RANGE_2G;
+    } else if (range <= 4) {
+        bmiRange = BMI160_ACCEL_RANGE_4G;
+    } else if (range <= 8) {
+        bmiRange = BMI160_ACCEL_RANGE_8G;
+    } else {
+        bmiRange = BMI160_ACCEL_RANGE_16G;
+    }
+
+    setFullScaleAccelRange(bmiRange);
 }
 
 void CurieIMUClass::autoCalibrateGyroOffset()
 {
     BMI160Class::autoCalibrateGyroOffset();
+
+    setGyroOffsetEnabled(true);
 }
 
 void CurieIMUClass::autoCalibrateAccelerometerOffset(int axis, int target)
@@ -120,16 +308,18 @@ void CurieIMUClass::autoCalibrateAccelerometerOffset(int axis, int target)
         default:
             break;
     }
+
+    setAccelOffsetEnabled(true);
 }
 
-void CurieIMUClass::enableGyroOffset(bool state)
+void CurieIMUClass::noGyroOffset()
 {
-    setGyroOffsetEnabled(state);
+    setGyroOffsetEnabled(false);
 }
 
-void CurieIMUClass::enableAccelerometerOffset(bool state)
+void CurieIMUClass::noAccelerometerOffset()
 {
-    setAccelOffsetEnabled(state);
+    setAccelOffsetEnabled(false);
 }
 
 bool CurieIMUClass::gyroOffsetEnabled()
@@ -177,6 +367,8 @@ void CurieIMUClass::setGyroOffset(int axis, int offset)
     } else if (axis == Z_AXIS) {
         setZGyroOffset(axis);
     }
+
+    setGyroOffsetEnabled(true);
 }
 
 void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
@@ -188,9 +380,11 @@ void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
     } else if (axis == Z_AXIS) {
         setZAccelOffset(axis);
     }
+
+    setAccelOffsetEnabled(true);
 }
 
-int CurieIMUClass::getDetectionThreshold(int feature)
+float CurieIMUClass::getDetectionThreshold(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -219,7 +413,7 @@ int CurieIMUClass::getDetectionThreshold(int feature)
     }
 }
 
-void CurieIMUClass::setDetectionThreshold(int feature, int threshold)
+void CurieIMUClass::setDetectionThreshold(int feature, float threshold)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -253,7 +447,7 @@ void CurieIMUClass::setDetectionThreshold(int feature, int threshold)
     }
 }
 
-int CurieIMUClass::getDetectionDuration(int feature)
+float CurieIMUClass::getDetectionDuration(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -286,7 +480,273 @@ int CurieIMUClass::getDetectionDuration(int feature)
     }
 }
 
-void CurieIMUClass::setDetectionDuration(int feature, int value)
+float CurieIMUClass::getFreefallDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getFreefallDetectionThreshold();
+
+    return (bmiThreshold * 7.81) + 3.91;
+}
+
+void CurieIMUClass::setFreefallDetectionThreshold(float threshold)
+{
+    int bmiThreshold = (threshold - 3.91) / 7.81;
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setFreefallDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getShockDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getShockDetectionThreshold();
+    float step;
+    float min;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 7.81;
+            min = 3.91;
+            break;
+
+        case 4:
+            step = 15.63;
+            min = 7.81;
+            break;
+
+        case 8:
+            step = 31.25;
+            min = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 62.50;
+            min = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step) + min;
+}
+
+void CurieIMUClass::setShockDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = (threshold - 3.91) / 7.81;
+            break;
+
+        case 4:
+            bmiThreshold = (threshold - 7.81) / 15.6;
+            break;
+
+        case 8:
+            bmiThreshold = (threshold - 15.63) / 31.25;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = (threshold - 31.25) / 62.50;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setShockDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getMotionDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getMotionDetectionThreshold();
+    float step;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 3.91;
+            break;
+
+        case 4:
+            step = 7.81;
+            break;
+
+        case 8:
+            step = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step);
+}
+
+void CurieIMUClass::setMotionDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = threshold / 3.91;
+            break;
+
+        case 4:
+            bmiThreshold = threshold / 7.81;
+            break;
+
+        case 8:
+            bmiThreshold = threshold / 15.63;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = threshold / 31.25;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setMotionDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getZeroMotionDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getZeroMotionDetectionThreshold();
+    float step;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 3.91;
+            break;
+
+        case 4:
+            step = 7.81;
+            break;
+
+        case 8:
+            step = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step);
+}
+
+void CurieIMUClass::setZeroMotionDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = threshold / 3.91;
+            break;
+
+        case 4:
+            bmiThreshold = threshold / 7.81;
+            break;
+
+        case 8:
+            bmiThreshold = threshold / 15.63;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = threshold / 31.25;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setZeroMotionDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getTapDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getTapDetectionThreshold();
+    float step;
+    float min;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 62.5;
+            min = 31.25;
+            break;
+
+        case 4:
+            step = 125.0;
+            min = 62.5;
+            break;
+
+        case 8:
+            step = 250.0;
+            min = 125.0;
+            break;
+
+        case 16:
+        default:
+            step = 500.0;
+            min = 250.0;
+            break;
+    }
+
+    return (bmiThreshold * step) + min;
+}
+
+void CurieIMUClass::setTapDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = (threshold - 31.25) / 62.5;
+            break;
+
+        case 4:
+            bmiThreshold = (threshold - 62.5) / 125.0;
+            break;
+
+        case 8:
+            bmiThreshold = (threshold - 125.0) / 250.0;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = (threshold - 2500) / 500.0;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setTapDetectionThreshold(bmiThreshold);
+}
+
+void CurieIMUClass::setDetectionDuration(int feature, float value)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -324,6 +784,617 @@ void CurieIMUClass::setDetectionDuration(int feature, int value)
         default:
             break;
     }
+}
+
+float CurieIMUClass::getFreefallDetectionDuration()
+{
+    int bmiDuration = BMI160Class::getFreefallDetectionDuration();
+
+    return ((bmiDuration + 1) * 2.5);
+}
+
+void CurieIMUClass::setFreefallDetectionDuration(float duration)
+{
+    int bmiDuration = (duration - 2.5) / 2.5;
+
+    if (bmiDuration < 0) {
+        bmiDuration = 0;
+    } else if (bmiDuration > 255) {
+        bmiDuration = 255;
+    }
+
+    BMI160Class::setFreefallDetectionDuration(bmiDuration);
+}
+
+int CurieIMUClass::getShockDetectionDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getShockDetectionDuration()) {
+        case BMI160_TAP_SHOCK_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_TAP_SHOCK_DURATION_75MS:
+        default:
+            duration = 75;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setShockDetectionDuration(int duration)
+{
+    BMI160TapShockDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_50MS;
+    } else {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_75MS;
+    }
+
+    BMI160Class::setShockDetectionDuration(bmiDuration);
+}
+
+float CurieIMUClass::getMotionDetectionDuration()
+{
+    int bmiDuration = BMI160Class::getMotionDetectionDuration();
+
+    return (bmiDuration / getAccelerometerRate());
+
+
+}
+void CurieIMUClass::setMotionDetectionDuration(float duration)
+{
+    int bmiDuration = (duration * getAccelerometerRate());
+
+    if (bmiDuration < 1) {
+        bmiDuration = 1;
+    } else if (bmiDuration > 4) {
+        bmiDuration = 4;
+    }
+
+    BMI160Class::setMotionDetectionDuration(bmiDuration);
+}
+
+float CurieIMUClass::getZeroMotionDetectionDuration()
+{
+    float duration;
+
+    switch (BMI160Class::getZeroMotionDetectionDuration()) {
+        case BMI160_ZERO_MOTION_DURATION_1_28S:
+            duration = 1.28;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_2_56S:
+            duration = 2.56;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_3_84S:
+            duration = 3.84;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_5_12S:
+            duration = 5.12;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_6_40S:
+            duration = 6.40;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_7_68S:
+            duration = 7.68;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_8_96S:
+            duration = 8.96;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_10_24S:
+            duration = 10.24;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_11_52S:
+            duration = 11.52;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_12_80S:
+            duration = 12.80;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_14_08S:
+            duration = 14.08;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_15_36S:
+            duration = 15.36;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_16_64S:
+            duration = 16.64;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_17_92S:
+            duration = 17.92;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_19_20S:
+            duration = 19.20;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_20_48S:
+            duration = 20.48;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_25_60S:
+            duration = 25.60;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_30_72S:
+            duration = 30.72;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_35_84S:
+            duration = 35.84;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_40_96S:
+            duration = 40.96;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_46_08S:
+            duration = 46.08;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_51_20S:
+            duration = 51.20;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_56_32S:
+            duration = 56.32;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_61_44S:
+            duration = 61.44;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_66_56S:
+            duration = 66.56;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_71_68S:
+            duration = 71.68;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_76_80S:
+            duration = 76.80;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_81_92S:
+            duration = 81.92;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_87_04S:
+            duration = 87.04;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_92_16S:
+            duration = 92.16;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_97_28S:
+            duration = 97.28;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_102_40S:
+            duration = 102.40;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_112_64S:
+            duration = 112.64;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_122_88S:
+            duration = 122.88;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_133_12S:
+            duration = 133.12;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_143_36S:
+            duration = 143.36;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_153_60S:
+            duration = 153.60;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_163_84S:
+            duration = 163.84;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_174_08S:
+            duration = 174.08;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_184_32S:
+            duration = 184.32;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_194_56S:
+            duration = 194.56;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_204_80S:
+            duration = 204.80;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_215_04S:
+            duration = 215.04;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_225_28S:
+            duration = 225.28;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_235_52S:
+            duration = 235.52;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_245_76S:
+            duration = 245.76;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_256_00S:
+            duration = 256.00;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_266_24S:
+            duration = 266.24;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_276_48S:
+            duration = 276.48;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_286_72S:
+            duration = 286.72;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_296_96S:
+            duration = 296.96;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_307_20S:
+            duration = 307.20;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_317_44S:
+            duration = 317.44;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_327_68S:
+            duration = 327.68;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_337_92S:
+            duration = 337.92;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_348_16S:
+            duration = 348.16;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_358_40S:
+            duration = 358.40;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_368_64S:
+            duration = 368.64;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_378_88S:
+            duration = 378.88;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_389_12S:
+            duration = 389.12;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_399_36S:
+            duration = 399.36;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_409_60S:
+            duration = 409.60;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_419_84S:
+            duration = 419.84;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_430_08S:
+        default:
+            duration = 430.08;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setZeroMotionDetectionDuration(float duration)
+{
+    BMI160ZeroMotionDuration bmiDuration;
+
+    if (duration <= 1.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_1_28S;
+    } else if (duration <= 2.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_2_56S;
+    } else if (duration <= 3.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_3_84S;
+    } else if (duration <= 5.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_5_12S;
+    } else if (duration <= 6.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_6_40S;
+    } else if (duration <= 7.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_7_68S;
+    } else if (duration <= 8.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_8_96S;
+    } else if (duration <= 10.24) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_10_24S;
+    } else if (duration <= 11.52) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_11_52S;
+    } else if (duration <= 12.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_12_80S;
+    } else if (duration <= 14.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_14_08S;
+    } else if (duration <= 15.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_15_36S;
+    } else if (duration <= 16.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_16_64S;
+    } else if (duration <= 17.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_17_92S;
+    } else if (duration <= 19.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_19_20S;
+    } else if (duration <= 20.48) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_20_48S;
+    } else if (duration <= 25.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_25_60S;
+    } else if (duration <= 30.72) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_30_72S;
+    } else if (duration <= 35.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_35_84S;
+    } else if (duration <= 40.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_40_96S;
+    } else if (duration <= 46.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_46_08S;
+    } else if (duration <= 51.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_51_20S;
+    } else if (duration <= 56.32) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_56_32S;
+    } else if (duration <= 61.44) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_61_44S;
+    } else if (duration <= 66.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_66_56S;
+    } else if (duration <= 71.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_71_68S;
+    } else if (duration <= 76.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_76_80S;
+    } else if (duration <= 81.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_81_92S;
+    } else if (duration <= 87.04) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_87_04S;
+    } else if (duration <= 92.16) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_92_16S;
+    } else if (duration <= 97.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_97_28S;
+    } else if (duration <= 102.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_102_40S;
+    } else if (duration <= 112.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_112_64S;
+    } else if (duration <= 122.88) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_122_88S;
+    } else if (duration <= 133.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_133_12S;
+    } else if (duration <= 143.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_143_36S;
+    } else if (duration <= 153.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_153_60S;
+    } else if (duration <= 163.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_163_84S;
+    } else if (duration <= 174.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_174_08S;
+    } else if (duration <= 184.32) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_184_32S;
+    } else if (duration <= 194.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_194_56S;
+    } else if (duration <= 204.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_204_80S;
+    } else if (duration <= 215.04) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_215_04S;
+    } else if (duration <= 225.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_225_28S;
+    } else if (duration <= 235.52) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_235_52S;
+    } else if (duration <= 245.76) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_245_76S;
+    } else if (duration <= 256.00) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_256_00S;
+    } else if (duration <= 266.24) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_266_24S;
+    } else if (duration <= 276.48) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_276_48S;
+    } else if (duration <= 286.72) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_286_72S;
+    } else if (duration <= 296.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_296_96S;
+    } else if (duration <= 307.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_307_20S;
+    } else if (duration <= 317.44) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_317_44S;
+    } else if (duration <= 327.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_327_68S;
+    } else if (duration <= 337.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_337_92S;
+    } else if (duration <= 348.16) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_348_16S;
+    } else if (duration <= 358.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_358_40S;
+    } else if (duration <= 368.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_368_64S;
+    } else if (duration <= 378.88) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_378_88S;
+    } else if (duration <= 389.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_389_12S;
+    } else if (duration <= 399.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_399_36S;
+    } else if (duration <= 409.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_409_60S;
+    } else if (duration <= 419.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_419_84S;
+    } else {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_430_08S;
+    }
+
+    BMI160Class::setZeroMotionDetectionDuration(bmiDuration);
+}
+
+int CurieIMUClass::getTapShockDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getTapShockDuration()) {
+        case BMI160_TAP_SHOCK_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_TAP_SHOCK_DURATION_75MS:
+        default:
+            duration = 75;
+            break;
+    }
+
+    return duration;
+}
+
+void CurieIMUClass::setTapShockDuration(int duration)
+{
+    BMI160TapShockDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_50MS;
+    } else {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_75MS;
+    }
+
+    BMI160Class::setTapShockDuration(bmiDuration);
+}
+
+int CurieIMUClass::getTapQuietDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getTapQuietDuration()) {
+        case BMI160_TAP_QUIET_DURATION_30MS:
+            duration = 30;
+            break;
+
+        case BMI160_TAP_QUIET_DURATION_20MS:
+        default:
+            duration = 20;
+            break;
+    }
+
+    return duration;
+}
+
+void CurieIMUClass::setTapQuietDuration(int duration)
+{
+    BMI160TapQuietDuration bmiDuration;
+
+    if (duration >= 30) {
+        bmiDuration = BMI160_TAP_QUIET_DURATION_30MS;
+    } else {
+        bmiDuration = BMI160_TAP_QUIET_DURATION_20MS;
+    }
+
+    BMI160Class::setTapQuietDuration(bmiDuration);
+}
+
+int CurieIMUClass::getDoubleTapDetectionDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getDoubleTapDetectionDuration()) {
+        case BMI160_DOUBLE_TAP_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_100MS:
+            duration = 100;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_150MS:
+            duration = 150;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_200MS:
+            duration = 200;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_250MS:
+            duration = 250;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_375MS:
+            duration = 375;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_500MS:
+            duration = 500;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_700MS:
+        default:
+            duration = 700;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setDoubleTapDetectionDuration(int duration)
+{
+    BMI160DoubleTapDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_50MS;
+    } else if (duration <= 100) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_100MS;
+    } else if (duration <= 150) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_150MS;
+    } else if (duration <= 200) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_200MS;
+    } else if (duration <= 250) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_250MS;
+    } else if (duration <= 375) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_375MS;
+    } else if (duration <= 500) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_500MS;
+    } else {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_700MS;
+    }
+
+    BMI160Class::setDoubleTapDetectionDuration(bmiDuration);
+}
+
+void CurieIMUClass::interrupts(int feature)
+{
+    enableInterrupt(feature, true);
+}
+
+void CurieIMUClass::noInterrupts(int feature)
+{
+    enableInterrupt(feature, false);
 }
 
 void CurieIMUClass::enableInterrupt(int feature, bool enabled)
@@ -372,7 +1443,7 @@ void CurieIMUClass::enableInterrupt(int feature, bool enabled)
     }
 }
 
-bool CurieIMUClass::interruptEnabled(int feature)
+bool CurieIMUClass::interruptsEnabled(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
