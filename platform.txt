@@ -102,3 +102,12 @@ tools.arduino101load.upload.pattern=/bin/bash --noprofile "{cmd.path}" "{runtime
 tools.arduino101load.upload.pattern.linux=/bin/bash --noprofile {cmd.path} "{runtime.tools.arduino101load.path}/x86/bin" {build.path}/{build.project_name}.elf {serial.port} "{upload.verbose}"
 tools.arduino101load.upload.elf.windows={build.path}/{build.project_name}.elf
 tools.arduino101load.upload.pattern.windows="{cmd.path}" "--noprofile" "{cmd.script}" "{cmd.bin}" "{upload.elf}" "{serial.port}" "{upload.verbose}"
+
+# This is needed to avoid an error on unexistent fields
+tools.arduino101load.erase.params.verbose=
+tools.arduino101load.erase.params.quiet=
+tools.arduino101load.erase.pattern=
+tools.arduino101load.bootloader.params.verbose=
+tools.arduino101load.bootloader.params.quiet=
+tools.arduino101load.bootloader.pattern=/bin/bash {runtime.tools.flashpack.path}/flash_dfu.sh
+
