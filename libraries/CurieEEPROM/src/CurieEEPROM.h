@@ -24,7 +24,7 @@
 #define EEPROM_OFFSET 0x00001000
 #define CTRL_REG    0xb0000018
 
-#define EEPROM_SIZE 2048 //EEPROM size in bytes
+#define EEPROM_SIZE 512 //EEPROM size in dwords
 
 
 #include <inttypes.h>
@@ -54,17 +54,22 @@ public:
   //Functionality to 'get' and 'put' objects to and from EEPROM.
   template< typename T > T &get(uint32_t addr, T &t)
   {
-    //make sure address is valid
-    if((addr > 0x7FC) || (addr%4))
+    //make sure address is within valid range
+    if(addr > 0x1FF)
     {
       return t;
     }
+    
     int byteCount = sizeof(T);
-    //return if size of object is greater than size of EEPROM
-    if(byteCount > EEPROM_SIZE)
+    //return if object size is too big
+    if(addr + byteCount > 0x7FC)
     {
       return t;
     }
+
+    //allign address to 32-bit addressing
+    addr*=sizeof(uint32_t);
+
     byte *bytes = to_bytes(t);
     for(int i = 0; i < byteCount; i++)
     {
@@ -76,15 +81,16 @@ public:
   }
   template< typename T > T put(uint32_t addr, T t)
   {
-    //make sure address is valid
-    if((addr > 0x7FC) || (addr%4))
+    //make sure address is within valid range
+    if(addr > 0x1FF)
     {
       return t;
     }
     uint32_t rom_wr_ctrl = 0;
     int byteCount = sizeof(T);
-    //return if size of object is greater than size of EEPROM
-    if(byteCount > EEPROM_SIZE)
+
+    //return if object size is too big
+    if(addr + byteCount > 0x7FC)
     {
       return t;
     }
@@ -96,7 +102,7 @@ public:
     bool blockAvailable = true;
     for(int i =0; i < size; i++)
     {
-      uint32_t data32 = read(addr+i*sizeof(uint32_t));
+      uint32_t data32 = read(addr+i);
       if(data32 != 0xFFFFFFFF)
       {
         blockAvailable = false;
@@ -106,7 +112,7 @@ public:
     {
       for(int i = 0; i<size; i++)
       {
-        write(addr+i*sizeof(uint32_t), dwords[i]);
+        write(addr+i, dwords[i]);
       }
     }
     else

@@ -31,12 +31,21 @@ void CurieEEPROM::clear()
 
 void CurieEEPROM::write(uint32_t address, uint32_t data)
 {
+  //make sure address is within valid range
+  if(address > 0x1FF)
+  {
+    return;
+  }
+  
   uint32_t currentValue = read(address);
   //only do something if value is different from what is currently stored
   if(currentValue==data)
   {
     return;
   }
+  
+  //allign address to 32-bit addressing
+  address*=sizeof(uint32_t);
   
   uint32_t rom_wr_ctrl = 0;
   //make sure address is valid
@@ -168,11 +177,15 @@ void CurieEEPROM::update8(uint32_t addr, uint8_t value)
   
 uint32_t CurieEEPROM::read(uint32_t address)
 {
-  //make sure address is valid
-  if((address > 0x7FC) || (address%4))
+  //make sure address is within valid range
+  if(address > 0x1FF)
   {
     return 0;
   }
+  
+  //allign address to 32-bit addressing
+  address*=sizeof(uint32_t);
+  
   address +=  EEPROM_ADDR;
   return *(uint32_t*)(address);
 }

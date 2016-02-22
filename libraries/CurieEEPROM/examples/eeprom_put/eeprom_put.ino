@@ -47,8 +47,7 @@ void setup() {
     "Working!"
   };
 
-  eeAddress += sizeof(float); //Move address to the next byte after float 'f'.
-
+  eeAddress++;
   EEPROM.put(eeAddress, customVar);
   Serial.print("Written custom data type! \n\nView the example sketch eeprom_get to see how you can retrieve the values!");
 }
