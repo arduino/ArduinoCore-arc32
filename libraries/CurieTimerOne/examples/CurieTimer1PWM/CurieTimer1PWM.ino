@@ -1,4 +1,4 @@
-#include "CurieTimer.h"
+#include "CurieTimerOne.h"
 
 void setup() {
   // Setup a PWM signal on pin 13, onboard LED, with a 25% duty cycle

@@ -21,10 +21,10 @@
 
 //***************************************************************
 //
-// File: CurieTimer.h
+// File: CurieTimerOne.h
 //
 // Description:
-//   Class definitions for library CurieTimer.
+//   Class definitions for library CurieTimerOne.
 //
 // Notes:
 //
@@ -38,8 +38,8 @@
 //***************************************************************
 
 
-#ifndef CurieTime_h
-#define CurieTime_h
+#ifndef CurieTimerOne_h
+#define CurieTimerOne_h
 
 #include <Arduino.h>
 #include <aux_regs.h>
@@ -160,5 +160,5 @@ class CurieTimer
 extern CurieTimer  CurieTimerOne;
 
 
-#endif // CurieTime_h
+#endif // CurieTimerOne_h
 

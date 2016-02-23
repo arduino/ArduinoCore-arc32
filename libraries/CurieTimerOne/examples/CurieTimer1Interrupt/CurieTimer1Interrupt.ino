@@ -6,7 +6,7 @@
 // intervals (speed).
 //
 
-#include "CurieTimer.h"
+#include "CurieTimerOne.h"
 
 // Uncomment the following statement to enable logging on serial port.
 // #define SERIAL_PORT_LOG_ENABLE 1

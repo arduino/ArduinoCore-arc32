@@ -20,7 +20,7 @@
 
 //***************************************************************
 //
-// Module: CurieTimer
+// Module: CurieTimerOne
 //
 //
 // Notes:
@@ -35,7 +35,7 @@
 //***************************************************************
 
 
-#include "CurieTimer.h"
+#include "CurieTimerOne.h"
 #include <conf.h>
 
 CurieTimer  CurieTimerOne;
