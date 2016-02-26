@@ -72,12 +72,12 @@ void setup() {
 
     // To manually configure offset compensation values,
     // use the following methods instead of the autoCalibrate...() methods below
-    //CurieIMU.setAccelerometerOffset(X_AXIS,128);
-    //CurieIMU.setAccelerometerOffset(Y_AXIS,-4);
-    //CurieIMU.setAccelerometerOffset(Z_AXIS,127);
-    //CurieIMU.setGyroOffset(X_AXIS,129);
-    //CurieIMU.setGyroOffset(Y_AXIS,-1);
-    //CurieIMU.setGyroOffset(Z_AXIS, 254);
+    //CurieIMU.setAccelerometerOffset(X_AXIS,495.3);
+    //CurieIMU.setAccelerometerOffset(Y_AXIS,-15.6);
+    //CurieIMU.setAccelerometerOffset(Z_AXIS,491.4);
+    //CurieIMU.setGyroOffset(X_AXIS,7.869);
+    //CurieIMU.setGyroOffset(Y_AXIS,-0.061);
+    //CurieIMU.setGyroOffset(Z_AXIS,15.494);
 
     Serial.println("About to calibrate. Make sure your board is stable and upright");
     delay(5000);
