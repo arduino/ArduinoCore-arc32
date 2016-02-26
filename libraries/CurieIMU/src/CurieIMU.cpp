@@ -332,53 +332,77 @@ bool CurieIMUClass::accelerometerOffsetEnabled()
     return getAccelOffsetEnabled();
 }
 
-int CurieIMUClass::getGyroOffset(int axis)
+float CurieIMUClass::getGyroOffset(int axis)
 {
+    int bmiOffset;
+
     if (axis == X_AXIS) {
-        return getXGyroOffset();
+        bmiOffset = getXGyroOffset();
     } else if (axis == Y_AXIS) {
-        return getYGyroOffset();
+        bmiOffset = getYGyroOffset();
     } else if (axis == Z_AXIS) {
-        return getZGyroOffset();
+        bmiOffset = getZGyroOffset();
+    } else {
+        return -1;
     }
 
-    return -1;
+    return (bmiOffset * 0.061);
 }
 
-int CurieIMUClass::getAccelerometerOffset(int axis)
+float CurieIMUClass::getAccelerometerOffset(int axis)
 {
+    int bmiOffset;
+
     if (axis == X_AXIS) {
-        return getXAccelOffset();
+        bmiOffset = getXAccelOffset();
     } else if (axis == Y_AXIS) {
-        return getYAccelOffset();
+        bmiOffset = getYAccelOffset();
     } else if (axis == Z_AXIS) {
-        return getZAccelOffset();
+        bmiOffset = getZAccelOffset();
+    } else {
+        return -1;
     }
 
-    return -1;
+    return (bmiOffset * 3.9);
 }
 
-void CurieIMUClass::setGyroOffset(int axis, int offset)
+void CurieIMUClass::setGyroOffset(int axis, float offset)
 {
+    int bmiOffset = offset / 0.061;
+
+    if (bmiOffset < -512) {
+        bmiOffset = -512;
+    } else if (bmiOffset > 511) {
+        bmiOffset = 511;
+    }
+
     if (axis == X_AXIS) {
-        setXGyroOffset(axis);
+        setXGyroOffset(bmiOffset);
     } else if (axis == Y_AXIS) {
-        setYGyroOffset(axis);
+        setYGyroOffset(bmiOffset);
     } else if (axis == Z_AXIS) {
-        setZGyroOffset(axis);
+        setZGyroOffset(bmiOffset);
     }
 
     setGyroOffsetEnabled(true);
 }
 
-void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
+void CurieIMUClass::setAccelerometerOffset(int axis, float offset)
 {
+    int bmiOffset = offset / 3.9;
+
+    if (bmiOffset < -128) {
+        bmiOffset = -128;
+    } else if (bmiOffset > 127) {
+        bmiOffset = 127;
+    }
+
     if (axis == X_AXIS) {
-        setXAccelOffset(axis);
+        setXAccelOffset(bmiOffset);
     } else if (axis == Y_AXIS) {
-        setYAccelOffset(axis);
+        setYAccelOffset(bmiOffset);
     } else if (axis == Z_AXIS) {
-        setZAccelOffset(axis);
+        setZAccelOffset(bmiOffset);
     }
 
     setAccelOffsetEnabled(true);

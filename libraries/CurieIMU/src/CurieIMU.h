@@ -120,11 +120,14 @@ class CurieIMUClass : public BMI160Class {
         bool gyroOffsetEnabled();
         bool accelerometerOffsetEnabled();
 
-        int getGyroOffset(int axis);
-        int getAccelerometerOffset(int axis);
+        float getGyroOffset(int axis);
+        float getAccelerometerOffset(int axis);
 
-        void setGyroOffset(int axis, int offset);
-        void setAccelerometerOffset(int axis, int offset);
+        // supported values: -31.171 to 31.171 (degrees/second), in steps of 0.061 degrees/second
+        void setGyroOffset(int axis, float offset);
+
+        // supported values: -495.3 (mg) to 495.3 (mg), in steps of 3.9 mg
+        void setAccelerometerOffset(int axis, float offset);
 
         // supported values:
         //   CURIE_IMU_FREEFALL: 3.91 to 1995.46 (mg), in steps of 7.81 mg
