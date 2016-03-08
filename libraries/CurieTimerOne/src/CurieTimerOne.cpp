@@ -50,25 +50,15 @@ static void timerOnePwmCbWrapper(void)
 }
 
 
-CurieTimer::CurieTimer(const unsigned int timerNum) :
+CurieTimer::CurieTimer() :
   tickCnt(0), currState(IDLE), userCB(NULL)
 {
-  if(timerNum == 0) {
-    timerCountAddr = ARC_V2_TMR0_COUNT;
-    timerControlAddr = ARC_V2_TMR0_CONTROL;
-    timerLimitAddr = ARC_V2_TMR0_LIMIT;
-    timerIrqNum = ARCV2_IRQ_TIMER0;
-    isrFuncPtr = NULL;
-    pwmCB = NULL;
-  }
-  else {
-    timerCountAddr = ARC_V2_TMR1_COUNT;
-    timerControlAddr = ARC_V2_TMR1_CONTROL;
-    timerLimitAddr = ARC_V2_TMR1_LIMIT;
-    timerIrqNum = ARCV2_IRQ_TIMER1;
-    isrFuncPtr = &timerOneIsrWrapper;
-    pwmCB = &timerOnePwmCbWrapper;
-  }
+  timerCountAddr = ARC_V2_TMR1_COUNT;
+  timerControlAddr = ARC_V2_TMR1_CONTROL;
+  timerLimitAddr = ARC_V2_TMR1_LIMIT;
+  timerIrqNum = ARCV2_IRQ_TIMER1;
+  isrFuncPtr = &timerOneIsrWrapper;
+  pwmCB = &timerOnePwmCbWrapper;
 }
 
 
@@ -86,6 +76,7 @@ void CurieTimer::kill()
   tickCnt = 0;
   userCB = NULL;
   currState = IDLE;
+  pauseCntrl = pauseCount = pwmPin = dutyCycle = nonDutyCycle = periodInUsec = 0;
 }
 
 
@@ -154,25 +145,26 @@ int CurieTimer::pwmStart(unsigned int outputPin, double dutyPercentage, unsigned
   unsigned int pwmPeriod;
 
   // Safe guard against periodUsec overflow when convert to hz.
-  if((periodUsec == 0) || (periodUsec >= MAX_PERIOD))
+  if((periodUsec == 0) || (periodUsec >= MAX_PERIOD_USEC))
     return -(INVALID_PERIOD);
 
   if((dutyPercentage < 0.0) || (dutyPercentage > 100.0))
     return -(INVALID_DUTY_CYCLE);
 
+  periodInUsec = periodUsec;
   pwmPin = outputPin;
   pinMode(pwmPin, OUTPUT);
 
   if(dutyPercentage == 0.0) {
-    // If PWM is already running, reset the timer and set pin to LOW
-    kill(); 
+    // If PWM is already running, pause to stop it from interfering, and set pin to LOW
+    pause(); 
     digitalWrite(pwmPin, LOW);
     return SUCCESS;
   }
 
   if(dutyPercentage == 100.0) {
-    // If PWM is already running, reset the timer and set pin to HIGH
-    kill(); 
+    // If PWM is already running, pause to stop it from interfering, and set pin to HIGH
+    pause(); 
     digitalWrite(pwmPin, HIGH);
     return SUCCESS;
   }
@@ -204,7 +196,7 @@ int CurieTimer::pwmStart(unsigned int outputPin, int dutyRange, unsigned int per
   if((dutyRange < 0) || (dutyRange > MAX_DUTY_RANGE))
     return -(INVALID_DUTY_CYCLE);
 
-  return pwmStart(outputPin, ((double)dutyRange * 100.0)/(double)MAX_DUTY_RANGE, periodUsec);
+  return pwmStart(outputPin, ((double)dutyRange/(double)MAX_DUTY_RANGE) * 100.0, periodUsec);
 }
 
 
@@ -224,6 +216,31 @@ inline void CurieTimer::pwmCallBack(void)
 }
 
 
+// Method:  setPeriod
+//   This method is for making this library backward compatible to the AVR
+// TimerOne library.  The routine changs the time period by pausing the timer
+// and resume it with the new period.  This is not timer re-initialization.
+
+void CurieTimer::setPeriod(unsigned long microseconds)
+{
+  unsigned int periodHz;
+
+  if((microseconds == 0) || (microseconds > MAX_PERIOD_USEC))
+    microseconds = 1000000;
+
+  periodInUsec = microseconds;
+  periodHz = microseconds * HZ_USEC;
+  pause();
+
+  aux_reg_write(timerLimitAddr, periodHz);  // Load Timer period
+
+  if(pauseCount >= periodHz)
+    pauseCount = 0;
+
+  resume();
+}
+
+
 // Method:  init
 //   Kick off the timer with a period, in Hz, provided.  Initialize
 // timer to run in non-halt mode, enable timer interrupt.  Always install
@@ -232,7 +249,7 @@ inline void CurieTimer::pwmCallBack(void)
 int CurieTimer::init(const unsigned int periodHz,
   void (*userCallBack)())
 {
-  if((periodHz == 0) || (periodHz > MAX_PERIOD))
+  if((periodHz == 0) || (periodHz > MAX_PERIOD_HZ))
     return -(INVALID_PERIOD);
 
   interrupt_disable(timerIrqNum);  // Disable Timer at controller
