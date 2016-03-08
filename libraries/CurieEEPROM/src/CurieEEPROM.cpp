@@ -48,18 +48,13 @@ void CurieEEPROM::write(uint32_t address, uint32_t data)
   address*=sizeof(uint32_t);
   
   uint32_t rom_wr_ctrl = 0;
-  //make sure address is valid
-  if((address > 0x7FC) || (address%4))
-  {
-    return;
-  }
 
   //check if address is available for writing a new value. If not erase the whole 2K block and re-write the rest of the data
   if(currentValue!=0xFFFFFFFF)
   {
     //read entire 2k of data
-    uint32_t blockdata[EEPROM_SIZE/4];
-    for(int i = 0; i < EEPROM_SIZE/4; i++)
+    uint32_t blockdata[EEPROM_SIZE];
+    for(int i = 0; i < EEPROM_SIZE; i++)
     {
       blockdata[i] = read(i*sizeof(uint32_t));
     }
@@ -72,7 +67,7 @@ void CurieEEPROM::write(uint32_t address, uint32_t data)
     clear();
     
     //write back all data with update data on passed address
-    for(int i = 0; i < EEPROM_SIZE/4; i++)
+    for(int i = 0; i < EEPROM_SIZE; i++)
     {
       //store data into ROM_WR_DATA register
       *(uint32_t*)(ROM_WR_DATA) = blockdata[i];
@@ -115,8 +110,8 @@ void CurieEEPROM::write8(uint32_t address, uint8_t data)
   if(currentValue!=0xFF)
   {
     //read entire 2k of data
-    uint32_t blockdata[EEPROM_SIZE/4];
-    for(int i = 0; i < EEPROM_SIZE/4; i++)
+    uint32_t blockdata[EEPROM_SIZE];
+    for(int i = 0; i < EEPROM_SIZE; i++)
     {
       blockdata[i] = read(i*sizeof(uint32_t));
     }
@@ -135,7 +130,7 @@ void CurieEEPROM::write8(uint32_t address, uint8_t data)
     clear();
     
     //write back all data with update data on passed address
-    for(int i = 0; i < EEPROM_SIZE/4; i++)
+    for(int i = 0; i < EEPROM_SIZE; i++)
     {
       //store data into ROM_WR_DATA register
       *(uint32_t*)(ROM_WR_DATA) = blockdata[i];
