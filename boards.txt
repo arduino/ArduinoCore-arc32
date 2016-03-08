@@ -10,7 +10,7 @@ arduino_101.vid.0x2A03.warning=Uncertified
 
 arduino_101.upload.tool=arduino101load
 arduino_101.upload.protocol=script
-arduino_101.upload.maximum_size=196608
+arduino_101.upload.maximum_size=155648
 arduino_101.upload.use_1200bps_touch=true
 arduino_101.upload.wait_for_upload_port=false
 arduino_101.upload.native_usb=false
