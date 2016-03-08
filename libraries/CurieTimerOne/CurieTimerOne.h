@@ -48,11 +48,8 @@
 
 // Timer-1 is clocked at ARCV2_TIMER1_CLOCK_FREQ defined in conf.h
 const unsigned int HZ_USEC = (ARCV2_TIMER1_CLOCK_FREQ / 1000000);  // Hz per micro second.
-const unsigned int MAX_PERIOD = (0x0FFFFFFFF / HZ_USEC);
-
-// The two ARC timers.
-const unsigned int ARC_TIMER_0 = 0;
-const unsigned int ARC_TIMER_1 = 1;
+const unsigned int MAX_PERIOD_HZ = 0x0FFFFFFFF;
+const unsigned int MAX_PERIOD_USEC = (MAX_PERIOD_HZ / HZ_USEC);
 
 // Duty cycle range.
 const int MAX_DUTY_RANGE = 1023;
@@ -80,21 +77,91 @@ typedef enum {
 //  Class:  CurieTimer
 //
 //  Description:
-//    This class describes the functionalities of a Arc Timer.  It has the knowledge
-//  of only 2 timers available in the h/w - a limitation.  The timers are sourced by
-//  a 32 HHz clock, a constant, used in this class, defined in the conf.h file.
+//    This class describes the functionalities of a Arc Timer, in particular, timer-1.
+//  Timer-0 is not available for this module to utilize.  The timers are clocked by
+//  a 32 HHz source and have 32-bit counters.
 //
 
 class CurieTimer
 {
   public:
-    // Constructor.  Default is timer-1.
-    CurieTimer(const unsigned int timerNum = ARC_TIMER_1);
+    // Constructor.
+    CurieTimer();
+
+    // The following methods are similar to the ones found in the AVR TimerOne library.
+
+    //****************************
+    //  Configuration
+    //****************************
+
+    inline void initialize(unsigned long microseconds = 1000000) {
+      if((microseconds == 0) || (microseconds > MAX_PERIOD_USEC))
+	microseconds = 1000000;
+      periodInUsec = microseconds;
+      init( (microseconds * HZ_USEC), NULL );
+    }
+
+    void setPeriod(unsigned long microseconds);
+
+    //****************************
+    //  Run Control
+    //****************************
+
+    inline void start(void) {
+      pause();
+      pauseCount = 0;
+      resume();
+    }
+
+    inline void stop(void) { return pause(); }
+
+    inline void restart(void) { start(); }
+
+    // Resume the timer from where it was paused.
+    void resume(void);
+
+    //****************************
+    //  PWM outputs
+    //****************************
+
+    inline void setPwmDuty(char pin, unsigned int duty) {
+      pwmStart( pin, (int) duty, periodInUsec );
+    }
+
+    inline void pwm(char pin, unsigned int duty) {
+       pwmStart( pin, (int) duty, periodInUsec );
+    }
+
+    inline void pwm(char pin, unsigned int duty, unsigned long microseconds) {
+      pwmStart( pin, (int) duty, microseconds );
+    }
+
+    inline void disablePwm(char pin) {
+      pwmStop();
+    }
+
+    //****************************
+    //  Interrupt Function
+    //****************************
+
+    void attachInterrupt(void (*isr)());
+
+    inline void attachInterrupt(void (*isr)(), unsigned long microseconds) {
+      attachInterrupt( isr );
+      setPeriod( microseconds );
+    }
+
+    inline void detachInterrupt(void) { attachInterrupt(NULL); };
+
+    /////////
+    // The following are additional methods provided by Intel for the Curie platform.
+    ////////
 
     // Set up the timer with the input period, in usec, and the call back routine.
     // Period stays with the timer until it is killed or re/start another round.
-    inline int start(const unsigned int timerPeriodUsec = 0,
+    inline int start(const unsigned int timerPeriodUsec,
 		     void (*userCallBack)() = NULL) {
+      periodInUsec = timerPeriodUsec;
       return( init((timerPeriodUsec * HZ_USEC), userCallBack) ); }
 
     // Restarting the timer, start counter from 0.
@@ -104,8 +171,6 @@ class CurieTimer
     void kill(void);
 
     // Attach or detach the user call back routine.
-    void attachInterrupt(void (*userCallBack)());
-    void detachInterrupt(void) { return attachInterrupt(NULL); };
 
     // Timer interrupt count.
     inline unsigned int readTickCount(void) { return tickCnt; }
@@ -114,9 +179,6 @@ class CurieTimer
 
     // Pausing the timer = no count up, no interrupt.
     void pause(void);
-    inline void stop(void) { return pause(); }
-    // Resume the timer from where it was paused.
-    void resume(void);
 
     // Start software PWM.  Note that the timer is consumed once PWM is set.
     int pwmStart(unsigned int outputPin, double dutyPercentage, unsigned int periodUsec);
@@ -148,6 +210,7 @@ class CurieTimer
     unsigned int pwmPin;
     unsigned int dutyCycle;
     unsigned int nonDutyCycle;
+    unsigned int periodInUsec;
 
     void (*isrFuncPtr)();
     void (*userCB)();
