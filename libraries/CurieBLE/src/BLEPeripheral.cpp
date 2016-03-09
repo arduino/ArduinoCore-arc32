@@ -47,6 +47,9 @@ BLEPeripheral::BLEPeripheral(void) :
     _state(BLE_PERIPH_STATE_NOT_READY),
     _advertise_service_uuid(NULL),
     _local_name(NULL),
+    _service_data_uuid(NULL),
+    _service_data(NULL),
+    _service_data_length(0),
     _appearance(0),
     _min_conn_interval(DEFAULT_MIN_CONN_INTERVAL),
     _max_conn_interval(DEFAULT_MAX_CONN_INTERVAL),
@@ -136,6 +139,18 @@ BLEPeripheral::end()
     _stop();
 }
 
+uint8_t
+BLEPeripheral::getAdvertisingLength()
+{
+    return _adv_data_len;
+}
+
+uint8_t*
+BLEPeripheral::getAdvertising()
+{
+    return _adv_data;
+}
+
 void
 BLEPeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
@@ -146,6 +161,14 @@ void
 BLEPeripheral::setLocalName(const char* localName)
 {
     _local_name = localName;
+}
+
+void
+BLEPeripheral::setAdvertisedServiceData(const char* serviceDataUuid, uint8_t* serviceData, uint8_t serviceDataLength)
+{
+    _service_data_uuid = serviceDataUuid;
+    _service_data = serviceData;
+    _service_data_length = serviceDataLength;
 }
 
 void
@@ -294,7 +317,7 @@ BLEPeripheral::_advDataInit(void)
         if (BT_UUID16 == uuid.type) {
             uint8_t *adv_tmp = &_adv_data[_adv_data_len];
             *adv_tmp++ = (1 + sizeof(uint16_t)); /* Segment data length */
-            *adv_tmp++ = BLE_ADV_TYPE_INC_16_UUID;
+            *adv_tmp++ = BLE_ADV_TYPE_COMP_16_UUID; /* Needed for Eddystone */
             UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
             _adv_data_len += (2 + sizeof(uint16_t));
         } else if (BT_UUID128 == uuid.type) {
@@ -323,6 +346,34 @@ BLEPeripheral::_advDataInit(void)
 
         memcpy(adv_tmp, _local_name, calculated_len);
         _adv_data_len += calculated_len + 2;
+    }
+
+    if (_service_data) {
+        /* Add Service Data (if it will fit) */
+
+        BLEUuid bleUuid = BLEUuid(_service_data_uuid);
+        struct bt_uuid uuid = bleUuid.uuid();
+
+        /* A 128-bit Service Data UUID won't fit in an Advertising packet */
+        if (BT_UUID16 != uuid.type) {
+            return; /* We support service data only for 16-bit service UUID */
+        }
+
+        uint8_t block_len = 1 + sizeof(uint16_t) + _service_data_length;
+        if (_adv_data_len + 1 + block_len > BLE_MAX_ADV_SIZE) {
+            return; // Service data block is too large.
+        }
+
+        adv_tmp = &_adv_data[_adv_data_len];
+
+        *adv_tmp++ = block_len;
+        _adv_data_len++;
+
+        *adv_tmp++ = BLE_ADV_TYPE_SERVICE_DATA_16_UUID;
+        UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
+        memcpy(adv_tmp, _service_data, _service_data_length);
+
+        _adv_data_len += block_len;
     }
 }
 
