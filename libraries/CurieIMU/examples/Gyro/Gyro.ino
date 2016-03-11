@@ -56,9 +56,6 @@ void loop() {
   Serial.print("\t");
   Serial.print(gz);
   Serial.println();
-
-  // wait 5 seconds
-  delay(5000);
 }
 
 float convertRawGyro(int gRaw) {
