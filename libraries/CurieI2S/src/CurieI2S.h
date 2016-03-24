@@ -55,6 +55,14 @@
 #define I2S_RWS     3
 #define I2S_RSCK    8
 
+#define I2S_BUFFER_SIZE 256
+
+struct i2s_ring_buffer
+{
+    uint32_t data[I2S_BUFFER_SIZE];
+    int head = 0;
+    int tail = 0;
+};
 
 class Curie_I2S
 {
@@ -106,7 +114,7 @@ class Curie_I2S
         
         void transmitFrame();
         
-        // Pushes a dword into the TX FIFO
+        // Pushes a dword into the TX buffer
         void pushData(uint32_t data);
         
         // Pushes a dword into the TX FIFO without doing any checks

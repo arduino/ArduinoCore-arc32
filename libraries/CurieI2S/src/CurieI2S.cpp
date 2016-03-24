@@ -8,61 +8,113 @@ Curie_I2S CurieI2S;
 static uint32_t _i2s_dma_Rx_Buffer[DMA_BUFFER_SIZE];
 static uint32_t _i2s_dma_Tx_Buffer[DMA_BUFFER_SIZE];
 
+static struct i2s_ring_buffer _i2s_Rx_Buffer;
+static struct i2s_ring_buffer _i2s_Tx_Buffer;
+
+static struct i2s_ring_buffer *_i2s_Rx_BufferPtr = &_i2s_Rx_Buffer;
+static struct i2s_ring_buffer *_i2s_Tx_BufferPtr = &_i2s_Tx_Buffer;
+
 static void i2sInterruptHandler(void)
 {
     //TODO: Make interrupt handling more atomic
-    noInterrupts();
+    //noInterrupts();
+    //uint32_t fifoL = *I2S_TFIFO_STAT;
+    
+    //tx FIFO almost empty
+    if(*I2S_STAT & 0x00000200)
+    {
+        //Serial.println("tx almost empty");
+        //Serial.print("I2S_STAT: ");
+        //Serial.println(*I2S_STAT, HEX);
+        //Serial.print("I2S_TFIFO_STAT: ");
+        //Serial.println(fifoL, HEX);
+        
+        //disable TFIFO_AEMPTY interrupt
+        //*I2S_CID_CTRL = *I2S_CID_CTRL & 0xFDFFFFFF;
+        
+        //fill FIFO from buffer
+        if(_i2s_Tx_BufferPtr->head != _i2s_Tx_BufferPtr->tail)
+        {
+            int index = _i2s_Tx_BufferPtr->tail;
+            int cnt = 0;
+            for(cnt = 0; (index != _i2s_Tx_BufferPtr->head) && (cnt < 2); cnt++)
+            {
+                *I2S_DATA_REG  = _i2s_Tx_BufferPtr->data[index];
+                index = (index+1)%I2S_BUFFER_SIZE;
+            } 
+            _i2s_Tx_BufferPtr->tail = (_i2s_Tx_BufferPtr->tail + cnt)%I2S_BUFFER_SIZE;
+        }
 
+        //clear flags
+        *I2S_STAT = *I2S_CTRL & 0xFFFFF0FF;
+        
+        return;
+    }
+    
     //tx FIFO full
     if(*I2S_STAT & 0x00000400)
     {
         //Serial.println("tx full");
-        
+        //Serial.print("I2S_STAT: ");
+        //Serial.println(*I2S_STAT, HEX);
+        //Serial.print("I2S_TFIFO_STAT: ");
+        //Serial.println(fifoL, HEX);
         //disable TFIFO_FULL interrupts
         *I2S_CID_CTRL = *I2S_CID_CTRL & 0xFBFFFFFF;
         
         //start transmit data in FIFO
         *I2S_CTRL  = *I2S_CTRL | 0x02000000;
-        delayTicks(3200);
+        //delayTicks(3200);
     
         //clear flags
-        *I2S_STAT = *I2S_CTRL & 0xFFFFF3FF;
+        *I2S_STAT = *I2S_CTRL & 0xFFFFF0FF;
         
         
-        //enable TFIFO_EMPTY interrupt
-        *I2S_CID_CTRL = *I2S_CID_CTRL | 0x01000000;
+        //enable TFIFO_EMPTY and TFIFO_AEMPTY interrupt
+        *I2S_CID_CTRL = *I2S_CID_CTRL | 0x03000000;
         
         return;
+    }
+    
+    //tx FIFO almost full
+    //if(*I2S_STAT & 0x00000200)
+    {
+        //fill up FIFO from buffer if available;
     }
     
     //tx FIFO empty
     if(*I2S_STAT & 0x00000100)
     {
         //Serial.println("tx empty");
-        
+        //Serial.print("I2S_STAT: ");
+        //Serial.println(*I2S_STAT, HEX);
+        //Serial.print("I2S_TFIFO_STAT: ");
+        //Serial.println(fifoL, HEX);
         //disable TFIFO_EMPTY interrupt
         *I2S_CID_CTRL = *I2S_CID_CTRL & 0xFEFFFFFF;
-        
+  
+        delayTicks(960); //allow enough time to send last frame
         //stop transmission
         *I2S_CTRL = *I2S_CTRL & 0xFDFFFFFF;
         
         //clear flags
-        *I2S_STAT = *I2S_STAT & 0xFFFFFCFF;
+        *I2S_STAT = *I2S_CTRL & 0xFFFFF0FF;
         
         //enable TFIFO_FULL interrupt
         *I2S_CID_CTRL = *I2S_CID_CTRL | 0x04000000;
         
+        
+        //Serial.print("CID_CTRL: ");
+        //Serial.println(*I2S_CID_CTRL, HEX);
+        
         return;
     }
     
-    //tx FIFO almost empty
-    {
-        //fill up FIFO from buffer if available;
-    }
+    
     
     //overrun and underrun
     
-    interrupts();
+    //interrupts();
 }
  
 Curie_I2S::Curie_I2S()
@@ -163,6 +215,10 @@ void Curie_I2S::init()
     i2s_ctrl &= 0xF9FFFCFC;
     i2s_ctrl |= 0x08B00100;
     *I2S_CTRL = i2s_ctrl;
+    
+    //set threshold for FIFOs
+    *I2S_TFIFO_CTRL |= 0x00030002;
+    *I2S_RFIFO_CTRL |= 0x00030002; 
     
     //enable interrupts
     //ToDo: Use DMA instead of relying on interrupts
@@ -296,7 +352,7 @@ void Curie_I2S::enableInterrupts()
     *INT_I2S_MASK = int_i2s_mask;
     
     uint32_t i2s_cid_ctrl = *I2S_CID_CTRL;
-    i2s_cid_ctrl |= 0x05008000;
+    i2s_cid_ctrl |= 0x0F008000;
     *I2S_CID_CTRL = i2s_cid_ctrl;
     
     interrupt_disable(IRQ_I2S_INTR);
@@ -321,9 +377,11 @@ void Curie_I2S::transmitFrame()
 
 void Curie_I2S::pushData(uint32_t data)
 {
-    if(getTxFIFOLength() < 4)
+    int i = (uint32_t)(_i2s_Tx_BufferPtr->head +1) % I2S_BUFFER_SIZE;
+    if(i != _i2s_Tx_BufferPtr->tail)
     {
-        *I2S_DATA_REG = data;
+        _i2s_Tx_BufferPtr->data[_i2s_Tx_BufferPtr->head] = data;
+        _i2s_Tx_BufferPtr->head = i;
     }
 }
 
@@ -340,8 +398,8 @@ uint32_t Curie_I2S::pullData()
 
 void Curie_I2S::pushDataFrame(uint32_t leftChData, uint32_t rightChData)
 {
-    int fifoLength = getTxFIFOLength();
-    if(!(fifoLength%2) && (fifoLength < 4))
+    //int fifoLength = getTxFIFOLength();
+    //if(!(fifoLength%2) && (fifoLength < 4))
     {
         pushData(leftChData);
         pushData(rightChData);
