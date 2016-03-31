@@ -289,18 +289,29 @@ size_t Print::printLongLong(unsigned long long n, uint8_t base) {
 size_t Print::printFloat(double number, uint8_t digits)
 {
   size_t n = 0;
+  int exponent = 0;
+  double tmp;
 
   if (isnan(number)) return print("nan");
   if (isinf(number)) return print("inf");
-  if (number > 4294967040.0) return print ("ovf");  // constant determined empirically
-  if (number <-4294967040.0) return print ("ovf");  // constant determined empirically
 
   // Handle negative numbers
-  if (number < 0.0)
-  {
-     n += print('-');
-     number = -number;
+  if (number < 0.0) {
+    n += print('-');
+    number = -number;
   }
+
+  // Chk if integer part has more than 8 digits.
+  tmp = number;
+  while (true) {
+    tmp /= 10.0;
+    exponent++;
+    if (tmp < 10.0)  break;
+  }
+  if (exponent > 8)
+    number = tmp;
+  else
+    exponent = 0;
 
   // Round correctly so that print(1.999, 2) prints as "2.00"
   double rounding = 0.5;
@@ -326,6 +337,12 @@ size_t Print::printFloat(double number, uint8_t digits)
     int toPrint = int(remainder);
     n += print(toPrint);
     remainder -= toPrint;
+  }
+
+  // Print the exponent portion
+  if (exponent) {
+    n += print("e+");
+    n += print(exponent);
   }
 
   return n;

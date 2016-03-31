@@ -37,7 +37,7 @@ char* utoa (unsigned int val, char *s, int radix);
 
 char* ultoa (unsigned long val, char *s, int radix);
  
-char* dtostrf (double val, signed char width, unsigned char prec, char *s);
+char* dtostrf (double val, unsigned char width, unsigned char prec, char *s);
 
 #ifdef __cplusplus
 } // extern "C"

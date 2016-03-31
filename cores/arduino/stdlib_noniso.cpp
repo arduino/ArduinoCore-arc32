@@ -147,9 +147,76 @@ char* ultoa( unsigned long val, char *string, int radix )
     return string;
 }
 
-char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
-    char fmt[20];
-    sprintf(fmt, "%%%d.%df", width, prec);
-    sprintf(sout, fmt, val);
-    return sout;
+char * dtostrf(double number, unsigned char width, unsigned char prec, char *s) {
+
+    if (isnan(number)) {
+        strcpy(s, "nan");
+        return s;
+    }
+    if (isinf(number)) {
+        strcpy(s, "inf");
+        return s;
+    }
+
+    char* out = s;
+    int exponent = 0;
+    unsigned char len, expLen;
+    double tmp;
+
+    // Handle negative numbers
+    if (number < 0.0) {
+      *out++ = '-';
+      number = -number;
+    }
+
+    // The integer portion has to be <= 8 digits.  Otherwise, the
+    // string is in exponent format.
+    tmp = number;
+    for (;;) {
+      tmp /= 10.0;
+      exponent++;
+      if (tmp < 10.0)  break;
+    }
+    if (exponent > 8)
+      number = tmp;
+    else
+      exponent = 0;
+
+    // Round correctly so that print(1.999, 2) prints as "2.00"
+    double rounding = 0.5;
+    for (uint8_t i = 0; i < prec; ++i)
+        rounding /= 10.0;
+
+    number += rounding;
+
+    // Extract the integer part of the number and print it
+    unsigned long int_part = (unsigned long)number;
+    double remainder = number - (double)int_part;
+    out += sprintf(out, "%ld", int_part);
+
+    // Don't go beyond the given width of the string
+    len = (unsigned char)(out - s);
+    expLen = (exponent == 0) ? 0 : 5;  // 5 places for exponent expression
+    if ((prec + len + expLen) > width)
+      prec = width - len - expLen;
+
+    // Print the decimal point, but only if there are digits beyond
+    if (prec > 0) {
+        *out = '.';
+        ++out;
+	prec--;
+	// Copy character by character to 'out' string
+        for (unsigned char decShift = prec; decShift > 0; decShift--) {
+            remainder *= 10.0;
+            sprintf(out, "%d", (int)remainder);
+            out++;
+            remainder -= (double)(int)remainder;
+        }
+    }
+
+    // Print the exponent if exists
+    if (exponent)
+      sprintf(out, "e+%.3d", exponent);
+
+    return s;
 }
