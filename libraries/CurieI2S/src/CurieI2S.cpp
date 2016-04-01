@@ -47,7 +47,7 @@ static void i2sInterruptHandler(void)
         //Serial.println("rx almost full");
         
         //disable RFIFO_AFULL interrupts
-        *I2S_CID_CTRL = *I2S_CID_CTRL & 0x7FFFFFFF;
+        //*I2S_CID_CTRL = *I2S_CID_CTRL & 0x7FFFFFFF;
         
         int index;
         int fifoDataLength = (*I2S_RFIFO_STAT & 0x0000000F);
@@ -67,7 +67,7 @@ static void i2sInterruptHandler(void)
             #endif
 
         }
-        
+            
         //enable RFIFO_EMPTY interrupt
         *I2S_CID_CTRL = *I2S_CID_CTRL | 0x10000000;
         
@@ -123,6 +123,9 @@ static void i2sInterruptHandler(void)
         //digitalWrite(I2S_DEBUG_PIN, HIGH);
         //digitalWrite(I2S_DEBUG_PIN, LOW);
         #endif
+        
+        //call tx callback
+        CurieI2S.i2s_tx_callback();
         
         if(_i2s_Tx_BufferPtr->head != _i2s_Tx_BufferPtr->tail)
         {
@@ -227,8 +230,8 @@ static void i2sInterruptHandler(void)
                 i2s_stat = i2s_stat & 0xFFFFF0FF;
                 *I2S_STAT = i2s_stat | 0x00000001;
                 
-                //call rx callback
-                CurieI2S.i2s_tx_callback();
+                //call tx empty callback
+                CurieI2S.i2s_tx_empty_callback();
                 
                 //enable TFIFO_AEMPTY and TFIFO_FULL interrupts
                 *I2S_CID_CTRL = *I2S_CID_CTRL | 0x06000000;
@@ -263,8 +266,9 @@ static void i2sInterruptHandler(void)
  
 Curie_I2S::Curie_I2S()
 {
-    i2s_txCB = NULL;
     i2s_rxCB = NULL;
+    i2s_txEmptyCB = NULL;
+    i2s_txCB = NULL;
 }
 
 void Curie_I2S::begin(uint32_t sampleRate, uint32_t resolution)
@@ -391,7 +395,7 @@ void Curie_I2S::init()
     *I2S_CTRL = i2s_ctrl;
     
     //set threshold for FIFOs
-    *I2S_TFIFO_CTRL |= 0x00030003;
+    *I2S_TFIFO_CTRL |= 0x00030002;
     *I2S_RFIFO_CTRL |= 0x00010002;
     
     //enable interrupts
@@ -633,6 +637,11 @@ void Curie_I2S::attachRxInterrupt(void (*userCallBack)())
     i2s_rxCB = userCallBack;
 }
 
+void Curie_I2S::attachTxEmptyInterrupt(void (*userCallBack)())
+{
+    i2s_txEmptyCB = userCallBack;
+}
+
 void Curie_I2S::attachTxInterrupt(void (*userCallBack)())
 {
     i2s_txCB = userCallBack;
@@ -642,6 +651,12 @@ inline void Curie_I2S::i2s_rx_callback(void)
 {
     if(i2s_rxCB != NULL)
         i2s_rxCB();
+}
+
+inline void Curie_I2S::i2s_tx_empty_callback(void)
+{
+    if(i2s_txEmptyCB != NULL)
+        i2s_txEmptyCB();
 }
 
 inline void Curie_I2S::i2s_tx_callback(void)

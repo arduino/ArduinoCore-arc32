@@ -128,9 +128,11 @@ class Curie_I2S
         //enables i2s interrupts
         void enableInterrupts();
         
+        void (*i2s_rxCB)();
+        
         void (*i2s_txCB)();
         
-        void (*i2s_rxCB)();
+        void (*i2s_txEmptyCB)();
         
     public:
         Curie_I2S();
@@ -200,21 +202,29 @@ class Curie_I2S
         
         uint8_t getRxFIFOLength();
         
-        // Attach user callback when there is data pushed into the rx buffer from the RX_FIFO
+        // Attach user callback that is triggered when there is data pushed into the rx buffer from the RX_FIFO
         void attachRxInterrupt(void (*userCallBack)());
         
         void detachRxInterrupt(void) { return attachTxInterrupt(NULL); };
     
-        // Attach user callback when that gets called when TX_FIFO is empty(transmission done);
+        // Attach user callback that is triggered when that gets called when TX_FIFO is empty(transmission done);
+        void attachTxEmptyInterrupt(void (*userCallBack)());
+        
+        void detachTxEmptyInterrupt(void) { return attachTxEmptyInterrupt(NULL); };
+        
+        // Attach user callback that is triggered when that gets called when TX_FIFO has available space;
         void attachTxInterrupt(void (*userCallBack)());
         
-        void detachTxInterrupt(void) { return attachRxInterrupt(NULL); };
+        void detachTxInterrupt(void) { return attachTxInterrupt(NULL); };
+        
+        //rx callback
+        void i2s_rx_callback(void);
         
         //tx callback
         void i2s_tx_callback(void);
         
-        //rx callback
-        void i2s_rx_callback(void);
+        //tx empty callback
+        void i2s_tx_empty_callback(void);
 };
 
 extern Curie_I2S CurieI2S;
