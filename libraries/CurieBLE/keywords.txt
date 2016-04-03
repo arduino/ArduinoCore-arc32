@@ -49,10 +49,10 @@ written	KEYWORD2
 subscribed	KEYWORD2
 
 begin	KEYWORD2
-getAdvertisingLength    KEYWORD2
-getAdvertising  KEYWORD2
+getAdvertisingLength	KEYWORD2
+getAdvertising	KEYWORD2
 setAdvertisedServiceUuid	KEYWORD2
-setAdvertisedServiceData        KEYWORD2
+setAdvertisedServiceData	KEYWORD2
 setLocalName	KEYWORD2
 setAppearance	KEYWORD2
 setConnectionInterval	KEYWORD2
