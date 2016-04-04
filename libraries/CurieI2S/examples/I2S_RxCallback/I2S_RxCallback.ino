@@ -49,5 +49,6 @@ void rxDataReceived()
   while(CurieI2S.available())
   {
     dataBuff[count++] =  CurieI2S.requestdword();   
+    count %= 256; //prevent buffer overflow and just write data in front of the buffer.
   }
 }

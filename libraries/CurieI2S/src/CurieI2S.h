@@ -96,6 +96,9 @@ class Curie_I2S
 {
     private:
         uint32_t clock;
+        
+        int frameDelay = 0;
+        
         bool useDMA;
         
         // initializes i2s interface
@@ -201,6 +204,8 @@ class Curie_I2S
         uint8_t getTxFIFOLength();
         
         uint8_t getRxFIFOLength();
+        
+        void lastFrameDelay();
         
         // Attach user callback that is triggered when there is data pushed into the rx buffer from the RX_FIFO
         void attachRxInterrupt(void (*userCallBack)());

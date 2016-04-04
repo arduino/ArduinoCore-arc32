@@ -222,7 +222,8 @@ static void i2sInterruptHandler(void)
                 //TXFIFO and tx buffer empty
                 
                 //last frame delay
-                delayTicks(960);
+                //delayTicks(960);
+                CurieI2S.lastFrameDelay();
                 //stop transmission
                 *I2S_CTRL = *I2S_CTRL & 0xFDFFFFFE;
                 
@@ -357,6 +358,9 @@ void Curie_I2S::setSampleRate(uint32_t dividerValue)
     i2s_srr &= I2S_SAMPLERATE_MASK;
     i2s_srr |= dividerValue;
     *I2S_SRR = i2s_srr;
+    
+    //set frameDelay value.
+    frameDelay = (dividerValue&0x000000FF)*32*2;
 }
 
 void Curie_I2S::setResolution(uint32_t resolution)
@@ -630,6 +634,11 @@ uint8_t Curie_I2S::getRxFIFOLength()
 {
     uint8_t fifolength = *I2S_RFIFO_STAT & 0x000000FF;
     return fifolength;
+}
+
+void Curie_I2S::lastFrameDelay()
+{
+    delayTicks(frameDelay);
 }
 
 void Curie_I2S::attachRxInterrupt(void (*userCallBack)())
