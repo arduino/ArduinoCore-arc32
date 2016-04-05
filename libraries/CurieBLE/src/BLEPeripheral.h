@@ -56,6 +56,23 @@ public:
     virtual ~BLEPeripheral(void);
 
     /**
+     * Return the number of bytes in the advertising block.
+     * Useful for debugging advertising problems.
+     *
+     * @note Call only after calling begin().
+     */
+    uint8_t getAdvertisingLength();
+
+    /**
+     * Returns a pointer to the advertising block
+     * of length getAdvertisingLength().
+     * Useful for debugging advertising problems.
+     *
+     * @note Call only after calling begin().
+     */
+    uint8_t* getAdvertising();
+
+    /**
      * Set the service UUID that the BLE Peripheral Device advertises
      *
      * @param advertisedServiceUuid  16-bit or 128-bit UUID to advertis
@@ -73,6 +90,30 @@ public:
      * @note This method must be called before the begin method
      */
     void setLocalName(const char* localName);
+
+    /**
+     * Set the Service Data that the BLE Peripheral Device advertises
+     *
+     * @param serviceDataUuid 16-bit Service UUID for this Service Data
+     *   (in string form). Must match the UUID parameter
+     *   of setAdvertisedServiceUuid(). To fit into BLE_MAX_ADV_SIZE,
+     *   the UUID must be a 16-bit UUID.
+     *
+     * @param serviceData binary array of Service Data.
+     *
+     * @param serviceDataLength length (bytes) of serviceData[]
+     *
+     * @note the entire advertising packet must be no more than
+     *   BLE_MAX_ADV_SIZE bytes, which is currently 31.
+     *   This likely means that if you use Service Data
+     *   there will not be room for a Local Name.
+     *
+     * @note if serviceDataUuid isn't 16-bits long, or if
+     *   serviceDataLength won't fit in the advertising block,
+     *   the service data will silently not be copied
+     *   into the advertising block.
+     */
+    void setAdvertisedServiceData(const char* serviceDataUuid, uint8_t* serviceData, uint8_t serviceDataLength);
 
     /**
      * Set the device name for the BLE Peripheral Device
@@ -194,6 +235,9 @@ private:
 
     const char* _advertise_service_uuid;
     const char* _local_name;
+    const char* _service_data_uuid;
+    uint8_t* _service_data;
+    uint8_t _service_data_length;
     char       _device_name[BLE_MAX_DEVICE_NAME+1];
     uint16_t   _appearance;
     uint16_t   _min_conn_interval;
