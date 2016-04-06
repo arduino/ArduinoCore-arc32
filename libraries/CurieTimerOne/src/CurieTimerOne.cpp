@@ -76,7 +76,7 @@ void CurieTimer::kill()
   tickCnt = 0;
   userCB = NULL;
   currState = IDLE;
-  pauseCntrl = pauseCount = pwmPin = dutyCycle = nonDutyCycle = periodInUsec = 0;
+  pauseCntrl = pauseCount = dutyCycle = nonDutyCycle = periodInUsec = 0;
 }
 
 
