@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void pinMode( uint8_t pin, uint8_t mode )
 {
+    if (pin >= NUM_DIGITAL_PINS) return;
+	
     PinDescription *p = &g_APinDescription[pin];
 
     if (mode == OUTPUT) {
@@ -60,9 +62,9 @@ void pinMode( uint8_t pin, uint8_t mode )
 
 void digitalWrite( uint8_t pin, uint8_t val )
 {
-    PinDescription *p = &g_APinDescription[pin];
-
     if (pin >= NUM_DIGITAL_PINS) return;
+	
+    PinDescription *p = &g_APinDescription[pin];
 
     if (!p->ulInputMode) {
         if (p->ulGPIOType == SS_GPIO) {
@@ -89,9 +91,9 @@ void digitalWrite( uint8_t pin, uint8_t val )
 
 int digitalRead( uint8_t pin )
 {
-    PinDescription *p = &g_APinDescription[pin];
-
     if (pin >= NUM_DIGITAL_PINS) return LOW;
+	
+    PinDescription *p = &g_APinDescription[pin];
 
     if (p->ulGPIOType == SS_GPIO)
     {
