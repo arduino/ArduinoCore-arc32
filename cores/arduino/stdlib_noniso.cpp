@@ -202,14 +202,11 @@ char * dtostrf(double number, unsigned char width, unsigned char prec, char *s) 
 
     // Print the decimal point, but only if there are digits beyond
     if (prec > 0) {
-        *out = '.';
-        ++out;
-	prec--;
+        *out++ = '.';
 	// Copy character by character to 'out' string
         for (unsigned char decShift = prec; decShift > 0; decShift--) {
             remainder *= 10.0;
-            sprintf(out, "%d", (int)remainder);
-            out++;
+            out += sprintf(out, "%d", (int)remainder);
             remainder -= (double)(int)remainder;
         }
     }
