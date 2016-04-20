@@ -24,12 +24,15 @@
 #include "Stream.h"
 #include "variant.h"
 
-#define BUFFER_LENGTH 32
+#define BUFFER_LENGTH   32
+#define I2C_SPEED_SLOW  1
+#define I2C_SPEED_FAST  2
 
 class TwoWire : public Stream {
 public:
 	TwoWire(void);
 	void begin();
+    void begin(int);
 	void beginTransmission(uint8_t);
 	void beginTransmission(int);
 	uint8_t endTransmission(void);

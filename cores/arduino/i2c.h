@@ -32,6 +32,7 @@ extern "C"{
 #define I2C_ERROR   -2
 
 int i2c_openadapter(void);
+int i2c_openadapter_speed(int);
 void i2c_setslave(uint8_t addr);
 int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop);
 int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
