@@ -49,7 +49,7 @@ static void ss_i2c_err(uint32_t dev_id)
 }
 
 static int wait_rx_or_err(bool no_stop){
-	uint64_t timeout = TIMEOUT_MS * 20;
+	uint64_t timeout = TIMEOUT_MS * 200;
 	while(timeout--) {
 		if (i2c_err_detect) {
 			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
@@ -70,7 +70,7 @@ static int wait_rx_or_err(bool no_stop){
 				return I2C_OK;
 			}
 		}
-		delayMicroseconds(50);
+		delayMicroseconds(10);
 	}
 	if (!no_stop)
 		return I2C_TIMEOUT;
@@ -79,7 +79,7 @@ static int wait_rx_or_err(bool no_stop){
 }
 
 static int wait_tx_or_err(bool no_stop){
-	uint64_t timeout = TIMEOUT_MS * 20;
+	uint64_t timeout = TIMEOUT_MS * 200;
 	while(timeout--) {
 		if (i2c_err_detect) {
 			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
@@ -100,7 +100,7 @@ static int wait_tx_or_err(bool no_stop){
 			return I2C_OK;
 			}
 		}
-		delayMicroseconds(50);
+		delayMicroseconds(10);
 	}
 	if (!no_stop)
 		return I2C_TIMEOUT;
@@ -109,7 +109,7 @@ static int wait_tx_or_err(bool no_stop){
 }
 
 static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
-	uint64_t timeout = TIMEOUT_MS * 20;
+	uint64_t timeout = TIMEOUT_MS * 200;
 	int ret = 0;
 	while(timeout--) {
 		ret = ss_i2c_status(controller_id, no_stop);
@@ -117,7 +117,7 @@ static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
 			return I2C_OK;
 		}
 		if (ret == I2C_BUSY) {
-			delayMicroseconds(50);
+			delayMicroseconds(10);
 		}
 	}
 	return I2C_TIMEOUT - ret;
@@ -128,7 +128,7 @@ int i2c_openadapter(void)
 {
 	int ret;
 
-	SET_PIN_MODE(24, I2C_MUX_MODE); // Rdx SOC PIN (Arduino header pin 18)
+	SET_PIN_MODE(24, I2C_MUX_MODE); // Rxd SOC PIN (Arduino header pin 18)
 	SET_PIN_MODE(25, I2C_MUX_MODE); // Txd SOC PIN (Arduino header pin 19)
 
 	SET_PIN_PULLUP(24, 1);
@@ -155,6 +155,38 @@ int i2c_openadapter(void)
 
 	return ret;
 }
+
+int i2c_openadapter_speed(int i2c_speed)
+{
+	int ret;
+
+	SET_PIN_MODE(24, I2C_MUX_MODE); // Rxd SOC PIN (Arduino header pin 18)
+	SET_PIN_MODE(25, I2C_MUX_MODE); // Txd SOC PIN (Arduino header pin 19)
+
+	SET_PIN_PULLUP(24, 1);
+	SET_PIN_PULLUP(25, 1);
+
+	i2c_cfg_data_t i2c_cfg;
+	memset(&i2c_cfg, 0, sizeof(i2c_cfg_data_t));
+
+	i2c_cfg.speed = i2c_speed;
+	i2c_cfg.addressing_mode = I2C_7_Bit;
+	i2c_cfg.mode_type = I2C_MASTER;
+	i2c_cfg.cb_tx = ss_i2c_tx;
+	i2c_cfg.cb_rx = ss_i2c_rx;
+	i2c_cfg.cb_err = ss_i2c_err;
+
+	i2c_tx_complete = 0;
+	i2c_rx_complete = 0;
+	i2c_err_detect = 0;
+
+	ss_i2c_set_config(I2C_SENSING_0, &i2c_cfg);
+	ss_i2c_clock_enable(I2C_SENSING_0);
+	ret = wait_dev_ready(I2C_SENSING_0, false);
+
+	return ret;
+}
+
 
 void i2c_setslave(uint8_t addr)
 {

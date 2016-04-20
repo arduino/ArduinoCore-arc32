@@ -41,6 +41,24 @@ void TwoWire::begin(void)
 	init_status = i2c_openadapter();
 }
 
+void TwoWire::begin(int i2c_speed)
+{
+	init_status = i2c_openadapter_speed(i2c_speed);
+}
+
+void TwoWire::setClock(long speed)
+{
+    if(speed == 400000L) {
+        init_status = i2c_openadapter_speed(I2C_SPEED_FAST);
+    } else if(speed == 100000L) {
+        init_status = i2c_openadapter_speed(I2C_SPEED_SLOW);
+    } else if(speed == I2C_SPEED_FAST) {
+        init_status = i2c_openadapter_speed(I2C_SPEED_FAST);
+    }else {
+        init_status = i2c_openadapter();
+    }
+}
+
 uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop)
 {
 	int ret;
