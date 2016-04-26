@@ -180,7 +180,7 @@ class CurieIMUClass : public BMI160Class {
         void noInterrupts(int feature);
         bool interruptsEnabled(int feature);
 
-        int getInterruptStatus(int feature);
+        bool getInterruptStatus(int feature);
 
         CurieIMUStepMode getStepDetectionMode();
         void setStepDetectionMode(int mode);

@@ -1504,7 +1504,7 @@ bool CurieIMUClass::interruptsEnabled(int feature)
     }
 }
 
-int CurieIMUClass::getInterruptStatus(int feature)
+bool CurieIMUClass::getInterruptStatus(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
