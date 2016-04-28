@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 .globl _do_fault
 .type _do_fault,%function
 
+.globl _exit_halt
+.type _exit_halt,%function
+
 .globl _do_isr
 .type _do_isr,%function
 
@@ -57,6 +60,7 @@ _do_reset:
  */
 .balign 4
 _do_fault:
+_exit_halt:
     /* Set halt flag */
     flag 0x01
     nop
@@ -86,3 +90,4 @@ _do_isr:
     nop
 
     rtie
+
