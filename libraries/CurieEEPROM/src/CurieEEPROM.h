@@ -1,28 +1,14 @@
 /*
  * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
-
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
-
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
+ * See the bottom of this file for the license terms.
  */
 
 #define ROM_WR_CTRL	0xb0100004
 #define ROM_WR_DATA	0xb0100008
 #define FLASH_STTS	0xb0000014
-#define EEPROM_ADDR 0xfffff000
-#define EEPROM_OFFSET 0x00001000
-#define CTRL_REG    0xb0000018
+#define EEPROM_ADDR 	0xfffff000
+#define EEPROM_OFFSET 	0x00001000
+#define CTRL_REG    	0xb0000018
 
 #define EEPROM_SIZE 512 //EEPROM size in dwords
 
@@ -176,3 +162,22 @@ private:
 };
 
 extern CurieEEPROM EEPROM;
+
+/*
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
