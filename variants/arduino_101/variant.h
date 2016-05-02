@@ -79,6 +79,11 @@ extern "C"{
 #define SPI_MUX_MODE        QRK_PMUX_SEL_MODEB
 
 /*
+ * I2S
+ */
+#define I2S_MUX_MODE        QRK_PMUX_SEL_MODEB
+
+/*
  * GPIO
  */
 #define GPIO_MUX_MODE       QRK_PMUX_SEL_MODEA
