@@ -35,10 +35,13 @@ void setup() {
   CurieIMU.setAccelerometerRange(4);
 
   // Reduce threshold to allow detection of weaker taps (>= 750mg)
-  CurieIMU.setDetectionThreshold(CURIE_IMU_TAP, 750); // (750mg)
+  CurieIMU.setDetectionThreshold(CURIE_IMU_DOUBLE_TAP, 750); // (750mg)
+
+  // Set the quite time window for 2 taps to be registered as a double-tap (Gap time between taps <= 1000 milliseconds)
+  CurieIMU.setDetectionDuration(CURIE_IMU_DOUBLE_TAP, 1000);
 
   // Enable Double-Tap detection
-  CurieIMU.interrupts(CURIE_IMU_TAP);
+  CurieIMU.interrupts(CURIE_IMU_DOUBLE_TAP);
 
   Serial.println("IMU initialization complete, waiting for events...");
 }
@@ -50,18 +53,18 @@ void loop() {
 
 static void eventCallback()
 {
-  if (CurieIMU.getInterruptStatus(CURIE_IMU_TAP)) {
+  if (CurieIMU.getInterruptStatus(CURIE_IMU_DOUBLE_TAP)) {
     if (CurieIMU.tapDetected(X_AXIS, NEGATIVE))
-      Serial.println("Tap detected on negative X-axis");
+      Serial.println("Double Tap detected on negative X-axis");
     if (CurieIMU.tapDetected(X_AXIS, POSITIVE))
-      Serial.println("Tap detected on positive X-axis");
+      Serial.println("Double Tap detected on positive X-axis");
     if (CurieIMU.tapDetected(Y_AXIS, NEGATIVE))
-      Serial.println("Tap detected on negative Y-axis");
+      Serial.println("Double Tap detected on negative Y-axis");
     if (CurieIMU.tapDetected(Y_AXIS, POSITIVE))
-      Serial.println("Tap detected on positive Y-axis");
+      Serial.println("Double Tap detected on positive Y-axis");
     if (CurieIMU.tapDetected(Z_AXIS, NEGATIVE))
-      Serial.println("Tap detected on negative Z-axis");
+      Serial.println("Double Tap detected on negative Z-axis");
     if (CurieIMU.tapDetected(Z_AXIS, POSITIVE))
-      Serial.println("Tap detected on positive Z-axis");
+      Serial.println("Double Tap detected on positive Z-axis");
   }
 }
