@@ -13,7 +13,7 @@
 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
 #include "SPI.h"
@@ -48,7 +48,8 @@ void SPIClass::setDataMode(uint8_t dataMode)
 
 void SPIClass::begin()
 {
-    uint32_t flags = interrupt_lock(); // Protect from a scheduler and prevent transactionBegin
+    /* Protect from a scheduler and prevent transactionBegin*/
+    uint32_t flags = interrupt_lock();
     if (!initialized) {
         interruptMode = 0;
         interruptMask[0] = 0;
@@ -60,13 +61,14 @@ void SPIClass::begin()
         lsbFirst = false;
         frameSize = SPI_8_BIT;
 
-        // Set SS to high so a connected chip will be "deselected" by default
-        // TODO - confirm that data register is updated even if pin is set as input
+        /* Set SS to high so a connected chip will be "deselected" by default.
+         * TODO - confirm that data register is updated even if pin is set as
+         * input. */
         digitalWrite(ss_gpio, HIGH);
 
-        // When the SS pin is set as OUTPUT, it can be used as
-        // a general purpose output port (it doesn't influence
-        // SPI operations).
+        /* When the SS pin is set as OUTPUT, it can be used as
+         * a general purpose output port (it doesn't influence
+         * SPI operations). */
         pinMode(ss_gpio, OUTPUT);
 
         /* disable controller */
@@ -81,8 +83,9 @@ void SPIClass::begin()
                 (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT);
 
         /* Disable interrupts */
-        /* Enable at least one slave device (mandatory, though SS signals are unused) */
         SPI_M_REG_VAL(spi_addr, IMR) = SPI_DISABLE_INT;
+        /* Enable at least one slave device (mandatory, though
+         * SS signals are unused) */
         SPI_M_REG_VAL(spi_addr, SER) = 0x1;
         /* Enable controller */
         SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
@@ -96,16 +99,17 @@ void SPIClass::begin()
         g_APinDescription[SCK].ulPinMode  = SPI_MUX_MODE;
 
     }
-    initialized++; // reference count
+    initialized++; /* reference count */
     interrupt_unlock(flags);
 }
 
 void SPIClass::end() {
-    uint32_t flags = interrupt_lock(); // Protect from a scheduler and prevent transactionBegin
-    // Decrease the reference counter
+    /* Protect from a scheduler and prevent transactionBegin */
+    uint32_t flags = interrupt_lock();
+    /* Decrease the reference counter */
     if (initialized)
         initialized--;
-    // If there are no more references disable SPI
+    /* If there are no more references disable SPI */
     if (!initialized) {
         SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
         MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) &= disable_val;
@@ -142,7 +146,7 @@ void SPIClass::usingInterrupt(uint8_t interruptNumber) {
 }
 
 void SPIClass::notUsingInterrupt(uint8_t interruptNumber) {
-    // Once in mode 8 we can't go back to 0 without a proper reference count
+    /* Once in mode 8 we can't go back to 0 without a proper reference count */
     if (interruptMode == 8)
         return;
 
