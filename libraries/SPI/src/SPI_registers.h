@@ -21,9 +21,8 @@
 
 #include "portable.h"
 
-/* Macro to access SPI1 Master controller register offset */
-#define SPI1_M_REG_VAL(reg) \
-    MMIO_REG_VAL_FROM_BASE(SOC_MST_SPI1_REGISTER_BASE, (reg))
+/* Macro to access SPI Master controller register offset */
+#define SPI_M_REG_VAL(base, reg) MMIO_REG_VAL_FROM_BASE(base, (reg))
 
 /* SoC SPI device register offsets  */
 #define     CTRL0                       (0x00)              /* SoC SPI Control Register 1 */
@@ -55,8 +54,10 @@
 
 #define     SPI_FIFO_DEPTH              (8UL)
 
-#define     ENABLE_SPI_MASTER_1         (0x1 << 15)
-#define     DISABLE_SPI_MASTER_1        (~ENABLE_SPI_MASTER_1)
+#define     ENABLE_SPI_MASTER_0   (0x1 << 14)
+#define     DISABLE_SPI_MASTER_0  (~ENABLE_SPI_MASTER_0)
+#define     ENABLE_SPI_MASTER_1   (0x1 << 15)
+#define     DISABLE_SPI_MASTER_1  (~ENABLE_SPI_MASTER_1)
 
 #define     SPI_BASE_CLOCK              (CLOCK_SPEED*1000*1000) /* CLOCK_SPEED in MHz */
 

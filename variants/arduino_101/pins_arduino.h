@@ -25,7 +25,7 @@
 #ifndef Pins_Arduino_h
 #define Pins_Arduino_h
 
-#define NUM_DIGITAL_PINS            21
+#define NUM_DIGITAL_PINS            22
 #define NUM_ANALOG_INPUTS           6
 #define NUM_PWM						4
 #define NUM_UARTS					1

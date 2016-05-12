@@ -18,30 +18,32 @@
  */
 #include "SPI.h"
 
-SPIClass SPI;
+SPIClass SPI(SPIDEV_1);
+SPIClass SPI1(SPIDEV_0);
 
 void SPIClass::setClockDivider(uint8_t clockDiv)
 {
     /* disable controller */
-    SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
+    SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
 
     /* Set SPI Clock Divider */
-    SPI1_M_REG_VAL(BAUDR) = clockDiv & SPI_CLOCK_MASK;
+    SPI_M_REG_VAL(spi_addr, BAUDR) = clockDiv & SPI_CLOCK_MASK;
 
     /* re-enable controller */
-    SPI1_M_REG_VAL(SPIEN) |= SPI_ENABLE;
+    SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
 }
 
 void SPIClass::setDataMode(uint8_t dataMode)
 {
     /* disable controller */
-    SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
+    SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
     
     /* Set frame size, bus mode and transfer mode */
-    SPI1_M_REG_VAL(CTRL0) = (SPI1_M_REG_VAL(CTRL0) & ~(SPI_MODE_MASK)) | ((dataMode << SPI_MODE_SHIFT) & SPI_MODE_MASK);
+    SPI_M_REG_VAL(spi_addr, CTRL0) = (SPI_M_REG_VAL(spi_addr, CTRL0)
+        & ~(SPI_MODE_MASK)) | ((dataMode << SPI_MODE_SHIFT) & SPI_MODE_MASK);
 
     /* re-enable controller */
-    SPI1_M_REG_VAL(SPIEN) |= SPI_ENABLE;
+    SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
 }
 
 void SPIClass::begin()
@@ -60,29 +62,30 @@ void SPIClass::begin()
 
         // Set SS to high so a connected chip will be "deselected" by default
         // TODO - confirm that data register is updated even if pin is set as input
-        digitalWrite(SS, HIGH);
+        digitalWrite(ss_gpio, HIGH);
 
         // When the SS pin is set as OUTPUT, it can be used as
         // a general purpose output port (it doesn't influence
         // SPI operations).
-        pinMode(SS, OUTPUT);
+        pinMode(ss_gpio, OUTPUT);
 
         /* disable controller */
-        SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
+        SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
 		
 		/* Enable clock to peripheral */
-		MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) |= ENABLE_SPI_MASTER_1;
+		MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) |= enable_val;
 		
         /* Configure defaults for clock divider, frame size and data mode */
-        SPI1_M_REG_VAL(BAUDR) = SPI_CLOCK_DIV4;
-        SPI1_M_REG_VAL(CTRL0) = (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT);
+        SPI_M_REG_VAL(spi_addr, BAUDR) = SPI_CLOCK_DIV4;
+        SPI_M_REG_VAL(spi_addr, CTRL0) =
+                (frameSize << SPI_FSIZE_SHIFT) | (SPI_MODE0 << SPI_MODE_SHIFT);
 
         /* Disable interrupts */
-        SPI1_M_REG_VAL(IMR) = SPI_DISABLE_INT;
         /* Enable at least one slave device (mandatory, though SS signals are unused) */
-        SPI1_M_REG_VAL(SER) = 0x1;
+        SPI_M_REG_VAL(spi_addr, IMR) = SPI_DISABLE_INT;
+        SPI_M_REG_VAL(spi_addr, SER) = 0x1;
         /* Enable controller */
-        SPI1_M_REG_VAL(SPIEN) |= SPI_ENABLE;
+        SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
 
         /* Set SoC pin mux configuration */
         SET_PIN_MODE(g_APinDescription[MOSI].ulSocPin, SPI_MUX_MODE);
@@ -104,8 +107,8 @@ void SPIClass::end() {
         initialized--;
     // If there are no more references disable SPI
     if (!initialized) {
-        SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
-        MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) &= DISABLE_SPI_MASTER_1;
+        SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
+        MMIO_REG_VAL(PERIPH_CLK_GATE_CTRL) &= disable_val;
 #ifdef SPI_TRANSACTION_MISMATCH_LED
         inTransactionFlag = 0;
 #endif

@@ -46,6 +46,11 @@
 #define MSBFIRST 1
 #endif
 
+#define SPI0_CS  21
+#define SPI1_CS  SS
+
+#define SPIDEV_0 0
+#define SPIDEV_1 1
 /* For Arduino Uno compatibility, divider values are doubled to provide equivalent clock rates
  * e.g. SPI_CLOCK_DIV4 will produce a 4MHz clock
  * The Intel Curie has a 32MHz base clock and a min divider of 2, so max SPI clock is 16MHz
@@ -63,6 +68,7 @@
 #define SPI_MODE2 0x02
 #define SPI_MODE3 0x03
 
+#define NUM_SPIDEVS 2
 class SPISettings {
 public:
   SPISettings(uint32_t clock, uint8_t bitOrder, uint8_t dataMode) {
@@ -86,7 +92,12 @@ private:
 
 class SPIClass {
 public:
-  SPIClass(void) { initialized = 0; }
+  SPIClass(int dev) {
+	  spi_addr = spidevs[dev][0];
+	  enable_val = spidevs[dev][1];
+	  disable_val = spidevs[dev][2];
+	  ss_gpio = spidevs[dev][3];
+  }
 
   // Initialize the SPI library
   void begin();
@@ -131,14 +142,14 @@ public:
 #endif
 
       /* disable controller */
-      SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
+      SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
       /* Configure clock divider, frame size and data mode */
-      SPI1_M_REG_VAL(BAUDR) = settings.baudr;
-      SPI1_M_REG_VAL(CTRL0) = settings.ctrl0;
+      SPI_M_REG_VAL(spi_addr, BAUDR) = settings.baudr;
+      SPI_M_REG_VAL(spi_addr, CTRL0) = settings.ctrl0;
       frameSize = SPI_8_BIT;
       lsbFirst = settings.lsbFirst;
       /* Enable controller */
-      SPI1_M_REG_VAL(SPIEN) |= SPI_ENABLE;
+      SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
   }
 
   // Write to the SPI bus (MOSI pin) and also receive (MISO pin)
@@ -186,15 +197,15 @@ public:
           uint32_t transferSize = SPI_FIFO_DEPTH > remaining ? remaining : SPI_FIFO_DEPTH;
           /* Fill the TX FIFO */
           for (uint32_t i = 0; i < transferSize; i++)
-              SPI1_M_REG_VAL(DR) = *(p + i);
+              SPI_M_REG_VAL(spi_addr, DR) = *(p + i);
           remaining -= transferSize;
           /* Wait for transfer to complete */
-          while (SPI1_M_REG_VAL(SR) & SPI_STATUS_BUSY) ;
+          while (SPI_M_REG_VAL(spi_addr, SR) & SPI_STATUS_BUSY) ;
           do {
-              uint32_t rxLevel = SPI1_M_REG_VAL(RXFL);
+              uint32_t rxLevel = SPI_M_REG_VAL(spi_addr, RXFL);
               /* Drain the RX FIFO */
               for (uint32_t i = 0; i < rxLevel; i++)
-                  *(p + i) = SPI1_M_REG_VAL(DR);
+                  *(p + i) = SPI_M_REG_VAL(spi_addr, DR);
               p += rxLevel;
               transferSize -= rxLevel;
           } while (transferSize);
@@ -248,6 +259,10 @@ public:
   void setClockDivider(uint8_t clockDiv);
 
 private:
+  int ss_gpio;
+  uint32_t spi_addr;
+  uint32_t enable_val;
+  uint32_t disable_val;
   uint32_t initialized;
   uint32_t interruptMode;    // 0=none, 1-7=mask, 8=global
   uint32_t interruptMask[3]; // which interrupts to mask
@@ -260,26 +275,38 @@ private:
   inline void setFrameSize(uint32_t size) {
     if (frameSize != size) {
       /* disable controller */
-      SPI1_M_REG_VAL(SPIEN) &= SPI_DISABLE;
+      SPI_M_REG_VAL(spi_addr, SPIEN) &= SPI_DISABLE;
       /* Configure new frame size */
       frameSize = size;
-      SPI1_M_REG_VAL(CTRL0) = (SPI1_M_REG_VAL(CTRL0) & ~(SPI_FSIZE_MASK)) | ((frameSize << SPI_FSIZE_SHIFT) & SPI_FSIZE_MASK);
+      SPI_M_REG_VAL(spi_addr, CTRL0) = (SPI_M_REG_VAL(spi_addr, CTRL0)
+          & ~(SPI_FSIZE_MASK)) | ((frameSize << SPI_FSIZE_SHIFT)
+          & SPI_FSIZE_MASK);
       /* Enable controller */
-      SPI1_M_REG_VAL(SPIEN) |= SPI_ENABLE;
+      SPI_M_REG_VAL(spi_addr, SPIEN) |= SPI_ENABLE;
     }
   }
 
   inline uint32_t singleTransfer(uint32_t data) {
       /* Write to TX FIFO */
-      SPI1_M_REG_VAL(DR) = data;
+      SPI_M_REG_VAL(spi_addr, DR) = data;
       /* Wait for transfer to complete */
-      while (SPI1_M_REG_VAL(SR) & SPI_STATUS_BUSY) ;
-      while (SPI1_M_REG_VAL(RXFL) == 0) ;
+      while (SPI_M_REG_VAL(spi_addr, SR) & SPI_STATUS_BUSY) ;
+      while (SPI_M_REG_VAL(spi_addr, RXFL) == 0) ;
       /* Read from RX FIFO */
-      return SPI1_M_REG_VAL(DR);
+      return SPI_M_REG_VAL(spi_addr, DR);
   }
+
+    void init();
+	void set_dev(int dev);
+	int spidevs[NUM_SPIDEVS][4] =
+    {
+        /* base addr.                     Clk. enable value    Clk. disable value    SS GPIO */
+        {(int)SOC_MST_SPI0_REGISTER_BASE, ENABLE_SPI_MASTER_0, DISABLE_SPI_MASTER_0, SPI0_CS},
+        {(int)SOC_MST_SPI1_REGISTER_BASE, ENABLE_SPI_MASTER_1, DISABLE_SPI_MASTER_1, SPI1_CS}
+    };
 };
 
 extern SPIClass SPI;
+extern SPIClass SPI1;
 
 #endif

@@ -83,6 +83,7 @@ PinDescription g_APinDescription[]=
     {  6,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR, 14,     GPIO_MUX_MODE, INVALID, INVALID,              14, INPUT_MODE }, // Arduino IO18
     {  1,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR,  9,     GPIO_MUX_MODE, INVALID, INVALID,               9, INPUT_MODE }, // Arduino IO19
 	{  0,   SS_GPIO_8B0,  SS_GPIO,   SS_GPIO_8B0_BASE_ADDR,  8,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO20
+    {  24,  SOC_GPIO_32, SOC_GPIO,   SOC_GPIO_BASE_ADDR,    58,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO21
 
 } ;
 
