@@ -80,6 +80,12 @@ public:
             | ((dataMode << SPI_MODE_SHIFT) & SPI_MODE_MASK);
     /* Set SPI Clock Divider */
     baudr = (SPI_BASE_CLOCK / clock) & SPI_CLOCK_MASK;
+
+    /* clock value passed is > than max supported;
+     * set baudr to 2 for max. speed */
+    if (baudr == 0)
+        baudr = 2;
+
     /* Only MSBFIRST supported in hardware, need to swizzle the bits if
      * LSBFIRST selected */
     lsbFirst = (bitOrder == LSBFIRST) ? true : false;
