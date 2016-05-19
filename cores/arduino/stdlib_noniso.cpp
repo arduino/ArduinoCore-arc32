@@ -147,7 +147,22 @@ char* ultoa( unsigned long val, char *string, int radix )
     return string;
 }
 
-char * dtostrf(double number, unsigned char width, unsigned char prec, char *s) {
+void shiftOutDigit(double *number, int count, char *s)
+{
+    double tmp = *number;
+    int digit;
+
+    while( count ) {
+      tmp *= 10.0;
+      digit = (int)tmp;
+      *s++ = '0' + digit;
+      tmp -= (double)digit;
+      count--;
+    }
+    *number = tmp;
+}
+
+char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
 
     if (isnan(number)) {
         strcpy(s, "nan");
@@ -158,62 +173,62 @@ char * dtostrf(double number, unsigned char width, unsigned char prec, char *s) 
         return s;
     }
 
-    char* out = s;
-    int exponent = 0;
-    unsigned char len, expLen;
-    double tmp;
+    char *out = s;
+    int expCnt = 0, digit, totalWidth;
+    double tmp, rounding;
+
+    // Check for left adjustment (spaces)
+    while(width < 0) {
+      *out++ = ' ';
+      width++;
+    }
+    totalWidth = (int)width;
 
     // Handle negative numbers
     if (number < 0.0) {
       *out++ = '-';
       number = -number;
+      if(totalWidth > 0) totalWidth--;
     }
 
-    // The integer portion has to be <= 8 digits.  Otherwise, the
-    // string is in exponent format.
+    // Rounding up to the precision
     tmp = number;
-    for (;;) {
+    rounding = 0.5;
+    for(int i=0; i < prec; i++)
+      rounding /= 10.0;
+    tmp += rounding;
+
+    // Shifting the number to the right
+    while( tmp >= 10.0 ) {
       tmp /= 10.0;
-      exponent++;
-      if (tmp < 10.0)  break;
-    }
-    if (exponent > 8)
-      number = tmp;
-    else
-      exponent = 0;
-
-    // Round correctly so that print(1.999, 2) prints as "2.00"
-    double rounding = 0.5;
-    for (uint8_t i = 0; i < prec; ++i)
-        rounding /= 10.0;
-
-    number += rounding;
-
-    // Extract the integer part of the number and print it
-    unsigned long int_part = (unsigned long)number;
-    double remainder = number - (double)int_part;
-    out += sprintf(out, "%ld", int_part);
-
-    // Don't go beyond the given width of the string
-    len = (unsigned char)(out - s);
-    expLen = (exponent == 0) ? 0 : 5;  // 5 places for exponent expression
-    if ((prec + len + expLen) > width)
-      prec = width - len - expLen;
-
-    // Print the decimal point, but only if there are digits beyond
-    if (prec > 0) {
-        *out++ = '.';
-	// Copy character by character to 'out' string
-        for (unsigned char decShift = prec; decShift > 0; decShift--) {
-            remainder *= 10.0;
-            out += sprintf(out, "%d", (int)remainder);
-            remainder -= (double)(int)remainder;
-        }
+      expCnt++;
     }
 
-    // Print the exponent if exists
-    if (exponent)
-      sprintf(out, "e+%.3d", exponent);
+    // 1st, print the single digit left after shifting
+    digit = (int)tmp;
+    *out++ = '0' + digit;
+    tmp -= (double)digit;
+    if(totalWidth > 0) totalWidth--;
 
+    // Then the integer portion
+    shiftOutDigit(&tmp, expCnt, out);
+    out += expCnt;
+    if(totalWidth > 0) totalWidth -= expCnt;
+
+    // Then the decimal portion
+    if( prec ) {
+      *out++ = '.';
+      shiftOutDigit(&tmp, prec, out);
+      if(totalWidth > 0) totalWidth -= (prec + 1);
+      out += prec;
+    }
+
+    // Right adjustment
+    while(totalWidth > 0) {
+      *out++ = ' ';
+      totalWidth--;
+    }
+
+    *out = 0;  // End of string
     return s;
 }
