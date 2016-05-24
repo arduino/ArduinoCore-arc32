@@ -188,6 +188,7 @@ DRIVER_API_RC ss_i2c_set_config(I2C_CONTROLLER controller_id, i2c_cfg_data_t *co
     /* do some check here to see if this controller is accessible form this core */
 
     dev = &i2c_master_devs[SS_CTRL_ID(controller_id)];
+    dev->restart = false;
     i2c_handles[SS_CTRL_ID(controller_id)] = dev;
 
     /* enable clock to controller to allow reg writes */
@@ -346,6 +347,12 @@ DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write,
         return DRV_RC_FAIL;
     }
 
+    if ((data_read_len == 0) && (data_write_len == 0))
+    {
+        //Workaround: we know that we are doing I2C bus scan.
+        data_read_len = 1; 
+        dev->restart = true;
+    }
     /* Protect registers using lock and unlock of interruptions */
     saved = interrupt_lock();
 

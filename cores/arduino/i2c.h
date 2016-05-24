@@ -28,8 +28,14 @@ extern "C"{
 #endif
 
 #define I2C_OK       0
-#define I2C_TIMEOUT -1
-#define I2C_ERROR   -2
+#define I2C_TIMEOUT -10
+#define I2C_ERROR   -11
+#define I2C_ERROR_ADDRESS_NOACK (-2)
+#define I2C_ERROR_DATA_NOACK    (-3)
+#define I2C_ERROR_OTHER         (-4)
+
+#define I2C_ABRT_7B_ADDR_NOACK  (1 << 0)
+#define I2C_ABRT_TXDATA_NOACK   (1 << 3)
 
 int i2c_openadapter(void);
 void i2c_setslave(uint8_t addr);
