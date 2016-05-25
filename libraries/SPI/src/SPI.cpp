@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -152,7 +152,7 @@ void SPIClass::notUsingInterrupt(uint8_t interruptNumber) {
 }
 
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

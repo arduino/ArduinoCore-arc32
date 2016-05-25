@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -240,5 +240,5 @@ bool Servo::attached()
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
- Copyright (c) 2015 Intel Corporation. Implementation of Servo library for Arduino 101
+ Copyright (c) 2016 Intel Corporation. Implementation of Servo library for Arduino 101
  */

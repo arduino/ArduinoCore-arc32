@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -123,7 +123,7 @@ void loop() {
 /*
   ===============================================
   Example sketch for CurieIMU library for Intel(R) Curie(TM) devices.
-  Copyright (c) 2015 Intel Corporation.  All rights reserved.
+  Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
   Based on I2C device class (I2Cdev) demonstration Arduino sketch for MPU6050
   class by Jeff Rowberg: https://github.com/jrowberg/i2cdevlib

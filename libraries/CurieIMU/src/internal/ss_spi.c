@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -10,6 +10,7 @@
 #include "common_spi.h"
 #include "soc_gpio.h"
 #include "portable.h"
+
 #include "ss_spi.h"
 
 #ifdef __cplusplus
@@ -128,7 +129,7 @@ int ss_spi_xfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
 
 /*******************************************************************************
  *
- * Modifications Copyright (c) 2015, Intel Corporation. All rights reserved.
+ * Modifications Copyright (c) 2016, Intel Corporation. All rights reserved.
  *
  ******************************************************************************/
 

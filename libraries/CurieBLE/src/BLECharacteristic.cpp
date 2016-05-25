@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -23,7 +23,7 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
     _presentation_format(NULL)
 {
     _value_size = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
-    _value = (unsigned char*)malloc(_value_length);
+    _value = (unsigned char*)malloc(_value_size);
 
     memset(_event_handlers, 0, sizeof(_event_handlers));
 }
@@ -251,7 +251,7 @@ BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
 }
 
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
 #include "BLEPeripheral.h"
+
 #include "BLECharacteristic.h"
 #include "BLEDescriptor.h"
 #include "BLEService.h"
 #include "BLEUuid.h"
+
 
 #define BLE_DISCONNECT_REASON_LOCAL_TERMINATION 0x16
 
@@ -461,7 +463,7 @@ BLEPeripheral::handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts
 }
 
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

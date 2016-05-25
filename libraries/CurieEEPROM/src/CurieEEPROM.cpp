@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
-
 #include "CurieEEPROM.h"
 
 CurieEEPROM EEPROM;

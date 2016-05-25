@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -182,5 +182,5 @@ TwoWire Wire = TwoWire();
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Modifications to support Intel Arduino 101
- * Copyright (C) 2015 Intel Corporation
+ * Copyright (C) 2016 Intel Corporation
  */

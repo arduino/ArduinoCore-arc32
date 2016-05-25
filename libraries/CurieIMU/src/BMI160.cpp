@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -2361,7 +2361,7 @@ void BMI160Class::setRegister(uint8_t reg, uint8_t data) {
 /*
 ===============================================
 BMI160 accelerometer/gyroscope library for Intel(R) Curie(TM) devices.
-Copyright (c) 2015 Intel Corporation.  All rights reserved.
+Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
 Based on MPU6050 Arduino library provided by Jeff Rowberg as part of his
 excellent I2Cdev device library: https://github.com/jrowberg/i2cdevlib

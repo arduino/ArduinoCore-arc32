@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
 #include <time.h>
+
 #include "CurieTime.h"
 
 #define YEAR_OFFSET     1900
@@ -131,7 +132,7 @@ void setTime(int hour, int minute, int second, int day, int month, int year)
 /*
  * CurieTime.cpp - Time library for Arduino101
   
-  Copyright (c) 2015 Intel Corporation.  All rights reserved
+  Copyright (c) 2016 Intel Corporation.  All rights reserved
   This library is intended to be uses with Arduino Time.h library functions
 
   The library is free software; you can redistribute it and/or

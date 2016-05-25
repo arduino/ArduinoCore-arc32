@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
 
@@ -860,7 +860,7 @@ BleStatus ble_client_dtm_cmd(const struct ble_test_cmd *test_cmd,
 #endif
 
 /*
- * Copyright (c) 2015, Intel Corporation. All rights reserved.
+ * Copyright (c) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
