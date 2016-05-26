@@ -133,16 +133,24 @@ String::String(unsigned long long value, unsigned char base)
 
 String::String(float value, unsigned char decimalPlaces)
 {
+	int len = digitsBe4Decimal(value);
 	init();
-	char buf[33];
-	*this = dtostrf(value, (33 - 1), decimalPlaces, buf);
+
+	if(decimalPlaces)  len = 1 + ((int)decimalPlaces & 0x0FF);
+
+	char buf[len+1];
+	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
 String::String(double value, unsigned char decimalPlaces)
 {
+	int len = digitsBe4Decimal(value);
 	init();
-	char buf[33];
-	*this = dtostrf(value, (33 - 1), decimalPlaces, buf);
+
+	if(decimalPlaces)  len = 1 + ((int)decimalPlaces & 0x0FF);
+
+	char buf[len+1];
+	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
 String::~String()
@@ -362,15 +370,17 @@ unsigned char String::concat(unsigned long long num)
 
 unsigned char String::concat(float num)
 {
-	char buf[20];
-	char* string = dtostrf(num, (20 - 1), 2, buf);
+        int len = digitsBe4Decimal(num);
+	char buf[len+1+2+1];  // The integer portion, 1 decimal point, 2 precision and 1 null char
+	char* string = dtostrf(num, 0, 2, buf);
 	return concat(string, strlen(string));
 }
 
 unsigned char String::concat(double num)
 {
-	char buf[20];
-	char* string = dtostrf(num, (20 - 1), 2, buf);
+        int len = digitsBe4Decimal(num);
+	char buf[len+1+2+1];  // The integer portion, 1 decimal point, 2 precision and 1 null char
+	char* string = dtostrf(num, 0, 2, buf);
 	return concat(string, strlen(string));
 }
 
@@ -797,3 +807,27 @@ float String::toFloat(void) const
         if (buffer) return float(atof(buffer));
         return 0;
 }
+
+/*********************************************/
+/*  utilities functions                      */
+/*********************************************/
+
+int String::digitsBe4Decimal(double number)
+{
+  int cnt = 0;
+  long tmp = (long)number;  // Drop the decimal here
+
+  // Count -ve sign as one digit
+  if(tmp < 0) {
+    cnt++;
+    tmp = -tmp;
+  }
+
+  // Count the number of digit
+  while(tmp) {
+    tmp /= 10;
+    cnt++;
+  }
+  return cnt;
+}
+

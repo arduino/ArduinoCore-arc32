@@ -217,6 +217,10 @@ protected:
        #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
 	void move(String &rhs);
 	#endif
+
+	// utilities functions.
+	// Number of digits (including sign) in the integer portion of a float/double
+	int digitsBe4Decimal(double number);
 };
 
 class StringSumHelper : public String
