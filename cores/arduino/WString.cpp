@@ -502,7 +502,13 @@ int String::compareTo(const String &s) const
 		if (buffer && len > 0) return *(unsigned char *)buffer;
 		return 0;
 	}
-	return strcmp(buffer, s.buffer);
+	const char *p1 = buffer;
+	const char *p2 = s.buffer;
+
+	while (*p1 == *p2++)
+		if ('\0' == *p1++)
+			return 0;
+	return (*(const char *)p1 - *(const char *)(p2 - 1));
 }
 
 unsigned char String::equals(const String &s2) const
