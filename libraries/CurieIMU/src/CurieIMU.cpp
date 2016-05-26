@@ -487,7 +487,7 @@ float CurieIMUClass::getDetectionDuration(int feature)
             return getTapShockDuration();
 
         case CURIE_IMU_ZERO_MOTION:
-            return getZeroMotionDetectionThreshold();
+            return getZeroMotionDetectionDuration();
 
         case CURIE_IMU_TAP_QUIET:
             return getTapQuietDuration();
