@@ -286,10 +286,23 @@ size_t Print::printLongLong(unsigned long long n, uint8_t base) {
 }
 
 
-size_t Print::printFloat(double number, uint8_t digits)
+size_t Print::printFloat(double number, uint16_t decimalPlaces)
 {
-  char str[50];
-
-  dtostrf(number, 0, digits, str);
+    if(decimalPlaces>16)
+        decimalPlaces = 16;
+    int digits = 0;
+    int intValue = (int)number;
+    while(intValue !=0)
+    {
+        intValue /= 10;
+        digits++;
+    }
+    digits += decimalPlaces;
+    if(number < 0)
+        digits++;
+    char str[digits];
+  
+  
+  dtostrf(number, 0, digits-1, str);
   return(print(str));
 }
