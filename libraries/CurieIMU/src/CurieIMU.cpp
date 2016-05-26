@@ -432,8 +432,6 @@ float CurieIMUClass::getDetectionThreshold(int feature)
             return getTapDetectionThreshold();
 
         case CURIE_IMU_STEP:
-        case CURIE_IMU_TAP_SHOCK:
-        case CURIE_IMU_TAP_QUIET:
         case CURIE_IMU_DOUBLE_TAP:
         case CURIE_IMU_FIFO_FULL:
         case CURIE_IMU_DATA_READY:
@@ -466,8 +464,6 @@ void CurieIMUClass::setDetectionThreshold(int feature, float threshold)
             break;
 
         case CURIE_IMU_STEP:
-        case CURIE_IMU_TAP_SHOCK:
-        case CURIE_IMU_TAP_QUIET:
         case CURIE_IMU_DOUBLE_TAP:
         case CURIE_IMU_FIFO_FULL:
         case CURIE_IMU_DATA_READY:
@@ -795,7 +791,7 @@ void CurieIMUClass::setDetectionDuration(int feature, float value)
             break;
 
         case CURIE_IMU_ZERO_MOTION:
-            setZeroMotionDetectionThreshold(value);
+            setZeroMotionDetectionDuration(value);
             break;
 
         case CURIE_IMU_TAP_QUIET:
@@ -1465,8 +1461,6 @@ void CurieIMUClass::enableInterrupt(int feature, bool enabled)
             setIntDataReadyEnabled(enabled);
             break;
 
-        case CURIE_IMU_TAP_QUIET:
-        case CURIE_IMU_TAP_SHOCK:
         default:
             break;
     }
@@ -1502,8 +1496,6 @@ bool CurieIMUClass::interruptsEnabled(int feature)
         case CURIE_IMU_DATA_READY:
             return getIntDataReadyEnabled();
 
-        case CURIE_IMU_TAP_QUIET:
-        case CURIE_IMU_TAP_SHOCK:
         default:
             return false;
     }
@@ -1539,8 +1531,6 @@ bool CurieIMUClass::getInterruptStatus(int feature)
         case CURIE_IMU_DATA_READY:
             return getIntDataReadyStatus();
 
-        case CURIE_IMU_TAP_QUIET:
-        case CURIE_IMU_TAP_SHOCK:
         default:
             return false;
     }
