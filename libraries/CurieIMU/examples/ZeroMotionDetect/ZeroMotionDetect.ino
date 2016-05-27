@@ -23,37 +23,51 @@
 */
 #include "CurieIMU.h"
 
-boolean blinkState = false;          // state of the LED
-unsigned long loopTime = 0;          // get the time since program started
-unsigned long interruptsTime = 0;    // get the time when zero motion event is detected
+boolean ledState = false;          // state of the LED
 void setup() {
   Serial.begin(9600);
 
   /* Initialise the IMU */
-  blinkState = CurieIMU.begin();
+  CurieIMU.begin();
   CurieIMU.attachInterrupt(eventCallback);
 
   /* Enable Zero Motion Detection */
-  CurieIMU.setDetectionThreshold(CURIE_IMU_ZERO_MOTION, 1500); // 1.5g=1500mg
-  CurieIMU.setDetectionDuration(CURIE_IMU_ZERO_MOTION, 25);    // 25s
+  CurieIMU.setDetectionThreshold(CURIE_IMU_ZERO_MOTION, 50);  // 50mg
+  CurieIMU.setDetectionDuration(CURIE_IMU_ZERO_MOTION, 2);    // 2s
   CurieIMU.interrupts(CURIE_IMU_ZERO_MOTION);
+
+  /* Enable Motion Detection */
+  CurieIMU.setDetectionThreshold(CURIE_IMU_MOTION, 20);      // 20mg
+  CurieIMU.setDetectionDuration(CURIE_IMU_MOTION, 10);       // trigger times of consecutive slope data points
+  CurieIMU.interrupts(CURIE_IMU_MOTION);
 
   Serial.println("IMU initialisation complete, waiting for events...");
 }
 
 void loop() {
-  //if zero motion is detected in 1500ms, LED will be turned up
-  loopTime = millis();
-  if(abs(loopTime -interruptsTime) < 1500)     
-    blinkState = true;
-  else
-    blinkState = false;
-  digitalWrite(13, blinkState);
+  // if zero motion is detected, LED will be turned up. 
+  digitalWrite(13, ledState);
 }
 
 static void eventCallback(void){
   if (CurieIMU.getInterruptStatus(CURIE_IMU_ZERO_MOTION)) {
-    interruptsTime = millis(); 
+    ledState = true; 
     Serial.println("zero motion detected...");
   }  
+  if (CurieIMU.getInterruptStatus(CURIE_IMU_MOTION)) {
+    ledState = false;
+    if (CurieIMU.motionDetected(X_AXIS, POSITIVE))
+      Serial.println("Negative motion detected on X-axis");
+    if (CurieIMU.motionDetected(X_AXIS, NEGATIVE))
+      Serial.println("Positive motion detected on X-axis");
+    if (CurieIMU.motionDetected(Y_AXIS, POSITIVE))
+      Serial.println("Negative motion detected on Y-axis");
+    if (CurieIMU.motionDetected(Y_AXIS, NEGATIVE))
+      Serial.println("Positive motion detected on Y-axis");
+    if (CurieIMU.motionDetected(Z_AXIS, POSITIVE))
+      Serial.println("Negative motion detected on Z-axis");
+    if (CurieIMU.motionDetected(Z_AXIS, NEGATIVE))
+      Serial.println("Positive motion detected on Z-axis");
+  }  
 }
+

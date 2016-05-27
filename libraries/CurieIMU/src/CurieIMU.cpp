@@ -790,7 +790,7 @@ void CurieIMUClass::setDetectionDuration(int feature, float value)
             break;
 
         case CURIE_IMU_ZERO_MOTION:
-            setZeroMotionDetectionThreshold(value);
+            setZeroMotionDetectionDuration(value);
             break;
 
         case CURIE_IMU_TAP_QUIET:
