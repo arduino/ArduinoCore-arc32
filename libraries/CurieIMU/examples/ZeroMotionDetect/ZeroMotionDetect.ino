@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015 Intel Corporation.  All rights reserved.
+   Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 boolean ledState = false;          // state of the LED
 void setup() {
   Serial.begin(9600);
+  while(!Serial);
 
   /* Initialise the IMU */
   CurieIMU.begin();
