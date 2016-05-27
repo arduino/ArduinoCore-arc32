@@ -31,7 +31,7 @@ unsigned long interruptsTime = 0;    // get the time when free fall event is det
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
+  while(!Serial);   // wait for the serial port to open
 
   /* Initialise the IMU */
   CurieIMU.begin();
