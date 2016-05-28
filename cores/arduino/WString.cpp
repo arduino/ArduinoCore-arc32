@@ -477,7 +477,7 @@ StringSumHelper & operator + (const StringSumHelper &lhs, double num)
 StringSumHelper & operator + (const StringSumHelper &lhs, const __FlashStringHelper *rhs)
 {
 	StringSumHelper &a = const_cast<StringSumHelper&>(lhs);
-	if (!a.concat(rhs))	a.invalidate();
+	if (!a.concat(rhs)) a.invalidate();
 	return a;
 }
 
