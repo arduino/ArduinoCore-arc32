@@ -136,7 +136,7 @@ String::String(float value, unsigned char decimalPlaces)
 	int len = digitsBe4Decimal(value);
 	init();
 
-	if(decimalPlaces)  len = 1 + ((int)decimalPlaces & 0x0FF);
+	if(decimalPlaces)  len += 1 + ((int)decimalPlaces & 0x0FF);
 
 	char buf[len+1];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
@@ -147,7 +147,7 @@ String::String(double value, unsigned char decimalPlaces)
 	int len = digitsBe4Decimal(value);
 	init();
 
-	if(decimalPlaces)  len = 1 + ((int)decimalPlaces & 0x0FF);
+	if(decimalPlaces)  len += 1 + ((int)decimalPlaces & 0x0FF);
 
 	char buf[len+1];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
