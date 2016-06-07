@@ -133,23 +133,23 @@ String::String(unsigned long long value, unsigned char base)
 
 String::String(float value, unsigned char decimalPlaces)
 {
-	int len = digitsBe4Decimal(value);
+	int totalSize = digitsBe4Decimal(value);
 	init();
 
-	if(decimalPlaces)  len += 1 + ((int)decimalPlaces & 0x0FF);
+	if(decimalPlaces)  totalSize += 1 + ((int)decimalPlaces & 0x0FF);
 
-	char buf[len+1];
+	char buf[totalSize+1];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
 String::String(double value, unsigned char decimalPlaces)
 {
-	int len = digitsBe4Decimal(value);
+	int totalSize = digitsBe4Decimal(value);
 	init();
 
-	if(decimalPlaces)  len += 1 + ((int)decimalPlaces & 0x0FF);
+	if(decimalPlaces)  totalSize += 1 + ((int)decimalPlaces & 0x0FF);
 
-	char buf[len+1];
+	char buf[totalSize+1];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
@@ -814,18 +814,17 @@ float String::toFloat(void) const
 
 int String::digitsBe4Decimal(double number)
 {
-  int cnt = 0;
-  long tmp = (long)number;  // Drop the decimal here
+  int cnt = 1;  // Always has one digit
 
   // Count -ve sign as one digit
-  if(tmp < 0) {
+  if(number < 0.0) {
     cnt++;
-    tmp = -tmp;
+    number = -number;
   }
 
-  // Count the number of digit
-  while(tmp) {
-    tmp /= 10;
+  // Count the number of digits beyond the 1st, basically, the exponent.
+  while(number >= 10.0) {
+    number /= 10;
     cnt++;
   }
   return cnt;
