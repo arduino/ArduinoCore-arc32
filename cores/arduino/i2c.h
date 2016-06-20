@@ -23,25 +23,36 @@
 #define i2c_h
 
 #include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
-#define I2C_OK       0
+#define I2C_OK 0
 #define I2C_TIMEOUT -10
-#define I2C_ERROR   -11
+#define I2C_ERROR -20
 #define I2C_ERROR_ADDRESS_NOACK (-2)
-#define I2C_ERROR_DATA_NOACK    (-3)
-#define I2C_ERROR_OTHER         (-4)
+#define I2C_ERROR_DATA_NOACK (-3)
+#define I2C_ERROR_OTHER (-4)
 
-#define I2C_ABRT_7B_ADDR_NOACK  (1 << 0)
-#define I2C_ABRT_TXDATA_NOACK   (1 << 3)
+#define I2C_ABRT_7B_ADDR_NOACK (1 << 0)
+#define I2C_ABRT_TXDATA_NOACK (1 << 3)
 
 int i2c_openadapter(void);
 int i2c_openadapter_speed(int);
 void i2c_setslave(uint8_t addr);
 int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop);
 int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
+
+int soc_i2c_openadapter(uint8_t address);
+void soc_i2c_setslave(uint8_t addr);
+int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop);
+int soc_i2c_master_readbytes(uint8_t *buf, int length, bool no_stop);
+void soc_i2c_slave_set_rx_user_callback(void (*onReceiveCallback)(int));
+void soc_i2c_slave_set_tx_user_callback(void (*onRequestCallback)(void));
+void soc_i2c_slave_set_rx_user_buffer(uint8_t *buffer, uint8_t length);
+void soc_i2c_slave_set_tx_user_buffer(uint8_t *buffer, uint8_t length);
 
 #ifdef __cplusplus
 }
