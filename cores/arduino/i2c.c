@@ -49,7 +49,7 @@ static void ss_i2c_err(uint32_t dev_id)
 }
 
 static int wait_rx_or_err(bool no_stop){
-	uint64_t timeout = TIMEOUT_MS;
+	uint64_t timeout = TIMEOUT_MS * 20;
 	while(timeout--) {
 		if (i2c_err_detect) {
 			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
@@ -70,7 +70,7 @@ static int wait_rx_or_err(bool no_stop){
 				return I2C_OK;
 			}
 		}
-		delay(1);
+		delayMicroseconds(50);
 	}
 	if (!no_stop)
 		return I2C_TIMEOUT;
@@ -79,7 +79,7 @@ static int wait_rx_or_err(bool no_stop){
 }
 
 static int wait_tx_or_err(bool no_stop){
-	uint64_t timeout = TIMEOUT_MS;
+	uint64_t timeout = TIMEOUT_MS * 20;
 	while(timeout--) {
 		if (i2c_err_detect) {
 			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
@@ -100,7 +100,7 @@ static int wait_tx_or_err(bool no_stop){
 			return I2C_OK;
 			}
 		}
-		delay(1);
+		delayMicroseconds(50);
 	}
 	if (!no_stop)
 		return I2C_TIMEOUT;
@@ -109,7 +109,7 @@ static int wait_tx_or_err(bool no_stop){
 }
 
 static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
-	uint64_t timeout = TIMEOUT_MS;
+	uint64_t timeout = TIMEOUT_MS * 20;
 	int ret = 0;
 	while(timeout--) {
 		ret = ss_i2c_status(controller_id, no_stop);
@@ -117,7 +117,7 @@ static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
 			return I2C_OK;
 		}
 		if (ret == I2C_BUSY) {
-			delay(1);
+			delayMicroseconds(50);
 		}
 	}
 	return I2C_TIMEOUT - ret;
