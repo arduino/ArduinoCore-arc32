@@ -39,6 +39,8 @@ char* ultoa (unsigned long val, char *s, int radix);
  
 char* dtostrf (double val, signed char width, unsigned char prec, char *s);
 
+int digitsBe4Decimal(double number);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

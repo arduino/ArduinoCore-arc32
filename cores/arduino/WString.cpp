@@ -813,26 +813,3 @@ float String::toFloat(void) const
         if (buffer) return float(atof(buffer));
         return 0;
 }
-
-/*********************************************/
-/*  utilities functions                      */
-/*********************************************/
-
-int String::digitsBe4Decimal(double number)
-{
-  int cnt = 1;  // Always has one digit
-
-  // Count -ve sign as one digit
-  if(number < 0.0) {
-    cnt++;
-    number = -number;
-  }
-
-  // Count the number of digits beyond the 1st, basically, the exponent.
-  while(number >= 10.0) {
-    number /= 10;
-    cnt++;
-  }
-  return cnt;
-}
-
