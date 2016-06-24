@@ -41,6 +41,11 @@ void TwoWire::begin(void)
 	init_status = i2c_openadapter();
 }
 
+void TwoWire::begin(int i2c_speed)
+{
+	init_status = i2c_openadapter_speed(i2c_speed);
+}
+
 uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop)
 {
 	int ret;
