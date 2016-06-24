@@ -24,6 +24,8 @@
 #include "math.h"
 #include "inttypes.h"
 
+#define ASCII_ZERO  0x30
+
 int atoi(const char* s) {
     return (int) atol(s);
 }
@@ -162,7 +164,31 @@ void shiftOutDigit(double *number, int count, char *s)
     *number = tmp;
 }
 
-char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
+int digitsBe4Decimal(double number)
+{
+  int cnt = 1;  // Always has one digit
+
+  // Count -ve sign as one digit
+  if(number < 0.0) {
+    cnt++;
+    number = -number;
+  }
+
+  // Count the number of digits beyond the 1st, basically, the exponent.
+  while(number >= 10.0) {
+    number /= 10;
+    cnt++;
+  }
+  return cnt;
+}
+
+char *dtostrf(double number, signed char width, unsigned char prec, char *s)
+{
+    char *out;
+    unsigned long long integer;
+    double fraction, rounding;
+    int digit, before, i;
+    int delta;
 
     if (isnan(number)) {
         strcpy(s, "nan");
@@ -173,62 +199,59 @@ char * dtostrf(double number, signed char width, unsigned char prec, char *s) {
         return s;
     }
 
-    char *out = s;
-    int expCnt = 0, digit, totalWidth;
-    double tmp, rounding;
+    out = s;
+    before = digitsBe4Decimal(number);
 
-    // Check for left adjustment (spaces)
-    while(width < 0) {
-      *out++ = ' ';
-      width++;
+    // check if padding is required
+    if (width < 0) {
+        delta = (-width) - (before + prec + 1);
+        for (i = 0; i < delta; ++i) *out++ = ' ';
+        width = 0;
     }
-    totalWidth = (int)width;
 
     // Handle negative numbers
     if (number < 0.0) {
-      *out++ = '-';
+      *out = '-';
       number = -number;
-      if(totalWidth > 0) totalWidth--;
     }
 
-    // Rounding up to the precision
-    tmp = number;
+    // seperate integral and fractional parts
+    integer = (unsigned long long) number;
+    fraction = (double) (number - integer);
+
+    // generate chars for each digit of the integral part
+    i = before;
+    while (integer > 10) {
+        digit = integer % 10;
+        out[(i--) - 1] = ASCII_ZERO + digit;
+        integer /= 10;
+    }
+
+    out[i - 1] = ASCII_ZERO + integer;
+    out += before;
+    if (!prec) goto end;
+
+    // rounding up to the precision
     rounding = 0.5;
-    for(int i=0; i < prec; i++)
-      rounding /= 10.0;
-    tmp += rounding;
+    for (i = 0; i < prec; ++i)
+        rounding /= 10.0;
+    fraction += rounding;
 
-    // Shifting the number to the right
-    while( tmp >= 10.0 ) {
-      tmp /= 10.0;
-      expCnt++;
+    // generate chars for each digit of the fractional part
+    *out++ = '.';
+    for (i = 0; i < prec; ++i) {
+        fraction *= 10.0;
+        digit = ((unsigned long long) fraction) % 10;
+        *out++ = (char) (ASCII_ZERO + digit);
     }
 
-    // 1st, print the single digit left after shifting
-    digit = (int)tmp;
-    *out++ = '0' + digit;
-    tmp -= (double)digit;
-    if(totalWidth > 0) totalWidth--;
-
-    // Then the integer portion
-    shiftOutDigit(&tmp, expCnt, out);
-    out += expCnt;
-    if(totalWidth > 0) totalWidth -= expCnt;
-
-    // Then the decimal portion
-    if( prec ) {
-      *out++ = '.';
-      shiftOutDigit(&tmp, prec, out);
-      if(totalWidth > 0) totalWidth -= (prec + 1);
-      out += prec;
+end:
+    // check if padding is required
+    if (width > 0) {
+        delta = width - (before + prec + 1);
+        for (i = 0; i < delta; ++i) *out++ = ' ';
     }
 
-    // Right adjustment
-    while(totalWidth > 0) {
-      *out++ = ' ';
-      totalWidth--;
-    }
-
-    *out = 0;  // End of string
+    *out = 0;
     return s;
 }
