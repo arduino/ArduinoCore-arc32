@@ -1,9 +1,41 @@
-/* Written by Oren Levy (auxren.com) based off some lackluster
-   documentation released by Intel.
+/* Written by Oren Levy (auxren.com; @auxren) while competing on
+   America's Greatest Makers with help from Intel.
    MIDI over BLE info from: https://developer.apple.com/bluetooth/Apple-Bluetooth-Low-Energy-MIDI-Specification.pdf
-  The MIT License (MIT)
 
-  Copyright (c) 2016 auxren
+  This sketch plays a random MIDI note (between 0 and 127) every 400ms.
+  For a 'smarter' sketch, check out my Airpeggiator example.
+  The Airpeggiator uses the Curie's IMU to allow you to play
+  an imaginary harp in the air. I included a quantizer so you can
+  select a key and scale so you can jam along with friends.
+  https://github.com/auxren/MIDIBLE101/tree/master/Airpeggiator
+
+  I have only tested MIDI over BLE using Apple devices. Android doesn't
+  support native MIDI over BLE yet and I haven't had much of a chance
+  to test with Windows machines.
+
+  To connect on a Mac, search for Audio MIDI Setup.
+  Click 'Window' on the top menu and choose 'Show MIDI Studio'.
+  Double click 'Bluetooth' and the bluetooth configuration window
+  will pop up. After loading the MIDIBLE sketch on your Arduino 101
+  you should see it advertising as Auxren. Click connect and the device
+  will be available as MIDI device in all your audio software like Garageband.
+
+  There are a few ways to connect using an iOS device. One way to to open
+  up Garageband. Click on the wrench icon in the upper right and choose 'Advanced'
+  Towards the bottom of advanced, you will see 'Bluetooth MIDI devices'.
+  You should see your Arduino 101 advertising in the list. Connect to
+  your device and it should be available to all other iOS MIDI apps you have.
+
+  To send data, you use the following line: char.setValue(d, n); where char is
+  the BLE characteristic (in our case, midiCha), d is the data, and n is the
+  number of bytes of data.
+  The first 2 bytes of data are the header byte and timestamp byte. If you want,
+  you can figure out the timestamping scheme, but I just left it with a generic value
+  since I haven't worked on anything timeing sensitive yet (like a sequencer).
+  The third, fourth, and fifth bytes are standard MIDI bytes. You can send more bytes
+  if you would like as long as it is complies to the standard MIDI spec.
+
+  The MIT License (MIT)
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
