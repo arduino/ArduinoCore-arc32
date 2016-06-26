@@ -107,22 +107,20 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
 {
 	int err;
 		// transmit buffer (blocking)
-		if (txBufferLength >= 1) {
-			err = i2c_writebytes(txBuffer, txBufferLength, !sendStop);
-		} else {
-            //Workaround: I2C bus scan is currently implemented by sending an extra byte of value 0
-            txBuffer[0] = 0;
-            err = i2c_writebytes(txBuffer, 1, !sendStop);
-		}
-		// empty buffer
-		txBufferLength = 0;
-		if (err < 0) {
-			return 2; // NACK on transmit of address
-			/* NOTE: This implementation currently does not distinguish
-			 * between NACK on transmit of adddress or data, or other errors
-			 */
-		}
-		return 0; // success
+	if (txBufferLength >= 1) {
+		err = i2c_writebytes(txBuffer, txBufferLength, !sendStop);
+	} else {
+		uint8_t temp = 0;
+		// Workaround: I2C bus scan is currently implemented by reading,
+		// so set the read length to 0 to inform the lower I2C driver that we are doing bus scan
+		err = i2c_readbytes(&temp, 0, 0);
+	}
+	// empty buffer
+	txBufferLength = 0;
+	if (err < 0) {
+		return -err;
+	}
+	return 0; // success
 }
 
 //	This provides backwards compatibility with the original

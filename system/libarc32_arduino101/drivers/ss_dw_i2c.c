@@ -127,6 +127,11 @@ void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
             { // last dummy byte to write
                 if(! no_stop)
                     data |= I2C_STOP_CMD;
+                if(dev->restart)
+                {
+                    data |= I2C_RESTART_CMD;
+                    dev->restart = false;
+                }
             }
          }
         REG_WRITE( I2C_DATA_CMD, data );
@@ -166,6 +171,7 @@ void i2c_mst_err_ISR_proc(i2c_info_pt dev)
     if( status & R_TX_ABRT  )
     {
         dev->status_code = status;
+        dev->cb_err_data = REG_READ( I2C_TX_ABRT_SOURCE );
         REG_WRITE( I2C_CLR_INTR, R_TX_ABRT );
         REG_WRITE( I2C_INTR_MASK, I2C_INT_DSB );
         dev->state = I2C_STATE_READY;
@@ -177,6 +183,7 @@ void i2c_mst_err_ISR_proc(i2c_info_pt dev)
     if( (status & R_TX_OVER)||(status & R_RX_OVER) )
     {
         dev->status_code = status;
+        dev->cb_err_data = REG_READ( I2C_TX_ABRT_SOURCE );
         REG_WRITE( I2C_CLR_INTR, R_TX_OVER|R_RX_OVER );
         REG_WRITE( I2C_INTR_MASK, I2C_INT_DSB );
         dev->state = I2C_STATE_READY;

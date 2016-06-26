@@ -79,11 +79,6 @@
 #define BYTE_ESCAPE      0x7d
 #define BYTE_SEPARATOR    0x7c
 
-
-//SPI Pins (these are the values on the Audio board; change them if you have different ones)
-#define MOSI               7
-#define MISO              12
-#define SCK               14
 #define CSPIN             21
 
 void setup(){
@@ -91,10 +86,6 @@ void setup(){
 
   pinMode(13, OUTPUT);
   
-  //Set up SPI
-  SPI.setMOSI(MOSI);
-  SPI.setMISO(MISO);
-  SPI.setSCK(SCK);
   SerialFlash.begin(CSPIN);
 
   //We start by formatting the flash...

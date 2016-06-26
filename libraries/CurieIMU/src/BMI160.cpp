@@ -824,7 +824,10 @@ uint8_t BMI160Class::getStepDetectionMode() {
     uint8_t ret_step_conf0, ret_min_step_buf;
 
     ret_step_conf0 = reg_read(BMI160_RA_STEP_CONF_0);
-    ret_min_step_buf = reg_read(BMI160_RA_STEP_CONF_1);
+
+    /* min_step_buf is the first 3 bits of RA_STEP_CONF_1; the
+     * 4th bit is the enable bit (step_cnt_en) */
+    ret_min_step_buf = reg_read_bits(BMI160_RA_STEP_CONF_1, 0, 3);
 
     if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_NOR) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_NOR))
         return BMI160_STEP_MODE_NORMAL;

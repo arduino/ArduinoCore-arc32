@@ -28,6 +28,7 @@
 static volatile uint8_t i2c_tx_complete;
 static volatile uint8_t i2c_rx_complete;
 static volatile uint8_t i2c_err_detect;
+static volatile uint32_t i2c_err_source;
 
 static volatile uint8_t i2c_slave = 0;
 
@@ -44,13 +45,25 @@ static void ss_i2c_tx(uint32_t dev_id)
 static void ss_i2c_err(uint32_t dev_id)
 {
 	i2c_err_detect = 1;
+	i2c_err_source = dev_id;
 }
 
 static int wait_rx_or_err(bool no_stop){
 	uint64_t timeout = TIMEOUT_MS;
 	while(timeout--) {
 		if (i2c_err_detect) {
-			return I2C_ERROR;
+			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
+			{
+				return I2C_ERROR_ADDRESS_NOACK; // NACK on transmit of address
+			}
+			else if (i2c_err_source & I2C_ABRT_TXDATA_NOACK )
+			{
+				return I2C_ERROR_DATA_NOACK; // NACK on transmit of data
+			}
+			else
+			{
+				return I2C_ERROR_OTHER; // other error
+			}
 		}
 		if (!no_stop) {
 			if (i2c_rx_complete) {
@@ -69,7 +82,18 @@ static int wait_tx_or_err(bool no_stop){
 	uint64_t timeout = TIMEOUT_MS;
 	while(timeout--) {
 		if (i2c_err_detect) {
-			return I2C_ERROR;
+			if (i2c_err_source & I2C_ABRT_7B_ADDR_NOACK )
+			{
+				return I2C_ERROR_ADDRESS_NOACK; // NACK on transmit of address
+			}
+			else if (i2c_err_source & I2C_ABRT_TXDATA_NOACK )
+			{
+				return I2C_ERROR_DATA_NOACK; // NACK on transmit of data
+			}
+			else
+			{
+				return I2C_ERROR_OTHER; // other error
+			}
 		}
 		if (!no_stop) {
 			if (i2c_tx_complete) {
@@ -86,8 +110,9 @@ static int wait_tx_or_err(bool no_stop){
 
 static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
 	uint64_t timeout = TIMEOUT_MS;
+	int ret = 0;
 	while(timeout--) {
-		int ret = ss_i2c_status(controller_id, no_stop);
+		ret = ss_i2c_status(controller_id, no_stop);
 		if (ret == I2C_OK) {
 			return I2C_OK;
 		}
@@ -95,7 +120,7 @@ static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
 			delay(1);
 		}
 	}
-	return I2C_TIMEOUT;
+	return I2C_TIMEOUT - ret;
 }
 
 
@@ -122,6 +147,7 @@ int i2c_openadapter(void)
 	i2c_tx_complete = 0;
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
+	i2c_err_source = 0;
 
 	ss_i2c_set_config(I2C_SENSING_0, &i2c_cfg);
 	ss_i2c_clock_enable(I2C_SENSING_0);
@@ -142,6 +168,7 @@ int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop)
 
 	i2c_tx_complete = 0;
 	i2c_err_detect = 0;
+	i2c_err_source = 0;
 	ss_i2c_transfer(I2C_SENSING_0, bytes, length, 0, 0, i2c_slave, no_stop);
 	ret = wait_tx_or_err(no_stop);
 	if (ret)
@@ -158,6 +185,7 @@ int i2c_readbytes(uint8_t *buf, int length, bool no_stop)
 
 	i2c_rx_complete = 0;
 	i2c_err_detect = 0;
+	i2c_err_source = 0;
 	ss_i2c_transfer(I2C_SENSING_0, 0, 0, buf, length, i2c_slave, no_stop);
 	ret = wait_rx_or_err(no_stop);
 	if (ret)
