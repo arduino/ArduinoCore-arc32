@@ -1,12 +1,14 @@
 #######################################
-# Syntax Coloring Map For CurieI2S
+# Syntax Coloring Map For CurieI2S CurieI2SDMA
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 
-Curie_I2S KEYWORD1
+Curie_I2S	KEYWORD1
+
+Curie_I2SDMA	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -15,34 +17,42 @@ Curie_I2S KEYWORD1
 begin	KEYWORD2
 start	KEYWORD2
 stop	KEYWORD2
-begin   KEYWORD2
-enableRX    KEYWORD2
-enableTX    KEYWORD2
-startRX     KEYWORD2
-startTX     KEYWORD2
-stopRX      KEYWORD2
-stopTX      KEYWORD2
-setI2SMode  KEYWORD2
-setResolution   KEYWORD2
-initRX      KEYWORD2
-initTX      KEYWORD2
-end         KEYWORD2
-pushData    KEYWORD2
-fastPushData    KEYWORD2
-write   KEYWORD2
-pullData    KEYWORD2
-read        KEYWORD2
-requestdword    KEYWORD2
-available       KEYWORD2
-availableTx     KEYWORD2
-attachRxInterrupt   KEYWORD2
-detachRxInterrupt   KEYWORD2
-attachTxInterrupt   KEYWORD2
-detachTxInterrupt   KEYWORD2
+begin	KEYWORD2
+enableRX	KEYWORD2
+enableTX	KEYWORD2
+startRX	KEYWORD2
+startTX	KEYWORD2
+stopRX	KEYWORD2
+stopTX	KEYWORD2
+setI2SMode	KEYWORD2
+setResolution	KEYWORD2
+initRX	KEYWORD2
+initTX	KEYWORD2
+end	KEYWORD2
+pushData	KEYWORD2
+fastPushData	KEYWORD2
+write	KEYWORD2
+pullData	KEYWORD2
+read	KEYWORD2
+requestdword	KEYWORD2
+available	KEYWORD2
+availableTx	KEYWORD2
+attachRxInterrupt	KEYWORD2
+detachRxInterrupt	KEYWORD2
+attachTxInterrupt	KEYWORD2
+detachTxInterrupt	KEYWORD2
+attachTxEmptyInterrupt	KEYWORD2
+beginTX	KEYWORD2
+beginRX	KEYWORD2
+transTX	KEYWORD2
+transRX	KEYWORD2
+mergeData	KEYWORD2
+separateData	KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
-CurieI2S KEYWORD2
+CurieI2S	KEYWORD2
+CurieI2SDMA	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
