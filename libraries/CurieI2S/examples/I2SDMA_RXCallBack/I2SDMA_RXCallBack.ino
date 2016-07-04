@@ -25,7 +25,7 @@ uint32_t dataBuff[BUFF_SIZE+OFFSET]; // extra 2 buffer is for the padding zero
 uint8_t start_flag = 0;
 uint8_t done_flag = 0;
 uint32_t loop_count = 0;
-
+uint32_t shift_count = 0;
 void setup() 
 {
   Serial.begin(115200);
@@ -46,32 +46,45 @@ void setup()
 
 void loop() 
 {
-  int status = CurieI2SDMA.transRX(dataBuff,sizeof(dataBuff));
+  int status = CurieI2SDMA.transRX(dataBuff,sizeof(dataBuff),sizeof(uint32_t));
   if(status)
     return;
 
+  // find out first non-zero
+  shift_count = 0;
+  for(uint32_t i = 0;i <= OFFSET;++i)
+  {
+    if(dataBuff[i] == 0)
+      shift_count++;
+    else
+      break;
+  }
+  if(shift_count > OFFSET)
+    return;
+    
   if(start_flag)
   {   
-    if((dataBuff[OFFSET]>>16) != loop_count+1)
+    if((dataBuff[shift_count]>>16) != loop_count+1)
       Serial.println("+++ loop_count jump +++");        
   }
   else
   {
     start_flag = 1;
   }
-  loop_count = (dataBuff[OFFSET] >> 16);
-
+  loop_count = (dataBuff[shift_count] >> 16);
+  
+  // check data
   done_flag = 1;
   for(uint32_t i = 0 ;i < BUFF_SIZE;++i)
   {
-    //Serial.println(dataBuff[i+OFFSET],HEX);
-    if ((dataBuff[i+OFFSET] & 0XFFFF0000) == (loop_count <<16)
-      && (dataBuff[i+OFFSET] & 0XFFFF) == (i+1))
+    //Serial.println(dataBuff[i+shift_count],HEX);
+    if ((dataBuff[i+shift_count] & 0XFFFF0000) == (loop_count <<16)
+      && (dataBuff[i+shift_count] & 0XFFFF) == (i+1))
             ;
     else
     {
       done_flag = 0;
-      Serial.println(dataBuff[i+OFFSET],HEX);
+      Serial.println(dataBuff[i+shift_count],HEX);
       Serial.println("ERROR");
       break;
     }
