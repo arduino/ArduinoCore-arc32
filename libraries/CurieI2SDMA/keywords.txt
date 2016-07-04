@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For CurieI2S
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Curie_I2SDMA KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+beginTX	KEYWORD2
+beginRX	KEYWORD2
+iniTX   KEYWORD2
+iniRX   KEYWORD2
+transTX   KEYWORD2
+transRX   KEYWORD2
+stopTX    KEYWORD2
+stopRX    KEYWORD2
+mergeData      KEYWORD2
+separateData   KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+CurieI2SDMA KEYWORD2
+#######################################
+# Constants (LITERAL1)
+#######################################
