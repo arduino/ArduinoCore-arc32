@@ -38,7 +38,7 @@ void loop()
     dataBuff[i] = i + 1 + (loop_count<<16);
   }
   loop_count++;
-  int status = CurieI2SDMA.transTX(dataBuff,sizeof(dataBuff));
+  int status = CurieI2SDMA.transTX(dataBuff,sizeof(dataBuff),sizeof(uint32_t));
   if(status)
     return;
    

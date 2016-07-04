@@ -47,6 +47,8 @@ class Curie_I2SDMA
 	public:
 		Curie_I2SDMA();
 
+		void lastFrameDelay();
+    
 		//
 		int beginTX(uint16_t sample_rate,uint8_t resolution,uint8_t master,uint8_t mode);
 		//
@@ -58,16 +60,16 @@ class Curie_I2SDMA
 		int iniRX();
 
 		// starts transmission of data to the tx channel
-		int transTX(uint32_t* buf_TX,uint32_t len);
+		int transTX(void* buf_TX,uint32_t len,uint32_t len_per_data);
 
 		// starts listening to the rx channel
-		int transRX(uint32_t* buf_RX,uint32_t len);
+		int transRX(void* buf_RX,uint32_t len,uint32_t len_per_data);
 
 		// merge data of left and right channel into one buffer
-		int mergeData(uint32_t* buf_left,uint32_t* buf_right,uint32_t* buf_TX);
+		int mergeData(void* buf_left,void* buf_right,void* buf_TX,uint32_t length_TX,uint32_t len_per_data);
         
 		// seperate the data to left and right channl
-		int separateData(uint32_t* buf_left,uint32_t* buf_right,uint32_t* buf_RX);        
+		int separateData(void* buf_left,void* buf_right,void* buf_RX,uint32_t length_RX,uint32_t len_per_data);        
         	
 		//
 		void stopTX();

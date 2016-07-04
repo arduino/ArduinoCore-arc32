@@ -36,10 +36,11 @@ volatile uint8_t txerror_flag = 0;
 
 volatile uint8_t rxdone_flag = 0;
 volatile uint8_t rxerror_flag = 0;
-
+uint8_t frameDelay = 0;
 
 static void txi2s_done(void* x)
 {
+	CurieI2SDMA.lastFrameDelay();
 	txdone_flag = 1;
 
 	return;
@@ -74,6 +75,11 @@ Curie_I2SDMA CurieI2SDMA;
 
 Curie_I2SDMA::Curie_I2SDMA()
 {
+}
+
+void Curie_I2SDMA::lastFrameDelay()
+{
+    delay(frameDelay);
 }
 
 int Curie_I2SDMA::iniTX()
@@ -154,8 +160,8 @@ int Curie_I2SDMA::beginTX(uint16_t sample_rate,uint8_t resolution,uint8_t master
 	txcfg.cb_err = txi2s_err;
 	txdone_flag = 0;
 	txerror_flag = 0;
+	frameDelay =  5;
 	soc_i2s_config(I2S_CHANNEL_TX, &txcfg);
-
 	return I2S_DMA_OK;
 }
 
@@ -195,10 +201,11 @@ int Curie_I2SDMA::beginRX(uint16_t sample_rate,uint8_t resolution,uint8_t master
 	return I2S_DMA_OK;
 }
 
-int Curie_I2SDMA::transTX(uint32_t* buf_TX,uint32_t len)
+int Curie_I2SDMA::transTX(void* buf_TX,uint32_t len,uint32_t len_per_data)
 {
-	soc_i2s_stream(buf_TX, len,0); 
-
+	int status = soc_i2s_stream(buf_TX, len,len_per_data,0); 
+	if(status)
+		return I2S_DMA_FAIL;
 	while (1) 
 	{   
 		// check the DMA and I2S status
@@ -215,9 +222,11 @@ int Curie_I2SDMA::transTX(uint32_t* buf_TX,uint32_t len)
 	}
 }
 
-int Curie_I2SDMA::transRX(uint32_t* buf_RX,uint32_t len)
+int Curie_I2SDMA::transRX(void* buf_RX,uint32_t len,uint32_t len_per_data)
 {
-	soc_i2s_listen(buf_RX, len ,0);
+	int status = soc_i2s_listen(buf_RX, len ,len_per_data,0);
+	if(status)
+		return I2S_DMA_FAIL;
 
 	while (1) 
 	{
@@ -248,28 +257,66 @@ void Curie_I2SDMA::stopRX()
 	muxRX(0);
 }
 
-int Curie_I2SDMA::mergeData(uint32_t* buf_left,uint32_t* buf_right,uint32_t* buf_TX)
+int Curie_I2SDMA::mergeData(void* buf_left,void* buf_right,void* buf_TX,uint32_t length_TX,uint32_t len_per_data)
 {
-	int length = (int)(sizeof(buf_left) / sizeof(buf_left[0]));
-	for(int i = 0; i < length;++i)
+	if(len_per_data == 1)
 	{
-		buf_TX[2*i] = buf_left[i];
-		buf_TX[2*i+1] = buf_right[i];
+		for(uint32_t i = 0; i < length_TX/2;++i)
+		{
+			*((uint8_t *)buf_TX+2*i) = *((uint8_t *)buf_left+i);
+			*((uint8_t *)buf_TX+2*i+1) = *((uint8_t *)buf_right+i);
+		}
 	}
+	else if(len_per_data == 2)
+	{
+		for(uint32_t i = 0; i < length_TX/2;++i)
+		{
+			*((uint16_t *)buf_TX+2*i) = *((uint16_t *)buf_left+i);
+			*((uint16_t *)buf_TX+2*i+1) = *((uint16_t *)buf_right+i);
+		}
+	}
+	else if(len_per_data == 4)
+	{
+		for(uint32_t i = 0; i < length_TX/2;++i)
+		{
+			*((uint32_t *)buf_TX+2*i) = *((uint32_t *)buf_left+i);
+			*((uint32_t *)buf_TX+2*i+1) = *((uint32_t *)buf_right+i);
+		}
+	}
+	else
+		return I2S_DMA_FAIL;
 
- 	return I2S_DMA_OK;
+	return I2S_DMA_OK;
 }
 
-int Curie_I2SDMA::separateData(uint32_t* buf_left,uint32_t* buf_right,uint32_t* buf_RX)
-{
-	int length1 = (int)( sizeof(buf_RX) / sizeof(buf_RX[0])/2 );
-	int length2 = (int)( sizeof(buf_left) / sizeof(buf_left[0]) );
-	int length = length1 < length2 ? length1 : length2;
-	 
-	for(int i = 0; i < length;++i)
+int Curie_I2SDMA::separateData(void* buf_left,void* buf_right,void* buf_RX,uint32_t length_RX,uint32_t len_per_data)
+{	 
+	if(len_per_data == 1)
 	{
-		buf_left[i] = buf_RX[2*i];
-		buf_right[i] = buf_RX[2*i+1];
+		for(uint32_t i = 0; i < length_RX/2;++i)
+		{
+			*((uint8_t *)buf_left+i) = *((uint8_t *)buf_RX+2*i);
+			*((uint8_t *)buf_right+i) = *((uint8_t *)buf_RX+2*i+1);
+		}
 	}
- 	return I2S_DMA_OK;
+	else if(len_per_data == 2)
+	{
+		for(uint32_t i = 0; i < length_RX/2;++i)
+		{
+			*((uint16_t *)buf_left+i) = *((uint16_t *)buf_RX+2*i);
+			*((uint16_t *)buf_right+i) = *((uint16_t *)buf_RX+2*i+1);
+		}
+	}
+	else if(len_per_data == 4)
+	{
+		for(uint32_t i = 0; i < length_RX/2;++i)
+		{
+			*((uint32_t *)buf_left+i) = *((uint32_t *)buf_RX+2*i);
+			*((uint32_t *)buf_right+i) = *((uint32_t *)buf_RX+2*i+1);
+		}
+	}
+	else
+		return I2S_DMA_FAIL;
+  
+	return I2S_DMA_OK;
 }

@@ -57,11 +57,11 @@ static void i2s_disable(uint8_t channel);
 static void i2s_isr(void);
 DRIVER_API_RC soc_i2s_config(uint8_t channel, struct soc_i2s_cfg *cfg);
 DRIVER_API_RC soc_i2s_deconfig(uint8_t channel);
-DRIVER_API_RC soc_i2s_read(uint32_t *buf, uint32_t len);
-DRIVER_API_RC soc_i2s_listen(uint32_t *buf, uint32_t len, uint8_t num_bufs);
+DRIVER_API_RC soc_i2s_read(void *buf, uint32_t len, uint32_t len_per_data);
+DRIVER_API_RC soc_i2s_listen(void *buf, uint32_t len, uint32_t len_per_data, uint8_t num_bufs);
 DRIVER_API_RC soc_i2s_stop_listen(void);
-DRIVER_API_RC soc_i2s_write(uint32_t *buf, uint32_t len);
-DRIVER_API_RC soc_i2s_stream(uint32_t *buf, uint32_t len, uint32_t num_bufs);
+DRIVER_API_RC soc_i2s_write(void *buf, uint32_t len, uint32_t len_per_data);
+DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uint32_t num_bufs);
 DRIVER_API_RC soc_i2s_stop_stream(void);
 DRIVER_API_RC soc_i2s_init();
 
@@ -196,19 +196,12 @@ static void i2s_dma_cb_done(void *num)
   
 	if(channel == I2S_CHANNEL_TX)
 	{
-		if((0x00200000 & MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL))
-        	&& !(0x18000000 & MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL)))
-		{	
-			for(int i = 0; i < 4; ++i)
-				MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_DATA_REG) = 0x0;
-		}
-
 		do
 		{
 			reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].fifo_stat);
-		} while(reg & 0x000000FF);
+		} while(reg & 0x000000FF); 
 	}
-  
+	
 	if (i2s_info->cfg[channel].cb_done) 
 	{
 		i2s_info->cfg[channel].cb_done(i2s_info->cfg[channel].cb_done_arg);
@@ -294,13 +287,13 @@ DRIVER_API_RC soc_i2s_deconfig(uint8_t channel)
 	return DRV_RC_OK;
 }
 
-DRIVER_API_RC soc_i2s_read(uint32_t *buf, uint32_t len)
+DRIVER_API_RC soc_i2s_read(void *buf, uint32_t len, uint32_t len_per_data)
 {
 	// Calling listen with 0 buffers is the same as a onetime read of the whole buffer
-	return soc_i2s_listen(buf, len, 0);
+	return soc_i2s_listen(buf, len, len_per_data, 0);
 }
 
-DRIVER_API_RC soc_i2s_listen(uint32_t *buf, uint32_t len, uint8_t num_bufs)
+DRIVER_API_RC soc_i2s_listen(void *buf, uint32_t len, uint32_t len_per_data, uint8_t num_bufs)
 {
 	DRIVER_API_RC ret;
 	uint8_t channel = I2S_CHANNEL_RX;
@@ -347,10 +340,26 @@ DRIVER_API_RC soc_i2s_listen(uint32_t *buf, uint32_t len, uint8_t num_bufs)
 	i2s_info->dma_cfg[channel].src_step_count = 0;
 
 	i2s_info->dma_cfg[channel].xfer.dest.delta = SOC_DMA_DELTA_INCR;
-	i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_32;
 	i2s_info->dma_cfg[channel].xfer.src.delta = SOC_DMA_DELTA_NONE;
-	i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_32;
 	i2s_info->dma_cfg[channel].xfer.src.addr = (void *)(SOC_I2S_BASE + SOC_I2S_DATA_REG);
+ 
+	if(len_per_data == 1)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_8;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_8;
+	}
+	else if(len_per_data == 2)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_16;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_16;
+	}
+	else  if(len_per_data == 4)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_32;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_32;
+	}
+	else
+		return DRV_RC_FAIL;
 
 	if (num_bufs == 0) 
 	{
@@ -383,8 +392,8 @@ DRIVER_API_RC soc_i2s_listen(uint32_t *buf, uint32_t len, uint8_t num_bufs)
 			}
 		}
 
-		dma_list->dest.addr = (void *)(&(buf[i * (len_per_buf / sizeof(uint32_t))]));
-		dma_list->size = len_per_buf / sizeof(uint32_t);
+		dma_list->dest.addr = (void *)(uint8_t *)(buf+i * len_per_buf );
+		dma_list->size = len_per_buf / len_per_data;
 	}
 
 	// Create a circular list if we are doing circular buffering
@@ -443,13 +452,13 @@ DRIVER_API_RC soc_i2s_stop_listen(void)
 	return DRV_RC_OK;
 }
 
-DRIVER_API_RC soc_i2s_write(uint32_t *buf, uint32_t len)
+DRIVER_API_RC soc_i2s_write(void *buf, uint32_t len, uint32_t len_per_data)
 {
 	// Calling stream with 0 buffers is the same as a onetime write of the whole buffer
-	return soc_i2s_stream(buf, len, 0);
+	return soc_i2s_stream(buf, len, len_per_data, 0);
 }
 
-DRIVER_API_RC soc_i2s_stream(uint32_t *buf, uint32_t len, uint32_t num_bufs)
+DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uint32_t num_bufs)
 {
 	DRIVER_API_RC ret;
 	uint8_t channel = I2S_CHANNEL_TX;
@@ -496,11 +505,27 @@ DRIVER_API_RC soc_i2s_stream(uint32_t *buf, uint32_t len, uint32_t num_bufs)
 	i2s_info->dma_cfg[channel].src_step_count = 0;
 
 	i2s_info->dma_cfg[channel].xfer.dest.delta = SOC_DMA_DELTA_NONE;
-	i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_32;
 	i2s_info->dma_cfg[channel].xfer.dest.addr = (void *)(SOC_I2S_BASE + SOC_I2S_DATA_REG);
 	i2s_info->dma_cfg[channel].xfer.src.delta = SOC_DMA_DELTA_INCR;
-	i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_32;
 
+	if(len_per_data == 1)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_8;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_8;
+	}
+	else if(len_per_data == 2)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_16;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_16;
+	}
+	else if(len_per_data == 4)
+	{
+		i2s_info->dma_cfg[channel].xfer.dest.width = SOC_DMA_WIDTH_32;
+		i2s_info->dma_cfg[channel].xfer.src.width = SOC_DMA_WIDTH_32;
+	}
+	else
+		return DRV_RC_FAIL;;
+  
 	if (num_bufs == 0) 
 	{
 		i2s_info->dma_cfg[channel].cb_done = i2s_dma_cb_done;
@@ -532,8 +557,8 @@ DRIVER_API_RC soc_i2s_stream(uint32_t *buf, uint32_t len, uint32_t num_bufs)
 			}
 		}
 
-		dma_list->src.addr = (void *)(&(buf[i * (len_per_buf / sizeof(uint32_t))]));
-		dma_list->size = len_per_buf / sizeof(uint32_t);
+		dma_list->src.addr = (void *)(uint8_t *)(buf+i * len_per_buf );
+		dma_list->size = len_per_buf / len_per_data;
 	}
 
 	// Create a circular list if we are doing circular buffering
@@ -643,30 +668,3 @@ DRIVER_API_RC soc_i2s_init()
 	return DRV_RC_OK;
 }
 
-DRIVER_API_RC soc_i2s_reset(uint8_t channel)
-{
-    i2s_info->en[channel] = 0;
-    i2s_info->cfgd[channel] = 0;
-    i2s_info->cfg[channel].cb_done = NULL;
-    i2s_info->cfg[channel].cb_err = NULL;
-
-    i2s_info->cfg[channel].cb_done_arg = NULL;
-    i2s_info->cfg[channel].cb_err_arg = NULL;
-
-
-    i2s_info->dma_ch[channel].active = 0;
-    i2s_info->dma_ch[channel].id = 0;
-    i2s_info->dma_ch[channel].ll = NULL;
-    i2s_info->dma_ch[channel].curr = NULL;
-      
-    i2s_info->dma_cfg[channel].cb_done_arg = NULL;
-    i2s_info->dma_cfg[channel].cb_done = NULL;
-    i2s_info->dma_cfg[channel].cb_block_arg= NULL;
-    i2s_info->dma_cfg[channel].cb_block = NULL;
-    i2s_info->dma_cfg[channel].cb_err_arg = NULL;
-    i2s_info->dma_cfg[channel].cb_err = NULL;
-
-    soc_i2s_config(channel, &(i2s_info->cfg[channel]));
-   
-    return DRV_RC_OK;
-}
