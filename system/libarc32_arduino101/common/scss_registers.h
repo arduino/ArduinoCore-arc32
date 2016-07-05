@@ -120,6 +120,8 @@
 #define QRK_CLKGATE_CTRL_PWM_ENABLE     (1 << 12)
 
 #define PERIPH_CLK_GATE_CTRL            (SCSS_REGISTER_BASE + 0x018)
+#define MLAYER_AHB_CTL                  (SCSS_REGISTER_BASE + 0x034)
+#define SS_PERIPH_CLK_GATE_CTL          (SCSS_REGISTER_BASE + 0x028)
 
 /* PWM */
 #define QRK_PWM_BASE_ADDR               0xB0000800
@@ -216,6 +218,9 @@
 #define QRK_RTC_ENABLE                  (1 << 2)
 #define QRK_RTC_WRAP_ENABLE             (1 << 3)
 
+/* DMA */
+#define SOC_DMA_BASE                    (0xB0700000)
+
 /*  MPR */
 #define QRK_MPR_BASE_ADDR               0xB0400000
 #define QRK_MPR_REGS_LEN                0x04
@@ -243,6 +248,9 @@
 #define SOC_MST_SPI0_REGISTER_BASE      (0xB0001000)
 #define SOC_MST_SPI1_REGISTER_BASE      (0xB0001400)
 #define SOC_SLV_SPI_REGISTER_BASE       (0xB0001800)
+
+/* I2S */
+#define SOC_I2S_BASE                    (0xB0003800)
 
 /* Mailbox Interrupt*/
 #define IO_REG_MAILBOX_INT_MASK         (SCSS_REGISTER_BASE + 0x4A0)
@@ -392,11 +400,21 @@
 #define SOC_SPIS0_INTERRUPT             0x4
 #define SOC_UART0_INTERRUPT             0x5
 #define SOC_UART1_INTERRUPT             0x6
+#define SOC_I2S_INTERRUPT               0x7
 #define SOC_GPIO_INTERRUPT              0x8
 #define SOC_PWM_INTERRUPT               0x9
 #define SOC_RTC_INTERRUPT               0xb
 #define SOC_WDT_INTERRUPT               0xc
+#define SOC_DMA_CHANNEL0_INTERRUPT      0xd
+#define SOC_DMA_CHANNEL1_INTERRUPT      0xe
+#define SOC_DMA_CHANNEL2_INTERRUPT      0xf
+#define SOC_DMA_CHANNEL3_INTERRUPT      0x10
+#define SOC_DMA_CHANNEL4_INTERRUPT      0x11
+#define SOC_DMA_CHANNEL5_INTERRUPT      0x12
+#define SOC_DMA_CHANNEL6_INTERRUPT      0x13
+#define SOC_DMA_CHANNEL7_INTERRUPT      0x14
 #define SOC_MBOX_INTERRUPT              0x15
+#define SOC_DMA_ERR_INTERRUPT           0x18
 #define SOC_MPR_INTERRUPT               0x19
 #define SOC_GPIO_AON_INTERRUPT          0x1F
 
@@ -411,9 +429,19 @@
 #define SOC_SPIS0_INTERRUPT            (40)
 #define SOC_UART0_INTERRUPT            (41)
 #define SOC_UART1_INTERRUPT            (42)
+#define SOC_I2S_INTERRUPT              (43)
 #define SOC_GPIO_INTERRUPT             (44)
 #define SOC_PWM_INTERRUPT              (45)
+#define SOC_DMA_CHANNEL0_INTERRUPT     (49)
+#define SOC_DMA_CHANNEL1_INTERRUPT     (50)
+#define SOC_DMA_CHANNEL2_INTERRUPT     (51)
+#define SOC_DMA_CHANNEL3_INTERRUPT     (52)
+#define SOC_DMA_CHANNEL4_INTERRUPT     (53)
+#define SOC_DMA_CHANNEL5_INTERRUPT     (54)
+#define SOC_DMA_CHANNEL6_INTERRUPT     (55)
+#define SOC_DMA_CHANNEL7_INTERRUPT     (56)
 #define SOC_MBOX_INTERRUPT             (57)
+#define SOC_DMA_ERR_INTERRUPT          (60)
 #define SOC_GPIO_AON_INTERRUPT         (67)
 
 #define DRV_REG(_driver_)		(MMIO_REG_VAL_FROM_BASE(SCSS_REGISTER_BASE, _driver_))
@@ -424,4 +452,8 @@
 
 #endif
 
+/* Clock gate mask */
+#define I2C0_CLK_GATE_MASK       0x00080004
+#define I2C1_CLK_GATE_MASK       0x00100008
+#define I2S_CLK_GATE_MASK        0x00200200
 #endif /* SCSS_REGISTERS_H_ */
