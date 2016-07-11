@@ -57,6 +57,11 @@ bool CurieIMUClass::begin()
     return (CURIE_IMU_CHIP_ID == getDeviceID());
 }
 
+void CurieIMUClass::end()
+{
+    ss_spi_disable();
+}
+
 int CurieIMUClass::getGyroRate()
 {
     int rate;

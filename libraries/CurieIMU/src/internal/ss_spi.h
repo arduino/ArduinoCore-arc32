@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 void ss_spi_init();
+void ss_spi_disable();
 int ss_spi_xfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
 
 #ifdef __cplusplus
