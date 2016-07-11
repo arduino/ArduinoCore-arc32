@@ -73,6 +73,12 @@ void ss_spi_init()
     SS_SPI_REG_WRITE(INTR_MASK, SPI_DISABLE_INT);
 }
 
+void ss_spi_disable()
+{
+    /* gate SPI controller clock */
+    SS_SPI_REG_WRITE(CTRL, 0);
+}
+
 static inline
 void spi_transmit(uint8_t *buf, size_t count, boolean_t waitCompletion) {
     while (count--)
