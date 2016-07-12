@@ -43,6 +43,8 @@ extern "C"{
 #define clockCyclesToMicroseconds(a) ( ((a) * 1000L) / (SYSTEM_CORE_CLOCK / 1000L) )
 #define microsecondsToClockCycles(a) ( (a) * (SYSTEM_CORE_CLOCK / 1000000L) )
 
+#define digitalPinToInterrupt(P)   ( P )
+
 void yield(void);
 
 /* sketch */
