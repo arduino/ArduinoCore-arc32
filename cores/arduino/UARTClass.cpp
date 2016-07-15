@@ -112,6 +112,9 @@ void UARTClass::end( void )
   opened = false;
   // Clear any received data
   _rx_buffer->_iHead = _rx_buffer->_iTail;
+
+  SET_PIN_MODE(17, GPIO_MUX_MODE); // Rdx SOC PIN (Arduino header pin 0)
+  SET_PIN_MODE(16, GPIO_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
 }
 
 void UARTClass::setInterruptPriority(uint32_t priority)
