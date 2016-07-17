@@ -59,11 +59,14 @@ setStepCountEnabled	KEYWORD1
 resetStepCount	KEYWORD1
 
 readMotionSensor	KEYWORD1
+readMotionSensorScaled	KEYWORD1
 readAcceleration	KEYWORD1
 readRotation	KEYWORD1
 
 readAccelerometer	KEYWORD1
+readAccelerometerScaled KEYWORD1
 readGyro	KEYWORD1
+readGyroScaled	KEYWORD1
 readTemperature	KEYWORD1
 
 shockDetected	KEYWORD1
