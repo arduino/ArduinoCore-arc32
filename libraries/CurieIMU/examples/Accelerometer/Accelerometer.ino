@@ -23,16 +23,10 @@ void setup() {
 }
 
 void loop() {
-  int axRaw, ayRaw, azRaw;         // raw accelerometer values
-  float ax, ay, az;
+  float ax, ay, az;   //scaled accelerometer values
 
-  // read raw accelerometer measurements from device
-  CurieIMU.readAccelerometer(axRaw, ayRaw, azRaw);
-
-  // convert the raw accelerometer data to G's
-  ax = convertRawAcceleration(axRaw);
-  ay = convertRawAcceleration(ayRaw);
-  az = convertRawAcceleration(azRaw);
+  // read accelerometer measurements from device, scaled to the configured range
+  CurieIMU.readAccelerometerScaled(ax, ay, az);
 
   // display tab-separated accelerometer x/y/z values
   Serial.print("a:\t");
@@ -42,16 +36,6 @@ void loop() {
   Serial.print("\t");
   Serial.print(az);
   Serial.println();
-}
-
-float convertRawAcceleration(int aRaw) {
-  // since we are using 2G range
-  // -2g maps to a raw value of -32768
-  // +2g maps to a raw value of 32767
-  
-  float a = (aRaw * 2.0) / 32768.0;
-
-  return a;
 }
 
 /*

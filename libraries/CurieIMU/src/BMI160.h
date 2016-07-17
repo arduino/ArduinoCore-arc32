@@ -35,6 +35,9 @@ THE SOFTWARE.
 
 #include "Arduino.h"
 
+#define BMI160_SENSOR_RANGE         65535.0f
+#define BMI160_SENSOR_LOW           32768.0f
+
 #define BMI160_SPI_READ_BIT         7
 
 #define BMI160_RA_CHIP_ID           0x00

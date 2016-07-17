@@ -232,14 +232,19 @@ void CurieIMUClass::setGyroRange(int range)
 
     if (range >= 2000) {
         bmiRange = BMI160_GYRO_RANGE_2000;
+        gyro_range = 2000.0f;
     } else if (range >= 1000) {
         bmiRange = BMI160_GYRO_RANGE_1000;
+        gyro_range = 1000.0f;
     } else if (range >= 500) {
         bmiRange = BMI160_GYRO_RANGE_500;
+        gyro_range = 500.0f;
     } else if (range >= 250) {
         bmiRange = BMI160_GYRO_RANGE_250;
+        gyro_range = 250.0f;
     } else {
         bmiRange = BMI160_GYRO_RANGE_125;
+        gyro_range = 125.0f;
     }
 
     setFullScaleGyroRange(bmiRange);
@@ -277,12 +282,16 @@ void CurieIMUClass::setAccelerometerRange(int range)
 
     if (range <= 2) {
         bmiRange = BMI160_ACCEL_RANGE_2G;
+        accel_range = 2.0f;
     } else if (range <= 4) {
         bmiRange = BMI160_ACCEL_RANGE_4G;
+        accel_range = 4.0f;
     } else if (range <= 8) {
         bmiRange = BMI160_ACCEL_RANGE_8G;
+        accel_range = 8.0f;
     } else {
         bmiRange = BMI160_ACCEL_RANGE_16G;
+        accel_range = 16.0f;
     }
 
     setFullScaleAccelRange(bmiRange);
@@ -1546,6 +1555,18 @@ void CurieIMUClass::setStepDetectionMode(int mode)
     BMI160Class::setStepDetectionMode((BMI160StepMode)mode);
 }
 
+float CurieIMUClass::convertRaw(int16_t raw, float range_abs)
+{
+    float slope;
+    float val;
+
+    /* Input range will be -32768 to 32767
+     * Output range must be -range_abs to range_abs */
+    val = (float) raw;
+    slope = (range_abs * 2.0f) / BMI160_SENSOR_RANGE;
+    return -(range_abs) + slope * (val + BMI160_SENSOR_LOW);
+}
+
 void CurieIMUClass::readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy, int& gz)
 {
     short sax, say, saz, sgx, sgy, sgz;
@@ -1560,6 +1581,21 @@ void CurieIMUClass::readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy
     gz = sgz;
 }
 
+void CurieIMUClass::readMotionSensorScaled(float& ax, float& ay, float& az,
+                                           float& gx, float& gy, float& gz)
+{
+    int16_t sax, say, saz, sgx, sgy, sgz;
+
+    getMotion6(&sax, &say, &saz, &sgx, &sgy, &sgz);
+
+    ax = convertRaw(sax, accel_range);
+    ay = convertRaw(say, accel_range);
+    az = convertRaw(saz, accel_range);
+    gx = convertRaw(sgx, gyro_range);
+    gy = convertRaw(sgy, gyro_range);
+    gz = convertRaw(sgz, gyro_range);
+}
+
 void CurieIMUClass::readAccelerometer(int& x, int& y, int& z)
 {
     short sx, sy, sz;
@@ -1571,6 +1607,17 @@ void CurieIMUClass::readAccelerometer(int& x, int& y, int& z)
     z = sz;
 }
 
+void CurieIMUClass::readAccelerometerScaled(float& x, float& y, float& z)
+{
+    int16_t sx, sy, sz;
+
+    getAcceleration(&sx, &sy, &sz);
+
+    x = convertRaw(sx, accel_range);
+    y = convertRaw(sy, accel_range);
+    z = convertRaw(sz, accel_range);
+}
+
 void CurieIMUClass::readGyro(int& x, int& y, int& z)
 {
     short sx, sy, sz;
@@ -1580,6 +1627,17 @@ void CurieIMUClass::readGyro(int& x, int& y, int& z)
     x = sx;
     y = sy;
     z = sz;
+}
+
+void CurieIMUClass::readGyroScaled(float& x, float& y, float& z)
+{
+    int16_t sx, sy, sz;
+
+    getRotation(&sx, &sy, &sz);
+
+    x = convertRaw(sx, gyro_range);
+    y = convertRaw(sy, gyro_range);
+    z = convertRaw(sz, gyro_range);
 }
 
 int CurieIMUClass::readAccelerometer(int axis)
@@ -1595,6 +1653,23 @@ int CurieIMUClass::readAccelerometer(int axis)
     return 0; 
 }
 
+float CurieIMUClass::readAccelerometerScaled(int axis)
+{
+    int16_t raw;
+
+    if (axis == X_AXIS) {
+        raw = getAccelerationX();
+    } else if (axis == Y_AXIS) {
+        raw = getAccelerationY();
+    } else if (axis == Z_AXIS) {
+        raw = getAccelerationZ();
+    } else {
+        return 0;
+    }
+
+    return convertRaw(raw, accel_range);
+}
+
 int CurieIMUClass::readGyro(int axis)
 {
     if (axis == X_AXIS) {
@@ -1606,6 +1681,23 @@ int CurieIMUClass::readGyro(int axis)
     }
 
     return 0;
+}
+
+float CurieIMUClass::readGyroScaled(int axis)
+{
+    int16_t raw;
+
+    if (axis == X_AXIS) {
+        raw = getRotationX();
+    } else if (axis == Y_AXIS) {
+        raw = getRotationY();
+    } else if (axis == Z_AXIS) {
+        raw = getRotationZ();
+    } else {
+        return 0;
+    }
+
+    return convertRaw(raw, gyro_range);
 }
 
 int CurieIMUClass::readTemperature()

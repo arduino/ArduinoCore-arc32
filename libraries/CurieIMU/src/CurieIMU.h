@@ -187,11 +187,15 @@ class CurieIMUClass : public BMI160Class {
         void setStepDetectionMode(int mode);
 
         void readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy, int& gz);
+        void readMotionSensorScaled(float& ax, float& ay, float& az, float& gx, float& gy, float& gz);
         void readAccelerometer(int& x, int& y, int& z);
+        void readAccelerometerScaled(float& x, float& y, float& z);
         void readGyro(int& x, int& y, int& z);
-
+        void readGyroScaled(float& x, float& y, float& z);
         int readAccelerometer(int axis);
+        float readAccelerometerScaled(int axis);
         int readGyro(int axis);
+        float readGyroScaled(int axis);
         int readTemperature();
 
         bool shockDetected(int axis, int direction);
@@ -204,6 +208,9 @@ class CurieIMUClass : public BMI160Class {
 
     private:
         int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
+
+        float accel_range;
+        float gyro_range;
 
         float getFreefallDetectionThreshold();
         void setFreefallDetectionThreshold(float threshold);
@@ -230,6 +237,8 @@ class CurieIMUClass : public BMI160Class {
         void setTapQuietDuration(int duration);
         int getDoubleTapDetectionDuration();
         void setDoubleTapDetectionDuration(int duration);
+
+        float convertRaw(int16_t raw, float range_abs);
 
         void enableInterrupt(int feature, bool enabled);
 
