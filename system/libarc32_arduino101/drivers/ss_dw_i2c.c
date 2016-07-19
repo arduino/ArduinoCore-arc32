@@ -92,7 +92,7 @@ static void recv_data(i2c_info_pt dev)
 }
 
 
-void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
+void i2c_fill_fifo(i2c_info_pt dev)
 {
     uint32_t      i, tx_cnt, data;
 
@@ -114,7 +114,7 @@ void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
 
             if( dev->tx_len == 1)
             {  // last byte to write
-                if (! no_stop)
+                if (dev->send_stop)
                     data |= I2C_STOP_CMD;
             }
             dev->tx_len -= 1;
@@ -125,7 +125,7 @@ void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
             data = I2C_PUSH_DATA | I2C_READ_CMD;
             if (dev->rx_tx_len == 1)
             { // last dummy byte to write
-                if(! no_stop)
+                if(dev->send_stop)
                     data |= I2C_STOP_CMD;
                 if(dev->restart)
                 {
@@ -143,13 +143,17 @@ void i2c_fill_fifo(i2c_info_pt dev, bool no_stop)
 static void xmit_data(i2c_info_pt dev)
 {
     int mask;
-    i2c_fill_fifo(dev, false);
+    i2c_fill_fifo(dev);
     if (dev->rx_tx_len <= 0)
     {
         mask = REG_READ( I2C_INTR_MASK );
         mask &= ~(R_TX_EMPTY);
         mask |= R_STOP_DETECTED;
         REG_WRITE(I2C_INTR_MASK, mask);
+        if ((dev->rx_len == 0) && (!dev->send_stop))
+        {
+            end_data_transfer( dev );
+        }
     }
 }
 

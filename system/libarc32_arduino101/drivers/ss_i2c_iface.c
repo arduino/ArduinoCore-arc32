@@ -347,6 +347,15 @@ DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write,
         return DRV_RC_FAIL;
     }
 
+    if (!no_stop)
+    {
+        dev->send_stop = true;
+    }
+    else
+    {
+        dev->send_stop = false;
+    }
+
     if ((data_read_len == 0) && (data_write_len == 0))
     {
         //Workaround: we know that we are doing I2C bus scan.
@@ -376,7 +385,7 @@ DRIVER_API_RC ss_i2c_transfer(I2C_CONTROLLER controller_id, uint8_t *data_write,
     dev->i2c_read_buff = data_read;
     dev->total_read_bytes = 0;
     dev->total_write_bytes = 0;
-    i2c_fill_fifo(dev, no_stop);
+    i2c_fill_fifo(dev);
 
     interrupt_unlock(saved);
 

@@ -42,6 +42,7 @@ void setup()
   Wire.begin();
 
   Serial.begin(115200);
+  while(!Serial);
 }
 
 boolean toggle = false;          // state of the LED
