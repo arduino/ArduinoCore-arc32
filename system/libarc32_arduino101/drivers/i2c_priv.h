@@ -133,6 +133,7 @@ typedef struct i2c_info {
     uint8_t         *i2c_write_buff;
     uint8_t         *i2c_read_buff;
     uint8_t         restart;
+    uint8_t         send_stop;
 
     /* Callbacks */
     IO_CB_FUNC      tx_cb;

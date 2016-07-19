@@ -39,7 +39,7 @@
 #define SS_DW_I2C_H_
 #include <stdbool.h>
 void i2c_mst_err_ISR_proc(i2c_info_pt dev);
-void i2c_fill_fifo(i2c_info_pt dev, bool no_stop);
+void i2c_fill_fifo(i2c_info_pt dev);
 void i2c_mst_rx_avail_ISR_proc(i2c_info_pt dev);
 void i2c_mst_tx_req_ISR_proc(i2c_info_pt dev);
 void i2c_mst_stop_detected_ISR_proc(i2c_info_pt dev);

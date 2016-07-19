@@ -48,7 +48,8 @@ static void ss_i2c_err(uint32_t dev_id)
 	i2c_err_source = dev_id;
 }
 
-static int wait_rx_or_err(bool no_stop){
+static int wait_rx_or_err()
+{
 	uint64_t timeout = TIMEOUT_MS * 200;
 	while(timeout--) {
 		if (i2c_err_detect) {
@@ -65,20 +66,17 @@ static int wait_rx_or_err(bool no_stop){
 				return I2C_ERROR_OTHER; // other error
 			}
 		}
-		if (!no_stop) {
-			if (i2c_rx_complete) {
-				return I2C_OK;
-			}
+		if (i2c_rx_complete) {
+			return I2C_OK;
 		}
 		delayMicroseconds(10);
 	}
-	if (!no_stop)
-		return I2C_TIMEOUT;
-	else
-		return I2C_OK;
+
+	return I2C_TIMEOUT;
 }
 
-static int wait_tx_or_err(bool no_stop){
+static int wait_tx_or_err()
+{
 	uint64_t timeout = TIMEOUT_MS * 200;
 	while(timeout--) {
 		if (i2c_err_detect) {
@@ -95,17 +93,12 @@ static int wait_tx_or_err(bool no_stop){
 				return I2C_ERROR_OTHER; // other error
 			}
 		}
-		if (!no_stop) {
-			if (i2c_tx_complete) {
+		if (i2c_tx_complete) {
 			return I2C_OK;
-			}
 		}
 		delayMicroseconds(10);
 	}
-	if (!no_stop)
-		return I2C_TIMEOUT;
-	else
-		return I2C_OK;
+	return I2C_TIMEOUT;
 }
 
 static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
@@ -116,8 +109,12 @@ static int wait_dev_ready(I2C_CONTROLLER controller_id, bool no_stop){
 		if (ret == I2C_OK) {
 			return I2C_OK;
 		}
-		if (ret == I2C_BUSY) {
+		else if (ret == I2C_BUSY) {
 			delayMicroseconds(10);
+		}
+		else
+		{
+			return I2C_TIMEOUT - ret;
 		}
 	}
 	return I2C_TIMEOUT - ret;
@@ -202,7 +199,7 @@ int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop)
 	i2c_err_detect = 0;
 	i2c_err_source = 0;
 	ss_i2c_transfer(I2C_SENSING_0, bytes, length, 0, 0, i2c_slave, no_stop);
-	ret = wait_tx_or_err(no_stop);
+	ret = wait_tx_or_err();
 	if (ret)
 		return ret;
 	ret = wait_dev_ready(I2C_SENSING_0, no_stop);
@@ -219,7 +216,7 @@ int i2c_readbytes(uint8_t *buf, int length, bool no_stop)
 	i2c_err_detect = 0;
 	i2c_err_source = 0;
 	ss_i2c_transfer(I2C_SENSING_0, 0, 0, buf, length, i2c_slave, no_stop);
-	ret = wait_rx_or_err(no_stop);
+	ret = wait_rx_or_err();
 	if (ret)
 		return ret;
 	ret = wait_dev_ready(I2C_SENSING_0, no_stop);
