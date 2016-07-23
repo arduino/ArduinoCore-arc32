@@ -21,6 +21,12 @@ Future upgrades may fail since the internal contents were modified by hand. In
 order to recover, shut down the IDE, delete the entire `Arduino15` directory,
 then restart the IDE.
 
+# Pull Requests
+
+Before submitting a pull request, please see our
+[guidelines](https://github.com/01org/corelibs-arduino101/wiki/Writing-a-commit-message)
+for writing a considerate commit message.
+
 # Support & Issues
 
 If you have found a bug, or you believe a new feature should be added, please
