@@ -20,12 +20,17 @@
 
 #define BUFF_SIZE 128
 #define OFFSET 2
-uint32_t dataBuff[BUFF_SIZE+OFFSET]; // extra 2 buffer is for the padding zero
+uint32_t dataBuff[BUFF_SIZE+OFFSET]; // extra 2 buffers are for the padding zero
 
+/** 
+ * the received data: the higher 16 bits should be equal to loop_count and the lower 16 bits should be (0x01~0x80)
+ * loop_count should increase by 1 in evry loop()
+ * for example: if first time the received data is 0x00010001~0x00010080, then next time the data should be 0x00020001~0x00020080
+**/
 uint8_t start_flag = 0;
-uint8_t done_flag = 0;
-uint32_t loop_count = 0;
-uint32_t shift_count = 0;
+uint8_t done_flag = 0; // when done_flag is 1, the received data are correct
+uint32_t loop_count = 0; // record the higher 16 bits of received data
+uint32_t shift_count = 0; // the position of first non-zero
 void setup() 
 {
   Serial.begin(115200);
@@ -61,7 +66,8 @@ void loop()
   }
   if(shift_count > OFFSET)
     return;
-    
+  
+  // record the higher 16 bits of received data  
   if(start_flag)
   {   
     if((dataBuff[shift_count]>>16) != loop_count+1)
@@ -73,7 +79,7 @@ void loop()
   }
   loop_count = (dataBuff[shift_count] >> 16);
   
-  // check data
+  // check data serial: the higher 16 bits should be equal to loop_count and the lower 16 bits should be (0x01~0x80)  
   done_flag = 1;
   for(uint32_t i = 0 ;i < BUFF_SIZE;++i)
   {

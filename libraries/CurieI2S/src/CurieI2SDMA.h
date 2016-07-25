@@ -20,8 +20,8 @@
 
 //CurieI2SDMA.h
 
-#ifndef _CURI2SDMA_H_
-#define _CURI2SDMA_H_
+#ifndef _CURIEI2SDMA_H_
+#define _CURIEI2SDMA_H_
 
 #include <Arduino.h>
 
