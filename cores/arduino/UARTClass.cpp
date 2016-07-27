@@ -25,6 +25,8 @@
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 
+#define SETTLING_TIME  400
+
 extern void UART_Handler(void);
 extern void serialEventRun(void) __attribute__((weak));
 extern void serialEvent(void) __attribute__((weak));
@@ -115,6 +117,7 @@ void UARTClass::end( void )
 
   SET_PIN_MODE(17, GPIO_MUX_MODE); // Rdx SOC PIN (Arduino header pin 0)
   SET_PIN_MODE(16, GPIO_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
+  delayMicroseconds(SETTLING_TIME); // wait for lines to settle
 }
 
 void UARTClass::setInterruptPriority(uint32_t priority)
