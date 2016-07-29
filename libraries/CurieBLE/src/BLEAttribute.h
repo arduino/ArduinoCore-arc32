@@ -28,7 +28,10 @@ enum BLEAttributeType {
     BLETypeDescriptor     = 0x2900
 };
 
+// Class declare
+class BLEProfile;
 class BLEPeripheral;
+class BLEPeripheralHelper;
 
 class BLEAttribute {
 public:
@@ -39,9 +42,20 @@ public:
      * @return const char* string representation of the Attribute
      */
     const char* uuid(void) const;
+    struct bt_uuid *uuid(void);
 
 protected:
-    friend BLEPeripheral;
+    //friend BLEPeripheral;
+    friend BLEProfile;
+
+    friend ssize_t profile_write_process(struct bt_conn *conn,
+                                     const struct bt_gatt_attr *attr,
+                                     const void *buf, uint16_t len,
+                                     uint16_t offset);
+    friend ssize_t profile_read_process(struct bt_conn *conn,
+                                         const struct bt_gatt_attr *attr,
+                                         void *buf, uint16_t len,
+                                         uint16_t offset);
 
     BLEAttribute(const char* uuid, enum BLEAttributeType type);
 
@@ -51,13 +65,32 @@ protected:
     void setHandle(uint16_t handle);
 
     static unsigned char numAttributes(void);
-
+    // The below APIs are for central device to discover the
+    virtual void discover(struct bt_gatt_discover_params *params) = 0;
+    virtual void discover(const struct bt_gatt_attr *attr,
+			              struct bt_gatt_discover_params *params) = 0;
+    /**
+     * @brief   Get attribute's discover state
+     *
+     * @param   none
+     *
+     * @return  bool    true - In discovering state
+     *                  false- Not discovering
+     *
+     * @note  none
+     */
+    bool discovering();
+    
+    bool _discoverying;
 private:
     static unsigned char _numAttributes;
 
-    const char* _uuid;
+    const char* _uuid_cstr;
+    struct bt_uuid_128 _uuid;
+    
     enum BLEAttributeType _type;
     uint16_t _handle;
+    
 };
 
 #endif // _BLE_ATTRIBUTE_H_INCLUDED

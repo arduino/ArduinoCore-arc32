@@ -20,8 +20,10 @@
 #ifndef _BLE_CHARACTERISTIC_H_INCLUDED
 #define _BLE_CHARACTERISTIC_H_INCLUDED
 
+#include "BLECommon.h"
+
 #include "BLEAttribute.h"
-#include "BLECentral.h"
+#include "BLECentralHelper.h"
 #include "BLEDescriptor.h"
 
 /**
@@ -38,9 +40,10 @@ enum BLECharacteristicEvent {
 /* Forward declaration needed for callback function prototype below */
 class BLECharacteristic;
 class BLEPeripheral;
+class BLEHelper;
 
 /** Function prototype for BLE Characteristic event callback */
-typedef void (*BLECharacteristicEventHandler)(BLECentral &central, BLECharacteristic &characteristic);
+typedef void (*BLECharacteristicEventHandler)(BLEHelper &bleHelper, BLECharacteristic &characteristic);
 
 /**
  * BLE Characteristic Property types
@@ -95,6 +98,18 @@ public:
     bool setValue(const unsigned char value[], unsigned short length);
 
     /**
+     * Set the current value of the Characteristic
+     *
+     * @param central The central device that update the value.
+     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
+     * @param length Length, in bytes, of valid data in the array to write.
+     *               Must not exceed maxLength set for this characteristic.
+     *
+     * @return bool true set value success, false on error
+     */
+    void setValue(BLEHelper& blehelper, const uint8_t value[], uint16_t length);
+
+    /**
      * Get the property mask of the Characteristic
      *
      * @return unsigned char property mask of the Characteristic
@@ -146,38 +161,161 @@ public:
      */
     void setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback);
 
+    /**
+     * @brief   Get Notify Attribute counter that created
+     *
+     * @param   none
+     *
+     * @return  unsigned char   The totla number of the notify attributes
+     *
+     * @note  none
+     */
+    static unsigned char numNotifyAttributes(void);
+    
+    /**
+     * @brief   Schedule the read request to read the characteristic in peripheral
+     *
+     * @param   peripheral  The peripheral device that want to read.
+     *
+     * @return  bool    Indicate the success or error
+     *
+     * @note  Only for central device
+     */
+    bool read(BLEPeripheralHelper &peripheral);
+    
+    /**
+     * @brief   Schedule the write request to update the characteristic in peripheral
+     *
+     * @param   peripheral   The peripheral device that want to be updated
+     * @param   value       New value to set, as a byte array.  Data is stored in internal copy.
+     * @param   length      Length, in bytes, of valid data in the array to write.
+     *                      Must not exceed maxLength set for this characteristic.
+     *
+     * @return  bool true set value success, false on error
+     *
+     * @note  none
+     */
+    bool write(BLEPeripheralHelper &peripheral, 
+               const unsigned char value[], 
+               uint16_t length);
+
 protected:
-    bool add(uint16_t serviceHandle);
-
+    friend class BLEProfile;
+    
+    void addCharacteristicDeclaration(struct bt_gatt_attr *gatt_attr);
+    void addCharacteristicValue(struct bt_gatt_attr *gatt_attr);
+    void addCharacteristicConfigDescriptor(struct bt_gatt_attr *gatt_attr);
+    
+    /**
+     * @brief   Get the characteristic value handle
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  Only for peripheral
+     */
     uint16_t valueHandle(void);
-
+    
+    /**
+     * @brief   Get characteristic configuration descriptor value handle
+     *
+     * @param   none
+     *
+     * @return  uint16_t        The value handle
+     *                           0 is invalid handle
+     *
+     * @note  Only for peripheral
+     */
     uint16_t cccdHandle(void);
 
-    void setValue(BLECentral& central, const uint8_t value[], uint16_t length);
-    void setCccdValue(BLECentral& central, uint16_t value);
-
+    
     void setUserDescription(BLEDescriptor *descriptor);
     void setPresentationFormat(BLEDescriptor *descriptor);
-
-    friend class BLEPeripheral;
+    
+    struct _bt_gatt_ccc* getCccCfg(void);
+    struct bt_gatt_chrc* getCharacteristicAttValue(void);
+    static struct bt_uuid* getCharacteristicAttributeUuid(void);
+    static struct bt_uuid* getClientCharacteristicConfigUuid(void);
+    
+    /**
+     * @brief   Get the characteristic permission
+     *
+     * @param   none
+     *
+     * @return  uint8_t The characteristic permission
+     *
+     * @note  none
+     */
+    uint8_t getPermission(void);
+    
+    /**
+     * @brief   For central to discover the peripherial profile
+     *
+     * @param   attr    The discover response
+     *
+     * @param   params  The discover parameter that need to fill
+     *
+     * @return  none
+     *
+     * @note  Only for central
+     */
+    void discover(const struct bt_gatt_attr *attr,
+			      struct bt_gatt_discover_params *params);
+    
+    /**
+     * @brief   For central to discover the peripherial profile
+     *
+     * @param   params  The discover parameter that need to fill
+     *
+     * @return  none
+     *
+     * @note  Only for central
+     */
+    void discover(struct bt_gatt_discover_params *params);
+    
+    /**
+     * @brief   Get the subscribe parameter
+     *
+     * @param   none
+     *
+     * @return  struct bt_gatt_subscribe_params * the subscribe parameter
+     *
+     * @note  Only for central
+     */
+    struct bt_gatt_subscribe_params* getSubscribeParams();
 
 private:
     void _setValue(const uint8_t value[], uint16_t length);
 
 private:
-    unsigned char _properties;
+    
+    static unsigned char _numNotifyAttributes;
+    static struct bt_uuid_16 _gatt_chrc_uuid;
+    static struct bt_uuid_16 _gatt_ccc_uuid;
+    
     unsigned short _value_size;
     unsigned short _value_length;
     unsigned char* _value;
     bool _written;
 
-    uint16_t _cccd_value;
     uint16_t _value_handle;
-    uint16_t _cccd_handle;
+    struct bt_gatt_ccc_cfg	_ccc_cfg;
+    struct _bt_gatt_ccc _ccc_value;
+    struct bt_gatt_chrc _gatt_chrc;
 
     BLEDescriptor* _user_description;
     BLEDescriptor* _presentation_format;
     
+    struct bt_gatt_attr *_attr_chrc_declaration;
+    struct bt_gatt_attr *_attr_chrc_value;
+    struct bt_gatt_attr *_attr_cccd;
+    
+    // For central device to subscribe the Notification/Indication
+    struct bt_gatt_subscribe_params _sub_params;
+    
+    bool _reading;
+    struct bt_gatt_read_params _read_params;
     BLECharacteristicEventHandler _event_handlers[BLECharacteristicEventLast];
 };
 

@@ -45,19 +45,19 @@ void loop() {
   blePeripheral.poll();
 }
 
-void blePeripheralConnectHandler(BLECentral& central) {
+void blePeripheralConnectHandler(BLEHelper& central) {
   // central connected event handler
   Serial.print("Connected event, central: ");
   Serial.println(central.address());
 }
 
-void blePeripheralDisconnectHandler(BLECentral& central) {
+void blePeripheralDisconnectHandler(BLEHelper& central) {
   // central disconnected event handler
   Serial.print("Disconnected event, central: ");
   Serial.println(central.address());
 }
 
-void switchCharacteristicWritten(BLECentral& central, BLECharacteristic& characteristic) {
+void switchCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
   // central wrote new value to characteristic, update LED
   Serial.print("Characteristic event, written: ");
 

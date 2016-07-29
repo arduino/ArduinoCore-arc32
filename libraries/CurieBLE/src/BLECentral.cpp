@@ -17,87 +17,84 @@
  *
  */
 
+#include "BLECentralRole.h"
+
 #include "BLECentral.h"
 
-#include "BLEPeripheral.h"
-
-
-BLECentral::BLECentral(BLEPeripheral* peripheral) :
-  _peripheral(peripheral)
+bool BLECentral::startScan()
 {
-    clearAddress();
+    return BLECentralRole::instance()->startScan();
 }
 
-BLECentral::operator bool() const {
-    ble_addr_t zero;
-
-    memset(&zero, 0, sizeof(zero));
-
-    return (memcmp(&_address, &zero, sizeof(_address)) != 0);
+bool BLECentral::startScan(const struct bt_le_scan_param &scan_param)
+{
+    return BLECentralRole::instance()->startScan(scan_param);
 }
 
-bool
-BLECentral::operator==(const BLECentral& rhs) const {
-    return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
+bool BLECentral::stopScan()
+{
+    return BLECentralRole::instance()->stopScan();
 }
 
-bool
-BLECentral::operator!=(const BLECentral& rhs) const {
-    return !(*this == rhs);
+bool BLECentral::connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param)
+{
+    return BLECentralRole::instance()->connect(addr, param);
 }
 
-bool
-BLECentral::connected() {
-    poll();
-
-    return (*this && *this == _peripheral->central());
+void BLECentral::discover(BLEPeripheralHelper &peripheral)
+{
+    peripheral.discover();
 }
 
-const char* 
-BLECentral::address() const {
-    static char address[18];
+void BLECentral::setEventHandler(BLERoleEvent event, BLERoleEventHandler callback)
+{
+    BLECentralRole::instance()->setEventHandler(event, callback);
+}
 
-    String addressStr = "";
+void BLECentral::setAdvertiseHandler(ble_advertise_handle_cb_t advcb)
+{
+    BLECentralRole::instance()->setAdvertiseHandler(advcb);
+}
 
-    for (int i = 5; i >= 0; i--) {
-        unsigned char a = _address.addr[i];
+void BLECentral::setScanParam(const struct bt_le_scan_param &scan_param)
+{
+    BLECentralRole::instance()->setScanParam(scan_param);
+}
 
-        if (a < 0x10) {
-            addressStr += "0";
-        }
+void BLECentral::addAttribute(BLEAttribute& attribute)
+{
+    BLECentralRole::instance()->addAttribute(attribute);
+}
 
-        addressStr += String(a, 16);
-
-        if (i > 0) {
-            addressStr += ":";
-        }
+bool BLECentral::begin(void)
+{
+    bool retval = BLECentralRole::instance()->begin();
+    if (!retval)
+    {
+        pr_error(LOG_MODULE_BLE,"%s: Intit failed", __FUNCTION__);
+        return false;
     }
-
-    strcpy(address, addressStr.c_str());
-
-    return address;
-}
-
-void
-BLECentral::poll() {
-    _peripheral->poll();
-}
-
-bool
-BLECentral::disconnect() {
-    if (connected()) {
-        return _peripheral->disconnect();
+    
+    // Start scan
+    const struct bt_le_scan_param *scan_param = BLECentralRole::instance()->getScanParam();
+    struct bt_le_scan_param zero_param;
+    memset(&zero_param, 0x00, sizeof (zero_param));
+    if (0 == memcmp(&zero_param, scan_param, sizeof (zero_param)))
+    {
+        // Not set the scan parameter.
+        //  Use the default scan parameter to scan
+        zero_param.type         = BT_HCI_LE_SCAN_ACTIVE;
+        zero_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
+        zero_param.interval     = BT_GAP_SCAN_FAST_INTERVAL;//BT_GAP_SCAN_SLOW_INTERVAL_1;//
+        zero_param.window       = BT_GAP_SCAN_FAST_WINDOW; //BT_GAP_SCAN_SLOW_WINDOW_1;//
+        retval = BLECentralRole::instance()->startScan(zero_param);
     }
-
-    return false;
+    else
+    {
+        retval = BLECentralRole::instance()->startScan();
+    }
+    return retval;
 }
 
-void
-BLECentral::setAddress(ble_addr_t address) {
-    _address = address;
-}
 
-void
-BLECentral::clearAddress() {
-    memset(&_address, 0x00, sizeof(_address));
-}
+

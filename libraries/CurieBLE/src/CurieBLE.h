@@ -23,3 +23,5 @@
 #include "BLEService.h"
 #include "BLEPeripheral.h"
 #include "BLETypedCharacteristics.h"
+
+#include "BLECentral.h"

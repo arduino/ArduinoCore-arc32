@@ -34,6 +34,7 @@
 /*************************    MEMORY   *************************/
 
 #ifdef TRACK_ALLOCS
+#include "infra/log.h"
 int alloc_count = 0;
 #endif
 
@@ -45,6 +46,7 @@ void * cfw_alloc(int size, OS_ERR_TYPE * err) {
         (*(int*) ptr) = size;
 #ifdef TRACK_ALLOCS
         alloc_count++;
+        pr_info(0, "alloc_count - %d", alloc_count);
 #endif
         interrupt_unlock(flags);
         return ptr;
@@ -56,6 +58,7 @@ void cfw_free(void * ptr, OS_ERR_TYPE * err) {
     int flags = interrupt_lock();
 #ifdef TRACK_ALLOCS
     alloc_count--;
+    pr_info(0, "alloc_countf - %d", alloc_count);
 #endif
     free(ptr);
     interrupt_unlock(flags);

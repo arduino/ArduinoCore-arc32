@@ -140,19 +140,19 @@ void loop() {
 }
 
 
-void midiDeviceConnectHandler(BLECentral& central) {
+void midiDeviceConnectHandler(BLEHelper& central) {
   // central connected event handler
   Serial.print("Connected event, central: ");
   Serial.println(central.address());
 }
 
-void midiDeviceDisconnectHandler(BLECentral& central) {
+void midiDeviceDisconnectHandler(BLEHelper& central) {
   // central disconnected event handler
   Serial.print("Disconnected event, central: ");
   Serial.println(central.address());
 }
 
-void midiCharacteristicWritten(BLECentral& central, BLECharacteristic& characteristic) {
+void midiCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
   // central wrote new value to characteristic, update LED
   Serial.print("Characteristic event, written: ");
 }

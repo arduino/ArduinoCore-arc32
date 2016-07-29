@@ -22,9 +22,21 @@
 
 #include "Arduino.h"
 
-#include "../src/services/ble/ble_protocol.h"
-#include "services/ble/ble_service_gatt.h"
-#include "services/ble/ble_service_gatts_api.h"
+#include "../src/services/ble_service/ble_protocol.h"
+
+
+#include "infra/log.h"
+
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/gatt.h>
+#include <bluetooth/conn.h>
+#include <bluetooth/hci.h>
+
+#define BLE_ADDR_LEN 6
+
+#define MAX_UUID_SIZE              16
+
 
 /* Theoretically we should be able to support attribute lengths up to 512 bytes
  * but this involves splitting it across multiple packets.  For simplicity,
@@ -40,6 +52,30 @@
 /* Invalid BLE Address type */
 #define BLE_DEVICE_ADDR_INVALID 0xFF
 
+/** BLE response/event status codes. */
+enum BLE_STATUS {
+	BLE_STATUS_SUCCESS = 0, /**< General BLE Success code */
+	BLE_STATUS_PENDING, /**< Request received and execution started, response pending */
+	BLE_STATUS_TIMEOUT, /**< Request timed out */
+	BLE_STATUS_NOT_SUPPORTED, /**< Request/feature/parameter not supported */
+	BLE_STATUS_NOT_ALLOWED, /**< Request not allowed */
+	BLE_STATUS_LINK_TIMEOUT, /**< Link timeout (link loss) */
+	BLE_STATUS_NOT_ENABLED, /**< BLE not enabled, @ref ble_enable */
+	BLE_STATUS_ERROR,	/**< Generic Error */
+	BLE_STATUS_ALREADY_REGISTERED, /**< BLE service already registered */
+	BLE_STATUS_WRONG_STATE, /**< Wrong state for request */
+	BLE_STATUS_ERROR_PARAMETER, /**< Parameter in request is wrong */
+	BLE_STATUS_GAP_BASE = 0x100, /**< GAP specific error base */
+	BLE_STATUS_GATT_BASE = 0x200, /**< GATT specific Error base */
+};
+
+typedef uint16_t ble_status_t; /**< Response and event BLE service status type @ref BLE_STATUS */
+
 typedef ble_status_t BleStatus;
+
+#define BLE_MAX_CONN_CFG    2
+
+typedef bool (*ble_advertise_handle_cb_t)(uint8_t type, const uint8_t *data,
+				                          uint8_t data_len, void *user_data);
 
 #endif // _BLE_COMMON_H_INCLUDED
