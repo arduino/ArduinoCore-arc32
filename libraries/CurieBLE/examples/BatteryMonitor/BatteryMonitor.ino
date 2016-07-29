@@ -45,7 +45,7 @@ void setup() {
 
 void loop() {
   // listen for BLE peripherals to connect:
-  BLECentral central = blePeripheral.central();
+  BLECentralHelper central = blePeripheral.central();
 
   // if a central is connected to peripheral:
   if (central) {

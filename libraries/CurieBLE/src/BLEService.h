@@ -22,6 +22,10 @@
 
 #include "BLEAttribute.h"
 #include "BLECommon.h"
+#include "BLEProfile.h"
+
+class BLEPeripheral;
+class BLEProfile;
 
 /**
  * BLE GATT Service
@@ -37,8 +41,14 @@ public:
 
 protected:
     friend BLEPeripheral;
-
-    bool add(void);
+    friend BLEProfile;
+    void discover(const struct bt_gatt_attr *attr,
+	              struct bt_gatt_discover_params *params);
+    void discover(struct bt_gatt_discover_params *params);
+    
+    static struct bt_uuid *getPrimayUuid(void);
+private:
+    static bt_uuid_16 _gatt_primary_uuid;
 };
 
 #endif // _BLE_SERVICE_H_INCLUDED

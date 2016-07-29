@@ -113,7 +113,7 @@ typedef struct svc_client_handle_ {
 	 * Passed in the conn field of struct cfw_message for request messages
 	 */
 	void * server_handle;
-} svc_client_handle_t;
+} svc_client_handle_t, cfw_service_conn_t;
 
 struct cfw_message * cfw_alloc_message(int size, OS_ERR_TYPE * err);
 

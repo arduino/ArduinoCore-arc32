@@ -22,6 +22,11 @@
 #include "cfw_platform.h"
 #include "platform.h"
 
+// Add for debug corelib
+#ifdef CONFIGURE_DEBUG_CORELIB_ENABLED
+#include <infra/log.h>
+#endif
+
 
 /*
  * Arduino 101
@@ -236,6 +241,11 @@ void initVariant( void )
     variantAdcInit();
 
     cfw_platform_init();
+    
+    // Add for debug corelib
+    #ifdef CONFIGURE_DEBUG_CORELIB_ENABLED
+    log_init();
+    #endif
 }
 
 #ifdef __cplusplus

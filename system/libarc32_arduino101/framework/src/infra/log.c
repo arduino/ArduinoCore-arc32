@@ -62,10 +62,12 @@ void log_init()
 	uint8_t i;
 
 	for (i = 0; i < LOG_MODULE_NUM; i++) {
-		global_infos.modules_filter[i].status = 1;
-		global_infos.modules_filter[i].log_level = LOG_LEVEL_INFO;
+		global_infos.modules_filter[i].status = true;
+		global_infos.modules_filter[i].log_level = LOG_LEVEL_DEBUG;
 	}
-	global_infos.log_level_limit = LOG_LEVEL_INFO;
+	global_infos.log_level_limit = LOG_LEVEL_DEBUG;
+	
+    global_infos.modules_filter[LOG_MODULE_MAIN].log_level = LOG_LEVEL_INFO;
 
 	log_impl_init();
 }

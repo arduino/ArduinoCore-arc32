@@ -21,50 +21,119 @@
 #define _BLE_CENTRAL_H_INCLUDED
 
 #include "BLECommon.h"
+#include "BLERoleBase.h"
 
-class BLEPeripheral;
+class BLEAttribute;
 
-class BLECentral {
-    friend class BLEPeripheral;
-
-    public:
-        /**
-         * Is the Central connected
-         *
-         * @return boolean_t true if the central is connected, otherwise false
-         */
-        bool connected(void);
-
-        /**
-         * Get the address of the Central in string form
-         *
-         * @return const char* address of the Central in string form
-         */
-        const char* address(void) const;
-        
-        /**
-         * Disconnect the central if it is connected
-         *
-         */
-        bool disconnect(void);
-
-        /**
-         * Poll the central for events
-         */
-        void poll(void);
-
-        operator bool(void) const;
-        bool operator==(const BLECentral& rhs) const;
-        bool operator!=(const BLECentral& rhs) const;
-
-    protected:
-        BLECentral(BLEPeripheral* peripheral);
-        void setAddress(ble_addr_t address);
-        void clearAddress();
-
-    private:
-        BLEPeripheral* _peripheral;
-        ble_addr_t     _address;
+class BLECentral{
+public:
+    /**
+     * @brief   Start scan
+     *
+     * @param   none
+     *
+     * @return  bool    Indicate the success or error
+     *
+     * @note  none
+     */
+    bool startScan();
+    
+    /**
+     * @brief   Start scan with scan parameter
+     *
+     * @param   none
+     *
+     * @return  bool    Indicate the success or error
+     *
+     * @note  none
+     */
+    bool startScan(const struct bt_le_scan_param &scan_param);
+    
+    /**
+     * @brief   Stop scan
+     *
+     * @param   none
+     *
+     * @return  bool    Indicate the success or error
+     *
+     * @note  none
+     */
+    bool stopScan();
+    
+    /**
+     * @brief   Schedule a connect request to peripheral to establish a connection
+     *
+     * @param   addr    The MAC address of peripheral device that want to establish connection
+     *
+     * @param   param   The connetion parameters
+     *
+     * @return  bool    Indicate the success or error
+     *
+     * @note  none
+     */
+    bool connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param);
+    
+    /**
+     * @brief   Discover the peripheral device profile
+     *
+     * @param   peripheral  The Peripheral that need to discover the profile
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void discover(BLEPeripheralHelper &peripheral);
+    
+    /**
+     * @brief   Set the scan parameter
+     *
+     * @param   scan_param      The scan parameter want to be set
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void setScanParam(const struct bt_le_scan_param &scan_param);
+    
+    /**
+     * @brief   Add an attribute to the BLE Central Device
+     *
+     * @param   attribute   Attribute to add to Central
+     *
+     * @return  none
+     *
+     * @note  The attribute will used for discover the peripheral handler
+     */
+    void addAttribute(BLEAttribute& attribute);
+    
+    /**
+     * Provide a function to be called when events related to this Device are raised
+     *
+     * @param event    Event type for callback
+     * @param callback Pointer to callback function to invoke when an event occurs.
+     */
+    void setEventHandler(BLERoleEvent event, BLERoleEventHandler callback);
+    
+    /**
+     * @brief   Provide a function to be called when scanned the advertisement
+     *
+     * @param   advcb   Pointer to callback function to invoke when advertisement received
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void setAdvertiseHandler(ble_advertise_handle_cb_t advcb);
+    
+    /**
+     * Setup attributes and start scan
+     *
+     * @return bool indicating success or error
+     */
+    bool begin(void);
+protected:
+private:
+    
 };
 
 #endif

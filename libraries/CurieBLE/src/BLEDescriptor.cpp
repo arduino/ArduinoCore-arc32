@@ -63,23 +63,3 @@ BLEDescriptor::operator[] (int offset) const
     return _value[offset];
 }
 
-bool
-BLEDescriptor::add(uint16_t serviceHandle)
-{
-    bt_uuid uuid = btUuid();
-    struct ble_gatts_descriptor desc;
-    uint16_t handle = 0;
-
-    memset(&desc, 0, sizeof(desc));
-
-    desc.p_uuid = &uuid;
-
-    desc.p_value = _value;
-    desc.length = _value_length;
-
-    // this class only supports read-only descriptors
-    desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    desc.perms.wr = GAP_SEC_NO_PERMISSION;
-
-    return (ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle) == BLE_STATUS_SUCCESS); 
-}

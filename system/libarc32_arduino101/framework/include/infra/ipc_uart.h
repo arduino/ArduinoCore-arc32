@@ -78,25 +78,6 @@
 /* optional sync frame payload */
 #define SYNC_FRAME_DATA(_frame_) ((unsigned char *)&(_frame_)[20])
 
-#define IPC_CHANNEL_STATE_CLOSED 0
-#define IPC_CHANNEL_STATE_OPEN 1
-
-#define IPC_UART_MAX_CHANNEL 4
-
-struct ipc_uart_channels {
-	uint16_t index;
-	uint16_t state;
-	void (*cb) (uint8_t cpu_id, int chan, int len, void * data);
-};
-
-void * uart_ipc_channel_open(int channel, void(*cb)(uint8_t cpu_id, int chan, int len, void * data));
-int uart_ipc_send_message(void * handle, int len, void *p_data);
-void uart_ipc_set_channel(void * ipc_channel);
-void * uart_ipc_get_channel(void);
-int uart_ipc_send_sync_resp(int channel, int request_id, int param1, int param2, void * ptr);
-void uart_ipc_init(int num);
-void uart_ipc_disable(int num);
-
 /** @} */
 
 #endif /* _IPC_UART_H_ */

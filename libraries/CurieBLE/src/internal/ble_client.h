@@ -87,63 +87,26 @@ enum {
         uuid.type = BT_UUID128;                                         \
     } while(0)
 
-typedef enum {
-    BLE_CLIENT_GAP_EVENT_CONNECTED = 0,
-    BLE_CLIENT_GAP_EVENT_DISCONNECTED,
-    BLE_CLIENT_GAP_EVENT_ADV_TIMEOUT,
-    BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT,
-    BLE_CLIENT_GAP_EVENT_RSSI,
-} ble_client_gap_event_t;
 
-typedef enum {
-    BLE_CLIENT_GATTS_EVENT_WRITE = 0,
-} ble_client_gatts_event_t;
+typedef void (*ble_client_connect_event_cb_t)(struct bt_conn *conn, uint8_t err, void *param);
+typedef void (*ble_client_disconnect_event_cb_t)(struct bt_conn *conn, uint8_t reason, void *param);
+typedef void (*ble_client_update_param_event_cb_t)(struct bt_conn *conn, 
+                                                   uint16_t interval,
+                                                   uint16_t latency, 
+                                                   uint16_t timeout, 
+                                                   void *param);
 
-typedef void (*ble_client_gap_event_cb_t)(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
-typedef void (*ble_client_gatts_event_cb_t)(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void ble_client_get_factory_config(ble_addr_t *bda, char *name);
-BleStatus ble_client_init(ble_client_gap_event_cb_t gap_event_cb,
-                          void *gap_event_param,
-                          ble_client_gatts_event_cb_t gatts_event_cb,
-                          void *gatts_event_param);
-BleStatus ble_client_gap_set_enable_config(const char *name,
-                                           const ble_addr_t *bda,
-                                           const uint16_t appearance,
-                                           const int8_t tx_power,
-                                           const uint16_t min_conn_interval,
-                                           const uint16_t max_conn_interval);
-BleStatus ble_client_gap_get_bda(ble_addr_t *p_bda);
-BleStatus ble_client_gap_wr_adv_data(uint8_t *adv_data,
-                                     const uint8_t adv_data_len);
-BleStatus ble_client_gap_start_advertise(uint16_t timeout);
-BleStatus ble_client_gap_stop_advertise(void);
-BleStatus ble_client_gatts_add_service(const struct bt_uuid *uuid, const uint8_t type, uint16_t *svc_handle);
-BleStatus ble_client_gatts_include_service(const uint16_t primary_svc_handle, uint16_t included_svc_handle);
-BleStatus ble_client_gatts_add_characteristic(const uint16_t svc_handle,
-                                              struct ble_gatts_characteristic *char_data,
-                                              struct ble_gatts_char_handles *handles);
-BleStatus ble_client_gatts_add_descriptor(const uint16_t svc_handle,
-                                          struct ble_gatts_descriptor *desc,
-                                          uint16_t *handle);
-BleStatus ble_client_gatts_set_attribute_value(const uint16_t value_handle,
-                                               const uint16_t len, const uint8_t *value,
-                                               const uint16_t offset);
-BleStatus ble_client_gatts_send_notif_ind(const uint16_t value_handle,
-                                          const uint16_t len, uint8_t * p_value,
-                                          const uint16_t offset,
-                                          const bool indication);
-BleStatus ble_client_gap_disconnect(const uint8_t reason);
-BleStatus ble_client_gap_set_rssi_report(boolean_t enable);
-
-/* Direct Test Mode (DTM) API - for internal use only */
-BleStatus ble_client_dtm_init(void);
-BleStatus ble_client_dtm_cmd(const struct ble_test_cmd *test_cmd,
-                             struct ble_dtm_test_result *test_result);
+void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_param,
+                     ble_client_disconnect_event_cb_t disconnect_cb, void* disconnect_param,
+                     ble_client_update_param_event_cb_t update_param_cb, void* update_param_param);
+void ble_client_get_factory_config(bt_addr_le_t *bda, char *name);
+void ble_gap_set_tx_power(int8_t tx_power);
+BleStatus errorno_to_ble_status(int err);
 
 #ifdef __cplusplus
 }

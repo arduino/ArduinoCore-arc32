@@ -36,6 +36,10 @@
 #include <infra/log_backend.h>
 #include <stdarg.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @defgroup infra_log Log
  * @ingroup infra
@@ -260,7 +264,11 @@ void log_resume();
  * @param module the ID of the log module related to this message
  * @param format the printf-like string format
  */
-#define pr_debug(module, format,...) pr_debug_ ## module(format, ##__VA_ARGS__)
+#define pr_debug(module, format,...) log_printk(LOG_LEVEL_DEBUG, module, format, ##__VA_ARGS__)
+
+#ifdef __cplusplus
+}
+#endif
 
 /** @} */
 

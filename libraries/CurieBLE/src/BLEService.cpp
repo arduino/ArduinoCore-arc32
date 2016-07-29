@@ -20,21 +20,33 @@
 #include "internal/ble_client.h"
 
 #include "BLEService.h"
+struct bt_uuid_16 BLEService::_gatt_primary_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_PRIMARY_VAL};
+struct bt_uuid *BLEService::getPrimayUuid(void)
+{
+    return (struct bt_uuid *)&_gatt_primary_uuid;
+}
 
 BLEService::BLEService(const char* uuid) :
     BLEAttribute(uuid, BLETypeService)
 {
 }
 
-bool
-BLEService::add() {
-    bt_uuid uuid = btUuid();
-    uint16_t handle = 0;
 
-    BleStatus status = ble_client_gatts_add_service(&uuid, BLE_GATT_SVC_PRIMARY, &handle);
-    if (BLE_STATUS_SUCCESS == status) {
-        setHandle(handle);
-    }
-
-    return (BLE_STATUS_SUCCESS == status);
+void BLEService::discover(struct bt_gatt_discover_params *params)
+{
+    params->type = BT_GATT_DISCOVER_PRIMARY;
+    
+    params->uuid = this->uuid();
+    // Start discovering
+    _discoverying = true;
 }
+
+void BLEService::discover(const struct bt_gatt_attr *attr,
+                          struct bt_gatt_discover_params *params)
+{
+    params->start_handle = attr->handle + 1;
+    
+    // Complete the discover
+    _discoverying = false;
+}
+
