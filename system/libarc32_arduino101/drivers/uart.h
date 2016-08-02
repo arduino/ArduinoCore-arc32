@@ -91,6 +91,7 @@ int uart_line_status(int port);
 int uart_break_check(int port);
 void uart_break_send(int port, int delay);
 void uart_disable(int port);
+uint8_t uart_tx_complete(int which);
 
 #ifdef __cplusplus
 }

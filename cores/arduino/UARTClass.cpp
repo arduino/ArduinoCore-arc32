@@ -169,7 +169,7 @@ void UARTClass::flush( void )
 {
   while (_tx_buffer->_iHead != _tx_buffer->_iTail); //wait for transmit data to be sent
   // Wait for transmission to complete
-  while (uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX));
+  while(!uart_tx_complete(CONFIG_UART_CONSOLE_INDEX));
 }
 
 size_t UARTClass::write( const uint8_t uc_data )
