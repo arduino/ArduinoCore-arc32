@@ -1,0 +1,23 @@
+#######################################
+# Syntax Coloring Map For CurieSMC
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+CurieSMC KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+write   KEYWORD2
+reaD   KEYWORD2
+begin   KEYWORD2
+end     KEYWORD2
+availableForRead  KEYWORD2
+availableForWrite     KEYWORD2
+#######################################
+# Constants (LITERAL1)
+#######################################
