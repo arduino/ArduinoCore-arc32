@@ -5,10 +5,15 @@
  * To test this sketch you will need a second Arduino/Genuino 101 board with the I2S_TxCallback sketch uploaded
  * 
  * Connection:
- * I2S_RSCK(pin 8) -> I2S_TSCK(pin 2) 
- * I2S_RWS(pin 3) -> I2S_TWS(pin 4)
- * I2S_RXD(pin 5) -> I2S_TXD(pin 7)
- * 
+ *   I2S_RSCK(pin 8) -> I2S_TSCK(pin 2) 
+ *   I2S_RWS (pin 3) -> I2S_TWS (pin 4)
+ *   I2S_RXD (pin 5) -> I2S_TXD (pin 7)
+ *   Ground  (GND)   -> Ground  (GND)
+ * Notes:
+ *   Transmission is sensitive to noise. To reduce noise:
+ *   - Power both boards with an external power supply. Usb power is not always clean.
+ *   - Insure that both boards are sharing the same ground.
+ *   - Use short wires to connect between the board or use shielded wire.
 **/
 #include <CurieI2S.h>
 
