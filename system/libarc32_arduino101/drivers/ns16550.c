@@ -626,3 +626,16 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 	/* set the Host Processor Interrupt Routing Mask */
 	SOC_UNMASK_INTERRUPTS(INT_UART_0_MASK + (which * UART_REG_ADDR_INTERVAL));
 }
+
+/*******************************************************************************
+*
+* uart_tx_complete - check if tx holding and shift register are empty
+*
+* RETURNS: zero if registers are non-empty (transmission not complete), 
+*          non-zero if registers are empty (transmission complete)
+*/
+
+uint8_t uart_tx_complete(int which)
+{
+	return INBYTE(LSR(which)) & LSR_TEMT;
+}
