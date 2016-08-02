@@ -40,7 +40,7 @@ OUTPUT_FORMAT("elf32-littlearc", "elf32-bigarc", "elf32-littlearc")
 MEMORY
     {
     FLASH                 (rx) : ORIGIN = 0x40034000, LENGTH = 152K
-    SRAM                  (wx) : ORIGIN = 0xa800e000, LENGTH = 24K
+    SRAM                  (wx) : ORIGIN = 0xa8000400, LENGTH = 24K
     DCCM                  (wx) : ORIGIN = 0x80000000, LENGTH = 8K
     }
 
