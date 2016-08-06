@@ -639,3 +639,39 @@ uint8_t uart_tx_complete(int which)
 {
 	return INBYTE(LSR(which)) & LSR_TEMT;
 }
+
+/*******************************************************************************
+*
+* uart_loop_enable - enable loopback
+*
+* This function enable the local loopback.
+* When enabled, the output of the Transmitter Shift
+* Register is looped back into the Receiver Shift Register input,
+* and any data that is transmitted is immediately received.
+*
+* RETURNS: N/A
+*/
+
+void uart_loop_enable(int which)
+{
+	uint8_t mdc = INBYTE(MDC(which));
+	mdc |= MCR_LOOP;
+	OUTBYTE(MDC(which), mdc);
+}
+
+/*******************************************************************************
+*
+* uart_loop_disable - disable loopback
+*
+* This function disable the local loopback.
+*
+* RETURNS: N/A
+*/
+
+void uart_loop_disable(int which)
+{
+	uint8_t mdc = INBYTE(MDC(which));
+	mdc &= ~MCR_LOOP;
+	OUTBYTE(MDC(which), mdc);
+}
+
