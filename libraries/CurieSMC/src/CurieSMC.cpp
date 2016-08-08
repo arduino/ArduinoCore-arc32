@@ -14,13 +14,11 @@ void CurieSMC::begin()
 int CurieSMC::write(uint8_t data)
 {
   //check if buffer is available
-  if(ARC_BUFF_FLAG == 1)
-  {
+  if(ARC_BUFF_FLAG == 0)
     return 1;
-  }
   
   //lock the buffer
-  ARC_BUFF_FLAG = 0;
+  ARC_BUFF_FLAG = 1;
   
   int new_head = (int)(ARC_BUFF_HEAD+1)%SHARED_BUFFER_SIZE;
   if(new_head != ARC_BUFF_TAIL)
@@ -30,23 +28,21 @@ int CurieSMC::write(uint8_t data)
   }
   else
   {
+    ARC_BUFF_FLAG = 2; //unlock the buffer
     return 2; //buffer is full
   }
-
-  //unlock the buffer
-  ARC_BUFF_FLAG = 2;
-
+  
+  ARC_BUFF_FLAG = 2; //unlock the buffer
   return 0;
 }
 
 uint8_t CurieSMC::read()
 {
   //check if buffer is available
-  if(QUARK_BUFF_FLAG == 1)
-    return 0;
+  while(QUARK_BUFF_FLAG == 0); //wait for Quark core to release the buffer
 
   //lock the buffer
-  QUARK_BUFF_FLAG = 0;
+  QUARK_BUFF_FLAG = 1;
   
   if(availableForRead())
   {
