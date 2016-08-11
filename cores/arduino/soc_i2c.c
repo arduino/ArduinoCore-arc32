@@ -31,17 +31,20 @@ static volatile uint8_t soc_i2c_master_rx_complete;
 static volatile uint8_t soc_i2c_err_detect;
 static volatile uint32_t soc_i2c_err_source;
 
-static volatile uint8_t soc_i2c_slave = 0;
+static volatile uint32_t soc_i2c_slave_address = 0;
 
-static void soc_i2c_master_rx_callback(uint32_t dev_id) {
+static void soc_i2c_master_rx_callback(uint32_t dev_id)
+{
     soc_i2c_master_rx_complete = 1;
 }
 
-static void soc_i2c_master_tx_callback(uint32_t dev_id) {
+static void soc_i2c_master_tx_callback(uint32_t dev_id)
+{
     soc_i2c_master_tx_complete = 1;
 }
 
-static void soc_i2c_err_callback(uint32_t dev_id) {
+static void soc_i2c_err_callback(uint32_t dev_id)
+{
     soc_i2c_err_detect = 1;
     soc_i2c_err_source = dev_id;
 }
@@ -49,27 +52,32 @@ static void soc_i2c_err_callback(uint32_t dev_id) {
 static void (*soc_i2c_slave_rx_user_callback)(int) = NULL;
 static void (*soc_i2c_slave_tx_user_callback)(void) = NULL;
 
-static void soc_i2c_slave_rx_callback(uint32_t bytes) {
+static void soc_i2c_slave_rx_callback(uint32_t bytes)
+{
     if (soc_i2c_slave_rx_user_callback) {
         soc_i2c_slave_rx_user_callback((int)bytes);
     }
 }
 
-static void soc_i2c_slave_tx_callback(uint32_t bytes) {
+static void soc_i2c_slave_tx_callback(uint32_t bytes)
+{
     if (soc_i2c_slave_tx_user_callback) {
         soc_i2c_slave_tx_user_callback();
     }
 }
 
-void soc_i2c_slave_set_rx_user_callback(void (*onReceiveCallback)(int)) {
+void soc_i2c_slave_set_rx_user_callback(void (*onReceiveCallback)(int))
+{
     soc_i2c_slave_rx_user_callback = onReceiveCallback;
 }
 
-void soc_i2c_slave_set_tx_user_callback(void (*onRequestCallback)(void)) {
+void soc_i2c_slave_set_tx_user_callback(void (*onRequestCallback)(void))
+{
     soc_i2c_slave_tx_user_callback = onRequestCallback;
 }
 
-static int soc_i2c_master_wait_rx_or_err() {
+static int soc_i2c_master_wait_rx_or_err()
+{
     uint64_t timeout = TIMEOUT_MS * 200;
     while (timeout--) {
         if (soc_i2c_err_detect) {
@@ -89,7 +97,8 @@ static int soc_i2c_master_wait_rx_or_err() {
     return I2C_TIMEOUT;
 }
 
-static int soc_i2c_master_wait_tx_or_err() {
+static int soc_i2c_master_wait_tx_or_err()
+{
     uint64_t timeout = TIMEOUT_MS * 200;
     while (timeout--) {
         if (soc_i2c_err_detect) {
@@ -110,11 +119,12 @@ static int soc_i2c_master_wait_tx_or_err() {
 }
 
 static int soc_i2c_wait_dev_ready(SOC_I2C_CONTROLLER controller_id,
-                                  bool no_stop) {
+                                  bool no_stop)
+{
     uint64_t timeout = TIMEOUT_MS * 200;
     int ret = 0;
     while (timeout--) {
-        ret = soc_i2c_status(controller_id);
+        ret = soc_i2c_status(controller_id, no_stop);
         if (ret == I2C_OK) {
             return I2C_OK;
         }
@@ -125,8 +135,9 @@ static int soc_i2c_wait_dev_ready(SOC_I2C_CONTROLLER controller_id,
     return I2C_TIMEOUT - ret;
 }
 
-int soc_i2c_openadapter(uint8_t address) {
-    int ret;
+int soc_i2c_openadapter(uint32_t address, int i2c_speed, int i2c_addr_mode)
+{
+    int ret = 0;
 
     // use I2C0
     SET_PIN_MODE(20, I2C_MUX_MODE);
@@ -138,8 +149,8 @@ int soc_i2c_openadapter(uint8_t address) {
     i2c_cfg_data_t i2c_cfg;
     memset(&i2c_cfg, 0, sizeof(i2c_cfg_data_t));
 
-    i2c_cfg.speed = I2C_FAST;
-    i2c_cfg.addressing_mode = I2C_7_Bit;
+    i2c_cfg.speed = i2c_speed;
+    i2c_cfg.addressing_mode = i2c_addr_mode;
     if (address) {
         i2c_cfg.mode_type = I2C_SLAVE;
         i2c_cfg.cb_tx = soc_i2c_slave_tx_callback;
@@ -159,35 +170,37 @@ int soc_i2c_openadapter(uint8_t address) {
 
     soc_i2c_set_config(SOC_I2C_0, &i2c_cfg);
     soc_i2c_clock_enable(SOC_I2C_0);
+
     ret = soc_i2c_wait_dev_ready(SOC_I2C_0, false);
-    if (i2c_cfg.mode_type == I2C_SLAVE)
-    {
-        soc_i2c_slave_enable(SOC_I2C_0);
-    }
 
     return ret;
 }
 
-void soc_i2c_setslave(uint8_t addr) {
-    soc_i2c_slave = addr;
+void soc_i2c_master_set_slave_address(uint32_t addr)
+{
+    soc_i2c_slave_address = addr;
     return;
 }
 
-void soc_i2c_slave_set_rx_user_buffer(uint8_t *buffer, uint8_t length) {
+void soc_i2c_slave_set_rx_user_buffer(uint8_t *buffer, uint8_t length)
+{
     soc_i2c_slave_enable_rx(SOC_I2C_0, buffer, length);
 }
 
-void soc_i2c_slave_set_tx_user_buffer(uint8_t *buffer, uint8_t length) {
+void soc_i2c_slave_set_tx_user_buffer(uint8_t *buffer, uint8_t length)
+{
     soc_i2c_slave_enable_tx(SOC_I2C_0, buffer, length);
 }
 
-int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop) {
+int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop)
+{
     int ret;
 
     soc_i2c_master_tx_complete = 0;
     soc_i2c_err_detect = 0;
     soc_i2c_err_source = 0;
-    soc_i2c_transfer(SOC_I2C_0, bytes, length, 0, 0, soc_i2c_slave, no_stop);
+    soc_i2c_master_transfer(SOC_I2C_0, bytes, length, 0, 0,
+                            soc_i2c_slave_address, no_stop);
     ret = soc_i2c_master_wait_tx_or_err();
     if (ret)
         return ret;
@@ -197,13 +210,15 @@ int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop) {
     return length;
 }
 
-int soc_i2c_master_readbytes(uint8_t *buf, int length, bool no_stop) {
+int soc_i2c_master_readbytes(uint8_t *buf, int length, bool no_stop)
+{
     int ret;
 
     soc_i2c_master_rx_complete = 0;
     soc_i2c_err_detect = 0;
     soc_i2c_err_source = 0;
-    soc_i2c_transfer(SOC_I2C_0, buf, length, 0, 0, soc_i2c_slave, no_stop);
+    soc_i2c_master_transfer(SOC_I2C_0, 0, 0, buf, length, soc_i2c_slave_address,
+                            no_stop);
     ret = soc_i2c_master_wait_rx_or_err();
     if (ret)
         return ret;

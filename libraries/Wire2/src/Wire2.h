@@ -26,12 +26,18 @@
 
 #define BUFFER_LENGTH 32
 
+#define I2C_SPEED_SLOW  1
+#define I2C_SPEED_FAST  2
+#define I2C_SPEED_HS  2
+
+#define I2C_ADDR_7Bit  0
+#define I2C_ADDR_10Bit  1
 class TwoWire2 : public Stream {
   public:
     TwoWire2(void);
     void begin();
-    void begin(uint8_t);
-    void begin(int);
+    void begin(uint8_t,int i2c_speed = I2C_SPEED_FAST,int i2c_addr_mode = I2C_ADDR_7Bit);
+    void begin(int,int i2c_speed = I2C_SPEED_FAST,int i2c_addr_mode = I2C_ADDR_7Bit);
     void beginTransmission(uint8_t);
     void beginTransmission(int);
     uint8_t endTransmission(void);

@@ -40,32 +40,45 @@ uint8_t TwoWire2::txBufferLength = 0;
 void (*TwoWire2::onReceiveUserCallback)(int);
 void (*TwoWire2::onRequestUserCallback)(void);
 
-TwoWire2::TwoWire2(void) : init_status(-1) {
+TwoWire2::TwoWire2(void) : init_status(-1)
+{
     // Empty
 }
 
-void TwoWire2::begin(void) {
-    init_status = soc_i2c_openadapter(0);
+void TwoWire2::begin(void)
+{
+    int i2c_speed = I2C_SPEED_FAST;
+    int i2c_addr_mode = I2C_ADDR_7Bit;
+    init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
 }
 
-void TwoWire2::begin(uint8_t address) {
-    init_status = soc_i2c_openadapter(address);
-    soc_i2c_slave_set_rx_user_buffer(rxBuffer, sizeof(rxBuffer));
+void TwoWire2::begin(uint8_t address, int i2c_speed, int i2c_addr_mode)
+{
+    if (address != 0) {
+        init_status = soc_i2c_openadapter(address, i2c_speed, i2c_addr_mode);
+        soc_i2c_slave_set_rx_user_buffer(rxBuffer, (uint8_t)sizeof(rxBuffer));
+    } else
+        init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
 }
 
-void TwoWire2::begin(int address) {
-    init_status = soc_i2c_openadapter(address);
-    soc_i2c_slave_set_rx_user_buffer(rxBuffer, sizeof(rxBuffer));
+void TwoWire2::begin(int address, int i2c_speed, int i2c_addr_mode)
+{
+    if (address != 0) {
+        init_status = soc_i2c_openadapter(address, i2c_speed, i2c_addr_mode);
+        soc_i2c_slave_set_rx_user_buffer(rxBuffer, (uint8_t)sizeof(rxBuffer));
+    } else
+        init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
 }
 
 uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity,
-                              uint8_t sendStop) {
+                              uint8_t sendStop)
+{
     int ret;
     if (quantity > BUFFER_LENGTH)
         quantity = BUFFER_LENGTH;
 
     /* Set slave address via ioctl  */
-    soc_i2c_setslave(address);
+    soc_i2c_master_set_slave_address(address);
     ret = soc_i2c_master_readbytes(rxBuffer, quantity, !sendStop);
     if (ret < 0) {
         return 0;
@@ -77,28 +90,33 @@ uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity,
     return quantity;
 }
 
-uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity) {
+uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity)
+{
     return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t) true);
 }
 
-uint8_t TwoWire2::requestFrom(int address, int quantity) {
+uint8_t TwoWire2::requestFrom(int address, int quantity)
+{
     return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t) true);
 }
 
-uint8_t TwoWire2::requestFrom(int address, int quantity, int sendStop) {
+uint8_t TwoWire2::requestFrom(int address, int quantity, int sendStop)
+{
     return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t)sendStop);
 }
 
-void TwoWire2::beginTransmission(uint8_t address) {
+void TwoWire2::beginTransmission(uint8_t address)
+{
     if (init_status < 0)
         return;
     // set slave address
-    soc_i2c_setslave(address);
+    soc_i2c_master_set_slave_address(address);
     // reset transmit buffer
     txBufferLength = 0;
 }
 
-void TwoWire2::beginTransmission(int address) {
+void TwoWire2::beginTransmission(int address)
+{
     beginTransmission((uint8_t)address);
 }
 
@@ -115,7 +133,8 @@ void TwoWire2::beginTransmission(int address) {
 //	no call to endTransmission(true) is made. Some I2C
 //	devices will behave oddly if they do not see a STOP.
 //
-uint8_t TwoWire2::endTransmission(uint8_t sendStop) {
+uint8_t TwoWire2::endTransmission(uint8_t sendStop)
+{
     int err;
     // transmit buffer (blocking)
     if (txBufferLength >= 1) {
@@ -138,18 +157,21 @@ uint8_t TwoWire2::endTransmission(uint8_t sendStop) {
 //	This provides backwards compatibility with the original
 //	definition, and expected behaviour, of endTransmission
 //
-uint8_t TwoWire2::endTransmission(void) {
+uint8_t TwoWire2::endTransmission(void)
+{
     return endTransmission(true);
 }
 
-size_t TwoWire2::write(uint8_t data) {
+size_t TwoWire2::write(uint8_t data)
+{
     if (txBufferLength >= BUFFER_LENGTH)
         return 0;
     txBuffer[txBufferLength++] = data;
     return 1;
 }
 
-size_t TwoWire2::write(const uint8_t *data, size_t quantity) {
+size_t TwoWire2::write(const uint8_t *data, size_t quantity)
+{
     for (size_t i = 0; i < quantity; ++i) {
         if (txBufferLength >= BUFFER_LENGTH)
             return i;
@@ -158,28 +180,33 @@ size_t TwoWire2::write(const uint8_t *data, size_t quantity) {
     return quantity;
 }
 
-int TwoWire2::available(void) {
+int TwoWire2::available(void)
+{
     return rxBufferLength - rxBufferIndex;
 }
 
-int TwoWire2::read(void) {
+int TwoWire2::read(void)
+{
     if (rxBufferIndex < rxBufferLength)
         return rxBuffer[rxBufferIndex++];
     return -1;
 }
 
-int TwoWire2::peek(void) {
+int TwoWire2::peek(void)
+{
     if (rxBufferIndex < rxBufferLength)
         return rxBuffer[rxBufferIndex];
     return -1;
 }
 
-void TwoWire2::flush(void) {
+void TwoWire2::flush(void)
+{
     // Do nothing, use endTransmission(..) to force
     // data transfer.
 }
 
-void TwoWire2::onReceiveCallback(int bytes) {
+void TwoWire2::onReceiveCallback(int bytes)
+{
     if (!onReceiveUserCallback) {
         return;
     }
@@ -194,7 +221,8 @@ void TwoWire2::onReceiveCallback(int bytes) {
     onReceiveUserCallback(bytes);
 }
 
-void TwoWire2::onRequestCallback(void) {
+void TwoWire2::onRequestCallback(void)
+{
     if (!onRequestUserCallback) {
         return;
     }
@@ -208,12 +236,14 @@ void TwoWire2::onRequestCallback(void) {
     }
 }
 
-void TwoWire2::onReceive(void (*function)(int)) {
+void TwoWire2::onReceive(void (*function)(int))
+{
     onReceiveUserCallback = function;
     soc_i2c_slave_set_rx_user_callback(onReceiveCallback);
 }
 
-void TwoWire2::onRequest(void (*function)(void)) {
+void TwoWire2::onRequest(void (*function)(void))
+{
     onRequestUserCallback = function;
     soc_i2c_slave_set_tx_user_callback(onRequestCallback);
 }
