@@ -168,7 +168,7 @@ int UARTClass::read( void )
 
 void UARTClass::flush( void )
 {
-  while (_tx_buffer->_iHead != _tx_buffer->_iTail); //wait for transmit data to be sent
+  while (_tx_buffer->_iHead != *(volatile int*)&(_tx_buffer->_iTail)); //wait for transmit data to be sent
   // Wait for transmission to complete
   while(!uart_tx_complete(CONFIG_UART_CONSOLE_INDEX));
 }
@@ -179,11 +179,11 @@ size_t UARTClass::write( const uint8_t uc_data )
     return(0);
 
   // Is the hardware currently busy?
-  if (_tx_buffer->_iTail != _tx_buffer->_iHead)
+  if (_tx_buffer->_iTail != _tx_buffer->_iHead || !uart_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
     // If busy we buffer
     int l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
-    while (_tx_buffer->_iTail == l)
+    while (*(volatile int*)&(_tx_buffer->_iTail) == l)
       ; // Spin locks if we're about to overwrite the buffer. This continues once the data is sent
 
     _tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
@@ -201,17 +201,22 @@ size_t UARTClass::write( const uint8_t uc_data )
 
 void UARTClass::IrqHandler( void )
 {
-  uint8_t uc_data;
-  int ret;
-  ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
-  
-  while ( ret != -1 ) {
-    _rx_buffer->store_char(uc_data);
+  uart_irq_update(CONFIG_UART_CONSOLE_INDEX);
+  // if irq is Receiver Data Available
+  if(uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
+  {
+    uint8_t uc_data;
+    int ret;
     ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    
+    while ( ret != -1 ) {
+      _rx_buffer->store_char(uc_data);
+      ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    }
   }
 
-  // Do we need to keep sending data?
-  if (!uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
+  // if irq is Transmitter Holding Register
+  else if(uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
     if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
       uart_poll_out(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);

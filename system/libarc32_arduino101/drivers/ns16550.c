@@ -340,7 +340,7 @@ unsigned char uart_poll_out(
 	)
 {
 	/* wait for transmitter to ready to accept a character */
-	while ((INBYTE(LSR(which)) & LSR_TEMT) == 0)
+	while ((INBYTE(LSR(which)) & LSR_THRE) == 0)
 		;
 
 	OUTBYTE(THR(which), outChar);
@@ -638,6 +638,19 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 uint8_t uart_tx_complete(int which)
 {
 	return INBYTE(LSR(which)) & LSR_TEMT;
+}
+
+/*******************************************************************************
+*
+* uart_tx_complete - check if tx holding register is empty
+*
+* RETURNS: zero if register is non-empty, 
+*          non-zero if register is empty (ready to receive new data)
+*/
+
+uint8_t uart_tx_ready(int which)
+{
+	return INBYTE(LSR(which)) & LSR_THRE;
 }
 
 /*******************************************************************************
