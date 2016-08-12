@@ -54,6 +54,9 @@ extern "C" {
 /* options for uart init */
 #define UART_OPTION_AFCE 0x01
 
+/* Size of the FIFO in bytes */
+#define UART_FIFO_SIZE 16
+
 /* generic UART info structure */
 struct uart_init_info {
 	int baud_rate;

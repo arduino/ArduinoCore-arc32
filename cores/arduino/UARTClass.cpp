@@ -218,9 +218,12 @@ void UARTClass::IrqHandler( void )
   // if irq is Transmitter Holding Register
   else if(uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
-    if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-      uart_poll_out(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
-      _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+    if(_tx_buffer->_iTail != _tx_buffer->_iHead)
+    {
+      int end = (_tx_buffer->_iTail < _tx_buffer->_iHead) ? _tx_buffer->_iHead:SERIAL_BUFFER_SIZE;
+      int l = min(end - _tx_buffer->_iTail, UART_FIFO_SIZE);
+      uart_fifo_fill(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer+_tx_buffer->_iTail, l);
+      _tx_buffer->_iTail = (_tx_buffer->_iTail+l)%SERIAL_BUFFER_SIZE;
     }
     else
     {
