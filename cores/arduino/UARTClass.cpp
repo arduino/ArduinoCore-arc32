@@ -93,7 +93,7 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
   while (uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
       uart_fifo_read(CONFIG_UART_CONSOLE_INDEX, &c, 1);
 
-
+  uart_irq_err_enable(CONFIG_UART_CONSOLE_INDEX);
   uart_irq_rx_enable(CONFIG_UART_CONSOLE_INDEX);
 
 }
@@ -116,6 +116,7 @@ void UARTClass::end( void )
   //enable loopback, needed to prevent a short disconnection to be 
   //interpreted as a packet and corrupt receiver state
   uart_loop_enable(CONFIG_UART_CONSOLE_INDEX);
+  uart_irq_err_disable(CONFIG_UART_CONSOLE_INDEX);
 
   SET_PIN_MODE(17, GPIO_MUX_MODE); // Rdx SOC PIN (Arduino header pin 0)
   SET_PIN_MODE(16, GPIO_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
@@ -202,8 +203,18 @@ size_t UARTClass::write( const uint8_t uc_data )
 void UARTClass::IrqHandler( void )
 {
   uart_irq_update(CONFIG_UART_CONSOLE_INDEX);
+  // if irq is Receiver Line Status
+  if(uart_irq_err_detected(CONFIG_UART_CONSOLE_INDEX))
+  {
+    // if it is a break line, we discard the data
+    if(uart_break_check(CONFIG_UART_CONSOLE_INDEX))
+    {
+      uint8_t uc_data;
+      uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    }
+  }
   // if irq is Receiver Data Available
-  if(uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
+  else if(uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
     uint8_t uc_data;
     int ret;
