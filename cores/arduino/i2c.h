@@ -45,7 +45,8 @@ void i2c_setslave(uint8_t addr);
 int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop);
 int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
 
-int soc_i2c_openadapter(uint32_t address,int i2c_speed,int i2c_addr_mode);
+int soc_i2c_open_adapter(uint32_t address,int i2c_speed,int i2c_addr_mode);
+void soc_i2c_close_adapter(void);
 void soc_i2c_master_set_slave_address(uint32_t addr);
 int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop);
 int soc_i2c_master_readbytes(uint8_t *buf, int length, bool no_stop);

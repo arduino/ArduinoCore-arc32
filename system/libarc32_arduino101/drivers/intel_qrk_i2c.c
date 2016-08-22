@@ -101,9 +101,22 @@ typedef struct {
 /* device config keeper */
 static i2c_internal_data_t devices[2];
 
+static void soc_i2c_abort_transfer(i2c_internal_data_t *dev)
+{
+    volatile uint64_t timeout = 1000000 * 32;
+    do {
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_ENABLE) = IC_ABORT_BIT;
+
+        if ((MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_ENABLE) & IC_ABORT_BIT) == 0)
+            return;
+    } while (timeout-- > 0);
+
+    return;
+}
+
 static void soc_i2c_enable_device(i2c_internal_data_t *dev, bool enable)
 {
-    uint64_t timeout = 1000000 * 32;
+    volatile uint64_t timeout = 1000000 * 32;
     do {
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_ENABLE) =
             enable ? IC_ENABLE_BIT : 0;
@@ -119,11 +132,12 @@ static void soc_i2c_enable_device(i2c_internal_data_t *dev, bool enable)
 static void soc_end_data_transfer(i2c_internal_data_t *dev)
 {
     uint32_t state = dev->state;
-    dev->state = I2C_STATE_READY;
 
-    if (dev->send_stop && dev->mode == I2C_MASTER) {
+    if ((dev->mode == I2C_MASTER) && (dev->send_stop)) {
         soc_i2c_enable_device(dev, false);
     }
+
+    dev->state = I2C_STATE_READY;
 
     if (I2C_CMD_RECV == state) {
         if (NULL != dev->rx_cb) {
@@ -242,13 +256,18 @@ static void soc_i2c_isr(i2c_internal_data_t *dev)
     if (stat & IC_INTR_GEN_CALL)
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CLR_GEN_CALL);
 
-    if (stat & IC_INTR_RX_DONE) {
-        goto done;
-    }
-
     if (stat & (IC_INTR_TX_ABRT | IC_INTR_TX_OVER | IC_INTR_RX_OVER |
                 IC_INTR_RX_UNDER)) {
         dev->state = I2C_CMD_ERROR;
+        dev->send_stop = true;
+        goto done;
+    }
+
+    if (!dev->send_stop && dev->total_write_bytes == dev->rx_tx_len &&
+        dev->total_read_bytes == dev->rx_len) {
+        int mask = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK);
+        mask &= ~IC_INTR_TX_EMPTY;
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) = mask;
         goto done;
     }
 
@@ -266,15 +285,11 @@ static void soc_i2c_isr(i2c_internal_data_t *dev)
         soc_i2c_xmit_data(dev);
     }
 
-    if (stat & IC_INTR_STOP_DET) {
+    if (stat & IC_INTR_RX_DONE) {
         goto done;
     }
 
-    if (!dev->send_stop && dev->total_write_bytes == dev->rx_tx_len &&
-        dev->total_read_bytes == dev->rx_len) {
-        int mask = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK);
-        mask &= ~IC_INTR_TX_EMPTY;
-        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) = mask;
+    if (stat & IC_INTR_STOP_DET) {
         goto done;
     }
 
@@ -294,8 +309,7 @@ DECLARE_INTERRUPT_HANDLER void isr_dev_1()
     soc_i2c_isr(&devices[1]);
 }
 
-static void soc_i2c_master_init_transfer(i2c_internal_data_t *dev,
-                                         uint32_t slave_addr)
+static void soc_i2c_master_init_transfer(i2c_internal_data_t *dev)
 {
     volatile uint32_t ic_con = 0, ic_tar = 0;
 
@@ -305,7 +319,8 @@ static void soc_i2c_master_init_transfer(i2c_internal_data_t *dev,
     ic_con = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON);
 
     /* Set addressing mode - (initialisation = 7 bit) */
-    if (I2C_10_Bit == dev->addr_mode) {
+    //if (I2C_10_Bit == dev->addr_mode) {
+    if (dev->slave_addr > 127) {
         ic_con |= IC_MASTER_ADDR_MODE_BIT;
         ic_tar = IC_TAR_10BITADDR_MASTER;
     } else {
@@ -315,15 +330,15 @@ static void soc_i2c_master_init_transfer(i2c_internal_data_t *dev,
     MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON) = ic_con;
 
     /* Set slave address */
-    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_TAR) = ic_tar | slave_addr;
-
-    soc_i2c_enable_device(dev, true);
+    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_TAR) = ic_tar | dev->slave_addr;
 
     /* Disable interrupts */
     MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) = SOC_DISABLE_ALL_I2C_INT;
 
     /* Clear interrupts */
     MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CLR_INTR);
+
+    soc_i2c_enable_device(dev, true);
 
     /* Enable necesary interrupts */
     MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) = SOC_ENABLE_RX_TX_INT_I2C;
@@ -393,8 +408,10 @@ static DRIVER_API_RC soc_i2c_init(i2c_internal_data_t *dev)
         /* Set LCNT */
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_FS_SCL_LCNT) = I2C_FS_LCNT;
     } else if (I2C_HS == dev->speed) {
-        // TODO change
-        rc = DRV_RC_INVALID_CONFIG;
+        /* Set HCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_HS_SCL_HCNT) = I2C_HS_HCNT;
+        /* Set LCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_HS_SCL_LCNT) = I2C_HS_LCNT;
     } else {
         rc = DRV_RC_FAIL;
     }
@@ -415,10 +432,10 @@ static DRIVER_API_RC soc_i2c_init(i2c_internal_data_t *dev)
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) =
             SOC_DISABLE_ALL_I2C_INT;
 
-        soc_i2c_enable_device(dev, true);
-
         /* Clear interrupts */
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CLR_INTR);
+
+        soc_i2c_enable_device(dev, true);
 
         /* Enable necesary interrupts */
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) =
@@ -514,14 +531,19 @@ DRIVER_API_RC soc_i2c_deconfig(SOC_I2C_CONTROLLER controller_id)
     } else {
         return DRV_RC_FAIL;
     }
-    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON) = IC_CON_RST;
-    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_TAR) = IC_TAR_RST;
-    /* Set HCNT */
-    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_STD_SCL_HCNT) = 0;
-    /* Set LCNT */
-    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_STD_SCL_LCNT) = 0;
+
+    if (!dev->send_stop)
+    {
+        soc_i2c_abort_transfer(dev);
+    }
 
     soc_i2c_enable_device(dev, false);
+
+    /* Disable interrupts */
+    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) = SOC_DISABLE_ALL_I2C_INT;
+
+    /* Clear interrupts */
+    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CLR_INTR);
 
     return rc;
 }
@@ -548,6 +570,7 @@ DRIVER_API_RC soc_i2c_clock_enable(SOC_I2C_CONTROLLER controller_id)
 DRIVER_API_RC soc_i2c_clock_disable(SOC_I2C_CONTROLLER controller_id)
 {
     i2c_internal_data_t *dev = NULL;
+
     if (controller_id == SOC_I2C_0) {
         dev = &devices[0];
     } else if (controller_id == SOC_I2C_1) {
@@ -555,7 +578,9 @@ DRIVER_API_RC soc_i2c_clock_disable(SOC_I2C_CONTROLLER controller_id)
     } else {
         return DRV_RC_FAIL;
     }
+
     set_clock_gate(&dev->clk_gate_info, CLK_GATE_OFF);
+
     return DRV_RC_OK;
 }
 
@@ -628,6 +653,7 @@ DRIVER_API_RC soc_i2c_master_transfer(SOC_I2C_CONTROLLER controller_id,
                                       uint32_t data_read_len,
                                       uint32_t slave_addr, bool no_stop)
 {
+    bool need_init = true;
     i2c_internal_data_t *dev = NULL;
 
     /* Controller we are using */
@@ -663,7 +689,13 @@ DRIVER_API_RC soc_i2c_master_transfer(SOC_I2C_CONTROLLER controller_id,
     dev->total_read_bytes = 0;
     dev->total_write_bytes = 0;
 
-    bool need_init = dev->send_stop; // || dev->slave_addr != slave_addr;
+    if (dev->slave_addr != slave_addr) {
+        dev->send_restart = true;
+    }
+
+    dev->slave_addr = slave_addr;
+
+    need_init = dev->send_stop || dev->send_restart;
 
     if (!no_stop) {
         dev->send_stop = true;
@@ -672,7 +704,7 @@ DRIVER_API_RC soc_i2c_master_transfer(SOC_I2C_CONTROLLER controller_id,
     }
 
     if (need_init) {
-        soc_i2c_master_init_transfer(dev, slave_addr);
+        soc_i2c_master_init_transfer(dev);
     } else {
         /* Enable necesary interrupts */
         MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_INTR_MASK) =

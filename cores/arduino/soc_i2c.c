@@ -135,7 +135,7 @@ static int soc_i2c_wait_dev_ready(SOC_I2C_CONTROLLER controller_id,
     return I2C_TIMEOUT - ret;
 }
 
-int soc_i2c_openadapter(uint32_t address, int i2c_speed, int i2c_addr_mode)
+int soc_i2c_open_adapter(uint32_t address, int i2c_speed, int i2c_addr_mode)
 {
     int ret = 0;
 
@@ -176,6 +176,17 @@ int soc_i2c_openadapter(uint32_t address, int i2c_speed, int i2c_addr_mode)
     return ret;
 }
 
+void soc_i2c_close_adapter()
+{
+    soc_i2c_deconfig(SOC_I2C_0);
+    soc_i2c_clock_disable(SOC_I2C_0);
+
+    SET_PIN_MODE(20, GPIO_MUX_MODE);
+    SET_PIN_MODE(21, GPIO_MUX_MODE);
+
+    return;
+}
+
 void soc_i2c_master_set_slave_address(uint32_t addr)
 {
     soc_i2c_slave_address = addr;
@@ -192,15 +203,15 @@ void soc_i2c_slave_set_tx_user_buffer(uint8_t *buffer, uint8_t length)
     soc_i2c_slave_enable_tx(SOC_I2C_0, buffer, length);
 }
 
-int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop)
+int soc_i2c_master_witebytes(uint8_t *buf, uint8_t length, bool no_stop)
 {
     int ret;
 
     soc_i2c_master_tx_complete = 0;
     soc_i2c_err_detect = 0;
     soc_i2c_err_source = 0;
-    soc_i2c_master_transfer(SOC_I2C_0, bytes, length, 0, 0,
-                            soc_i2c_slave_address, no_stop);
+    soc_i2c_master_transfer(SOC_I2C_0, buf, length, 0, 0, soc_i2c_slave_address,
+                            no_stop);
     ret = soc_i2c_master_wait_tx_or_err();
     if (ret)
         return ret;

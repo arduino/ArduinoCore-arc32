@@ -24,20 +24,25 @@
 #include "Stream.h"
 #include "variant.h"
 
-#define BUFFER_LENGTH 32
+#define BUFFER_LENGTH   32
 
 #define I2C_SPEED_SLOW  1
 #define I2C_SPEED_FAST  2
-#define I2C_SPEED_HS  2
+#define I2C_SPEED_HS    3
 
-#define I2C_ADDR_7Bit  0
+#define I2C_ADDR_7Bit   0
 #define I2C_ADDR_10Bit  1
-class TwoWire2 : public Stream {
+
+class TwoWire2 : public Stream
+{
   public:
     TwoWire2(void);
     void begin();
-    void begin(uint8_t,int i2c_speed = I2C_SPEED_FAST,int i2c_addr_mode = I2C_ADDR_7Bit);
-    void begin(int,int i2c_speed = I2C_SPEED_FAST,int i2c_addr_mode = I2C_ADDR_7Bit);
+    void begin(uint8_t, int i2c_speed = I2C_SPEED_FAST,
+               int i2c_addr_mode = I2C_ADDR_7Bit);
+    void begin(int, int i2c_speed = I2C_SPEED_FAST,
+               int i2c_addr_mode = I2C_ADDR_7Bit);    
+    void end();
     void beginTransmission(uint8_t);
     void beginTransmission(int);
     uint8_t endTransmission(void);
@@ -56,16 +61,20 @@ class TwoWire2 : public Stream {
     void onReceive(void (*)(int));
     void onRequest(void (*)(void));
 
-    inline size_t write(unsigned long n) {
+    inline size_t write(unsigned long n)
+    {
         return write((uint8_t)n);
     }
-    inline size_t write(long n) {
+    inline size_t write(long n)
+    {
         return write((uint8_t)n);
     }
-    inline size_t write(unsigned int n) {
+    inline size_t write(unsigned int n)
+    {
         return write((uint8_t)n);
     }
-    inline size_t write(int n) {
+    inline size_t write(int n)
+    {
         return write((uint8_t)n);
     }
     using Print::write;

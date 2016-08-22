@@ -73,7 +73,9 @@
 #define I2C_STD_HCNT 	(CLOCK_SPEED * 4)
 #define I2C_STD_LCNT 	(CLOCK_SPEED * 5)
 #define I2C_FS_HCNT 	((CLOCK_SPEED * 6) / 8)
-#define I2C_FS_LCNT (	(CLOCK_SPEED * 7) / 8)
+#define I2C_FS_LCNT     ((CLOCK_SPEED * 7) / 8)
+#define I2C_HS_HCNT 	((CLOCK_SPEED * 6) / 8)
+#define I2C_HS_LCNT 	((CLOCK_SPEED * 7) / 8)
 
 /* IC_DATA_CMD Data transfer mode settings (bit 8) */
 #define I2C_STATE_READY                 (0)
@@ -146,6 +148,7 @@
 #define IC_STOP_BIT                     (1 << 9) /* part of IC_DATA_CMD, by setting this bit last byte of transfer is indicated */
 #define IC_TX_INTR_MODE                 (1 << 8) /* part of IC_CON registers - set TX interrupt mode*/
 #define IC_ENABLE_BIT                   (1 << 0)
+#define IC_ABORT_BIT                    (1 << 1)
 #define IC_SLAVE_DISABLE_BIT            (1 << 6)
 #define IC_MASTER_EN_BIT                (1 << 0)
 #define IC_RESTART_EN_BIT               (1 << 5)

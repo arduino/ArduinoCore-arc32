@@ -49,25 +49,30 @@ void TwoWire2::begin(void)
 {
     int i2c_speed = I2C_SPEED_FAST;
     int i2c_addr_mode = I2C_ADDR_7Bit;
-    init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
+    init_status = soc_i2c_open_adapter(0, i2c_speed, i2c_addr_mode);
 }
 
 void TwoWire2::begin(uint8_t address, int i2c_speed, int i2c_addr_mode)
 {
     if (address != 0) {
-        init_status = soc_i2c_openadapter(address, i2c_speed, i2c_addr_mode);
+        init_status = soc_i2c_open_adapter(address, i2c_speed, i2c_addr_mode);
         soc_i2c_slave_set_rx_user_buffer(rxBuffer, (uint8_t)sizeof(rxBuffer));
     } else
-        init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
+        init_status = soc_i2c_open_adapter(0, i2c_speed, i2c_addr_mode);
 }
 
 void TwoWire2::begin(int address, int i2c_speed, int i2c_addr_mode)
 {
     if (address != 0) {
-        init_status = soc_i2c_openadapter(address, i2c_speed, i2c_addr_mode);
+        init_status = soc_i2c_open_adapter(address, i2c_speed, i2c_addr_mode);
         soc_i2c_slave_set_rx_user_buffer(rxBuffer, (uint8_t)sizeof(rxBuffer));
     } else
-        init_status = soc_i2c_openadapter(0, i2c_speed, i2c_addr_mode);
+        init_status = soc_i2c_open_adapter(0, i2c_speed, i2c_addr_mode);
+}
+
+void TwoWire2::end()
+{
+    soc_i2c_close_adapter();
 }
 
 uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity,
