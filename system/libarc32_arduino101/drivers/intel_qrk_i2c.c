@@ -319,8 +319,7 @@ static void soc_i2c_master_init_transfer(i2c_internal_data_t *dev)
     ic_con = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON);
 
     /* Set addressing mode - (initialisation = 7 bit) */
-    //if (I2C_10_Bit == dev->addr_mode) {
-    if (dev->slave_addr > 127) {
+    if (I2C_10_Bit == dev->addr_mode) {
         ic_con |= IC_MASTER_ADDR_MODE_BIT;
         ic_tar = IC_TAR_10BITADDR_MASTER;
     } else {
@@ -357,6 +356,7 @@ static DRIVER_API_RC soc_i2c_init(i2c_internal_data_t *dev)
     soc_i2c_enable_device(dev, false);
 
     /* Setup IC_CON */
+    ic_con = IC_STOP_DET_IFADDRESSED;
 
     /* Set master or slave mode - (initialisation = slave) */
     if (I2C_MASTER == dev->mode) {
@@ -532,8 +532,7 @@ DRIVER_API_RC soc_i2c_deconfig(SOC_I2C_CONTROLLER controller_id)
         return DRV_RC_FAIL;
     }
 
-    if (!dev->send_stop)
-    {
+    if (!dev->send_stop) {
         soc_i2c_abort_transfer(dev);
     }
 
@@ -580,6 +579,92 @@ DRIVER_API_RC soc_i2c_clock_disable(SOC_I2C_CONTROLLER controller_id)
     }
 
     set_clock_gate(&dev->clk_gate_info, CLK_GATE_OFF);
+
+    return DRV_RC_OK;
+}
+
+DRIVER_API_RC soc_i2c_set_transfer_speed(SOC_I2C_CONTROLLER controller_id,
+                                         uint32_t speed)
+{
+    volatile uint32_t ic_con = 0;
+    i2c_internal_data_t *dev = NULL;
+
+    if (controller_id == SOC_I2C_0) {
+        dev = &devices[0];
+    } else if (controller_id == SOC_I2C_1) {
+        dev = &devices[1];
+    } else {
+        return DRV_RC_FAIL;
+    }
+
+    dev->speed = speed;
+
+    soc_i2c_enable_device(dev, false);
+
+    /* Setup IC_CON */
+    ic_con = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON);
+
+    ic_con |= (dev->speed << 1);
+
+    MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON) = ic_con;
+
+    if (I2C_SLOW ==
+        dev->speed) /* This is setter so prefering readability above speed */
+    {
+        /* Set HCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_STD_SCL_HCNT) = I2C_STD_HCNT;
+        /* Set LCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_STD_SCL_LCNT) = I2C_STD_LCNT;
+    } else if (I2C_FAST == dev->speed) {
+        /* Set HCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_FS_SCL_HCNT) = I2C_FS_HCNT;
+        /* Set LCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_FS_SCL_LCNT) = I2C_FS_LCNT;
+    } else if (I2C_HS == dev->speed) {
+        /* Set HCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_HS_SCL_HCNT) = I2C_HS_HCNT;
+        /* Set LCNT */
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_HS_SCL_LCNT) = I2C_HS_LCNT;
+    } else {
+        return DRV_RC_FAIL;
+    }
+
+    return DRV_RC_OK;
+}
+
+DRIVER_API_RC soc_i2c_set_transfer_mode(SOC_I2C_CONTROLLER controller_id,
+                                        uint32_t mode)
+{
+    i2c_internal_data_t *dev = NULL;
+
+    if (controller_id == SOC_I2C_0) {
+        dev = &devices[0];
+    } else if (controller_id == SOC_I2C_1) {
+        dev = &devices[1];
+    } else {
+        return DRV_RC_FAIL;
+    }
+
+    dev->addr_mode = mode;
+
+    if (dev->mode == I2C_SLAVE) {
+        volatile uint32_t ic_con = 0;
+
+        soc_i2c_enable_device(dev, false);
+
+        /* Setup IC_CON */
+        ic_con = MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON);
+
+        if (I2C_10_Bit == dev->addr_mode) {
+            ic_con |= IC_SLAVE_ADDR_MODE_BIT;
+        } else {
+            ic_con &= ~IC_SLAVE_ADDR_MODE_BIT;
+        }
+
+        MMIO_REG_VAL_FROM_BASE(dev->BASE, IC_CON) = ic_con;
+
+        soc_i2c_enable_device(dev, true);
+    }
 
     return DRV_RC_OK;
 }

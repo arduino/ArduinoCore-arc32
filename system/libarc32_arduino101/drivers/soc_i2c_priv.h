@@ -150,6 +150,7 @@
 #define IC_ENABLE_BIT                   (1 << 0)
 #define IC_ABORT_BIT                    (1 << 1)
 #define IC_SLAVE_DISABLE_BIT            (1 << 6)
+#define IC_STOP_DET_IFADDRESSED         (1 << 7)
 #define IC_MASTER_EN_BIT                (1 << 0)
 #define IC_RESTART_EN_BIT               (1 << 5)
 #define IC_MASTER_ADDR_MODE_BIT         (1 << 4)

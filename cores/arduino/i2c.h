@@ -37,6 +37,8 @@ extern "C" {
 #define I2C_ERROR_OTHER         (-4)
 
 #define I2C_ABRT_7B_ADDR_NOACK  (1 << 0)
+#define I2C_ABRT_10ADDR1_NOACK  (1 << 1)
+#define I2C_ABRT_10ADDR2_NOACK  (1 << 2)
 #define I2C_ABRT_TXDATA_NOACK   (1 << 3)
 
 int i2c_openadapter(void);
@@ -47,6 +49,8 @@ int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
 
 int soc_i2c_open_adapter(uint32_t address,int i2c_speed,int i2c_addr_mode);
 void soc_i2c_close_adapter(void);
+void soc_i2c_set_speed(uint32_t speed);
+void soc_i2c_set_address_mode(uint32_t mode);
 void soc_i2c_master_set_slave_address(uint32_t addr);
 int soc_i2c_master_witebytes(uint8_t *bytes, uint8_t length, bool no_stop);
 int soc_i2c_master_readbytes(uint8_t *buf, int length, bool no_stop);

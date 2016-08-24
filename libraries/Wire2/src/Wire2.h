@@ -43,6 +43,8 @@ class TwoWire2 : public Stream
     void begin(int, int i2c_speed = I2C_SPEED_FAST,
                int i2c_addr_mode = I2C_ADDR_7Bit);    
     void end();
+    void setSpeed(uint32_t);
+    void setAddressMode(uint32_t);
     void beginTransmission(uint8_t);
     void beginTransmission(int);
     uint8_t endTransmission(void);

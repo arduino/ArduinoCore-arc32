@@ -81,7 +81,7 @@ static int soc_i2c_master_wait_rx_or_err()
     uint64_t timeout = TIMEOUT_MS * 200;
     while (timeout--) {
         if (soc_i2c_err_detect) {
-            if (soc_i2c_err_source & I2C_ABRT_7B_ADDR_NOACK) {
+            if (soc_i2c_err_source & (I2C_ABRT_7B_ADDR_NOACK | I2C_ABRT_10ADDR1_NOACK | I2C_ABRT_10ADDR2_NOACK)) {
                 return I2C_ERROR_ADDRESS_NOACK; // NACK on transmit of address
             } else if (soc_i2c_err_source & I2C_ABRT_TXDATA_NOACK) {
                 return I2C_ERROR_DATA_NOACK; // NACK on transmit of data
@@ -102,7 +102,7 @@ static int soc_i2c_master_wait_tx_or_err()
     uint64_t timeout = TIMEOUT_MS * 200;
     while (timeout--) {
         if (soc_i2c_err_detect) {
-            if (soc_i2c_err_source & I2C_ABRT_7B_ADDR_NOACK) {
+            if (soc_i2c_err_source & (I2C_ABRT_7B_ADDR_NOACK | I2C_ABRT_10ADDR1_NOACK | I2C_ABRT_10ADDR2_NOACK)) {
                 return I2C_ERROR_ADDRESS_NOACK; // NACK on transmit of address
             } else if (soc_i2c_err_source & I2C_ABRT_TXDATA_NOACK) {
                 return I2C_ERROR_DATA_NOACK; // NACK on transmit of data
@@ -185,6 +185,16 @@ void soc_i2c_close_adapter()
     SET_PIN_MODE(21, GPIO_MUX_MODE);
 
     return;
+}
+
+void soc_i2c_set_speed(uint32_t speed)
+{
+    soc_i2c_set_transfer_speed(SOC_I2C_0, speed);
+}
+
+void soc_i2c_set_address_mode(uint32_t mode)
+{
+    soc_i2c_set_transfer_mode(SOC_I2C_0, mode);
 }
 
 void soc_i2c_master_set_slave_address(uint32_t addr)

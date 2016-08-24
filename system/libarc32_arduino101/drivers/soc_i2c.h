@@ -239,6 +239,43 @@ DRIVER_API_RC soc_i2c_slave_enable_rx(SOC_I2C_CONTROLLER controller_id,
 DRIVER_API_RC soc_i2c_slave_enable_tx(SOC_I2C_CONTROLLER controller_id,
                                       uint8_t *data_write,
                                       uint32_t data_write_len);
+
+/**
+*  Function to set I2C address mode
+*
+*  @param   controller_id   : I2C controller_id identifier
+*  @param   speed           : I2C speed
+*
+*  @return
+*           - DRV_RC_OK on success
+*           - DRV_RC_FAIL otherwise
+*/
+DRIVER_API_RC soc_i2c_set_transfer_speed(SOC_I2C_CONTROLLER controller_id,
+                                        uint32_t speed);
+/**
+*  Function to set I2C address mode
+*
+*  @param   controller_id   : I2C controller_id identifier
+*  @param   mode            : address mode
+*
+*  @return
+*           - DRV_RC_OK on success
+*           - DRV_RC_FAIL otherwise
+*/
+DRIVER_API_RC soc_i2c_set_transfer_mode(SOC_I2C_CONTROLLER controller_id,
+                                        uint32_t mode);
+/**
+*  Function to set I2C address mode
+*
+*  @param   controller_id   : I2C controller_id identifier
+*  @param   mode            : address mode
+*
+*  @return
+*           - DRV_RC_OK on success
+*           - DRV_RC_FAIL otherwise
+*/
+DRIVER_API_RC soc_i2c_set_transfer_mode(SOC_I2C_CONTROLLER controller_id,
+                                        uint32_t mode);
 /** @} */
 
 #ifdef __cplusplus

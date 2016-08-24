@@ -75,6 +75,16 @@ void TwoWire2::end()
     soc_i2c_close_adapter();
 }
 
+void TwoWire2::setSpeed(uint32_t speed)
+{
+    soc_i2c_set_speed(speed);
+}
+
+void TwoWire2::setAddressMode(uint32_t mode)
+{
+    soc_i2c_set_address_mode(mode);
+}
+
 uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity,
                               uint8_t sendStop)
 {
@@ -100,14 +110,28 @@ uint8_t TwoWire2::requestFrom(uint8_t address, uint8_t quantity)
     return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t) true);
 }
 
-uint8_t TwoWire2::requestFrom(int address, int quantity)
-{
-    return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t) true);
-}
-
 uint8_t TwoWire2::requestFrom(int address, int quantity, int sendStop)
 {
-    return requestFrom((uint8_t)address, (uint8_t)quantity, (uint8_t)sendStop);
+    int ret;
+    if (quantity > BUFFER_LENGTH)
+        quantity = BUFFER_LENGTH;
+
+    /* Set slave address via ioctl  */
+    soc_i2c_master_set_slave_address(address);
+    ret = soc_i2c_master_readbytes(rxBuffer, quantity, !sendStop);
+    if (ret < 0) {
+        return 0;
+    }
+    // set rx buffer iterator vars
+    rxBufferIndex = 0;
+    rxBufferLength = quantity;
+
+    return quantity;
+}
+
+uint8_t TwoWire2::requestFrom(int address, int quantity)
+{
+    return requestFrom((int)address, (int)quantity, (int)true);
 }
 
 void TwoWire2::beginTransmission(uint8_t address)
@@ -122,7 +146,12 @@ void TwoWire2::beginTransmission(uint8_t address)
 
 void TwoWire2::beginTransmission(int address)
 {
-    beginTransmission((uint8_t)address);
+    if (init_status < 0)
+        return;
+    // set slave address
+    soc_i2c_master_set_slave_address(address);
+    // reset transmit buffer
+    txBufferLength = 0;
 }
 
 //
