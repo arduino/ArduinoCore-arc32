@@ -91,6 +91,11 @@ recipe.output.save_file={build.project_name}.{build.variant}.hex
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
 recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 
+# BLE firmware check
+# -------------------
+tools.arduino101load.ble.fw.string="ATP1BLE000-1541C5635"
+tools.arduino101load.ble.fw.position=141312
+
 # Arc Uploader/Programmers tools
 # -------------------
 tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load/arduino101load
@@ -98,7 +103,7 @@ tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 tools.arduino101load.upload.params.verbose=verbose
 tools.arduino101load.upload.params.quiet=quiet
 
-tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" {build.path}/{build.project_name}.bin {serial.port} "{upload.verbose}"
+tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" {build.path}/{build.project_name}.bin {serial.port} "{upload.verbose}" {ble.fw.string} {ble.fw.position}
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
