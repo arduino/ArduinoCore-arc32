@@ -5,7 +5,7 @@
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
 name=Intel Curie (32-bit) Boards
-version=1.0.7
+version=2.0.0
 
 # Arduino 101 compile variables
 # ----------------------
@@ -93,8 +93,8 @@ recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 
 # BLE firmware check
 # -------------------
-tools.arduino101load.ble.fw.string="ATP1BLE000-1541C5635"
-tools.arduino101load.ble.fw.position=141312
+tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
+tools.arduino101load.ble.fw.position=169984
 
 # Arc Uploader/Programmers tools
 # -------------------
