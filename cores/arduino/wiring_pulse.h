@@ -27,7 +27,10 @@
  * \brief Measures the length (in microseconds) of a pulse on the pin; state is HIGH
  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
  * to 5 minutes in length, but must be called at least a few dozen microseconds
- * before the start of the pulse.
+ * before the start of the pulse. The pulseIn() function is not designed to detect
+ * high frequencies. The consequences of using this function to detect frequencies
+ * such as a 100KHz PWM signal could possibly cause a sketch to hang at the
+ * pulseIn() function call.
  */
 extern uint32_t pulseIn( uint32_t ulPin, uint32_t ulState, uint32_t ulTimeout = 1000000UL ) ;
 
