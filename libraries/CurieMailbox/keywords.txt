@@ -1,0 +1,22 @@
+#######################################
+# Syntax Coloring Map CurieMailbox
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+CurieMailbox     KEYWORD1
+CurieMailboxMsg  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	         KEYWORD2
+end	             KEYWORD2
+enableReceive    KEYWORD2
+disableReceive   KEYWORD2
+available        KEYWORD2
+put              KEYWORD2
+get              KEYWORD2
