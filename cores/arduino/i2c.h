@@ -23,13 +23,15 @@
 #define i2c_h
 
 #include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C"{
 #endif
 
 #define I2C_OK       0
 #define I2C_TIMEOUT -10
-#define I2C_ERROR   -11
+#define I2C_ERROR   -20    /* Qi, 2016. */
 #define I2C_ERROR_ADDRESS_NOACK (-2)
 #define I2C_ERROR_DATA_NOACK    (-3)
 #define I2C_ERROR_OTHER         (-4)
