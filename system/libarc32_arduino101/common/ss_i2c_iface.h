@@ -48,7 +48,8 @@
 
 typedef enum {
     I2C_SENSING_0 = 0,          /*!< Sensing I2C controller 0, accessibly by Sensor Subsystem Core only */
-    I2C_SENSING_1               /*!< Sensing I2C controller 1, accessible by Sensor Subsystem Core only */
+    I2C_SENSING_1,              /*!< Sensing I2C controller 1, accessible by Sensor Subsystem Core only */
+    NUM_SS_I2C                  /*!< Number of Sensor Subsystem I2C controllers */
 } I2C_CONTROLLER;
 
 #ifdef __cplusplus

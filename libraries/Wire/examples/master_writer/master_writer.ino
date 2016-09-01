@@ -16,6 +16,7 @@ void setup()
 {
   Wire.begin(); // join i2c bus (address optional for master)
   Serial.begin(9600);
+  while(!Serial);
 }
 
 byte x = 1;
@@ -26,9 +27,12 @@ void loop()
   //Wire.write("x is ");        // sends five bytes
   Wire.write(x);              // sends one byte
   int result = Wire.endTransmission();    // stop transmitting
-  Serial.println();
-  Serial.print("x =  ");
-  Serial.print(x);
+  if (result == 0)
+  {
+      Serial.println();
+      Serial.print("x =  ");
+      Serial.print(x);
+  }
   x++;
   delay(500);
 }

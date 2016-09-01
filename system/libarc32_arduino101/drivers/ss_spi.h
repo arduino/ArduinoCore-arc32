@@ -24,9 +24,24 @@
 extern "C" {
 #endif
 
-void ss_spi_init();
-void ss_spi_disable();
-int ss_spi_xfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
+#include "common_spi.h"
+
+/**
+ * List of all controllers
+ */
+typedef enum {
+    SPI_SENSING_0, /* Sensing SPI controller 0, accessible by Sensor Subsystem Core only */
+    SPI_SENSING_1 /* Sensing SPI controller 1, accessible by Sensor Subsystem Core only */
+} SPI_CONTROLLER;
+
+void ss_spi_init(SPI_CONTROLLER controller_id, uint32_t speed,
+                 SPI_BUS_MODE mode, SPI_DATA_FRAME_SIZE data_frame_size,
+                 SPI_SLAVE_ENABLE slave);
+void ss_spi_disable(SPI_CONTROLLER controller_id);
+int ss_spi_xfer(SPI_CONTROLLER controller_id, uint8_t *buf, unsigned tx_cnt,
+                unsigned rx_cnt);
+void ss_spi_set_data_mode(SPI_CONTROLLER controller_id, uint8_t dataMode);
+void ss_spi_set_clock_divider(SPI_CONTROLLER controller_id, uint8_t clockDiv);
 
 #ifdef __cplusplus
 }

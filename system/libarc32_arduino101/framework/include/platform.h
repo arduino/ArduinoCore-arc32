@@ -145,6 +145,7 @@ unsigned int get_timestamp(void);
 typedef enum {
     SOC_I2C_0 = 0,     /*!< General Purpose I2C controller 0, accessible by both processing entities */
     SOC_I2C_1,         /*!< General Purpose I2C controller 1, accessible by both processing entities */
+    NUM_SOC_I2C        /*!< Number of SOC I2C connections */
 } SOC_I2C_CONTROLLER_PF;
 
 /* SPI */

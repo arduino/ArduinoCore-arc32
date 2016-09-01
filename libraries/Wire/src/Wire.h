@@ -23,6 +23,7 @@
 
 #include "Stream.h"
 #include "variant.h"
+#include "ss_i2c_iface.h"
 
 #define BUFFER_LENGTH   32
 #define I2C_SPEED_SLOW  1
@@ -30,9 +31,9 @@
 
 class TwoWire : public Stream {
 public:
-	TwoWire(void);
-	void begin();
-    void begin(int);
+	TwoWire(I2C_CONTROLLER _controller_id);
+	void begin(void);
+    void begin(int speed);
     void setClock(long speed);
 	void beginTransmission(uint8_t);
 	void beginTransmission(int);
@@ -67,6 +68,8 @@ private:
 	uint8_t txBufferLength;
 
 	int init_status;
+
+    I2C_CONTROLLER controller_id;
 };
 
 #if WIRE_INTERFACES_COUNT > 0
