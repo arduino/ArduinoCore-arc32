@@ -92,8 +92,8 @@ BLEService midiSvc("03B80E5A-EDE8-4B33-A751-6CE34EC4C700"); // create service
 BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BLEWriteWithoutResponse | BLENotify | BLERead, 5);
 
 void setup() {
-  Serial.begin(9600);
-
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
   BLESetup();
   Serial.println(("Bluetooth device active, waiting for connections..."));
 }

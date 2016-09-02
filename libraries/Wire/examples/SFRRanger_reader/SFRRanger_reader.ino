@@ -14,8 +14,9 @@
 
 void setup()
 {
-  Wire.begin();                // join i2c bus (address optional for master)
-  Serial.begin(9600);          // start serial communication at 9600bps
+  Wire.begin();        // join i2c bus (address optional for master)
+  Serial.begin(9600);  // start serial communication at 9600bps
+  while(!Serial) ;    // wait for serial port to connect.
 }
 
 int reading = 0;

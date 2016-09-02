@@ -5,7 +5,8 @@ const int blinkPin = 13;
 void setup(void)
 {
   CurieTimerOne.initialize(50000);
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
 }
 
 void loop(void)

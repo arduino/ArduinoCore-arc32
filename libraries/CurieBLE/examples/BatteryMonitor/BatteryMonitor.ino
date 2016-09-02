@@ -23,7 +23,8 @@ int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
 
 void setup() {
-  Serial.begin(9600);    // initialize serial communication
+  Serial.begin(9600);    // initialize Serial communication
+  while(!Serial) ;       // wait for serial port to connect
   pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
 
   /* Set a local name for the BLE device

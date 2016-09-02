@@ -18,7 +18,8 @@ BLECharCharacteristic ledCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", 
 BLECharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // allows remote device to get notifications
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600);    // initialize Serial communication
+  while(!Serial) ;       // wait for serial port to connect
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
   pinMode(buttonPin, INPUT); // use button pin 4 as an input
 
