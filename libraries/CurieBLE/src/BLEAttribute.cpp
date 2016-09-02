@@ -23,7 +23,7 @@
 
 unsigned char BLEAttribute::_numAttributes = 0;
 
-BLEAttribute::BLEAttribute(const char* uuid, enum BLEAttributeType type) :
+BLEAttribute::BLEAttribute(const char* uuid, BLEAttributeType type) :
     _uuid(uuid),
     _type(type),
     _handle(0)
@@ -36,7 +36,7 @@ BLEAttribute::uuid() const {
     return _uuid;
 }
 
-enum BLEAttributeType
+BLEAttributeType
 BLEAttribute::type() const {
     return this->_type;
 }
