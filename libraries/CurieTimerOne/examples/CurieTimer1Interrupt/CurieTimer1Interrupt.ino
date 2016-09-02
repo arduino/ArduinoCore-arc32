@@ -38,8 +38,8 @@ void timedBlinkIsr()   // callback function when interrupt is asserted
 void setup() {
 
 #ifdef SERIAL_PORT_LOG_ENABLE
-  Serial.begin(115200);
-  while (!Serial);  //  wait for the serial monitor to open
+  Serial.begin(115200);  //  initialize Serial communication
+  while (!Serial);       //  wait for the serial monitor to open
 #endif
 
   // Initialize pin 13 as an output - onboard LED.

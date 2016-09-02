@@ -22,11 +22,11 @@
 
 #include "BLECommon.h"
 
-enum BLEAttributeType {
+typedef enum {
     BLETypeService        = 0x2800,
     BLETypeCharacteristic = 0x2803,
     BLETypeDescriptor     = 0x2900
-};
+} BLEAttributeType;
 
 class BLEPeripheral;
 
@@ -43,7 +43,7 @@ public:
 protected:
     friend BLEPeripheral;
 
-    BLEAttribute(const char* uuid, enum BLEAttributeType type);
+    BLEAttribute(const char* uuid, BLEAttributeType type);
 
     BLEAttributeType type(void) const;
     bt_uuid btUuid(void) const;
@@ -56,7 +56,7 @@ private:
     static unsigned char _numAttributes;
 
     const char* _uuid;
-    enum BLEAttributeType _type;
+    BLEAttributeType _type;
     uint16_t _handle;
 };
 

@@ -14,7 +14,8 @@ BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
 
   // set the local name peripheral advertises

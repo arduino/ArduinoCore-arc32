@@ -38,7 +38,8 @@ const int dataReadyPin = 6;
 const int chipSelectPin = 7;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
 
   // start the SPI library:
   SPI.begin();

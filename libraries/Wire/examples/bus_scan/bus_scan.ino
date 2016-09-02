@@ -41,8 +41,8 @@ void setup()
   // join i2c bus (address optional for master)
   Wire.begin();
 
-  Serial.begin(115200);
-  while(!Serial);
+  Serial.begin(115200); // initialize Serial communication
+  while(!Serial) ;      // wait for serial port to connect.
 }
 
 boolean toggle = false;          // state of the LED

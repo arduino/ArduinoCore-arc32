@@ -6,6 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+CurieBLE	KEYWORD1
 BLEAttribute	KEYWORD1
 BLECentral	KEYWORD1
 BLECharacteristic	KEYWORD1
@@ -15,6 +16,7 @@ BLEService	KEYWORD1
 BLETypedCharacteristic	KEYWORD1
 BLEUuid	KEYWORD1
 
+BLETypedCharacteristics	KEYWORD1
 BLECharCharacteristic	KEYWORD1
 BLEUnsignedCharCharacteristic	KEYWORD1
 BLEShortCharacteristic	KEYWORD1
@@ -49,11 +51,13 @@ written	KEYWORD2
 subscribed	KEYWORD2
 
 begin	KEYWORD2
+end	KEYWORD2
 getAdvertisingLength	KEYWORD2
 getAdvertising	KEYWORD2
 setAdvertisedServiceUuid	KEYWORD2
 setAdvertisedServiceData	KEYWORD2
 setLocalName	KEYWORD2
+setDeviceName	KEYWORD2
 setAppearance	KEYWORD2
 setConnectionInterval	KEYWORD2
 addAttribute	KEYWORD2
@@ -63,11 +67,6 @@ setValueLE	KEYWORD2
 valueLE	KEYWORD2
 setValueBE	KEYWORD2
 valueBE	KEYWORD2
-
-str	KEYWORD2
-data	KEYWORD2
-length	KEYWORD2
-
 
 #######################################
 # Constants (LITERAL1)
@@ -90,3 +89,6 @@ BLEDisconnected	LITERAL1
 BLEWritten	LITERAL1
 BLESubscribed	LITERAL1
 BLEUnsubscribed	LITERAL1
+
+BLE_MAX_ATTR_DATA_LEN	LITERAL1
+BLE_DEVICE_NAME_DEFAULT_PREFIX	LITERAL1

@@ -14,8 +14,8 @@ BLEUnsignedCharCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104
 const int ledPin = 13; // pin to use for the LED
 
 void setup() {
-  Serial.begin(9600);
-
+  Serial.begin(9600);    // initialize Serial communication
+  while(!Serial) ;       // wait for serial port to connect
   // set LED pin to output mode
   pinMode(ledPin, OUTPUT);
 
