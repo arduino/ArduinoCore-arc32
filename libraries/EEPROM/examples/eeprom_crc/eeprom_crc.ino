@@ -5,11 +5,10 @@
 	A CRC is a simple way of checking whether data has changed or become corrupted.
 	This example calculates a CRC value directly on the EEPROM values.
 	The purpose of this example is to highlight how the EEPROM object can be used just like an array.
-    
-    01/05/2016 - Modified for Arduino 101 - Dino Tinitigan <dino.tinitigan@intel.com>
 ***/
 
-#include <CurieEEPROM.h>
+#include <Arduino.h>
+#include <EEPROM.h>
 
 void setup() {
 
@@ -44,7 +43,7 @@ unsigned long eeprom_crc(void) {
 
   unsigned long crc = ~0L;
 
-  for (int index = 0 ; index < EEPROM.length(); ++index) {
+  for (int index = 0 ; index < EEPROM.length()  ; ++index) {
     crc = crc_table[(crc ^ EEPROM[index]) & 0x0f] ^ (crc >> 4);
     crc = crc_table[(crc ^ (EEPROM[index] >> 4)) & 0x0f] ^ (crc >> 4);
     crc = ~crc;
