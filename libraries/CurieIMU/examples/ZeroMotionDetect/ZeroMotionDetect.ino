@@ -11,8 +11,8 @@
 
 boolean ledState = false;          // state of the LED
 void setup() {
-  Serial.begin(9600);
-  while(!Serial);   // wait for the serial port to open
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
 
   /* Initialise the IMU */
   CurieIMU.begin();

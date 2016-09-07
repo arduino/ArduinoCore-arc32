@@ -25,7 +25,8 @@ long lastStepCount = 0;              // step count on previous polling check
 boolean blinkState = false;          // state of the LED
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
   // pinMode(13, OUTPUT);
   // intialize the sensor:
   CurieIMU.begin();
