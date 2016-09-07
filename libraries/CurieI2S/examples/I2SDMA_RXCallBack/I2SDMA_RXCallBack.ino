@@ -37,8 +37,8 @@ uint32_t loop_count = 0; // record the higher 16 bits of received data
 uint32_t shift_count = 0; // the position of first non-zero
 void setup() 
 {
-  Serial.begin(115200);
-  while(!Serial);
+  Serial.begin(115200); // initialize Serial communication
+  while(!Serial) ;      // wait for serial port to connect.
   Serial.println("CurieI2SDMA Rx Callback");
 
   CurieI2SDMA.iniRX();
