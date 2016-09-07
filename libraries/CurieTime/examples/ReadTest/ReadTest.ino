@@ -6,8 +6,8 @@
 #include <CurieTime.h>
 
 void setup() {
-  while (!Serial);
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while (!Serial);    // wait for serial port to connect.
 
   Serial.println("CurieTime Read Test");
   Serial.println("-------------------");

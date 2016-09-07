@@ -82,7 +82,8 @@
 #define CSPIN             21
 
 void setup(){
-  Serial.begin(9600);  //Teensy serial is always at full USB speed and buffered... the baud rate here is required but ignored
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
 
   pinMode(13, OUTPUT);
   

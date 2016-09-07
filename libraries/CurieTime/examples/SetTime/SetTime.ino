@@ -6,8 +6,8 @@
 #include <CurieTime.h>
 
 void setup() {
-  while (!Serial);
-  Serial.begin(9600);
+  Serial.begin(9600); // initialize Serial communication
+  while(!Serial) ;    // wait for serial port to connect.
 
   // set the current time to 14:27:00, December 14th, 2015
   setTime(14, 27, 00, 14, 12, 2015);
