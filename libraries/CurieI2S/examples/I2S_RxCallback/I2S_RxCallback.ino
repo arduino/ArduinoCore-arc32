@@ -23,8 +23,8 @@ volatile int count = 0;
 void setup() 
 {
   // put your setup code here, to run once:
-  Serial.begin(115200);
-  while(!Serial);
+  Serial.begin(115200); // initialize Serial communication
+  while(!Serial) ;      // wait for serial port to connect.
   Serial.println("CurieI2S Rx Callback Example");
   CurieI2S.begin(I2S_44K, I2S_32bit);
   CurieI2S.setI2SMode(PHILIPS_MODE);

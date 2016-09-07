@@ -15,8 +15,8 @@ uint32_t dataBuff[BUFF_SIZE];
 uint32_t loop_count = 0;
 void setup() 
 {
-  Serial.begin(115200);
-  while(!Serial);
+  Serial.begin(115200); // initialize Serial communication
+  while(!Serial) ;      // wait for serial port to connect.
   Serial.println("CurieI2SDMA Tx Callback");
 
   CurieI2SDMA.iniTX();
