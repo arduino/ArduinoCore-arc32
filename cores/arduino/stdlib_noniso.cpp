@@ -221,7 +221,7 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
 
     // generate chars for each digit of the integral part
     i = before;
-    while (integer > 10) {
+    while (integer >= 10) {
         digit = integer % 10;
         out[(i--) - 1] = ASCII_ZERO + digit;
         integer /= 10;
