@@ -18,28 +18,80 @@
  */
 
 #include "BLECharacteristic.h"
+#include "BLEPeripheralHelper.h"
 #include "internal/ble_client.h"
 
-#define BLE_CCCD_NOTIFY_EN_MASK   0x1
-#define BLE_CCCD_INDICATE_EN_MASK 0x2
+uint8_t profile_notify_process (bt_conn_t *conn,
+                                bt_gatt_subscribe_params_t *params,
+                                const void *data, uint16_t length);
+uint8_t profile_read_rsp_process(bt_conn_t *conn, int err,
+                                 bt_gatt_read_params_t *params,
+                                 const void *data, 
+                                 uint16_t length);
+
+unsigned char BLECharacteristic::_numNotifyAttributes = 0;
+
+bt_uuid_16_t BLECharacteristic::_gatt_chrc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CHRC_VAL};
+bt_uuid_16_t BLECharacteristic::_gatt_ccc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CCC_VAL};
 
 BLECharacteristic::BLECharacteristic(const char* uuid,
                       const unsigned char properties,
                       const unsigned short maxLength) :
     BLEAttribute(uuid, BLETypeCharacteristic),
-    _properties(properties),
     _value_length(0),
+    _value_buffer(NULL),
     _written(false),
-    _cccd_value(0),
-    _value_handle(0),
-    _cccd_handle(0),
     _user_description(NULL),
-    _presentation_format(NULL)
+    _presentation_format(NULL),
+    _attr_chrc_declaration(NULL),
+    _attr_chrc_value(NULL),
+    _attr_cccd(NULL)
 {
-    _value_size = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
+    _value_size = maxLength > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : maxLength;
     _value = (unsigned char*)malloc(_value_size);
-
+    if (_value_size > BLE_MAX_ATTR_DATA_LEN)
+    {
+        _value_buffer = (unsigned char*)malloc(_value_size);
+    }
+    
+    memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
+    memset(&_ccc_value, 0, sizeof(_ccc_value));
+    memset(&_gatt_chrc, 0, sizeof(_gatt_chrc));
+    memset(&_sub_params, 0, sizeof(_sub_params));
+    
+    _ccc_value.cfg = &_ccc_cfg;
+    _ccc_value.cfg_len = 1;
+    if (BLERead & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_READ;
+    }
+    if (BLEWrite & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_WRITE;
+    }
+    if (BLEWriteWithoutResponse & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_WRITE_WITHOUT_RESP;
+    }
+    if (BLENotify & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_NOTIFY;
+        _sub_params.value |= BT_GATT_CCC_NOTIFY;
+    }
+    if (BLEIndicate & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_INDICATE;
+        _sub_params.value |= BT_GATT_CCC_INDICATE;
+    }
+    _gatt_chrc.uuid = this->uuid();
     memset(_event_handlers, 0, sizeof(_event_handlers));
+    
+    _numNotifyAttributes++;
+    if (properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE))
+    {
+        _numNotifyAttributes++;
+    }
+    _sub_params.notify = profile_notify_process;
 }
 
 BLECharacteristic::BLECharacteristic(const char* uuid,
@@ -61,44 +113,40 @@ BLECharacteristic::~BLECharacteristic()
 unsigned char
 BLECharacteristic::properties() const
 {
-    return _properties;
+    return _gatt_chrc.properties;
 }
 
 bool
 BLECharacteristic::setValue(const unsigned char value[], uint16_t length)
 {
-    BleStatus status;
+    int status;
 
      _setValue(value, length);
 
-    if (_value_handle) {
-        status = ble_client_gatts_set_attribute_value(_value_handle, _value_length, _value, 0);
-        if (BLE_STATUS_SUCCESS != status) {
+    if (_attr_chrc_value)
+    {
+        // TODO: Notify for peripheral.
+        //        Write request for central.
+        status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
+        if (0 != status)
+        {
             return false;
         }
-
-        if (subscribed()) {
-            boolean_t indication = (_cccd_value & BLE_CCCD_INDICATE_EN_MASK);
-
-            status = ble_client_gatts_send_notif_ind(_value_handle, _value_length, _value, 0, indication);
-            if (BLE_STATUS_SUCCESS != status) {
-                return false;
-            }
-        }
     }
-
     return true;
 }
 
 void
-BLECharacteristic::setValue(BLECentral& central, const unsigned char* value, unsigned short length)
+BLECharacteristic::setValue(BLEHelper& blehelper, const unsigned char* value, unsigned short length)
 {
+    //BLEHelper *bledevice = &central;
     _setValue(value, length);
 
     _written = true;
+    _reading = false;
 
     if (_event_handlers[BLEWritten]) {
-        _event_handlers[BLEWritten](central, *this);
+        _event_handlers[BLEWritten](blehelper, *this);
     }
 }
 
@@ -139,7 +187,7 @@ BLECharacteristic::written()
 bool
 BLECharacteristic::subscribed()
 {
-    return (_cccd_value & (BLE_CCCD_NOTIFY_EN_MASK | BLE_CCCD_INDICATE_EN_MASK));
+    return (_gatt_chrc.properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE));
 }
 
 void
@@ -152,93 +200,27 @@ BLECharacteristic::setEventHandler(BLECharacteristicEvent event, BLECharacterist
     interrupts();
 }
 
-bool
-BLECharacteristic::add(uint16_t serviceHandle)
-{
-    bt_uuid uuid = btUuid();
-
-    struct ble_gatts_characteristic char_data;
-    struct ble_gatts_char_handles handles;
-    struct ble_gatt_char_user_desc user_desc;
-    struct ble_gatt_pf_desc pf_desc;
-
-    memset(&char_data, 0, sizeof(char_data));
-
-    char_data.p_uuid = &uuid;
-    char_data.props.props = _properties;
-
-    if (_properties & (BLERead | BLENotify | BLEIndicate)) {
-        char_data.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    } else {
-        char_data.perms.rd = GAP_SEC_NO_PERMISSION;
-    }
-
-    if (_properties & (BLEWriteWithoutResponse | BLEWrite)) {
-        char_data.perms.wr = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    } else {
-        char_data.perms.wr = GAP_SEC_NO_PERMISSION;
-    }
-
-    char_data.init_len = _value_length;
-    char_data.max_len = _value_size;
-    char_data.p_value = _value;
-
-    if (_user_description) {
-        user_desc.buffer = (uint8_t*)_user_description->value();
-        user_desc.len = _user_description->valueLength();
-
-        char_data.p_user_desc = &user_desc;
-    }
-
-    if (_presentation_format) {
-        const uint8_t* pfValue = _presentation_format->value();
-
-        pf_desc.format = pfValue[0];
-        pf_desc.exp = pfValue[1];
-        pf_desc.unit = (pfValue[3] << 8) | pfValue[2];
-        pf_desc.name_spc = pfValue[4];
-        pf_desc.descr = (pfValue[6] << 8) | pfValue[5];
-
-        char_data.p_char_pf_desc = &pf_desc;
-    }
-
-    BleStatus status = ble_client_gatts_add_characteristic(serviceHandle, &char_data, &handles);
-    if (BLE_STATUS_SUCCESS == status) {
-        _value_handle = handles.value_handle;
-        _cccd_handle = handles.cccd_handle;
-    }
-
-    return (BLE_STATUS_SUCCESS == status);
-}
-
 uint16_t
 BLECharacteristic::valueHandle()
 {
-    return _value_handle;
+    uint16_t handle = 0;
+    if (NULL != _attr_chrc_value)
+    {
+        handle = _attr_chrc_value->handle;
+    }
+    
+    return handle;
 }
 
 uint16_t
 BLECharacteristic::cccdHandle()
 {
-    return _cccd_handle;
-}
-
-void
-BLECharacteristic::setCccdValue(BLECentral& central, uint16_t value)
-{
-    if (_cccd_value != value) {
-        _cccd_value = value;
-
-        if (subscribed()) {
-            if (_event_handlers[BLESubscribed]) {
-                _event_handlers[BLESubscribed](central, *this);
-            }
-        } else {
-            if (_event_handlers[BLEUnsubscribed]) {
-                _event_handlers[BLEUnsubscribed](central, *this);
-            }
-        }
+    uint16_t handle = 0;
+    if (NULL != _attr_cccd)
+    {
+        handle = _attr_cccd->handle;
     }
+    return handle;
 }
 
 void
@@ -263,3 +245,195 @@ BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
     memcpy(_value, value, length);
     _value_length = length;
 }
+
+unsigned char
+BLECharacteristic::numNotifyAttributes(void) {
+    return _numNotifyAttributes;
+}
+
+_bt_gatt_ccc_t* BLECharacteristic::getCccCfg(void)
+{
+    return &_ccc_value;
+}
+
+bt_gatt_chrc_t* BLECharacteristic::getCharacteristicAttValue(void)
+{
+    return &_gatt_chrc;
+}
+
+uint8_t BLECharacteristic::getPermission(void)
+{
+    uint8_t perm = 0;
+    if (_gatt_chrc.properties & BT_GATT_CHRC_READ)
+    {
+        perm |= BT_GATT_PERM_READ;
+    }
+    if (_gatt_chrc.properties & (BT_GATT_CHRC_WRITE | BT_GATT_CHRC_WRITE_WITHOUT_RESP))
+    {
+        perm |= BT_GATT_PERM_WRITE;
+    }
+    return perm;
+}
+
+bt_uuid_t* BLECharacteristic::getCharacteristicAttributeUuid(void)
+{
+    return (bt_uuid_t*) &_gatt_chrc_uuid;
+}
+bt_uuid_t* BLECharacteristic::getClientCharacteristicConfigUuid(void)
+{
+	return (bt_uuid_t*) &_gatt_ccc_uuid;
+}
+
+
+void BLECharacteristic::addCharacteristicDeclaration(bt_gatt_attr_t *gatt_attr)
+{
+    _attr_chrc_declaration = gatt_attr;
+}
+
+void BLECharacteristic::addCharacteristicValue(bt_gatt_attr_t *gatt_attr)
+{
+    _attr_chrc_value = gatt_attr;
+}
+
+void BLECharacteristic::addCharacteristicConfigDescriptor(bt_gatt_attr_t *gatt_attr)
+{
+    _attr_cccd = gatt_attr;
+}
+
+void BLECharacteristic::discover(bt_gatt_discover_params_t *params)
+{
+    params->type = BT_GATT_DISCOVER_CHARACTERISTIC;
+    params->uuid = this->uuid();
+    // Start discovering
+    _discoverying = true;
+    // Re-Init the read/write parameter
+    _reading = false;
+}
+
+
+void BLECharacteristic::discover(const bt_gatt_attr_t *attr,
+			                     bt_gatt_discover_params_t *params)
+{
+    if (!attr)
+    {
+        // Discovery complete
+        _discoverying = false;
+        return;
+    }
+    
+    // Chracteristic Char
+    if (params->uuid == this->uuid())
+    {
+        // Set Discover CCCD parameter
+        params->start_handle = attr->handle + 2;
+        if (subscribed())
+        {
+            // Include CCCD
+            params->type = BT_GATT_DISCOVER_DESCRIPTOR;
+            params->uuid = this->getClientCharacteristicConfigUuid();
+        }
+        else
+        {
+            // Complete the discover
+            _discoverying = false;
+        }
+    }
+    else if (params->uuid == this->getClientCharacteristicConfigUuid())
+    {
+        params->start_handle = attr->handle + 1;
+        _discoverying = false;
+    }
+}
+
+bt_gatt_subscribe_params_t *BLECharacteristic::getSubscribeParams()
+{
+    return &_sub_params;
+}
+
+bool BLECharacteristic::read(BLEPeripheralHelper &peripheral)
+{
+    int retval = 0;
+    bt_conn_t* conn = NULL;
+    if (_reading)
+    {
+        // Already in reading state
+        return false;
+    }
+    
+    _read_params.func = profile_read_rsp_process;
+    _read_params.handle_count = 1;
+    _read_params.single.handle = peripheral.valueHandle(this);
+    _read_params.single.offset = 0;
+    
+    if (0 == _read_params.single.handle)
+    {
+        // Discover not complete
+        return false;
+    }
+    
+    conn = bt_conn_lookup_addr_le(peripheral.bt_le_address());
+    if (NULL == conn)
+    {
+        return false;
+    }
+    
+    // Send read request
+    retval = bt_gatt_read(conn, &_read_params);
+    bt_conn_unref(conn);
+    if (0 == retval)
+    {
+        _reading = true;
+    }
+    return _reading;
+}
+
+bool BLECharacteristic::write(BLEPeripheralHelper &peripheral, 
+                              const unsigned char value[], 
+                              uint16_t length)
+{
+    int retval = 0;
+    bt_conn_t* conn = NULL;
+    
+    conn = bt_conn_lookup_addr_le(peripheral.bt_le_address());
+    if (NULL == conn)
+    {
+        return false;
+    }
+    
+    // Send read request
+    retval = bt_gatt_write_without_response(conn, 
+                                            peripheral.valueHandle(this),
+                                            value, length, false);
+    bt_conn_unref(conn);
+    return (0 == retval);
+}
+
+void BLECharacteristic::setBuffer(BLEHelper& blehelper, 
+                                  const uint8_t value[], 
+                                  uint16_t length, 
+                                  uint16_t offset)
+{
+    if (length + offset > _value_size) {
+        // Ignore the data
+        return;
+    }
+
+    memcpy(_value_buffer + offset, value, length);
+}
+
+void BLECharacteristic::syncupBuffer2Value(BLEHelper& blehelper)
+{
+    setValue(blehelper, _value_buffer, _value_size);
+}
+
+void BLECharacteristic::discardBuffer()
+{
+    memcpy(_value_buffer, _value, _value_size);
+}
+
+bool BLECharacteristic::longCharacteristic()
+{
+    return (_value_size > BLE_MAX_ATTR_DATA_LEN);
+}
+
+

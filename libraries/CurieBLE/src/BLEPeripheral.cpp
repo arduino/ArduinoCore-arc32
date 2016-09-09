@@ -18,112 +18,40 @@
  */
 
 #include "BLEPeripheral.h"
+#include "BLEPeripheralRole.h"
 
-#include "BLECharacteristic.h"
-#include "BLEDescriptor.h"
-#include "BLEService.h"
-#include "BLEUuid.h"
-
-
-#define BLE_DISCONNECT_REASON_LOCAL_TERMINATION 0x16
-
-void
-blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param)
-{
-    BLEPeripheral* p = (BLEPeripheral*)param;
-
-    p->handleGapEvent(event, event_data);
-}
-
-void
-blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param)
-{
-    BLEPeripheral* p = (BLEPeripheral*)param;
-
-    p->handleGattsEvent(event, event_data);
-}
+//#include "BLECharacteristic.h"
 
 BLEPeripheral::BLEPeripheral(void) :
-    _state(BLE_PERIPH_STATE_NOT_READY),
-    _advertise_service_uuid(NULL),
     _local_name(NULL),
-    _service_data_uuid(NULL),
-    _service_data(NULL),
-    _service_data_length(0),
     _appearance(0),
-    _min_conn_interval(DEFAULT_MIN_CONN_INTERVAL),
-    _max_conn_interval(DEFAULT_MAX_CONN_INTERVAL),
-    _central(this),
-    _attributes(NULL),
-    _num_attributes(0),
-    _last_added_characteritic(NULL)
+    _adv_data_idx(0)
 {
-    memset(_event_handlers, 0x00, sizeof(_event_handlers));
-
-    ble_client_get_factory_config(&_local_bda, _device_name);
+    memset(_adv_data, 0x00, sizeof(_adv_data));
+    
+    // Default Advertising parameter
+    setConnectable(true);
 }
 
 BLEPeripheral::~BLEPeripheral(void)
 {
-    if (this->_attributes) {
-        free(this->_attributes);
-    }
 }
 
 bool BLEPeripheral::begin()
 {
-    BleStatus status;
-
-    status = _init();
-    if (status != BLE_STATUS_SUCCESS) {
+    bool ret = false;
+    
+    pr_info(LOG_MODULE_BLE, "%s: %d", __FUNCTION__, 1);
+    
+    ret = BLEPeripheralRole::instance()->begin();
+    if (!ret)
+    {
         return false;
     }
-
-    /* Populate advertising data
-     */
-    _advDataInit();
-
-    status = ble_client_gap_wr_adv_data(_adv_data, _adv_data_len);
-    if (BLE_STATUS_SUCCESS != status) {
-        return false;
-    }
-
-    uint16_t lastServiceHandle = 0;
-
-    for (int i = 0; i < _num_attributes; i++) {
-        BLEAttribute* attribute = _attributes[i];
-        BLEAttributeType type = attribute->type();
-        bool addResult = false;
-
-        if (BLETypeService == type) {
-            BLEService* service = (BLEService*)attribute;
-
-            addResult = service->add();
-
-            lastServiceHandle = service->handle();
-        } else if (BLETypeCharacteristic == type) {
-            BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
-
-            addResult = characteristic->add(lastServiceHandle);
-        } else if (BLETypeDescriptor == type) {
-            BLEDescriptor *descriptor = (BLEDescriptor*)attribute;
-
-            if (strcmp(descriptor->uuid(), "2901") == 0 ||
-                strcmp(descriptor->uuid(), "2902") == 0 ||
-                strcmp(descriptor->uuid(), "2903") == 0 ||
-                strcmp(descriptor->uuid(), "2904") == 0) {
-                continue; // skip
-            }
-
-            addResult = descriptor->add(lastServiceHandle);
-        }
-
-        if (!addResult) {
-            return false;
-        }
-    }
-
-    return (_startAdvertising() == BLE_STATUS_SUCCESS);
+    
+    pr_info(LOG_MODULE_BLE, "%s: %d", __FUNCTION__, 2);
+    
+    return (startAdvertising() == BLE_STATUS_SUCCESS);
 }
 
 void
@@ -136,23 +64,11 @@ BLEPeripheral::poll()
 void
 BLEPeripheral::end()
 {
-    _stop();
-}
-
-uint8_t
-BLEPeripheral::getAdvertisingLength()
-{
-    return _adv_data_len;
-}
-
-uint8_t*
-BLEPeripheral::getAdvertising()
-{
-    return _adv_data;
+    BLEPeripheralRole::instance()->stop();
 }
 
 void
-BLEPeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
+BLEPeripheral::setAdvertisedServiceUuid(const bt_uuid_t* advertisedServiceUuid)
 {
     _advertise_service_uuid = advertisedServiceUuid;
 }
@@ -164,23 +80,45 @@ BLEPeripheral::setLocalName(const char* localName)
 }
 
 void
-BLEPeripheral::setAdvertisedServiceData(const char* serviceDataUuid, uint8_t* serviceData, uint8_t serviceDataLength)
+BLEPeripheral::setAdvertisedServiceData(const bt_uuid_t* serviceDataUuid, 
+                                        uint8_t* serviceData, 
+                                        uint8_t serviceDataLength)
 {
     _service_data_uuid = serviceDataUuid;
     _service_data = serviceData;
     _service_data_length = serviceDataLength;
 }
 
+void 
+BLEPeripheral::setAdvertisingInterval(float interval_min,
+                                      float interval_max)
+{
+    uint16_t max = (uint16_t) MSEC_TO_UNITS(interval_max, UNIT_0_625_MS);
+    uint16_t min = (uint16_t) MSEC_TO_UNITS(interval_min, UNIT_0_625_MS);
+    BLEPeripheralRole::instance()->setAdvertisingInterval(min, max);
+}
+
+void 
+BLEPeripheral::setAdvertisingInterval(float advertisingInterval)
+{
+    setAdvertisingInterval(advertisingInterval, advertisingInterval);
+}
+
+void
+BLEPeripheral::setConnectable(bool connectable)
+{
+    uint8_t type = BT_LE_ADV_IND;
+    if (connectable == false)
+    {
+        type = BT_LE_ADV_NONCONN_IND;
+    }
+    BLEPeripheralRole::instance()->setAdvertisingType(type);
+}
+
 void
 BLEPeripheral::setDeviceName(const char deviceName[])
 {
-    memset(_device_name, 0, sizeof(_device_name));
-    if (deviceName && deviceName[0]) {
-        int len = strlen(deviceName);
-        if (len > BLE_MAX_DEVICE_NAME)
-            len = BLE_MAX_DEVICE_NAME;
-        memcpy(_device_name, deviceName, len);
-    }
+    BLEPeripheralRole::instance()->setDeviceName(deviceName);
 }
 
 void
@@ -192,286 +130,165 @@ BLEPeripheral::setAppearance(const uint16_t appearance)
 void
 BLEPeripheral::setConnectionInterval(const unsigned short minConnInterval, const unsigned short maxConnInterval)
 {
-    _min_conn_interval = minConnInterval;
-    _max_conn_interval = maxConnInterval;
-
-    if (_min_conn_interval < MIN_CONN_INTERVAL) {
-        _min_conn_interval = MIN_CONN_INTERVAL;
-    } else if (_min_conn_interval > MAX_CONN_INTERVAL) {
-        _min_conn_interval = MAX_CONN_INTERVAL;
-    }
-
-    if (_max_conn_interval < _min_conn_interval) {
-        _max_conn_interval = _min_conn_interval;
-    } else if (_max_conn_interval > MAX_CONN_INTERVAL) {
-        _max_conn_interval = MAX_CONN_INTERVAL;
-    }
+    BLEPeripheralRole::instance()->setConnectionInterval(minConnInterval,
+                                                         maxConnInterval);
 }
 
 void
-BLEPeripheral::setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandler callback)
+BLEPeripheral::setEventHandler(BLERoleEvent event, BLERoleEventHandler callback)
 {
-  if (event < sizeof(_event_handlers)) {
-    _event_handlers[event] = callback;
-  }
-}
-
-void
-BLEPeripheral::addAttribute(BLEAttribute& attribute)
-{
-    if (_attributes == NULL) {
-        _attributes = (BLEAttribute**)malloc(BLEAttribute::numAttributes() * sizeof(BLEAttribute*));
-    }
-
-    _attributes[_num_attributes] = &attribute;
-    _num_attributes++;
-
-    BLEAttributeType type = attribute.type();
-
-    if (BLETypeCharacteristic == type) {
-        _last_added_characteritic = (BLECharacteristic*)&attribute;
-    } else if (BLETypeDescriptor == type) {
-        if (_last_added_characteritic) {
-            BLEDescriptor* descriptor = (BLEDescriptor*)&attribute;
-
-            if (strcmp("2901", descriptor->uuid()) == 0) {
-                _last_added_characteritic->setUserDescription(descriptor);
-            } else if (strcmp("2904", descriptor->uuid()) == 0) {
-                _last_added_characteritic->setPresentationFormat(descriptor);
-            }
-        }
-    }
+    BLEPeripheralRole::instance()->setEventHandler(event, callback);
 }
 
 bool
 BLEPeripheral::disconnect()
 {
-    BleStatus status;
-
-    if (BLE_PERIPH_STATE_CONNECTED == _state) {
-        status = ble_client_gap_disconnect(BLE_DISCONNECT_REASON_LOCAL_TERMINATION);
-    } else {
-        status = BLE_STATUS_WRONG_STATE;
-    }
-
-    return (status == BLE_STATUS_SUCCESS);
+    return BLEPeripheralRole::instance()->disconnect();
 }
 
-BLECentral
+BLECentralHelper
 BLEPeripheral::central()
 {
-    poll();
-
-    return _central;
+    return BLEPeripheralRole::instance()->central();
 }
 
 bool
 BLEPeripheral::connected()
 {
-    poll();
-
-    return _central;
+    return BLEPeripheralRole::instance()->connected();
 }
 
 BleStatus
-BLEPeripheral::_init()
+BLEPeripheral::addAttribute(BLEAttribute& attribute)
 {
-    BleStatus status;
-    int8_t txPower = 127;
-
-    if (BLE_PERIPH_STATE_NOT_READY != _state)
-        return BLE_STATUS_WRONG_STATE;
-
-    status = ble_client_init(blePeripheralGapEventHandler, this,
-                             blePeripheralGattsEventHandler, this);
-    if (BLE_STATUS_SUCCESS != status) {
-        return status;
-    }
-
-    status = ble_client_gap_set_enable_config(_device_name, &_local_bda, _appearance, txPower, _min_conn_interval, _max_conn_interval);
-    if (BLE_STATUS_SUCCESS != status) {
-        return status;
-    }
-
-    _state = BLE_PERIPH_STATE_READY;
-    return BLE_STATUS_SUCCESS;
+    return BLEPeripheralRole::instance()->addAttribute(attribute);
 }
 
-void
+
+BleStatus
 BLEPeripheral::_advDataInit(void)
 {
-    uint8_t *adv_tmp = _adv_data;
-
-    memset(_adv_data, 0, sizeof(_adv_data));
-
+    uint8_t lengthTotal = 2; // Flags data length
+    _adv_data_idx = 0;
+    
     /* Add flags */
-    *adv_tmp++ = 2;
-    *adv_tmp++ = BLE_ADV_TYPE_FLAGS;
-    *adv_tmp++ = BLE_SVC_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    _adv_data_len = 3;
+    _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
+    _adv_data[_adv_data_idx].type = BT_DATA_FLAGS;
+    _adv_data[_adv_data_idx].data = &_adv_type;
+    _adv_data[_adv_data_idx].data_len = 1;
+    _adv_data_idx++;
 
-    if (_advertise_service_uuid) {
-        BLEUuid bleUuid = BLEUuid(_advertise_service_uuid);
-        struct bt_uuid uuid = bleUuid.uuid();
-
-        if (BT_UUID16 == uuid.type) {
-            uint8_t *adv_tmp = &_adv_data[_adv_data_len];
-            *adv_tmp++ = (1 + sizeof(uint16_t)); /* Segment data length */
-            *adv_tmp++ = BLE_ADV_TYPE_COMP_16_UUID; /* Needed for Eddystone */
-            UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
-            _adv_data_len += (2 + sizeof(uint16_t));
-        } else if (BT_UUID128 == uuid.type) {
-            uint8_t *adv_tmp = &_adv_data[_adv_data_len];
-            *adv_tmp++ = (1 + MAX_UUID_SIZE); /* Segment data length */
-            *adv_tmp++ = BLE_ADV_TYPE_INC_128_UUID;
-            memcpy(adv_tmp, uuid.uuid128, MAX_UUID_SIZE);
-            _adv_data_len += (2 + MAX_UUID_SIZE);
+    if (_advertise_service_uuid) 
+    {
+        uint8_t type;
+        uint8_t length;
+        uint8_t *data = NULL;
+        
+        pr_info(LOG_MODULE_BLE, "ADV Type-%d", _advertise_service_uuid->type);
+        if (BT_UUID_TYPE_16 == _advertise_service_uuid->type)
+        {
+            //UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
+            data = (uint8_t *)&(((bt_uuid_16_t *)_advertise_service_uuid)->val);
+            length = UUID_SIZE_16;
+            type = BT_DATA_UUID16_ALL;
+        }
+        else if (BT_UUID_TYPE_128 == _advertise_service_uuid->type)
+        {
+            data = ((bt_uuid_128_t *)_advertise_service_uuid)->val;
+            length = UUID_SIZE_128;
+            type = BT_DATA_UUID128_ALL;
+        }
+        if (NULL != data)
+        {
+            _adv_data[_adv_data_idx].type = type;
+            _adv_data[_adv_data_idx].data = data;
+            _adv_data[_adv_data_idx].data_len = length;
+            _adv_data_idx++;
+            lengthTotal += length;
+            
+            pr_info(LOG_MODULE_BLE, "Service UUID Len -%d", length);
         }
     }
 
-    if (_local_name) {
+    if (_local_name)
+    {
         /* Add device name (truncated if too long) */
-        uint8_t calculated_len;
-
-        adv_tmp = &_adv_data[_adv_data_len];
-        if (_adv_data_len + strlen(_local_name) + 2 <= BLE_MAX_ADV_SIZE) {
-            *adv_tmp++ = strlen(_local_name) + 1;
-            *adv_tmp++ = BLE_ADV_TYPE_COMP_LOCAL_NAME;
-            calculated_len = strlen(_local_name);
-        } else {
-            *adv_tmp++ = BLE_MAX_ADV_SIZE - _adv_data_len - 1;
-            *adv_tmp++ = BLE_ADV_TYPE_SHORT_LOCAL_NAME;
-            calculated_len = BLE_MAX_ADV_SIZE - _adv_data_len - 2;
-        }
-
-        memcpy(adv_tmp, _local_name, calculated_len);
-        _adv_data_len += calculated_len + 2;
+        _adv_data[_adv_data_idx].type = BT_DATA_NAME_COMPLETE;
+        _adv_data[_adv_data_idx].data = (const uint8_t*)_local_name;
+        _adv_data[_adv_data_idx].data_len = strlen(_local_name);
+        _adv_data_idx++;
+        
+        lengthTotal += strlen(_local_name);
+        pr_info(LOG_MODULE_BLE, "Local Name -%s", _local_name);
+        pr_info(LOG_MODULE_BLE, "Local Name Len -%d", strlen(_local_name));
     }
 
-    if (_service_data) {
+    if (_service_data)
+    {
         /* Add Service Data (if it will fit) */
 
-        BLEUuid bleUuid = BLEUuid(_service_data_uuid);
-        struct bt_uuid uuid = bleUuid.uuid();
-
         /* A 128-bit Service Data UUID won't fit in an Advertising packet */
-        if (BT_UUID16 != uuid.type) {
-            return; /* We support service data only for 16-bit service UUID */
+        if (BT_UUID_TYPE_16 != _service_data_uuid->type)
+        {
+            /* We support service data only for 16-bit service UUID */
+            return BLE_STATUS_NOT_SUPPORTED;
         }
 
-        uint8_t block_len = 1 + sizeof(uint16_t) + _service_data_length;
-        if (_adv_data_len + 1 + block_len > BLE_MAX_ADV_SIZE) {
-            return; // Service data block is too large.
+        uint8_t block_len = sizeof(uint16_t) + _service_data_length;
+        if (1 + block_len > BLE_MAX_ADV_SIZE)
+        {
+            // Service data block is too large.
+            return BLE_STATUS_ERROR_PARAMETER;
         }
+        
+        _adv_data[_adv_data_idx].type = BT_DATA_SVC_DATA16;
+        _adv_data[_adv_data_idx].data = _service_data_buf;
+        _adv_data[_adv_data_idx].data_len = block_len;
+        _adv_data_idx++;
 
-        adv_tmp = &_adv_data[_adv_data_len];
+        uint8_t *adv_tmp = _service_data_buf;
 
-        *adv_tmp++ = block_len;
-        _adv_data_len++;
-
-        *adv_tmp++ = BLE_ADV_TYPE_SERVICE_DATA_16_UUID;
-        UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
+        UINT16_TO_LESTREAM(adv_tmp, (((bt_uuid_16_t *)_service_data_uuid)->val));
         memcpy(adv_tmp, _service_data, _service_data_length);
-
-        _adv_data_len += block_len;
+        
+        lengthTotal += block_len;
+        pr_info(LOG_MODULE_BLE, "SVC Len -%d", block_len);
     }
-}
-
-BleStatus
-BLEPeripheral::_startAdvertising()
-{
-    BleStatus status;
-
-    if (_state != BLE_PERIPH_STATE_READY)
-        return BLE_STATUS_WRONG_STATE;
-
-    status = ble_client_gap_start_advertise(0); // 0 = no timeout
-    if (BLE_STATUS_SUCCESS != status)
-        return status;
-
-    _state = BLE_PERIPH_STATE_ADVERTISING;
+    if (lengthTotal > BLE_MAX_ADV_SIZE)
+    {
+        pr_error(LOG_MODULE_BLE, "ADV Total length-%d", lengthTotal);
+        // Service data block is too large.
+        return BLE_STATUS_ERROR_PARAMETER;
+    }
     return BLE_STATUS_SUCCESS;
 }
 
 BleStatus
-BLEPeripheral::_stop(void)
+BLEPeripheral::startAdvertising()
 {
-    BleStatus status;
-
-    if (BLE_PERIPH_STATE_ADVERTISING == _state)
-        status = ble_client_gap_stop_advertise();
-    else
-        status = disconnect();
-
+    BleStatus status = BLE_STATUS_SUCCESS;
+    status = _advDataInit();
     if (BLE_STATUS_SUCCESS != status)
+    {
         return status;
-
-    _state = BLE_PERIPH_STATE_READY;
-    return BLE_STATUS_SUCCESS;
+    }
+    status = BLEPeripheralRole::instance()->startAdvertising(_adv_data, 
+                                                             _adv_data_idx, 
+                                                             NULL, 
+                                                             0);
+    return status;
 }
 
-void
-BLEPeripheral::handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data)
+BleStatus
+BLEPeripheral::stopAdvertising()
 {
-    if (BLE_CLIENT_GAP_EVENT_CONNECTED == event) {
-        _state = BLE_PERIPH_STATE_CONNECTED;
-        _central.setAddress(event_data->connected.peer_bda);
-
-        if (_event_handlers[BLEConnected]) {
-            _event_handlers[BLEConnected](_central);
-        }
-    } else if (BLE_CLIENT_GAP_EVENT_DISCONNECTED == event) {
-
-        for (int i = 0; i < _num_attributes; i++) {
-            BLEAttribute* attribute = _attributes[i];
-
-            if (attribute->type() == BLETypeCharacteristic) {
-                BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
-
-                characteristic->setCccdValue(_central, 0x0000); // reset CCCD
-            }
-        }
-
-        if (_event_handlers[BLEDisconnected])
-            _event_handlers[BLEDisconnected](_central);
-
-        _state = BLE_PERIPH_STATE_READY;
-        _central.clearAddress();
-
-        _startAdvertising();
-    } else if (BLE_CLIENT_GAP_EVENT_CONN_TIMEOUT == event) {
-        _state = BLE_PERIPH_STATE_READY;
-
-        _startAdvertising();
-    }
+    BleStatus status = BLE_STATUS_SUCCESS;
+    
+    status = BLEPeripheralRole::instance()->stopAdvertising();
+    return status;
 }
 
-void
-BLEPeripheral::handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data)
+BLECentralHelper  *BLEPeripheral::getPeerCentralBLE(BLEHelper& central)
 {
-    if (BLE_CLIENT_GATTS_EVENT_WRITE == event) {
-        uint16_t handle = event_data->wr.attr_handle;
-
-        for (int i = 0; i < _num_attributes; i++) {
-            BLEAttribute* attribute = _attributes[i];
-
-            if (attribute->type() != BLETypeCharacteristic) {
-                continue;
-            }
-
-            BLECharacteristic* characteristic = (BLECharacteristic*)attribute;
-
-            if (characteristic->valueHandle() == handle) {
-                characteristic->setValue(_central, event_data->wr.data, event_data->wr.len);
-                break;
-            } else if (characteristic->cccdHandle() == handle) {
-                uint16_t cccdValue = 0;
-
-                memcpy(&cccdValue, event_data->wr.data, event_data->wr.len);
-
-                characteristic->setCccdValue(_central, cccdValue);
-                break;
-            }
-        }
-    }
+	return (BLECentralHelper *)(&central);
 }

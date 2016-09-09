@@ -6,7 +6,10 @@
 #include <CurieBLE.h>
 
 /*
-   This sketch example partially implements the standard Bluetooth Low-Energy Battery service.
+   This sketch can work with UpdateConnectionInterval. 
+   You can also use an android or IOS app that supports notifications   
+   This sketch example partially implements the standard Bluetooth Low-Energy Battery service
+   and connection interval paramater update.
    For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
 */
 
@@ -15,9 +18,9 @@ BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're pr
 BLEService batteryService("180F"); // BLE Battery Service
 
 // BLE Battery Level Characteristic"
-BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID  defined in the URL above
     BLERead | BLENotify);     // remote clients will be able to
-// get notifications if this characteristic changes
+                              // get notifications if this characteristic changes
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
@@ -45,7 +48,7 @@ void setup() {
 
 void loop() {
   // listen for BLE peripherals to connect:
-  BLECentral central = blePeripheral.central();
+  BLECentralHelper central = blePeripheral.central();
 
   // if a central is connected to peripheral:
   if (central) {
@@ -63,6 +66,14 @@ void loop() {
       if (currentMillis - previousMillis >= 200) {
         previousMillis = currentMillis;
         updateBatteryLevel();
+
+        static unsigned short count = 0;  
+        count++;
+        // update the connection interval
+        if(count%5 == 0){
+          delay(1000);
+          updateIntervalParams(central);  
+        }
       }
     }
     // when the central disconnects, turn off the LED:
@@ -87,6 +98,31 @@ void updateBatteryLevel() {
   }
 }
 
+void updateIntervalParams(BLECentralHelper &central) {
+  // read and update the connection interval that peer central device
+  static unsigned short interval = 0x60;
+  ble_conn_param_t m_conn_param;
+  // Get connection interval that peer central device wanted
+  central.getConnParams(m_conn_param);
+  Serial.print("min interval = " );
+  Serial.println(m_conn_param.interval_min );
+  Serial.print("max interval = " );
+  Serial.println(m_conn_param.interval_max );
+  Serial.print("latency = " );
+  Serial.println(m_conn_param.latency );
+  Serial.print("timeout = " );
+  Serial.println(m_conn_param.timeout );
+        
+  //Update connection interval
+  Serial.println("set Connection Interval");
+  central.setConnectionInterval(interval,interval);
+
+  interval++;
+  if(interval<0x06)
+    interval = 0x06;
+  if(interval>0x100)
+    interval = 0x06; 
+}
 /*
    Copyright (c) 2016 Intel Corporation.  All rights reserved.
 

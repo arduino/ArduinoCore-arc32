@@ -32,13 +32,14 @@
 #include "log_impl.h"
 #include "infra/log_backend.h"
 
-extern int printk(const char * format, ...);
+//extern int printk(const char * format, ...);
+extern void printk(const char *fmt, va_list args);
 
 uint32_t log_write_msg(uint8_t level, uint8_t module, const char *format,
 				va_list args)
 {
 // TODO - implement printk
-//	printk(format, args);
+	printk(format, args);
 	return 0;
 }
 
