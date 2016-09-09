@@ -66,6 +66,14 @@ void loop() {
       if (currentMillis - previousMillis >= 200) {
         previousMillis = currentMillis;
         updateBatteryLevel();
+
+        static unsigned short count = 0;  
+        count++;
+        // update the connection interval
+        if(count%5 == 0){
+          delay(1000);
+          updateIntervalParams(central);  
+        }
       }
     }
     // when the central disconnects, turn off the LED:
@@ -90,6 +98,31 @@ void updateBatteryLevel() {
   }
 }
 
+void updateIntervalParams(BLECentralHelper &central) {
+  // read and update the connection interval that peer central device
+  static unsigned short interval = 0x60;
+  ble_conn_param_t m_conn_param;
+  // Get connection interval that peer central device wanted
+  central.getConnParams(m_conn_param);
+  Serial.print("min interval = " );
+  Serial.println(m_conn_param.interval_min );
+  Serial.print("max interval = " );
+  Serial.println(m_conn_param.interval_max );
+  Serial.print("latency = " );
+  Serial.println(m_conn_param.latency );
+  Serial.print("timeout = " );
+  Serial.println(m_conn_param.timeout );
+        
+  //Update connection interval
+  Serial.println("set Connection Interval");
+  central.setConnectionInterval(interval,interval);
+
+  interval++;
+  if(interval<0x06)
+    interval = 0x06;
+  if(interval>0x100)
+    interval = 0x06; 
+}
 /*
    Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
