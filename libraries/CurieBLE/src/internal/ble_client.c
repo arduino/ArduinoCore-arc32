@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-	 
+     
 #include <errno.h>
 
 #include <string.h>
@@ -77,7 +77,7 @@ static void *ble_client_update_param_event_param;
 extern "C" {
 #endif
 
-static void on_connected(struct bt_conn *conn, uint8_t err)
+static void on_connected(bt_conn_t *conn, uint8_t err)
 {
     if (ble_client_connect_event_cb)
     {
@@ -85,7 +85,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
     }
 }
 
-static void on_disconnected(struct bt_conn *conn, uint8_t reason)
+static void on_disconnected(bt_conn_t *conn, uint8_t reason)
 {
     if (ble_client_disconnect_event_cb)
     {
@@ -93,8 +93,8 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason)
     }
 }
 
-static void on_le_param_updated(struct bt_conn *conn, uint16_t interval,
-				uint16_t latency, uint16_t timeout)
+static void on_le_param_updated(bt_conn_t *conn, uint16_t interval,
+                uint16_t latency, uint16_t timeout)
 {
     if (ble_client_update_param_event_cb)
     {
@@ -107,9 +107,9 @@ static void on_le_param_updated(struct bt_conn *conn, uint16_t interval,
 }
 
 static struct bt_conn_cb conn_callbacks = {
-	.connected = on_connected,
-	.disconnected = on_disconnected,
-	.le_param_updated = on_le_param_updated
+    .connected = on_connected,
+    .disconnected = on_disconnected,
+    .le_param_updated = on_le_param_updated
 };
 
 
@@ -167,12 +167,12 @@ void ble_client_get_factory_config(bt_addr_le_t *bda, char *name)
             *suffix++ = '-';
             BYTE_TO_STR(suffix, p_oem->bt_address[4]);
             BYTE_TO_STR(suffix, p_oem->bt_address[5]);
-	        *suffix = 0; /* NULL-terminate the string. Note the macro BYTE_TO_STR 
+            *suffix = 0; /* NULL-terminate the string. Note the macro BYTE_TO_STR 
                              automatically move the pointer */
         }
         else
         {
-	     /* This code segment will be only reached if Curie module was not 
+         /* This code segment will be only reached if Curie module was not 
                 provisioned properly with a BLE MAC address*/
              *suffix++ = 0; /* NULL-terminate the string */
         }
@@ -200,33 +200,35 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
 
 BleStatus errorno_to_ble_status(int err)
 {
-	BleStatus err_code;
-	err = 0 - err;
-	
-	switch(err) {
-	case 0:
-		err_code = BLE_STATUS_SUCCESS;
-		break;
-	case EIO:
-		err_code = BLE_STATUS_WRONG_STATE;
-		break;
-	case EBUSY:
-		err_code = BLE_STATUS_TIMEOUT;
-		break;
-	case EFBIG:
-	case ENOTSUP:
-		err_code = BLE_STATUS_NOT_SUPPORTED;
-		break;
-	case EPERM:
-	case EACCES:
-		err_code = BLE_STATUS_NOT_ALLOWED;
-		break;
-	case ENOMEM: // No memeory
-	default:
-		err_code = BLE_STATUS_ERROR;
-		break;
-	}
-	return err_code;
+    BleStatus err_code;
+    err = 0 - err;
+    
+    switch(err) {
+    case 0:
+        err_code = BLE_STATUS_SUCCESS;
+        break;
+    case EIO:
+        err_code = BLE_STATUS_WRONG_STATE;
+        break;
+    case EBUSY:
+        err_code = BLE_STATUS_TIMEOUT;
+        break;
+    case EFBIG:
+    case ENOTSUP:
+        err_code = BLE_STATUS_NOT_SUPPORTED;
+        break;
+    case EPERM:
+    case EACCES:
+        err_code = BLE_STATUS_NOT_ALLOWED;
+        break;
+    case ENOMEM: // No memeory
+        err_code = BLE_STATUS_NO_MEMORY;
+        break;
+    default:
+        err_code = BLE_STATUS_ERROR;
+        break;
+    }
+    return err_code;
 }
 
 

@@ -25,6 +25,11 @@
 
 class BLEAttribute;
 
+/**
+ *  @brief A class defining the BLE central function
+ *
+ *  This class abstract the BLE central. 
+ */
 class BLECentral{
 public:
     /**
@@ -41,13 +46,15 @@ public:
     /**
      * @brief   Start scan with scan parameter
      *
-     * @param   none
+     * @param[in]   interval        The scan interval in ms
+     *
+     * @param[in]   window          The scan window in ms
      *
      * @return  bool    Indicate the success or error
      *
      * @note  none
      */
-    bool startScan(const struct bt_le_scan_param &scan_param);
+    bool startScan(float interval, float window);
     
     /**
      * @brief   Stop scan
@@ -63,20 +70,20 @@ public:
     /**
      * @brief   Schedule a connect request to peripheral to establish a connection
      *
-     * @param   addr    The MAC address of peripheral device that want to establish connection
+     * @param[in]   addr    The MAC address of peripheral device that want to establish connection
      *
-     * @param   param   The connetion parameters
+     * @param[in]   param   The connetion parameters
      *
      * @return  bool    Indicate the success or error
      *
      * @note  none
      */
-    bool connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param);
+    bool connect(const bt_addr_le_t *addr, const ble_conn_param_t *param);
     
     /**
      * @brief   Discover the peripheral device profile
      *
-     * @param   peripheral  The Peripheral that need to discover the profile
+     * @param[in]   peripheral  The Peripheral that need to discover the profile
      *
      * @return  none
      *
@@ -87,37 +94,47 @@ public:
     /**
      * @brief   Set the scan parameter
      *
-     * @param   scan_param      The scan parameter want to be set
+     * @param[in]   interval        The scan interval in ms
+     *
+     * @param[in]   window          The scan window in ms
      *
      * @return  none
      *
-     * @note  none
+     * @note  1. The scale of the interval and window are 2.5 - 10240ms
+     *        2. The scan interval and window are like below.
+     *              The device can see the ADV packet in the window.
+     *             window
+     *              ----     ----
+     *              |  |     |  |
+     *            ---  -------  ----
+     *              |interval|
      */
-    void setScanParam(const struct bt_le_scan_param &scan_param);
+    void setScanParam(float interval, float window);
     
     /**
      * @brief   Add an attribute to the BLE Central Device
      *
-     * @param   attribute   Attribute to add to Central
+     * @param[in]   attribute   Attribute to add to Central
      *
-     * @return  none
+     * @return  BleStatus indicating success or error
      *
      * @note  The attribute will used for discover the peripheral handler
+     *          Only need check return value at first call. Memory only alloc at first call
      */
-    void addAttribute(BLEAttribute& attribute);
+    BleStatus addAttribute(BLEAttribute& attribute);
     
     /**
      * Provide a function to be called when events related to this Device are raised
      *
-     * @param event    Event type for callback
-     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param[in] event    Event type for callback
+     * @param[in] callback Pointer to callback function to invoke when an event occurs.
      */
     void setEventHandler(BLERoleEvent event, BLERoleEventHandler callback);
     
     /**
      * @brief   Provide a function to be called when scanned the advertisement
      *
-     * @param   advcb   Pointer to callback function to invoke when advertisement received
+     * @param[in]   advcb   Pointer to callback function to invoke when advertisement received
      *
      * @return  none
      *
@@ -126,11 +143,20 @@ public:
     void setAdvertiseHandler(ble_advertise_handle_cb_t advcb);
     
     /**
-     * Setup attributes and start scan
+     * @brief Setup attributes and start scan
      *
      * @return bool indicating success or error
      */
     bool begin(void);
+    
+    /**
+     * @brief Get peer peripheral device
+     *
+     *@param   peripheral peer peripheral device of the central board  
+     *
+     * @return pointer of peer peripheral device
+     */
+    BLEPeripheralHelper  *getPeerPeripheralBLE(BLEHelper& peripheral);	
 protected:
 private:
     

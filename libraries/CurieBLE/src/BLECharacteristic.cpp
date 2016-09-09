@@ -21,24 +21,25 @@
 #include "BLEPeripheralHelper.h"
 #include "internal/ble_client.h"
 
-uint8_t profile_notify_process (struct bt_conn *conn,
-                             struct bt_gatt_subscribe_params *params,
-                             const void *data, uint16_t length);
-uint8_t profile_read_rsp_process(struct bt_conn *conn, int err,
-                                 struct bt_gatt_read_params *params,
+uint8_t profile_notify_process (bt_conn_t *conn,
+                                bt_gatt_subscribe_params_t *params,
+                                const void *data, uint16_t length);
+uint8_t profile_read_rsp_process(bt_conn_t *conn, int err,
+                                 bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length);
 
 unsigned char BLECharacteristic::_numNotifyAttributes = 0;
 
-struct bt_uuid_16 BLECharacteristic::_gatt_chrc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CHRC_VAL};
-struct bt_uuid_16 BLECharacteristic::_gatt_ccc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CCC_VAL};
+bt_uuid_16_t BLECharacteristic::_gatt_chrc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CHRC_VAL};
+bt_uuid_16_t BLECharacteristic::_gatt_ccc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CCC_VAL};
 
 BLECharacteristic::BLECharacteristic(const char* uuid,
                       const unsigned char properties,
                       const unsigned short maxLength) :
     BLEAttribute(uuid, BLETypeCharacteristic),
     _value_length(0),
+    _value_buffer(NULL),
     _written(false),
     _user_description(NULL),
     _presentation_format(NULL),
@@ -46,8 +47,12 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
     _attr_chrc_value(NULL),
     _attr_cccd(NULL)
 {
-    _value_size = maxLength > BLE_MAX_ATTR_DATA_LEN ? BLE_MAX_ATTR_DATA_LEN : maxLength;
+    _value_size = maxLength > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : maxLength;
     _value = (unsigned char*)malloc(_value_size);
+    if (_value_size > BLE_MAX_ATTR_DATA_LEN)
+    {
+        _value_buffer = (unsigned char*)malloc(_value_size);
+    }
     
     memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
     memset(&_ccc_value, 0, sizeof(_ccc_value));
@@ -246,12 +251,12 @@ BLECharacteristic::numNotifyAttributes(void) {
     return _numNotifyAttributes;
 }
 
-struct _bt_gatt_ccc* BLECharacteristic::getCccCfg(void)
+_bt_gatt_ccc_t* BLECharacteristic::getCccCfg(void)
 {
     return &_ccc_value;
 }
 
-struct bt_gatt_chrc* BLECharacteristic::getCharacteristicAttValue(void)
+bt_gatt_chrc_t* BLECharacteristic::getCharacteristicAttValue(void)
 {
     return &_gatt_chrc;
 }
@@ -270,32 +275,32 @@ uint8_t BLECharacteristic::getPermission(void)
     return perm;
 }
 
-struct bt_uuid* BLECharacteristic::getCharacteristicAttributeUuid(void)
+bt_uuid_t* BLECharacteristic::getCharacteristicAttributeUuid(void)
 {
-    return (struct bt_uuid*) &_gatt_chrc_uuid;
+    return (bt_uuid_t*) &_gatt_chrc_uuid;
 }
-struct bt_uuid* BLECharacteristic::getClientCharacteristicConfigUuid(void)
+bt_uuid_t* BLECharacteristic::getClientCharacteristicConfigUuid(void)
 {
-	return (struct bt_uuid*) &_gatt_ccc_uuid;
+	return (bt_uuid_t*) &_gatt_ccc_uuid;
 }
 
 
-void BLECharacteristic::addCharacteristicDeclaration(struct bt_gatt_attr *gatt_attr)
+void BLECharacteristic::addCharacteristicDeclaration(bt_gatt_attr_t *gatt_attr)
 {
     _attr_chrc_declaration = gatt_attr;
 }
 
-void BLECharacteristic::addCharacteristicValue(struct bt_gatt_attr *gatt_attr)
+void BLECharacteristic::addCharacteristicValue(bt_gatt_attr_t *gatt_attr)
 {
     _attr_chrc_value = gatt_attr;
 }
 
-void BLECharacteristic::addCharacteristicConfigDescriptor(struct bt_gatt_attr *gatt_attr)
+void BLECharacteristic::addCharacteristicConfigDescriptor(bt_gatt_attr_t *gatt_attr)
 {
     _attr_cccd = gatt_attr;
 }
 
-void BLECharacteristic::discover(struct bt_gatt_discover_params *params)
+void BLECharacteristic::discover(bt_gatt_discover_params_t *params)
 {
     params->type = BT_GATT_DISCOVER_CHARACTERISTIC;
     params->uuid = this->uuid();
@@ -306,8 +311,8 @@ void BLECharacteristic::discover(struct bt_gatt_discover_params *params)
 }
 
 
-void BLECharacteristic::discover(const struct bt_gatt_attr *attr,
-			                     struct bt_gatt_discover_params *params)
+void BLECharacteristic::discover(const bt_gatt_attr_t *attr,
+			                     bt_gatt_discover_params_t *params)
 {
     if (!attr)
     {
@@ -340,7 +345,7 @@ void BLECharacteristic::discover(const struct bt_gatt_attr *attr,
     }
 }
 
-struct bt_gatt_subscribe_params *BLECharacteristic::getSubscribeParams()
+bt_gatt_subscribe_params_t *BLECharacteristic::getSubscribeParams()
 {
     return &_sub_params;
 }
@@ -348,7 +353,7 @@ struct bt_gatt_subscribe_params *BLECharacteristic::getSubscribeParams()
 bool BLECharacteristic::read(BLEPeripheralHelper &peripheral)
 {
     int retval = 0;
-    struct bt_conn* conn = NULL;
+    bt_conn_t* conn = NULL;
     if (_reading)
     {
         // Already in reading state
@@ -387,7 +392,7 @@ bool BLECharacteristic::write(BLEPeripheralHelper &peripheral,
                               uint16_t length)
 {
     int retval = 0;
-    struct bt_conn* conn = NULL;
+    bt_conn_t* conn = NULL;
     
     conn = bt_conn_lookup_addr_le(peripheral.bt_le_address());
     if (NULL == conn)
@@ -401,6 +406,34 @@ bool BLECharacteristic::write(BLEPeripheralHelper &peripheral,
                                             value, length, false);
     bt_conn_unref(conn);
     return (0 == retval);
+}
+
+void BLECharacteristic::setBuffer(BLEHelper& blehelper, 
+                                  const uint8_t value[], 
+                                  uint16_t length, 
+                                  uint16_t offset)
+{
+    if (length + offset > _value_size) {
+        // Ignore the data
+        return;
+    }
+
+    memcpy(_value_buffer + offset, value, length);
+}
+
+void BLECharacteristic::syncupBuffer2Value(BLEHelper& blehelper)
+{
+    setValue(blehelper, _value_buffer, _value_size);
+}
+
+void BLECharacteristic::discardBuffer()
+{
+    memcpy(_value_buffer, _value, _value_size);
+}
+
+bool BLECharacteristic::longCharacteristic()
+{
+    return (_value_size > BLE_MAX_ATTR_DATA_LEN);
 }
 
 

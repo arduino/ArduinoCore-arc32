@@ -36,13 +36,6 @@ class BLECentralHelper: public BLEHelper{
          * @return boolean_t true if the central is connected, otherwise false
          */
         bool connected(void);
-
-        /**
-         * Get the address of the Central in string form
-         *
-         * @return const char* address of the Central in string form
-         */
-        const char* address(void) const;
         
         /**
          * Disconnect the central if it is connected
@@ -55,18 +48,11 @@ class BLECentralHelper: public BLEHelper{
          */
         void poll(void);
 
-        operator bool(void) const;
-        bool operator==(const BLECentralHelper& rhs) const;
-        bool operator!=(const BLECentralHelper& rhs) const;
-
     protected:
         BLECentralHelper(BLEPeripheralRole* peripheral);
-        void setAddress(bt_addr_le_t address);
-        void clearAddress();
 
     private:
         BLEPeripheralRole* _peripheral;
-        bt_addr_le_t   _address;
 };
 
 #endif

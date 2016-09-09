@@ -35,14 +35,16 @@
 
 #define BLE_ADDR_LEN 6
 
-#define MAX_UUID_SIZE              16
-
+#define UUID_SIZE_128	16
+#define UUID_SIZE_16	2
+#define MAX_UUID_SIZE	UUID_SIZE_128
 
 /* Theoretically we should be able to support attribute lengths up to 512 bytes
  * but this involves splitting it across multiple packets.  For simplicity,
  * we will just limit this to 20 bytes for now, which will fit in a single packet
  */
-#define BLE_MAX_ATTR_DATA_LEN 20
+#define BLE_MAX_ATTR_DATA_LEN       20
+#define BLE_MAX_ATTR_LONGDATA_LEN   512
 
 /* Default device name prefix, applied only if user does not provide a name
  * If a factory-configured MAC address is defined, the last 2 bytes of the
@@ -54,19 +56,20 @@
 
 /** BLE response/event status codes. */
 enum BLE_STATUS {
-	BLE_STATUS_SUCCESS = 0, /**< General BLE Success code */
-	BLE_STATUS_PENDING, /**< Request received and execution started, response pending */
-	BLE_STATUS_TIMEOUT, /**< Request timed out */
-	BLE_STATUS_NOT_SUPPORTED, /**< Request/feature/parameter not supported */
-	BLE_STATUS_NOT_ALLOWED, /**< Request not allowed */
-	BLE_STATUS_LINK_TIMEOUT, /**< Link timeout (link loss) */
-	BLE_STATUS_NOT_ENABLED, /**< BLE not enabled, @ref ble_enable */
-	BLE_STATUS_ERROR,	/**< Generic Error */
-	BLE_STATUS_ALREADY_REGISTERED, /**< BLE service already registered */
-	BLE_STATUS_WRONG_STATE, /**< Wrong state for request */
-	BLE_STATUS_ERROR_PARAMETER, /**< Parameter in request is wrong */
-	BLE_STATUS_GAP_BASE = 0x100, /**< GAP specific error base */
-	BLE_STATUS_GATT_BASE = 0x200, /**< GATT specific Error base */
+    BLE_STATUS_SUCCESS = 0, /**< General BLE Success code */
+    BLE_STATUS_PENDING, /**< Request received and execution started, response pending */
+    BLE_STATUS_TIMEOUT, /**< Request timed out */
+    BLE_STATUS_NOT_SUPPORTED, /**< Request/feature/parameter not supported */
+    BLE_STATUS_NOT_ALLOWED, /**< Request not allowed */
+    BLE_STATUS_LINK_TIMEOUT, /**< Link timeout (link loss) */
+    BLE_STATUS_NOT_ENABLED, /**< BLE not enabled, @ref ble_enable */
+    BLE_STATUS_ERROR,   /**< Generic Error */
+    BLE_STATUS_ALREADY_REGISTERED, /**< BLE service already registered */
+    BLE_STATUS_WRONG_STATE, /**< Wrong state for request */
+    BLE_STATUS_ERROR_PARAMETER, /**< Parameter in request is wrong */
+    BLE_STATUS_NO_MEMORY, /**< System doesn't have memory */
+    BLE_STATUS_GAP_BASE = 0x100, /**< GAP specific error base */
+    BLE_STATUS_GATT_BASE = 0x200, /**< GATT specific Error base */
 };
 
 typedef uint16_t ble_status_t; /**< Response and event BLE service status type @ref BLE_STATUS */
@@ -75,7 +78,37 @@ typedef ble_status_t BleStatus;
 
 #define BLE_MAX_CONN_CFG    2
 
-typedef bool (*ble_advertise_handle_cb_t)(uint8_t type, const uint8_t *data,
-				                          uint8_t data_len, void *user_data);
+typedef bool (*ble_advertise_handle_cb_t)(uint8_t type, const uint8_t *dataPtr,
+                                          uint8_t data_len, const bt_addr_le_t *addrPtr);
 
+
+typedef struct ble_conn_param {
+    float interval_min; // millisecond 7.5 - 4000ms
+    float interval_max; // millisecond 7.5 - 4000ms
+    uint16_t latency;   // 0x0000 - 0x01F4
+    uint16_t timeout;   // millisecond 100 - 32000ms
+}ble_conn_param_t;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/// Define the structure for app
+typedef struct bt_uuid      bt_uuid_t;
+typedef struct bt_uuid_16   bt_uuid_16_t;
+typedef struct bt_uuid_128  bt_uuid_128_t;
+typedef struct bt_conn  bt_conn_t;
+typedef struct bt_gatt_attr  bt_gatt_attr_t;
+typedef struct bt_gatt_discover_params  bt_gatt_discover_params_t;
+typedef struct bt_le_scan_param  bt_le_scan_param_t;
+typedef struct bt_le_conn_param bt_le_conn_param_t;
+typedef struct bt_gatt_subscribe_params bt_gatt_subscribe_params_t;
+typedef struct bt_gatt_read_params bt_gatt_read_params_t;
+typedef struct _bt_gatt_ccc _bt_gatt_ccc_t;
+typedef struct bt_gatt_chrc bt_gatt_chrc_t;
+typedef struct bt_gatt_ccc_cfg bt_gatt_ccc_cfg_t;
+typedef struct bt_data bt_data_t;
+
+#ifdef __cplusplus
+}
+#endif
 #endif // _BLE_COMMON_H_INCLUDED

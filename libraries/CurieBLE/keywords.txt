@@ -13,7 +13,9 @@ BLEDescriptor	KEYWORD1
 BLEPeripheral	KEYWORD1
 BLEService	KEYWORD1
 BLETypedCharacteristic	KEYWORD1
-BLEUuid	KEYWORD1
+BLEHelper	KEYWORD1
+BLECentralHelper	KEYWORD1
+BLEPeripheralHelper	KEYWORD1
 
 BLECharCharacteristic	KEYWORD1
 BLEUnsignedCharCharacteristic	KEYWORD1
@@ -31,13 +33,18 @@ BLEDoubleCharacteristic	KEYWORD1
 #######################################
 
 uuid	KEYWORD2
-type	KEYWORD2
 numAttributes	KEYWORD2
 
 connected	KEYWORD2
 address	KEYWORD2
 poll	KEYWORD2
 disconnect	KEYWORD2
+discover	KEYWORD2
+startScan	KEYWORD2
+stopScan	KEYWORD2
+
+getConnParams	KEYWORD2
+setConnectionInterval	KEYWORD2
 
 properties	KEYWORD2
 valueSize	KEYWORD2
@@ -49,11 +56,14 @@ written	KEYWORD2
 subscribed	KEYWORD2
 
 begin	KEYWORD2
-getAdvertisingLength	KEYWORD2
-getAdvertising	KEYWORD2
+
+stopAdvertising	KEYWORD2
+setConnectable	KEYWORD2
+startAdvertising	KEYWORD2	 
 setAdvertisedServiceUuid	KEYWORD2
 setAdvertisedServiceData	KEYWORD2
 setLocalName	KEYWORD2
+setDeviceName	KEYWORD2
 setAppearance	KEYWORD2
 setConnectionInterval	KEYWORD2
 addAttribute	KEYWORD2
@@ -64,10 +74,9 @@ valueLE	KEYWORD2
 setValueBE	KEYWORD2
 valueBE	KEYWORD2
 
-str	KEYWORD2
-data	KEYWORD2
-length	KEYWORD2
-
+getPeerPeripheralBLE	KEYWORD2
+getPeerCentralBLE	KEYWORD2
+uuidCompare	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -77,7 +86,6 @@ BLETypeService	LITERAL1
 BLETypeCharacteristic	LITERAL1
 BLETypeDescriptor	LITERAL1
 
-BLEBroadcast	LITERAL1
 BLERead	LITERAL1
 BLEWriteWithoutResponse	LITERAL1
 BLEWrite	LITERAL1
@@ -86,7 +94,14 @@ BLEIndicate	LITERAL1
 
 BLEConnected	LITERAL1
 BLEDisconnected	LITERAL1
+BLEUpdateParam	LITERAL1
 
 BLEWritten	LITERAL1
 BLESubscribed	LITERAL1
 BLEUnsubscribed	LITERAL1
+
+ble_conn_param_t	LITERAL1
+bt_uuid_t	LITERAL1
+bt_uuid_16_t	LITERAL1
+bt_uuid_128_t	LITERAL1
+bt_addr_le_t	LITERAL1

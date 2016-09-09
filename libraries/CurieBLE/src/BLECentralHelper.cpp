@@ -28,54 +28,11 @@ BLECentralHelper::BLECentralHelper(BLEPeripheralRole* peripheral) :
     clearAddress();
 }
 
-BLECentralHelper::operator bool() const {
-    bt_addr_le_t zero;
-
-    memset(&zero, 0, sizeof(zero));
-
-    return (memcmp(&_address, &zero, sizeof(_address)) != 0);
-}
-
-bool
-BLECentralHelper::operator==(const BLECentralHelper& rhs) const {
-    return (memcmp(&_address, &rhs._address, sizeof(_address)) == 0);
-}
-
-bool
-BLECentralHelper::operator!=(const BLECentralHelper& rhs) const {
-    return !(*this == rhs);
-}
-
 bool
 BLECentralHelper::connected() {
     poll();
 
     return (*this && *this == _peripheral->central());
-}
-
-const char* 
-BLECentralHelper::address() const {
-    static char address[18];
-
-    String addressStr = "";
-
-    for (int i = 5; i >= 0; i--) {
-        unsigned char a = _address.val[i];
-
-        if (a < 0x10) {
-            addressStr += "0";
-        }
-
-        addressStr += String(a, 16);
-
-        if (i > 0) {
-            addressStr += ":";
-        }
-    }
-
-    strcpy(address, addressStr.c_str());
-
-    return address;
 }
 
 void
@@ -92,12 +49,3 @@ BLECentralHelper::disconnect() {
     return false;
 }
 
-void
-BLECentralHelper::setAddress(bt_addr_le_t address) {
-    _address = address;
-}
-
-void
-BLECentralHelper::clearAddress() {
-    memset(&_address, 0x00, sizeof(_address));
-}

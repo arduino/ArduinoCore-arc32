@@ -21,7 +21,7 @@
 
 #include "BLERoleBase.h"
 
-void bleConnectEventHandler(struct bt_conn *conn, 
+void bleConnectEventHandler(bt_conn_t *conn, 
                             uint8_t err, 
                             void *param)
 {
@@ -31,7 +31,7 @@ void bleConnectEventHandler(struct bt_conn *conn,
 }
 
 
-void bleDisconnectEventHandler(struct bt_conn *conn, 
+void bleDisconnectEventHandler(bt_conn_t *conn, 
                                 uint8_t reason, 
                                 void *param)
 {
@@ -42,7 +42,7 @@ void bleDisconnectEventHandler(struct bt_conn *conn,
     p->handleDisconnectEvent(conn, reason);
 }
 
-void bleParamUpdatedEventHandler(struct bt_conn *conn, 
+void bleParamUpdatedEventHandler(bt_conn_t *conn, 
                                  uint16_t interval,
                                  uint16_t latency, 
                                  uint16_t timeout, 
@@ -64,15 +64,15 @@ void BLERoleBase::setTxPower (int8_t tx_power)
 BleStatus
 BLERoleBase::_init()
 {
-	// Curie may support multi-role at same time in future.
-	//  Make sure the BLE only init once.
-	if (this->m_init_cnt == 0)
-	{
-		ble_client_init(bleConnectEventHandler, this,
-		                 bleDisconnectEventHandler, this,
-		                 bleParamUpdatedEventHandler, this);
-	}
-	this->m_init_cnt++;
+    // Curie may support multi-role at same time in future.
+    //  Make sure the BLE only init once.
+    if (this->m_init_cnt == 0)
+    {
+        ble_client_init (bleConnectEventHandler, this,
+                         bleDisconnectEventHandler, this,
+                         bleParamUpdatedEventHandler, this);
+    }
+    this->m_init_cnt++;
 
     return BLE_STATUS_SUCCESS;
 }

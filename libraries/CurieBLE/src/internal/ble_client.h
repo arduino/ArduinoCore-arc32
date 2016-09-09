@@ -40,12 +40,13 @@ enum {
 };
 
 #define MSEC_TO_UNITS(TIME, RESOLUTION) (((TIME) * 1000) / (RESOLUTION))
+#define UNITS_TO_MSEC(TIME, RESOLUTION) (((TIME) * RESOLUTION) / 1000)
 
 /* Connection parameters used for Peripheral Preferred Connection Parameterss (PPCP) and update request */
 #define DEFAULT_MIN_CONN_INTERVAL MSEC_TO_UNITS(80, UNIT_1_25_MS)
 #define DEFAULT_MAX_CONN_INTERVAL MSEC_TO_UNITS(150, UNIT_1_25_MS)
 #define MIN_CONN_INTERVAL 0x0006
-#define MAX_CONN_INTERVAL 0x095f
+#define MAX_CONN_INTERVAL 0x0C80
 #define SLAVE_LATENCY 0
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(6000, UNIT_10_MS)
 
@@ -107,6 +108,7 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
 void ble_client_get_factory_config(bt_addr_le_t *bda, char *name);
 void ble_gap_set_tx_power(int8_t tx_power);
 BleStatus errorno_to_ble_status(int err);
+
 
 #ifdef __cplusplus
 }

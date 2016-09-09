@@ -3,19 +3,28 @@
  * See the bottom of this file for the license terms.
  */
 
+ /*  This examples needs a button connected similarly as described here
+     https://www.arduino.cc/en/Tutorial/Button
+	 The only difference is that instead of connecting to pin 2 connect to pin 4
+	 After the sketch starts connect to a BLE app on a phone and set notification to the Characteristic and you should see it update
+	 whenever the button is pressed. This sketch is not written to pair with any of the central examples. 
+ */	 
+ 
 #include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to on-board LED
 const int buttonPin = 4; // set buttonPin to digital pin 4
 
 BLEPeripheral blePeripheral; // create peripheral instance
-BLEService ledService("19B10010-E8F2-537E-4F6C-D104768A1214"); // create service
+BLEService ledService("19B10010-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
+                                                               // Long UUID denote custom user created UUID
 
 
 // create switch characteristic and allow remote device to read and write
 BLECharCharacteristic ledCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 // create button characteristic and allow remote device to get notifications
 BLECharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // allows remote device to get notifications
+// Note use of Typed Characteristics. These previous 2  characeristics are of the type char
 
 void setup() {
   Serial.begin(9600);
@@ -32,6 +41,7 @@ void setup() {
   blePeripheral.addAttribute(ledCharacteristic);
   blePeripheral.addAttribute(buttonCharacteristic);
 
+  // set initial values for led and button characteristic
   ledCharacteristic.setValue(0);
   buttonCharacteristic.setValue(0);
 
@@ -59,10 +69,13 @@ void loop() {
 
   if (ledCharacteristic.written() || buttonChanged) {
     // update LED, either central has written to characteristic or button state has changed
+	// if you are using a phone or a BLE  central device that is aware of this characteristic, writing a value of 0x40 for example
+	// Will be interpreted as written
     if (ledCharacteristic.value()) {
       Serial.println("LED on");
       digitalWrite(ledPin, HIGH);
     } else {
+	// If central writes a 0 value then it is interpreted as no value and turns off the LED
       Serial.println("LED off");
       digitalWrite(ledPin, LOW);
     }

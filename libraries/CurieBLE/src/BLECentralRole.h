@@ -46,7 +46,7 @@ public:
      *
      * @note  none
      */
-    bool startScan(const struct bt_le_scan_param &scan_param);
+    bool startScan(const bt_le_scan_param_t &scan_param);
     
     /**
      * @brief   Stop scan
@@ -62,37 +62,37 @@ public:
     /**
      * @brief   Schedule a connect request to peripheral to establish a connection
      *
-     * @param   addr    The MAC address of peripheral device that want to establish connection
+     * @param[in]   addr    The MAC address of peripheral device that want to establish connection
      *
-     * @param   param   The connetion parameters
+     * @param[in]   param   The connetion parameters
      *
      * @return  bool    Indicate the success or error
      *
      * @note  none
      */
-    bool connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param);
+    bool connect(const bt_addr_le_t *addr, const bt_le_conn_param_t *param);
     
     /**
      * @brief   Set the scan parameter
      *
-     * @param   scan_param      The scan parameter want to be set
+     * @param[in]   scan_param      The scan parameter want to be set
      *
      * @return  none
      *
      * @note  none
      */
-    void setScanParam(const struct bt_le_scan_param &scan_param);
+    void setScanParam(const bt_le_scan_param_t &scan_param);
     
     /**
      * @brief   Get the scan parameter
      *
      * @param   none
      *
-     * @return  const struct bt_le_scan_param* The scan parameter that current used
+     * @return  const bt_le_scan_param_t* The scan parameter that current used
      *
      * @note  none
      */
-    const struct bt_le_scan_param* getScanParam();
+    const bt_le_scan_param_t* getScanParam();
     
     /**
      * @brief   Discover the peripheral device profile
@@ -108,26 +108,26 @@ public:
     /**
      * @brief   Add an attribute to the BLE Central Device
      *
-     * @param   attribute   Attribute to add to Central
+     * @param[in]   attribute   Attribute to add to Central
      *
-     * @return  none
+     * @return  BleStatus indicating success or error
      *
      * @note  The attribute will used for discover the peripheral handler
      */
-    void addAttribute(BLEAttribute& attribute);
+    BleStatus addAttribute(BLEAttribute& attribute);
     
     /**
-     * Provide a function to be called when events related to this Device are raised
+     * @brief Provide a function to be called when events related to this Device are raised
      *
-     * @param event    Event type for callback
-     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param[in] event    Event type for callback
+     * @param[in] callback Pointer to callback function to invoke when an event occurs.
      */
     void setEventHandler(BLERoleEvent event, BLERoleEventHandler callback);
     
     /**
      * @brief   Provide a function to be called when scanned the advertisement
      *
-     * @param   advcb   Pointer to callback function to invoke when advertisement received
+     * @param[in]   advcb   Pointer to callback function to invoke when advertisement received
      *
      * @return  none
      *
@@ -138,13 +138,13 @@ public:
     /**
      * @brief   Get BLE peripheral helper by conntion
      *
-     * @param   conn    The connection object
+     * @param[in]   conn    The connection object
      *
      * @return  BLEPeripheralHelper*    The BLE peripheral helper
      *
      * @note  none
      */
-    BLEPeripheralHelper* peripheral(struct bt_conn *conn);
+    BLEPeripheralHelper* peripheral(bt_conn_t *conn);
     
     /**
      * @brief   Get BLE central helper that for APP use
@@ -197,60 +197,60 @@ protected:
     /**
      * @brief   Handle the connected event
      *
-     * @param   conn    The object that established the connection
+     * @param[in]   conn    The object that established the connection
      *
-     * @param   err     The code of the process
+     * @param[in]   err     The code of the process
      *
      * @return  none
      *
      * @note  none
      */
-    void handleConnectEvent(struct bt_conn *conn, uint8_t err);
+    void handleConnectEvent(bt_conn_t *conn, uint8_t err);
     
     /**
      * @brief   Handle the disconnected event
      *
-     * @param   conn    The object that lost the connection
+     * @param[in]   conn    The object that lost the connection
      *
-     * @param   reason  The link lost reason
+     * @param[in]   reason  The link lost reason
      *
      * @return  none
      *
      * @note  none
      */
-    void handleDisconnectEvent(struct bt_conn *conn, uint8_t reason);
+    void handleDisconnectEvent(bt_conn_t *conn, uint8_t reason);
     
     /**
      * @brief   Handle the conntion update request
      *
-     * @param   conn    The connection object that need to process the update request
+     * @param[in]   conn    The connection object that need to process the update request
      *
-     * @param   interval    The connection interval
+     * @param[in]   interval    The connection interval (N*1.25)ms
      *
-     * @param   latency     The connection latency
+     * @param[in]   latency     The connection latency
      *
-     * @param   timeout     The connection timeout
+     * @param[in]   timeout     The connection timeout (N*10)ms
      *
      * @return  none
      *
      * @note  none
      */
-    void handleParamUpdated(struct bt_conn *conn, 
+    void handleParamUpdated(bt_conn_t *conn, 
                             uint16_t interval,
-				            uint16_t latency, 
-				            uint16_t timeout);
+                            uint16_t latency, 
+                            uint16_t timeout);
     /**
      * @brief   Handle the advertisement
      *
-     * @param   addr    The device's MAC address that send out ADV
+     * @param[in]   addr    The device's MAC address that send out ADV
      *
-     * @param   rssi    The antenna's RSSI
+     * @param[in]   rssi    The antenna's RSSI
      *
-     * @param   type    The advertise type
+     * @param[in]   type    The advertise type
      *
-     * @param   ad      The advertisement RAW data
+     * @param[in]   ad      The advertisement RAW data
      *
-     * @param   len     The RAW data's length
+     * @param[in]   len     The RAW data's length
      *
      * @return  none
      *
@@ -266,7 +266,7 @@ private:
     ~BLECentralRole();
     BLEPeripheralHelper* _peripherial[BLE_MAX_CONN_CFG];
     BLECentralHelper    _central;
-    struct bt_le_scan_param _scan_param;
+    bt_le_scan_param_t _scan_param;
     
     static BLECentralRole* _ble_central_ins;
     ble_advertise_handle_cb_t _adv_event_handle;

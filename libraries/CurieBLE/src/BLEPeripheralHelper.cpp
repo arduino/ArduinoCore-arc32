@@ -24,19 +24,19 @@ BLEAttribute *BLEPeripheralHelper::attribute(uint16_t handle)
     return _profile.attribute(handle);
 }
 
-BLEAttribute *BLEPeripheralHelper::attribute(struct bt_gatt_subscribe_params *params)
+BLEAttribute *BLEPeripheralHelper::attribute(bt_gatt_subscribe_params_t *params)
 {
     return _profile.attribute(params);
 }
 
-void BLEPeripheralHelper::discover(const struct bt_gatt_attr *attr)
+uint8_t BLEPeripheralHelper::discover(const bt_gatt_attr_t *attr)
 {
     // Not allow to call the discover
     if (NULL == _central)
     {
-        return;
+        return BT_GATT_ITER_STOP;
     }
-    _profile.discover(attr);
+    return _profile.discover(attr);
 }
 
 void BLEPeripheralHelper::discover()
@@ -62,7 +62,7 @@ BLEPeripheralHelper::~BLEPeripheralHelper()
 bool BLEPeripheralHelper::disconnect(void)
 {
     int err = 0;
-    struct bt_conn* conn = bt_conn_lookup_addr_le(this->bt_le_address());
+    bt_conn_t* conn = bt_conn_lookup_addr_le(this->bt_le_address());
     if (NULL == conn)
     {
         return false;
@@ -75,7 +75,7 @@ bool BLEPeripheralHelper::disconnect(void)
 
 bool BLEPeripheralHelper::connected(void)
 {
-    struct bt_conn* conn = bt_conn_lookup_addr_le(this->bt_le_address());
+    bt_conn_t* conn = bt_conn_lookup_addr_le(this->bt_le_address());
     if (NULL == conn)
     {
         return false;
@@ -94,9 +94,9 @@ void BLEPeripheralHelper::linkLost(void)
     }
 }
 
-void BLEPeripheralHelper::addAttribute(BLEAttribute& attribute)
+BleStatus BLEPeripheralHelper::addAttribute(BLEAttribute& attribute)
 {
-    _profile.addAttribute(attribute);
+    return _profile.addAttribute(attribute);
 }
 
 int BLEPeripheralHelper::registerProfile()

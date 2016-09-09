@@ -46,7 +46,7 @@ BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
 }
 
 const unsigned char*
-BLEDescriptor::BLEDescriptor::value() const
+BLEDescriptor::value() const
 {
     return _value;
 }
@@ -62,4 +62,35 @@ BLEDescriptor::operator[] (int offset) const
 {
     return _value[offset];
 }
+
+void BLEDescriptor::discover(const bt_gatt_attr_t *attr,
+                             bt_gatt_discover_params_t *params)
+{
+    if (!attr)
+    {
+        // Discovery complete
+        _discoverying = false;
+        return;
+    }
+    
+    // Chracteristic Char
+    if (params->uuid == this->uuid())
+    {
+        // Set Discover CCCD parameter
+        params->start_handle = attr->handle + 1;
+        // Complete the discover
+        _discoverying = false;
+    }
+
+}
+
+
+void BLEDescriptor::discover(bt_gatt_discover_params_t *params)
+{
+    params->type = BT_GATT_DISCOVER_DESCRIPTOR;
+    params->uuid = this->uuid();
+    // Start discovering
+    _discoverying = true;
+}
+
 
