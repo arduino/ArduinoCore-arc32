@@ -40,7 +40,7 @@
 #define NUM_CPU     4
 
 #define SERIAL_BUFFER_SIZE 256
-#define SHARED_BUFFER_SIZE 512
+#define SHARED_BUFFER_SIZE 64
 
 struct cdc_ring_buffer
 {
