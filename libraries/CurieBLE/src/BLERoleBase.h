@@ -54,7 +54,7 @@ public:
     /**
      * Set TX output power
      *
-     * @param   tx_power    The antenna TX power
+     * @param[in]   tx_power    The antenna TX power
      *
      * @return boolean_t true if established connection, otherwise false
      */
@@ -62,13 +62,13 @@ public:
 protected:
     virtual BleStatus _init(void);
     
-    friend void bleConnectEventHandler(struct bt_conn *conn, 
+    friend void bleConnectEventHandler(bt_conn_t *conn, 
                                         uint8_t err, 
                                         void *param);
-    friend void bleDisconnectEventHandler(struct bt_conn *conn, 
+    friend void bleDisconnectEventHandler(bt_conn_t *conn, 
                                             uint8_t reason, 
                                             void *param);
-    friend void bleParamUpdatedEventHandler(struct bt_conn *conn, 
+    friend void bleParamUpdatedEventHandler(bt_conn_t *conn, 
                                              uint16_t interval,
                                              uint16_t latency, 
                                              uint16_t timeout, 
@@ -77,48 +77,48 @@ protected:
     /**
      * @brief   Handle the connected event
      *
-     * @param   conn    The object that established the connection
+     * @param[in]   conn    The object that established the connection
      *
-     * @param   err     The code of the process
+     * @param[in]   err     The code of the process
      *
      * @return  none
      *
      * @note  virtual function. Just define the interface and the children need to implement
      */
-    virtual void handleConnectEvent(struct bt_conn *conn, uint8_t err) = 0;
+    virtual void handleConnectEvent(bt_conn_t *conn, uint8_t err) = 0;
     
     /**
      * @brief   Handle the disconnected event
      *
-     * @param   conn    The object that lost the connection
+     * @param[in]   conn    The object that lost the connection
      *
-     * @param   reason  The link lost reason
+     * @param[in]   reason  The link lost reason
      *
      * @return  none
      *
      * @note  virtual function. Just define the interface and the children need to implement
      */
-    virtual void handleDisconnectEvent(struct bt_conn *conn, uint8_t reason) = 0;
+    virtual void handleDisconnectEvent(bt_conn_t *conn, uint8_t reason) = 0;
     
     /**
      * @brief   Handle the conntion update request
      *
-     * @param   conn    The connection object that need to process the update request
+     * @param[in]   conn    The connection object that need to process the update request
      *
-     * @param   interval    The connection interval
+     * @param[in]   interval    The connection interval (N*1.25)ms
      *
-     * @param   latency     The connection latency
+     * @param[in]   latency     The connection latency
      *
-     * @param   timeout     The connection timeout
+     * @param[in]   timeout     The connection timeout (N*10)ms
      *
      * @return  none
      *
      * @note  virtual function. Just define the interface and the children need to implement
      */
-    virtual void handleParamUpdated (struct bt_conn *conn, 
+    virtual void handleParamUpdated (bt_conn_t *conn, 
                                      uint16_t interval,
-        				             uint16_t latency, 
-        				             uint16_t timeout) = 0;
+                                     uint16_t latency, 
+                                     uint16_t timeout) = 0;
 
     char       _device_name[BLE_MAX_DEVICE_NAME+1];
     bt_addr_le_t _local_bda;

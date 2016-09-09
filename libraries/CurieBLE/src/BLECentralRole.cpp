@@ -75,7 +75,7 @@ const BLECentralHelper *BLECentralRole::central(void) const
     return &_central;
 }
 
-bool BLECentralRole::connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param)
+bool BLECentralRole::connect(const bt_addr_le_t *addr, const bt_le_conn_param_t *param)
 {
     BLEPeripheralHelper* temp   = NULL;
     BLEPeripheralHelper* unused = NULL;
@@ -108,7 +108,7 @@ bool BLECentralRole::connect(const bt_addr_le_t *addr, const struct bt_le_conn_p
     if (!link_existed)
     {
         // Send connect request
-        struct bt_conn* conn = bt_conn_create_le(addr, param);
+        bt_conn_t* conn = bt_conn_create_le(addr, param);
         if (NULL != conn)
         {
             unused->setAddress(*addr);
@@ -121,27 +121,27 @@ bool BLECentralRole::connect(const bt_addr_le_t *addr, const struct bt_le_conn_p
 
 bool BLECentralRole::startScan()
 {
-	int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
-	if (err)
+    int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
+    if (err)
     {
-		pr_info(LOG_MODULE_BLE, "Scanning failed to start (err %d)\n", err);
-		return false;
-	}
+        pr_info(LOG_MODULE_BLE, "Scanning failed to start (err %d)\n", err);
+        return false;
+    }
     return true;
 }
 
-bool BLECentralRole::startScan(const struct bt_le_scan_param &scan_param)
+bool BLECentralRole::startScan(const bt_le_scan_param_t &scan_param)
 {
     setScanParam(scan_param);
     return startScan();
 }
 
-void BLECentralRole::setScanParam(const struct bt_le_scan_param &scan_param)
+void BLECentralRole::setScanParam(const bt_le_scan_param_t &scan_param)
 {
     memcpy(&_scan_param, &scan_param, sizeof (_scan_param));
 }
 
-const struct bt_le_scan_param* BLECentralRole::getScanParam()
+const bt_le_scan_param_t* BLECentralRole::getScanParam()
 {
     return &_scan_param;
 }
@@ -153,12 +153,12 @@ bool BLECentralRole::stopScan()
     if (err)
     {
         pr_info(LOG_MODULE_BLE, "Stop LE scan failed (err %d)\n", err);
-		return false;
+        return false;
     }
     return true;
 }
 
-BLEPeripheralHelper* BLECentralRole::peripheral(struct bt_conn *conn)
+BLEPeripheralHelper* BLECentralRole::peripheral(bt_conn_t *conn)
 {
     BLEPeripheralHelper* temp   = NULL;
     const bt_addr_le_t *addr = bt_conn_get_dst(conn);
@@ -207,7 +207,7 @@ void BLECentralRole::handleDeviceFound(const bt_addr_le_t *addr,
     			return;
     		}
 
-    		if (!_adv_event_handle(data[1], &data[2], len - 1, (void *)addr))
+    		if (!_adv_event_handle(data[1], &data[2], len - 1, addr))
             {
     			return;
     		}
@@ -219,7 +219,7 @@ void BLECentralRole::handleDeviceFound(const bt_addr_le_t *addr,
 	}
 }
 
-void BLECentralRole::handleConnectEvent(struct bt_conn *conn, uint8_t err)
+void BLECentralRole::handleConnectEvent(bt_conn_t *conn, uint8_t err)
 {
     if (_event_handlers[BLEConnected])
     {
@@ -228,7 +228,7 @@ void BLECentralRole::handleConnectEvent(struct bt_conn *conn, uint8_t err)
     }
 }
 
-void BLECentralRole::handleDisconnectEvent(struct bt_conn *conn, uint8_t reason)
+void BLECentralRole::handleDisconnectEvent(bt_conn_t *conn, uint8_t reason)
 {
     if (_event_handlers[BLEDisconnected])
     {
@@ -238,15 +238,15 @@ void BLECentralRole::handleDisconnectEvent(struct bt_conn *conn, uint8_t reason)
     }
 }
 
-void BLECentralRole::handleParamUpdated(struct bt_conn *conn, 
+void BLECentralRole::handleParamUpdated(bt_conn_t *conn, 
                         uint16_t interval,
                         uint16_t latency, 
                         uint16_t timeout)
 {
     if (_event_handlers[BLEUpdateParam])
     {
-        // Fix me Add parameter proc
         BLEPeripheralHelper *temp = peripheral(conn);
+        temp->setConnectionParameters(interval, interval, latency, timeout);
         _event_handlers[BLEUpdateParam](*temp);
     }
 }
@@ -265,12 +265,18 @@ void BLECentralRole::setAdvertiseHandler(ble_advertise_handle_cb_t advcb)
     _adv_event_handle = advcb;
 }
 
-void BLECentralRole::addAttribute(BLEAttribute& attribute)
+BleStatus BLECentralRole::addAttribute(BLEAttribute& attribute)
 {
+    BleStatus err = BLE_STATUS_SUCCESS;
     for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
     {
-        _peripherial[i]->addAttribute(attribute);
+        err = _peripherial[i]->addAttribute(attribute);
+        if (err != BLE_STATUS_SUCCESS) 
+        {
+            break;
+        }
     }
+    return err;
 }
 
 bool BLECentralRole::begin()

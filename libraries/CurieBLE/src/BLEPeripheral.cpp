@@ -30,9 +30,7 @@ BLEPeripheral::BLEPeripheral(void) :
     memset(_adv_data, 0x00, sizeof(_adv_data));
     
     // Default Advertising parameter
-    setAdvertisingParam(BT_LE_ADV_IND ,
-                        0xA0,
-                        0xF0);
+    setConnectable(true);
 }
 
 BLEPeripheral::~BLEPeripheral(void)
@@ -70,7 +68,7 @@ BLEPeripheral::end()
 }
 
 void
-BLEPeripheral::setAdvertisedServiceUuid(const struct bt_uuid* advertisedServiceUuid)
+BLEPeripheral::setAdvertisedServiceUuid(const bt_uuid_t* advertisedServiceUuid)
 {
     _advertise_service_uuid = advertisedServiceUuid;
 }
@@ -82,7 +80,7 @@ BLEPeripheral::setLocalName(const char* localName)
 }
 
 void
-BLEPeripheral::setAdvertisedServiceData(const struct bt_uuid* serviceDataUuid, 
+BLEPeripheral::setAdvertisedServiceData(const bt_uuid_t* serviceDataUuid, 
                                         uint8_t* serviceData, 
                                         uint8_t serviceDataLength)
 {
@@ -91,13 +89,30 @@ BLEPeripheral::setAdvertisedServiceData(const struct bt_uuid* serviceDataUuid,
     _service_data_length = serviceDataLength;
 }
 
-void BLEPeripheral::setAdvertisingParam(uint8_t  type, 
-                                        uint16_t interval_min,
-                                        uint16_t interval_max)
+void 
+BLEPeripheral::setAdvertisingInterval(float interval_min,
+                                      float interval_max)
 {
-    BLEPeripheralRole::instance()->setAdvertisingParam(type, 
-                                                       interval_min, 
-                                                       interval_max);
+    uint16_t max = (uint16_t) MSEC_TO_UNITS(interval_max, UNIT_0_625_MS);
+    uint16_t min = (uint16_t) MSEC_TO_UNITS(interval_min, UNIT_0_625_MS);
+    BLEPeripheralRole::instance()->setAdvertisingInterval(min, max);
+}
+
+void 
+BLEPeripheral::setAdvertisingInterval(float advertisingInterval)
+{
+    setAdvertisingInterval(advertisingInterval, advertisingInterval);
+}
+
+void
+BLEPeripheral::setConnectable(bool connectable)
+{
+    uint8_t type = BT_LE_ADV_IND;
+    if (connectable == false)
+    {
+        type = BT_LE_ADV_NONCONN_IND;
+    }
+    BLEPeripheralRole::instance()->setAdvertisingType(type);
 }
 
 void
@@ -143,9 +158,10 @@ BLEPeripheral::connected()
     return BLEPeripheralRole::instance()->connected();
 }
 
-void BLEPeripheral::addAttribute(BLEAttribute& attribute)
+BleStatus
+BLEPeripheral::addAttribute(BLEAttribute& attribute)
 {
-    BLEPeripheralRole::instance()->addAttribute(attribute);
+    return BLEPeripheralRole::instance()->addAttribute(attribute);
 }
 
 
@@ -172,14 +188,14 @@ BLEPeripheral::_advDataInit(void)
         if (BT_UUID_TYPE_16 == _advertise_service_uuid->type)
         {
             //UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
-            data = (uint8_t *)&(((struct bt_uuid_16 *)_advertise_service_uuid)->val);
-            length = sizeof(uint16_t);
+            data = (uint8_t *)&(((bt_uuid_16_t *)_advertise_service_uuid)->val);
+            length = UUID_SIZE_16;
             type = BT_DATA_UUID16_ALL;
         }
         else if (BT_UUID_TYPE_128 == _advertise_service_uuid->type)
         {
-            data = ((struct bt_uuid_128 *)_advertise_service_uuid)->val;
-            length = MAX_UUID_SIZE;
+            data = ((bt_uuid_128_t *)_advertise_service_uuid)->val;
+            length = UUID_SIZE_128;
             type = BT_DATA_UUID128_ALL;
         }
         if (NULL != data)
@@ -232,7 +248,7 @@ BLEPeripheral::_advDataInit(void)
 
         uint8_t *adv_tmp = _service_data_buf;
 
-        UINT16_TO_LESTREAM(adv_tmp, (((struct bt_uuid_16 *)_service_data_uuid)->val));
+        UINT16_TO_LESTREAM(adv_tmp, (((bt_uuid_16_t *)_service_data_uuid)->val));
         memcpy(adv_tmp, _service_data, _service_data_length);
         
         lengthTotal += block_len;
@@ -272,3 +288,7 @@ BLEPeripheral::stopAdvertising()
     return status;
 }
 
+BLECentralHelper  *BLEPeripheral::getPeerCentralBLE(BLEHelper& central)
+{
+	return (BLECentralHelper *)(&central);
+}

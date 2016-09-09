@@ -34,13 +34,13 @@ public:
     /**
      * @brief   Add an attribute to the BLE Peripheral Device
      *
-     * @param attribute Attribute to add to Peripheral
+     * @param[in] attribute Attribute to add to Peripheral
      *
      * @return BleStatus indicating success or error
      *
      * @note This method must be called before the begin method
      */
-    void addAttribute(BLEAttribute& attribute);
+    BleStatus addAttribute(BLEAttribute& attribute);
     
     /**
      * @brief   Register the profile to Nordic BLE stack
@@ -56,19 +56,19 @@ public:
     /**
      * @brief   Get BLEAttribute by subscribe parameter
      *
-     * @param   struct bt_gatt_subscribe_params *       Subscribe parameter
+     * @param[in]   params              Subscribe parameter
      *
      * @return  BLEAttribute *      NULL - Not found
      *                              Not NULL - The BLEAttribute object
      *
      * @note  none
      */
-    BLEAttribute *attribute(struct bt_gatt_subscribe_params *params);
+    BLEAttribute *attribute(bt_gatt_subscribe_params_t *params);
     
     /**
      * @brief   Get BLEAttribute by characteristic handle
      *
-     * @param   uint16_t       The characteristic handle
+     * @param[in]   handle              The characteristic handle
      *
      * @return  BLEAttribute *      NULL - Not found
      *                              Not NULL - The BLEAttribute object
@@ -81,13 +81,14 @@ public:
      * @brief   Process the discover response and 
      *           discover the BLE peripheral profile
      *
-     * @param   const struct bt_gatt_attr *     The gatt attribute response
+     * @param[in]   const bt_gatt_attr_t *     The gatt attribute response
      *
-     * @return  none
+     * @return  uint8_t     BT_GATT_ITER_STOP   Stop discover the profile
+     *                      BT_GATT_ITER_CONTINUE Continue to send the discover request
      *
      * @note  This function only for the central device.
      */
-    void discover(const struct bt_gatt_attr *attr);
+    uint8_t discover(const bt_gatt_attr_t *attr);
     
     /**
      * @brief   Discover the BLE peripheral profile
@@ -119,7 +120,7 @@ public:
     /**
      * @brief   Get the characteristic value handle
      *
-     * @param   none
+     * @param[in]   attr            Attribute object 
      *
      * @return  uint16_t        The value handle
      *                           0 is invalid handle
@@ -131,7 +132,7 @@ public:
     /**
      * @brief   Get characteristic configuration descriptor value handle
      *
-     * @param   none
+     * @param[in]   attr            Attribute object 
      *
      * @return  uint16_t        The value handle
      *                           0 is invalid handle
@@ -140,15 +141,15 @@ public:
      */
     uint16_t cccdHandle(BLEAttribute *attr);
 protected:
-    friend ssize_t profile_write_process(struct bt_conn *conn,
-                                     const struct bt_gatt_attr *attr,
+    friend ssize_t profile_write_process(bt_conn_t *conn,
+                                     const bt_gatt_attr_t *attr,
                                      const void *buf, uint16_t len,
                                      uint16_t offset);
 private:
     /**
      * @brief   Get BLEAttribute by UUID
      *
-     * @param   const struct bt_uuid*       The UUID
+     * @param[in]   const bt_uuid_t*       The UUID
      *
      * @return  BLEAttribute *      NULL - Not found
      *                              Not NULL - The BLEAttribute object
@@ -157,32 +158,58 @@ private:
      *         Because the uuid pointer in bt_gatt_attr is got from BLEAttribute
      *         So set this as private.
      */
-    BLEAttribute *attribute(const struct bt_uuid* uuid);
+    BLEAttribute *attribute(const bt_uuid_t* uuid);
     
     /**
      * @brief   Get bt_gatt_attr by BLEAttribute class
      *
-     * @param   BLEAttribute *      The BLEAttribute object
+     * @param[in]   BLEAttribute *      The BLEAttribute object
      *
-     * @return  struct bt_gatt_attr*    NULL - Not found
+     * @return  bt_gatt_attr_t*    NULL - Not found
      *                                  Not NULL - The bt_gatt_attr in the stack
      *
      * @note  none
      */
-    struct bt_gatt_attr* declarationAttr(BLEAttribute *attr);
+    bt_gatt_attr_t* declarationAttr(BLEAttribute *attr);
+    
+    /**
+     * @brief   Process the descriptor discover response
+     *
+     * @param[in]   const bt_gatt_attr_t *     The discover response
+     *
+     * @param[in]   BLEAttribute *                  The BLEAttribute object in discovering
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void descriptorDiscoverRsp(const bt_gatt_attr_t *attr, BLEAttribute* bleattr);
+    
+    /**
+     * @brief   Process the characteristic discover response
+     *
+     * @param[in]   const bt_gatt_attr_t *     The discover response
+     *
+     * @param[in]   BLEAttribute *                  The BLEAttribute object in discovering
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void characteristicDiscoverRsp(const bt_gatt_attr_t *attr, BLEAttribute* bleattr);
     
 private:
     BLEPeripheralHelper *_peripheral;
-    struct bt_gatt_attr *_attr_base;
+    bt_gatt_attr_t *_attr_base;
     int _attr_index;
     
     BLEAttribute** _attributes;
     uint16_t _num_attributes;
     
-    struct bt_gatt_subscribe_params *_sub_param;
+   bt_gatt_subscribe_params_t *_sub_param;
     int _sub_param_idx;
     
-    struct bt_gatt_discover_params _discover_params;
+    bt_gatt_discover_params_t _discover_params;
 };
 
 #endif

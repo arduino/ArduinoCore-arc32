@@ -1,40 +1,88 @@
 /*
-  Copyright (c) 2016 Intel Corporation. All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-
-  1301 USA
-*/
-
-// This example can work with CallbackLED to show the profile read/write operation in central
 #include <CurieBLE.h>
 
-struct bt_le_conn_param conn_param = {0x18, 0x28, 0, 400};
+/* 
+    This example can work with CallbackLED  and LED
+    to show how a central device can do charcteristic read and write operations.
+	A third party serial terminal is recommended to see outputs from central and peripheral device
+*/
+
+// set up connection params
+
+ble_conn_param_t conn_param = {30.0,    // minimum interval in ms 7.5 - 4000
+                               50.0,    // maximum interval in ms 7.5 -
+                               0,       // latency 
+                               4000     // timeout in ms 100 - 32000ms
+                               };
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLECentral bleCentral; // create central instance
-BLEPeripheralHelper *blePeripheral1 = NULL;
+BLEPeripheralHelper *blePeripheral1 = NULL; // peer peripheral device
 
-BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
+                                                               // Long UUID denote custom user created UUID
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);// create switch characteristic and allow remote device to read and write
+
+// function prototype for function that determines if the advertising data is found
+bool adv_found(uint8_t type,
+               const uint8_t *dataPtr,
+               uint8_t data_len,
+               const bt_addr_le_t *addrPtr);
+
+void setup()
+{
+    Serial.begin(9600);
+    pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
+
+    // add service and characteristic
+    bleCentral.addAttribute(ledService);
+    bleCentral.addAttribute(switchChar);
+
+    // assign event handlers for connected, disconnected to central
+    bleCentral.setEventHandler(BLEConnected, bleCentralConnectHandler);
+    bleCentral.setEventHandler(BLEDisconnected, bleCentralDisconnectHandler);
+
+    // advertise the service
+    bleCentral.setAdvertiseHandler(adv_found);
+
+    // assign event handlers for characteristic
+    switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
+
+    bleCentral.begin();
+    Serial.println(("Bluetooth device active, waiting for connections..."));
+}
+
+void loop()
+{
+    static unsigned int counter = 0;
+    static char ledstate = 0;
+    delay(2000);
+    
+    if (blePeripheral1)
+    {
+        counter++;
+        if (counter % 3)
+        {
+            switchChar.read(*blePeripheral1);
+        }
+        else
+        {
+            ledstate = !ledstate;
+            switchChar.write(*blePeripheral1, ledstate);
+        }
+    }
+}
 
 void bleCentralConnectHandler(BLEHelper& peripheral)
 {
     // peripheral connected event handler
-    blePeripheral1 = (BLEPeripheralHelper *)(&peripheral);
+    blePeripheral1 = bleCentral.getPeerPeripheralBLE(peripheral);
     Serial.print("Connected event, peripheral: ");
-    Serial.println(peripheral.address());
+    Serial.println(blePeripheral1->address());
     // Start discovery the profiles in peripheral device
     blePeripheral1->discover();
 }
@@ -66,11 +114,10 @@ void switchCharacteristicWritten(BLEHelper& peripheral, BLECharacteristic& chara
 }
 
 bool adv_found(uint8_t type, 
-               const uint8_t *data, 
+               const uint8_t *dataPtr, 
                uint8_t data_len,
-               void *user_data)
+               const bt_addr_le_t *addrPtr)
 {
-    bt_addr_le_t *addr = (bt_addr_le_t *)user_data;
     int i;
 
     Serial.print("[AD]:");
@@ -83,15 +130,14 @@ bool adv_found(uint8_t type,
         case BT_DATA_UUID128_SOME:
         case BT_DATA_UUID128_ALL:
         {
-            if (data_len % MAX_UUID_SIZE != 0) 
+            if (data_len % UUID_SIZE_128 != 0) 
             {
                 Serial.println("AD malformed");
                 return true;
             }
-            struct bt_uuid * serviceuuid = ledService.uuid();
-            for (i = 0; i < data_len; i += MAX_UUID_SIZE)
+            for (i = 0; i < data_len; i += UUID_SIZE_128)
             {
-                if (memcmp (((struct bt_uuid_128*)serviceuuid)->val, &data[i], MAX_UUID_SIZE) != 0) 
+                if (ledService.uuidCompare(dataPtr + i, UUID_SIZE_128) == false)   
                 {
                     continue;
                 }
@@ -104,7 +150,7 @@ bool adv_found(uint8_t type,
                 }
                 Serial.println("Connecting");
                 // Connect to peripheral
-                bleCentral.connect(addr, &conn_param);
+                bleCentral.connect(addrPtr, &conn_param);
                 return false;
             }
         }
@@ -113,45 +159,20 @@ bool adv_found(uint8_t type,
     return true;
 }
 
-void setup() {
-    Serial.begin(9600);
-    pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
+/*
+   Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
-    // add service and characteristic
-    bleCentral.addAttribute(ledService);
-    bleCentral.addAttribute(switchChar);
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-    // assign event handlers for connected, disconnected to central
-    bleCentral.setEventHandler(BLEConnected, bleCentralConnectHandler);
-    bleCentral.setEventHandler(BLEDisconnected, bleCentralDisconnectHandler);
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-    // advertise the service
-    bleCentral.setAdvertiseHandler(adv_found);
-
-    // assign event handlers for characteristic
-    switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
-
-    bleCentral.begin();
-    Serial.println(("Bluetooth device active, waiting for connections..."));
-}
-
-void loop()
-{
-    static unsigned int counter = 0;
-    static char ledstate = 0;
-    delay(2000);
-    if (blePeripheral1)
-    {
-        counter++;
-
-        if (counter % 3)
-        {
-            switchChar.read(*blePeripheral1);
-        }
-        else
-        {
-            ledstate = !ledstate;
-            switchChar.write(*blePeripheral1, (unsigned char *)(&ledstate), sizeof (ledstate));
-        }
-    }
-}
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/

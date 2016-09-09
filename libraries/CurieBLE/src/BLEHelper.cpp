@@ -16,29 +16,7 @@ BLEHelper::BLEHelper()
   
 BLEHelper::~BLEHelper()
 {
-    #if 0
-    if (NULL != _conn)
-    {
-        bt_conn_unref(_conn);
-    }
-    #endif
 }
-
-#if 0
-void BLEHelper::setConn(struct bt_conn *conn)
-{
-    if (conn == _conn)
-    {
-        return;
-    }
-    
-    if (NULL != _conn)
-    {
-        bt_conn_unref(_conn);
-    }
-    _conn = conn;
-}
-#endif
 
 BLEHelper::operator bool() const 
 {
@@ -106,8 +84,8 @@ BLEHelper::poll() {
 }
 
 void
-BLEHelper::setAddress(bt_addr_le_t address) {
-    _address = address;
+BLEHelper::setAddress(const bt_addr_le_t &address) {
+    memcpy(&_address, &address, sizeof(bt_addr_le_t));
 }
 
 void
@@ -115,21 +93,68 @@ BLEHelper::clearAddress() {
     memset(&_address, 0x00, sizeof(_address));
 }
 
-const struct bt_le_conn_param *BLEHelper::getConnParams()
+void BLEHelper::getConnParams(ble_conn_param_t &user_conn_params)
 {
-    return &_conn_params;
+    user_conn_params.interval_min = UNITS_TO_MSEC(_conn_params.interval_min, UNIT_1_25_MS);
+    user_conn_params.interval_max = UNITS_TO_MSEC(_conn_params.interval_max, UNIT_1_25_MS);
+    user_conn_params.timeout = UNITS_TO_MSEC(_conn_params.timeout, UNIT_10_MS);
+    user_conn_params.latency = _conn_params.latency;
 }
 
-void BLEHelper::setConnParames(uint16_t intervalmin, 
-                               uint16_t intervalmax, 
-                               uint16_t latency, 
-                               uint16_t timeout)
+void BLEHelper::setConnectionParameters(uint16_t intervalmin, 
+                                        uint16_t intervalmax, 
+                                        uint16_t latency, 
+                                        uint16_t timeout)
 {
     _conn_params.interval_max = intervalmin;
     _conn_params.interval_min = intervalmax;
     _conn_params.latency = latency;
     _conn_params.timeout = timeout;
-    
+}
+
+void BLEHelper::updateConnectionInterval(uint16_t intervalmin, 
+                                         uint16_t intervalmax, 
+                                         uint16_t latency, 
+                                         uint16_t timeout)
+{
+    setConnectionParameters(intervalmin, intervalmax, latency, timeout);
+    updateConnectionInterval();
+}
+
+void BLEHelper::updateConnectionInterval()
+{
+    bt_conn_t* conn = bt_conn_lookup_addr_le(&_address);
+    int ret = 0;
+    if (NULL != conn)
+    {
+        ret = bt_conn_le_param_update(conn, &_conn_params);
+        pr_debug(LOG_MODULE_BLE, "%s-ret:%d",__FUNCTION__, ret);
+        bt_conn_unref(conn);
+    }
+}
+
+void BLEHelper::setConnectionInterval(float minInterval, 
+                                      float maxInterval)
+{
+    uint16_t minVal = (uint16_t)MSEC_TO_UNITS(minInterval, UNIT_1_25_MS);
+    uint16_t maxVal = (uint16_t)MSEC_TO_UNITS(maxInterval, UNIT_1_25_MS);
+    _conn_params.interval_min = minVal;
+    _conn_params.interval_max = maxVal;
+    updateConnectionInterval();
+}
+
+void BLEHelper::setConnectionInterval(float minInterval, 
+                                      float maxInterval,
+                                      uint16_t latency,
+                                      uint16_t timeout)
+{
+    uint16_t minVal = (uint16_t)MSEC_TO_UNITS(minInterval, UNIT_1_25_MS);
+    uint16_t maxVal = (uint16_t)MSEC_TO_UNITS(maxInterval, UNIT_1_25_MS);
+    uint16_t timeoutVal = MSEC_TO_UNITS(timeout, UNIT_10_MS);
+    _conn_params.interval_min = minVal;
+    _conn_params.interval_max = maxVal;
+     _conn_params.timeout = timeoutVal;
+    updateConnectionInterval();
 }
 
 

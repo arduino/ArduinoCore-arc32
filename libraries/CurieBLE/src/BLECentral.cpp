@@ -20,15 +20,17 @@
 #include "BLECentralRole.h"
 
 #include "BLECentral.h"
+#include "internal/ble_client.h"
 
 bool BLECentral::startScan()
 {
     return BLECentralRole::instance()->startScan();
 }
 
-bool BLECentral::startScan(const struct bt_le_scan_param &scan_param)
+bool BLECentral::startScan(float interval, float window)
 {
-    return BLECentralRole::instance()->startScan(scan_param);
+    setScanParam(interval, window);
+    return BLECentralRole::instance()->startScan();
 }
 
 bool BLECentral::stopScan()
@@ -36,9 +38,22 @@ bool BLECentral::stopScan()
     return BLECentralRole::instance()->stopScan();
 }
 
-bool BLECentral::connect(const bt_addr_le_t *addr, const struct bt_le_conn_param *param)
+bool BLECentral::connect(const bt_addr_le_t *addr, const ble_conn_param_t *param)
 {
-    return BLECentralRole::instance()->connect(addr, param);
+    bt_le_conn_param_t conn_param;
+    
+    conn_param.latency = param->latency;
+    conn_param.interval_max = (uint16_t)MSEC_TO_UNITS(param->interval_max, UNIT_1_25_MS);
+    conn_param.interval_min = (uint16_t)MSEC_TO_UNITS(param->interval_min, UNIT_1_25_MS);
+    conn_param.timeout = MSEC_TO_UNITS(param->timeout, UNIT_10_MS);
+    
+    pr_debug(LOG_MODULE_BLE,"Latency-%d\r\nInterval min-%d, max-%d\r\ntimeout:%d",
+            conn_param.latency,
+            conn_param.interval_min,
+            conn_param.interval_max,
+            conn_param.timeout);
+    
+    return BLECentralRole::instance()->connect(addr, &conn_param);
 }
 
 void BLECentral::discover(BLEPeripheralHelper &peripheral)
@@ -56,14 +71,19 @@ void BLECentral::setAdvertiseHandler(ble_advertise_handle_cb_t advcb)
     BLECentralRole::instance()->setAdvertiseHandler(advcb);
 }
 
-void BLECentral::setScanParam(const struct bt_le_scan_param &scan_param)
+void BLECentral::setScanParam(float interval, float window)
 {
+    bt_le_scan_param_t scan_param;
+    scan_param.type         = BT_HCI_LE_SCAN_ACTIVE;
+    scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
+    scan_param.interval     = (uint16_t)MSEC_TO_UNITS(interval, UNIT_0_625_MS);;
+    scan_param.window       = (uint16_t)MSEC_TO_UNITS(window, UNIT_0_625_MS);;
     BLECentralRole::instance()->setScanParam(scan_param);
 }
 
-void BLECentral::addAttribute(BLEAttribute& attribute)
+BleStatus BLECentral::addAttribute(BLEAttribute& attribute)
 {
-    BLECentralRole::instance()->addAttribute(attribute);
+    return BLECentralRole::instance()->addAttribute(attribute);
 }
 
 bool BLECentral::begin(void)
@@ -76,8 +96,8 @@ bool BLECentral::begin(void)
     }
     
     // Start scan
-    const struct bt_le_scan_param *scan_param = BLECentralRole::instance()->getScanParam();
-    struct bt_le_scan_param zero_param;
+    const bt_le_scan_param_t *scan_param = BLECentralRole::instance()->getScanParam();
+    bt_le_scan_param_t zero_param;
     memset(&zero_param, 0x00, sizeof (zero_param));
     if (0 == memcmp(&zero_param, scan_param, sizeof (zero_param)))
     {
@@ -96,5 +116,9 @@ bool BLECentral::begin(void)
     return retval;
 }
 
+BLEPeripheralHelper  *BLECentral::getPeerPeripheralBLE(BLEHelper& peripheral)
+{
+	return (BLEPeripheralHelper *)(&peripheral);
+}
 
 

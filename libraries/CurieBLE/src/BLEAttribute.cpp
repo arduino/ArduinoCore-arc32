@@ -21,7 +21,7 @@
 
 unsigned char BLEAttribute::_numAttributes = 0;
 
-BLEAttribute::BLEAttribute(const char* uuid, enum BLEAttributeType type) :
+BLEAttribute::BLEAttribute(const char* uuid, BLEAttributeType type) :
     _uuid_cstr(uuid),
     _type(type),
     _handle(0)
@@ -54,7 +54,7 @@ BLEAttribute::BLEAttribute(const char* uuid, enum BLEAttributeType type) :
     {
         uint16_t temp = (_uuid.val[1] << 8)| _uuid.val[0];
         _uuid.uuid.type = BT_UUID_TYPE_16;
-        ((struct bt_uuid_16*)(&_uuid.uuid))->val = temp;
+        ((bt_uuid_16_t*)(&_uuid.uuid))->val = temp;
     }
     else
     {
@@ -67,13 +67,18 @@ BLEAttribute::uuid() const {
     return _uuid_cstr;
 }
 
-struct bt_uuid *BLEAttribute::uuid(void)
+const char*
+BLEAttribute::uuid_cstr() const {
+    return _uuid_cstr;
+}
+
+bt_uuid_t *BLEAttribute::uuid(void)
 {
-    return (struct bt_uuid *)&_uuid;
+    return (bt_uuid_t *)&_uuid;
 }
 
 
-enum BLEAttributeType
+BLEAttributeType
 BLEAttribute::type() const {
     return this->_type;
 }
@@ -99,4 +104,19 @@ bool BLEAttribute::discovering()
     return _discoverying;
 }
 
+bool BLEAttribute::uuidCompare(const uint8_t *data, uint8_t uuidsize)
+{
+	bt_uuid_t * serviceuuid = this->uuid();
+    
+ 	bool status = true;  
+	if(serviceuuid->type == BT_UUID_TYPE_16 && uuidsize == UUID_SIZE_16)
+	{
+		status = memcmp (&((bt_uuid_16_t*)serviceuuid)->val, data, UUID_SIZE_16);
+	}
+	else if(serviceuuid->type == BT_UUID_TYPE_128 && uuidsize == UUID_SIZE_128)
+	{
+		status = memcmp (((bt_uuid_128_t*)serviceuuid)->val, data, UUID_SIZE_128);
+	}
 
+	return !status;
+}

@@ -43,6 +43,11 @@ BLEPeripheralRole::BLEPeripheralRole(void) :
 {
     memset(_event_handlers, 0x00, sizeof(_event_handlers));
     _peripheral.setAddress(_local_bda);
+    
+    _adv_param.type = BT_LE_ADV_IND;
+    _adv_param.addr_type = _local_bda.type;
+    _adv_param.interval_min = 0xA0;
+    _adv_param.interval_max = 0xF0;
 }
 
 BLEPeripheralRole::~BLEPeripheralRole(void)
@@ -64,9 +69,10 @@ bool BLEPeripheralRole::begin()
     
     // Set device name    
     setDeviceName();
+	delay(4);
     // Register profile
     _peripheral.registerProfile();
-    delay(2); // Temp solution for send data fast will makes ADV data set failed
+    delay(8); // Temp solution for send data fast will makes ADV data set failed
     return true;
 }
 
@@ -128,14 +134,16 @@ bool
 BLEPeripheralRole::disconnect()
 {
     BleStatus status = BLE_STATUS_WRONG_STATE;
+    int err;
 
     if (BLE_PERIPH_STATE_CONNECTED == _state)
     {
-        struct bt_conn *central_conn = bt_conn_lookup_addr_le(_central.bt_le_address());
+        bt_conn_t *central_conn = bt_conn_lookup_addr_le(_central.bt_le_address());
         if (NULL != central_conn)
         {
-            status = bt_conn_disconnect (central_conn, 
-                                         BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+            err = bt_conn_disconnect (central_conn, 
+                                      BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+            status = errorno_to_ble_status(err);
             bt_conn_unref(central_conn);
         }
     }
@@ -158,9 +166,10 @@ BLEPeripheralRole::connected()
     return _central;
 }
 
-void BLEPeripheralRole::addAttribute(BLEAttribute& attribute)
+BleStatus
+BLEPeripheralRole::addAttribute(BLEAttribute& attribute)
 {
-    _peripheral.addAttribute(attribute);
+    return _peripheral.addAttribute(attribute);
 }
 
 BleStatus
@@ -183,9 +192,9 @@ BLEPeripheralRole::stopAdvertising()
 }
 
 BleStatus
-BLEPeripheralRole::startAdvertising(const struct bt_data *ad, 
+BLEPeripheralRole::startAdvertising(const bt_data_t *ad, 
                                     size_t ad_len,
-                                    const struct bt_data *sd, 
+                                    const bt_data_t *sd, 
                                     size_t sd_len)
 {
     int ret;
@@ -204,14 +213,22 @@ BLEPeripheralRole::startAdvertising(const struct bt_data *ad,
     return BLE_STATUS_SUCCESS;
 }
 
-void BLEPeripheralRole::setAdvertisingParam(uint8_t  type, 
-                                            uint16_t interval_min,
-                                            uint16_t interval_max)
+void BLEPeripheralRole::setAdvertisingInterval(uint16_t advertisingInterval)
 {
-    _adv_param.addr_type = _local_bda.type;
-    _adv_param.type = type;
+    setAdvertisingInterval(advertisingInterval, advertisingInterval);
+}
+
+void BLEPeripheralRole::setAdvertisingInterval(uint16_t interval_min,
+                                               uint16_t interval_max)
+{
     _adv_param.interval_min = interval_min;
     _adv_param.interval_max = interval_max;
+}
+
+void 
+BLEPeripheralRole::setAdvertisingType(uint8_t type)
+{
+    _adv_param.type = type;
 }
 
 BleStatus
@@ -235,7 +252,7 @@ BLEPeripheralRole::stop(void)
     return BLE_STATUS_SUCCESS;
 }
 
-void BLEPeripheralRole::handleConnectEvent(struct bt_conn *conn, uint8_t err)
+void BLEPeripheralRole::handleConnectEvent(bt_conn_t *conn, uint8_t err)
 {
     // Update the central address
     const bt_addr_le_t *central_addr = bt_conn_get_dst(conn);
@@ -245,12 +262,15 @@ void BLEPeripheralRole::handleConnectEvent(struct bt_conn *conn, uint8_t err)
     // Call the CB
     if (_event_handlers[BLEConnected])
         _event_handlers[BLEConnected](_central);
+    
+    if (BLE_PERIPH_STATE_ADVERTISING == _state)
+        _state = BLE_PERIPH_STATE_CONNECTED;
 }
 
 
-void BLEPeripheralRole::handleDisconnectEvent(struct bt_conn *conn, uint8_t reason)
+void BLEPeripheralRole::handleDisconnectEvent(bt_conn_t *conn, uint8_t reason)
 {
-    struct bt_conn *central_conn = bt_conn_lookup_addr_le(_central.bt_le_address());
+    bt_conn_t *central_conn = bt_conn_lookup_addr_le(_central.bt_le_address());
     if (conn == central_conn)
     {
         pr_info(LOG_MODULE_BLE, "Peripheral Disconnect reason: %d", reason);
@@ -262,17 +282,23 @@ void BLEPeripheralRole::handleDisconnectEvent(struct bt_conn *conn, uint8_t reas
     {
         bt_conn_unref(central_conn);
     }
+    
+    if (BLE_PERIPH_STATE_CONNECTED == _state)
+        _state = BLE_PERIPH_STATE_ADVERTISING;
 }
 
-void BLEPeripheralRole::handleParamUpdated(struct bt_conn *conn, 
-                                        uint16_t interval,
-                                        uint16_t latency, 
-                                        uint16_t timeout)
+void BLEPeripheralRole::handleParamUpdated(bt_conn_t *conn, 
+                                           uint16_t interval,
+                                           uint16_t latency, 
+                                           uint16_t timeout)
 {
     pr_info(LOG_MODULE_BLE, "Parameter updated\r\n\tConn: %p\r\n\tinterval: %d\r\n\tlatency: %d\r\n\ttimeout: %d", 
                         conn, interval, latency, timeout);
     if (_event_handlers[BLEUpdateParam])
+    {
+        _central.setConnectionParameters(interval, interval, latency, timeout);
         _event_handlers[BLEUpdateParam](_central);
+    }
 }
 
 

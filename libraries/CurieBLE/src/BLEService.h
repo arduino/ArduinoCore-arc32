@@ -35,18 +35,18 @@ public:
     /**
      * Constructor for BLE Service
      *
-     * @param uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
+     * @param[in] uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
      */
     BLEService(const char* uuid);
 
 protected:
     friend BLEPeripheral;
     friend BLEProfile;
-    void discover(const struct bt_gatt_attr *attr,
-	              struct bt_gatt_discover_params *params);
-    void discover(struct bt_gatt_discover_params *params);
+    void discover(const bt_gatt_attr_t *attr,
+	              bt_gatt_discover_params_t *params);
+    void discover(bt_gatt_discover_params_t *params);
     
-    static struct bt_uuid *getPrimayUuid(void);
+    static bt_uuid_t *getPrimayUuid(void);
 private:
     static bt_uuid_16 _gatt_primary_uuid;
 };

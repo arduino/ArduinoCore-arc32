@@ -6,7 +6,10 @@
 #include <CurieBLE.h>
 
 /*
-   This sketch example partially implements the standard Bluetooth Low-Energy Battery service.
+   This sketch can work with UpdateConnectionInterval. 
+   You can also use an android or IOS app that supports notifications   
+   This sketch example partially implements the standard Bluetooth Low-Energy Battery service
+   and connection interval paramater update.
    For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
 */
 
@@ -15,9 +18,9 @@ BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're pr
 BLEService batteryService("180F"); // BLE Battery Service
 
 // BLE Battery Level Characteristic"
-BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID  defined in the URL above
     BLERead | BLENotify);     // remote clients will be able to
-// get notifications if this characteristic changes
+                              // get notifications if this characteristic changes
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms

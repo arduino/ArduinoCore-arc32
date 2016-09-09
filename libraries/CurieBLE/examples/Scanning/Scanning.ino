@@ -1,37 +1,76 @@
 /*
-   Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 #include <CurieBLE.h>
 
-#define BLE_SCANING_DEVICE_MAX_CNT  5
+/*
+     This sketch try to show the scan function
+     The sketch will list the device's MAC address and device name to the console
+     The list will refresh every 3s
+	 This sketch is meaningful if one or more BLE peripheral devices (any of the peripheral examples will do)
+	 are present.
+*/
+
+
+const int bleScanMaxCnt = 5;
 
 typedef struct{
     char macaddr[32];       // BLE MAC address.
     char loacalname[22];    // Device's name
 }ble_device_info_t;
 
-ble_device_info_t device_list[BLE_SCANING_DEVICE_MAX_CNT];
+ble_device_info_t device_list[bleScanMaxCnt];
 uint8_t list_index = 0;
 
 BLECentral bleCentral;       // BLE Central Device (the board you're programming)
 
+bool adv_found(uint8_t type,
+               const uint8_t *dataPtr,
+               uint8_t data_len,
+               const bt_addr_le_t *addrPtr);
+
+void setup()
+{
+    Serial.begin(115200);    // initialize serial communication
+    
+    /* Setup callback */
+    bleCentral.setAdvertiseHandler(adv_found);
+    
+    /* Now activate the BLE device.
+       It will start continuously scanning BLE advertising
+     */
+    bleCentral.begin();
+    Serial.println("Bluetooth device active, start scanning...");
+}
+
+void loop()
+{
+    // Output the scanned device per 3s
+    delay(3000);
+    Serial.print("\r\n\r\n\t\t\tScaning result\r\n \tMAC\t\t\t\tLocal Name\r\n");
+    Serial.print("-------------------------------------------------------------\r\n");
+    
+    for (int i = 0; i < list_index; i++)
+    {
+        
+        Serial.print(device_list[i].macaddr);
+        Serial.print(" | ");
+        Serial.println(device_list[i].loacalname);
+    }
+    if (list_index == 0)
+    {
+        Serial.print("No device found\r\n");
+    }
+    Serial.print("-------------------------------------------------------------\r\n");
+    adv_list_clear();
+}
+
+// Add the scanned BLE device into the global variables.
 bool adv_list_add(ble_device_info_t &device)
 {
-    if (list_index >= BLE_SCANING_DEVICE_MAX_CNT)
+    if (list_index >= bleScanMaxCnt)
     {
         return false;
     }
@@ -72,58 +111,40 @@ void adv_list_clear()
 
 // Process the Advertisement data
 bool adv_found(uint8_t type, 
-               const uint8_t *data, 
+               const uint8_t *dataPtr, 
                uint8_t data_len,
-               void *user_data)
+               const bt_addr_le_t *addrPtr)
 {
-    bt_addr_le_t *addr = (bt_addr_le_t *)user_data;
     ble_device_info_t device;
-    bt_addr_le_to_str (addr, device.macaddr, sizeof (device.macaddr));
+    bt_addr_le_to_str (addrPtr, device.macaddr, sizeof (device.macaddr));
     memcpy(device.loacalname, " -NA-", sizeof(" -NA-"));
-    
+    // Please see https://www.bluetooth.org/en-us/specification/assigned-numbers/generic-access-profile
     switch (type) {
-    case BT_DATA_NAME_SHORTENED:
-    case BT_DATA_NAME_COMPLETE:
-        memcpy(device.loacalname, data, data_len);
-        device.loacalname[data_len] = '\0';
-        adv_list_update(device);
-        break;
+        case BT_DATA_NAME_SHORTENED:
+        case BT_DATA_NAME_COMPLETE:
+            memcpy(device.loacalname, dataPtr, data_len);
+            device.loacalname[data_len] = '\0';
+            adv_list_update(device);
+            break;
     }
     adv_list_add(device);
     return true;
 }
 
-void setup() {
-    Serial.begin(115200);    // initialize serial communication
-    
-    /* Setup callback */
-    bleCentral.setAdvertiseHandler(adv_found);
-    
-    /* Now activate the BLE device.
-       It will start continuously scanning BLE advertising
-     */
-    bleCentral.begin();
-    Serial.println("Bluetooth device active, start scanning...");
-}
+/*
+   Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
-void loop() {
-    // Output the scanned device per 3s
-    delay(3000);
-    Serial.print("\r\n\r\n\t\t\tScaning result\r\n \tMAC\t\t\t\tLocal Name\r\n");
-    Serial.print("-------------------------------------------------------------\r\n");
-    
-    for (int i = 0; i < list_index; i++)
-    {
-        
-        Serial.print(device_list[i].macaddr);
-        Serial.print(" | ");
-        Serial.println(device_list[i].loacalname);
-    }
-    if (list_index == 0)
-    {
-        Serial.print("No device found\r\n");
-    }
-    Serial.print("-------------------------------------------------------------\r\n");
-    adv_list_clear();
-}
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/

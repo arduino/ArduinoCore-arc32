@@ -1,7 +1,8 @@
 /* Written by Oren Levy (auxren.com; @auxren) while competing on
    America's Greatest Makers with help from Intel.
    MIDI over BLE info from: https://developer.apple.com/bluetooth/Apple-Bluetooth-Low-Energy-MIDI-Specification.pdf
-
+  This sketch is not written to pair with any of the central examples.
+  
   This sketch plays a random MIDI note (between 0 and 127) every 400ms.
   For a 'smarter' sketch, check out my Airpeggiator example.
   The Airpeggiator uses the Curie's IMU to allow you to play
@@ -25,6 +26,9 @@
   Towards the bottom of advanced, you will see 'Bluetooth MIDI devices'.
   You should see your Arduino 101 advertising in the list. Connect to
   your device and it should be available to all other iOS MIDI apps you have.
+  
+  If you do not have iOS, you can still use a BLE app on Android and just subscribe 
+  to the midiChar charcteristic and see the updates.
 
   To send data, you use the following line: char.setValue(d, n); where char is
   the BLE characteristic (in our case, midiCha), d is the data, and n is the
@@ -98,6 +102,21 @@ void setup() {
   Serial.println(("Bluetooth device active, waiting for connections..."));
 }
 
+void loop() {
+
+  /*Simple randome note player to test MIDI output
+     Plays random note every 400ms
+  */
+  int note = random(0, 127);
+  //readMIDI();
+  noteOn(0, note, 127); //loads up midiData buffer
+  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
+  delay(200);
+  noteOff(0, note);
+  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
+  delay(200);
+}
+
 void BLESetup()
 {
   // set the local name peripheral advertises
@@ -123,22 +142,6 @@ void BLESetup()
   // advertise the service
   midiDevice.begin();
 }
-
-void loop() {
-
-  /*Simple randome note player to test MIDI output
-     Plays random note every 400ms
-  */
-  int note = random(0, 127);
-  //readMIDI();
-  noteOn(0, note, 127); //loads up midiData buffer
-  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
-  delay(200);
-  noteOff(0, note);
-  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
-  delay(200);
-}
-
 
 void midiDeviceConnectHandler(BLEHelper& central) {
   // central connected event handler

@@ -65,9 +65,9 @@ public:
     /**
      * Constructor for BLE Characteristic
      *
-     * @param uuid         16-bit or 128-bit UUID (in string form) defined by BLE standard
-     * @param properties   Characteristic property mask
-     * @param maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
+     * @param[in] uuid         16-bit or 128-bit UUID (in string form) defined by BLE standard
+     * @param[in] properties   Characteristic property mask
+     * @param[in] maxLength    Maximum data length required for characteristic value (<= BLE_MAX_ATTR_DATA_LEN)
      */
     BLECharacteristic(const char* uuid,
                       const unsigned char properties,
@@ -76,9 +76,9 @@ public:
     /**
      * Constructor for BLE Characteristic
      *
-     * @param uuid         16-bit or 128-bit UUID (in string form) defined by BLE standard
-     * @param properties   Characteristic property mask
-     * @param value        String value for characteristic (string length (<= BLE_MAX_ATTR_DATA_LEN))
+     * @param[in] uuid         16-bit or 128-bit UUID (in string form) defined by BLE standard
+     * @param[in] properties   Characteristic property mask
+     * @param[in] value        String value for characteristic (string length (<= BLE_MAX_ATTR_DATA_LEN))
      */
     BLECharacteristic(const char* uuid,
                       const unsigned char properties,
@@ -89,8 +89,8 @@ public:
     /**
      * Set the current value of the Characteristic
      *
-     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
-     * @param length Length, in bytes, of valid data in the array to write.
+     * @param[in] value  New value to set, as a byte array.  Data is stored in internal copy.
+     * @param[in] length Length, in bytes, of valid data in the array to write.
      *               Must not exceed maxLength set for this characteristic.
      *
      * @return bool true set value success, false on error
@@ -100,9 +100,9 @@ public:
     /**
      * Set the current value of the Characteristic
      *
-     * @param central The central device that update the value.
-     * @param value  New value to set, as a byte array.  Data is stored in internal copy.
-     * @param length Length, in bytes, of valid data in the array to write.
+     * @param[in] central The central device that update the value.
+     * @param[in] value  New value to set, as a byte array.  Data is stored in internal copy.
+     * @param[in] length Length, in bytes, of valid data in the array to write.
      *               Must not exceed maxLength set for this characteristic.
      *
      * @return bool true set value success, false on error
@@ -156,8 +156,8 @@ public:
     /**
      * Provide a function to be called when events related to this Characteristic are raised
      *
-     * @param event Event type to set event handler for
-     * @param callback  Pointer to callback function to invoke when the event occurs.
+     * @param[in] event Event type to set event handler for
+     * @param[in] callback  Pointer to callback function to invoke when the event occurs.
      */
     void setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback);
 
@@ -175,7 +175,7 @@ public:
     /**
      * @brief   Schedule the read request to read the characteristic in peripheral
      *
-     * @param   peripheral  The peripheral device that want to read.
+     * @param[in]   peripheral  The peripheral device that want to read.
      *
      * @return  bool    Indicate the success or error
      *
@@ -186,9 +186,9 @@ public:
     /**
      * @brief   Schedule the write request to update the characteristic in peripheral
      *
-     * @param   peripheral   The peripheral device that want to be updated
-     * @param   value       New value to set, as a byte array.  Data is stored in internal copy.
-     * @param   length      Length, in bytes, of valid data in the array to write.
+     * @param[in]   peripheral   The peripheral device that want to be updated
+     * @param[in]   value       New value to set, as a byte array.  Data is stored in internal copy.
+     * @param[in]   length      Length, in bytes, of valid data in the array to write.
      *                      Must not exceed maxLength set for this characteristic.
      *
      * @return  bool true set value success, false on error
@@ -201,10 +201,26 @@ public:
 
 protected:
     friend class BLEProfile;
+    friend int profile_longflush_process(struct bt_conn *conn,
+                                         const struct bt_gatt_attr *attr, 
+                                         uint8_t flags);
+    friend ssize_t profile_longwrite_process(struct bt_conn *conn,
+                                     const struct bt_gatt_attr *attr,
+                                     const void *buf, uint16_t len,
+                                     uint16_t offset);
     
-    void addCharacteristicDeclaration(struct bt_gatt_attr *gatt_attr);
-    void addCharacteristicValue(struct bt_gatt_attr *gatt_attr);
-    void addCharacteristicConfigDescriptor(struct bt_gatt_attr *gatt_attr);
+    void addCharacteristicDeclaration(bt_gatt_attr_t *gatt_attr);
+    void addCharacteristicValue(bt_gatt_attr_t *gatt_attr);
+    void addCharacteristicConfigDescriptor(bt_gatt_attr_t *gatt_attr);
+    
+    bool longCharacteristic();
+    
+    void setBuffer(BLEHelper& blehelper, 
+                   const uint8_t value[], 
+                   uint16_t length, 
+                   uint16_t offset);
+    void discardBuffer();
+    void syncupBuffer2Value(BLEHelper& blehelper);
     
     /**
      * @brief   Get the characteristic value handle
@@ -233,10 +249,10 @@ protected:
     void setUserDescription(BLEDescriptor *descriptor);
     void setPresentationFormat(BLEDescriptor *descriptor);
     
-    struct _bt_gatt_ccc* getCccCfg(void);
-    struct bt_gatt_chrc* getCharacteristicAttValue(void);
-    static struct bt_uuid* getCharacteristicAttributeUuid(void);
-    static struct bt_uuid* getClientCharacteristicConfigUuid(void);
+    _bt_gatt_ccc_t* getCccCfg(void);
+    bt_gatt_chrc_t* getCharacteristicAttValue(void);
+    static bt_uuid_t* getCharacteristicAttributeUuid(void);
+    static bt_uuid_t* getClientCharacteristicConfigUuid(void);
     
     /**
      * @brief   Get the characteristic permission
@@ -252,38 +268,38 @@ protected:
     /**
      * @brief   For central to discover the peripherial profile
      *
-     * @param   attr    The discover response
+     * @param[in]   attr    The discover response
      *
-     * @param   params  The discover parameter that need to fill
+     * @param[in]   params  The discover parameter that need to fill
      *
      * @return  none
      *
      * @note  Only for central
      */
-    void discover(const struct bt_gatt_attr *attr,
-			      struct bt_gatt_discover_params *params);
+    void discover(const bt_gatt_attr_t *attr,
+			      bt_gatt_discover_params_t *params);
     
     /**
      * @brief   For central to discover the peripherial profile
      *
-     * @param   params  The discover parameter that need to fill
+     * @param[in]   params  The discover parameter that need to fill
      *
      * @return  none
      *
      * @note  Only for central
      */
-    void discover(struct bt_gatt_discover_params *params);
+    void discover(bt_gatt_discover_params_t *params);
     
     /**
      * @brief   Get the subscribe parameter
      *
      * @param   none
      *
-     * @return  struct bt_gatt_subscribe_params * the subscribe parameter
+     * @return bt_gatt_subscribe_params_t * the subscribe parameter
      *
      * @note  Only for central
      */
-    struct bt_gatt_subscribe_params* getSubscribeParams();
+   bt_gatt_subscribe_params_t* getSubscribeParams();
 
 private:
     void _setValue(const uint8_t value[], uint16_t length);
@@ -291,31 +307,32 @@ private:
 private:
     
     static unsigned char _numNotifyAttributes;
-    static struct bt_uuid_16 _gatt_chrc_uuid;
-    static struct bt_uuid_16 _gatt_ccc_uuid;
+    static bt_uuid_16_t _gatt_chrc_uuid;
+    static bt_uuid_16_t _gatt_ccc_uuid;
     
     unsigned short _value_size;
     unsigned short _value_length;
     unsigned char* _value;
+    unsigned char* _value_buffer;
     bool _written;
 
     uint16_t _value_handle;
-    struct bt_gatt_ccc_cfg	_ccc_cfg;
-    struct _bt_gatt_ccc _ccc_value;
-    struct bt_gatt_chrc _gatt_chrc;
+    bt_gatt_ccc_cfg_t	_ccc_cfg;
+    _bt_gatt_ccc_t _ccc_value;
+    bt_gatt_chrc_t _gatt_chrc;
 
     BLEDescriptor* _user_description;
     BLEDescriptor* _presentation_format;
     
-    struct bt_gatt_attr *_attr_chrc_declaration;
-    struct bt_gatt_attr *_attr_chrc_value;
-    struct bt_gatt_attr *_attr_cccd;
+    bt_gatt_attr_t *_attr_chrc_declaration;
+    bt_gatt_attr_t *_attr_chrc_value;
+    bt_gatt_attr_t *_attr_cccd;
     
     // For central device to subscribe the Notification/Indication
-    struct bt_gatt_subscribe_params _sub_params;
+   bt_gatt_subscribe_params_t _sub_params;
     
     bool _reading;
-    struct bt_gatt_read_params _read_params;
+    bt_gatt_read_params_t _read_params;
     BLECharacteristicEventHandler _event_handlers[BLECharacteristicEventLast];
 };
 
