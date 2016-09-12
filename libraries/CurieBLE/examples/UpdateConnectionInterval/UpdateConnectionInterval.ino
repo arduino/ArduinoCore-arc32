@@ -6,8 +6,9 @@
 #include <CurieBLE.h>
 
 /* 
-    This example can work with BatteryMonitor
-    to show how to control and response the connection intelval request.
+    This example can work with BatteryMonitor.
+
+    Show how to control and response the connection interval request.
 */
 
 // set up connection params

@@ -6,11 +6,12 @@
 #include <CurieBLE.h>
 
 /*
-   This sketch can work with UpdateConnectionInterval. 
-   You can also use an android or IOS app that supports notifications   
-   This sketch example partially implements the standard Bluetooth Low-Energy Battery service
-   and connection interval paramater update.
-   For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
+  This sketch can work with UpdateConnectionInterval.
+
+  You can also use an android or IOS app that supports notifications.
+  This sketch example partially implements the standard Bluetooth Low-Energy Battery service
+  and connection interval paramater update.
+  For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
 */
 
 /*  */

@@ -6,12 +6,12 @@
 #include <CurieBLE.h>
 
 /*
-    This sketch example works with IMUBleNotification.ino
-    IMUBleNotification.ino will send notification to this sketch.
-    This sketch will receive the notifications and out put the received data in the serial monitor
-	It also illustrates using a non typed characteristic
-	Set the baud rate to 115200 on the serial monitor to accomodate the  speed of constant data updates from IMU subsystem
-	
+  This sketch example works with IMUBleNotification.ino
+
+  IMUBleNotification.ino will send notification to this central sketch.
+  This sketch will receive the notifications and output the received data in the serial monitor.
+  It also illustrates using a non-typed characteristic.
+  Set the baud rate to 115200 on the serial monitor to accomodate the speed of constant data updates from IMU subsystem.
 */
 
 #define MAX_IMU_RECORD 1

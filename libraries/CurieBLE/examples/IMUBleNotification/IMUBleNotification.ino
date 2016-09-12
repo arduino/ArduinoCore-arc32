@@ -7,9 +7,10 @@
 #include <CurieIMU.h>
 
 /*
-    This sketch example works with IMUBleCentral.ino
-    This sketch will read IMU data from sensor and send notification to IMUBleCentral.ino
-    IMUBleCentral.ino will receive the Notifications and output the received data.
+    This sketch example works with IMUBleCentral.ino.
+
+    This sketch will read IMU data from sensor and send notifications to IMUBleCentral.ino.
+    IMUBleCentral.ino will receive the notifications and output the received data.
 */
 
 #define MAX_IMU_RECORD 1

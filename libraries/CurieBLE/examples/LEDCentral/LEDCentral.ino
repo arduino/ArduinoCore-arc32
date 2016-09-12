@@ -6,9 +6,10 @@
 #include <CurieBLE.h>
 
 /* 
-    This example can work with CallbackLED  and LED
-    to show how a central device can do charcteristic read and write operations.
-	A third party serial terminal is recommended to see outputs from central and peripheral device
+  This example can work with CallbackLED and LED sketches.
+
+  To show how a central device can do charcteristic read and write operations.
+  A third party serial terminal is recommended to see outputs from central and peripheral device.
 */
 
 // set up connection params
