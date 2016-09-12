@@ -26,9 +26,12 @@ void loop()
   //Wire.write("x is ");        // sends five bytes
   Wire.write(x);              // sends one byte
   int result = Wire.endTransmission();    // stop transmitting
-  Serial.println();
-  Serial.print("x =  ");
-  Serial.print(x);
+  if (result == 0)
+  {
+    Serial.println();
+    Serial.print("x =  ");
+    Serial.print(x);
+  }
   x++;
   delay(500);
 }

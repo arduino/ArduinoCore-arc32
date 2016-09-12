@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include "ss_i2c_iface.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -39,11 +40,11 @@ extern "C"{
 #define I2C_ABRT_7B_ADDR_NOACK  (1 << 0)
 #define I2C_ABRT_TXDATA_NOACK   (1 << 3)
 
-int i2c_openadapter(void);
-int i2c_openadapter_speed(int);
-void i2c_setslave(uint8_t addr);
-int i2c_writebytes(uint8_t *bytes, uint8_t length, bool no_stop);
-int i2c_readbytes(uint8_t *buf, int length, bool no_stop);
+int i2c_openadapter(I2C_CONTROLLER controller_id);
+int i2c_openadapter_speed(I2C_CONTROLLER controller_id, int i2c_speed);
+void i2c_setslave(I2C_CONTROLLER controller_id, uint8_t addr);
+int i2c_writebytes(I2C_CONTROLLER controller_id, uint8_t *bytes, uint8_t length, bool no_stop);
+int i2c_readbytes(I2C_CONTROLLER controller_id, uint8_t *buf, int length, bool no_stop);
 
 #ifdef __cplusplus
 }
