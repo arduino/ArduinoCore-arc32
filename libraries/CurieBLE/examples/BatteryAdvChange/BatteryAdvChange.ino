@@ -1,13 +1,16 @@
-/* Please see code cpyright at the bottom of this example code */
+/* Please see code copyright at the bottom of this example code */
+
 /*
-   This sketch illustrates how to change the advertising data so that it is visible but not
-   connectable. Then after 10 seconds it changes to being connectable
-   This sketch example partially implements the standard Bluetooth Low-Energy Battery service.
-   
-   This sketch is not paired with a specific central example sketch, 
-   but to see how it works you need to use a BLE APP on your phone or central device 
-    and try connecting when it is either a connectable or not connectable state 
-    as displayed in the serial monitor.
+  This example can work with phone BLE app.
+
+  This sketch illustrates how to change the advertising data so that it is visible but not
+  connectable. Then after 10 seconds it changes to being connectable.
+  This sketch example partially implements the standard Bluetooth Low-Energy Battery service.
+
+  This sketch is not paired with a specific central example sketch,
+  but to see how it works you need to use a BLE APP on your phone or central device
+  and try connecting when it is either a connectable or not connectable state
+  as displayed in the serial monitor.
 */
 
 #include <CurieBLE.h>

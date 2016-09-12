@@ -6,11 +6,12 @@
 #include <CurieBLE.h>
 
 /*
-     This sketch try to show the scan function
-     The sketch will list the device's MAC address and device name to the console
-     The list will refresh every 3s
-	 This sketch is meaningful if one or more BLE peripheral devices (any of the peripheral examples will do)
-	 are present.
+  This sketch is meaningful if one or more BLE peripheral devices (any of the peripheral examples will do)
+  are present.
+
+  This sketch try to show the scan function.
+  The sketch will list the device's MAC address and device name to the console.
+  The list will refresh every 3s.
 */
 
 

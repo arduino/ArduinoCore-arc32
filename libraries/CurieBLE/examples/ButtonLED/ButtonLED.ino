@@ -3,12 +3,14 @@
  * See the bottom of this file for the license terms.
  */
 
- /*  This examples needs a button connected similarly as described here
-     https://www.arduino.cc/en/Tutorial/Button
-	 The only difference is that instead of connecting to pin 2 connect to pin 4
-	 After the sketch starts connect to a BLE app on a phone and set notification to the Characteristic and you should see it update
-	 whenever the button is pressed. This sketch is not written to pair with any of the central examples. 
- */	 
+/*
+  This example can work with phone BLE app.
+
+  This examples needs a button connected similarly as described here https://www.arduino.cc/en/Tutorial/Button
+  The only difference is that instead of connecting to pin 2, it connects to pin 4
+  After the sketch starts connect to a BLE app on a phone and set notification to the Characteristic and you should see it update
+  whenever the button is pressed. This sketch is not written to pair with any of the central examples.
+*/
  
 #include <CurieBLE.h>
 

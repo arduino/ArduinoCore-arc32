@@ -3,14 +3,17 @@
  * See the bottom of this file for the license terms.
  */
  
- // This example can work with LEDCentral
- // You should see the LED blink on and off
- // This example demonstrates the use of Callback or event Handlers responding to events
- // BLECoonected, BLEDisconnected and BLEWritten are events.
- // To test interactively use a Phone app like nrf Controller (Android) or Light Blue (iOS)
- // Connect to BLE device named LEDCB and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214
- // Writing a byte value such as 0x40 should turn on the LED
- // Writng a byte value of 0x00 should turn off the LED
+ /*
+  This example can work with LEDCentral.
+
+  You should see the LED blink on and off.
+  This example demonstrates the use of Callback or event Handlers responding to events.
+  BLEConnected, BLEDisconnected and BLEWritten are events.
+  To test interactively, use a Phone app like nrf Controller (Android) or Light Blue (iOS).
+  Connect to BLE device named LEDCB and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214.
+  Writing a byte value such as 0x40 should turn on the LED.
+  Writing a byte value of 0x00 should turn off the LED.
+ */
 
 #include <CurieBLE.h>
 
