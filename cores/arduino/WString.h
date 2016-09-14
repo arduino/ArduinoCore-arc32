@@ -199,6 +199,7 @@ public:
 	// parsing/conversion
 	long toInt(void) const;
 	float toFloat(void) const;
+	double toDouble(void) const;
 	char * getCSpec(int base, bool issigned, bool islong);
 
 protected:
