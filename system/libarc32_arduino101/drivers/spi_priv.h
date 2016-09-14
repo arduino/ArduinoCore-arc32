@@ -96,7 +96,7 @@
 #define     SPI_ENABLE_INT      (SPI_ENABLE_TX_INT | SPI_ENABLE_RX_INT)
 
 #define     SPI_RX_CLR_INTR     (RXFIS)
-#define     SPI_ERR_CLR_INTR    (RXOIS | RXUIS | TXOIS)
+#define     SPI_ERR_CLR_INTR    (RXOIS |?RXUIS | TXOIS)
 #define     SPI_TX_CLR_INTR     (TXEIS)
 
 // DR
@@ -155,6 +155,8 @@ typedef struct spi_info_struct
     uint32_t        spi_err_mask;
     /* CREG Master clock gate bit location  */
     uint8_t         creg_spi_clk_ctrl;
+    SPI_SLAVE_ENABLE slave;
+	struct clk_gate_info_s *clk_gate_info;
 } spi_info_t, *spi_info_pt;
 
 
