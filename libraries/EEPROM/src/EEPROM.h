@@ -114,7 +114,7 @@ void CurieWrite8(uint32_t address, uint8_t data)
   uint32_t data32 = (currentDword & ~(uint32_t)(0xFF << ((3-offset)*8)));
   data32 = data32 | (data << ((3-offset)*8));
 
-  if (currentDword != 0xFFFFFFFF) {
+  if (currentValue != 0xFF) {
     uint32_t dump[EEPROM_SIZE/4];
     memcpy(dump, (uint32_t *)EEPROM_ADDR, EEPROM_SIZE);
     dump[(address >> 2)] = data32;
