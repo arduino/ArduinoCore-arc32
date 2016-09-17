@@ -17,7 +17,7 @@
 
 #include <Wire.h>
 
-byte startAddress = 1; // skip reserved address from 0 to 7
+byte startAddress = 1;
 byte endAddress   = 127;
 
 void I2CBusScan(byte startAddress, byte endAddress)
@@ -36,12 +36,14 @@ void I2CBusScan(byte startAddress, byte endAddress)
 void setup()
 {
   // Initialize pin 13 as an output - onboard LED.
-  pinMode(13, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // join i2c bus (address optional for master)
   Wire.begin();
 
+  // initialize Serial communication
   Serial.begin(115200);
+  // wait for the Serial port to connect. Open the Serial Monitor to continue executing the sketch
   while(!Serial);
 }
 
@@ -49,7 +51,7 @@ boolean toggle = false;          // state of the LED
 void loop()
 {
   toggle = !toggle;
-  digitalWrite(13, toggle);
+  digitalWrite(LED_BUILTIN, toggle);
   delay(5000);
 
   Serial.print("Start I2C Bus Scan from ");
@@ -58,7 +60,7 @@ void loop()
   Serial.print(endAddress);
   Serial.println(".....");
 
-  I2CBusScan( startAddress, endAddress);
+  I2CBusScan(startAddress, endAddress);
 
   Serial.println("\ndone");
 }
