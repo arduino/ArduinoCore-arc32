@@ -44,17 +44,17 @@ void loop() {
 static void eventCallback(void){
   if (CurieIMU.getInterruptStatus(CURIE_IMU_MOTION)) {
     if (CurieIMU.motionDetected(X_AXIS, POSITIVE))
-      Serial.println("Negative motion detected on X-axis");
+      Serial.println("Motion detected on positive X-axis");
     if (CurieIMU.motionDetected(X_AXIS, NEGATIVE))
-      Serial.println("Positive motion detected on X-axis");
+      Serial.println("Motion detected on negative X-axis");
     if (CurieIMU.motionDetected(Y_AXIS, POSITIVE))
-      Serial.println("Negative motion detected on Y-axis");
+      Serial.println("Motion detected on positive Y-axis");
     if (CurieIMU.motionDetected(Y_AXIS, NEGATIVE))
-      Serial.println("Positive motion detected on Y-axis");
+      Serial.println("Motion detected on negative Y-axis");
     if (CurieIMU.motionDetected(Z_AXIS, POSITIVE))
-      Serial.println("Negative motion detected on Z-axis");
+      Serial.println("Motion detected on positive Z-axis");
     if (CurieIMU.motionDetected(Z_AXIS, NEGATIVE))
-      Serial.println("Positive motion detected on Z-axis");
+      Serial.println("Motion detected on negative Z-axis");
     interruptsTime = millis(); 
   } 
 }
