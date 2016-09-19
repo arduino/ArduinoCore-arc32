@@ -18,7 +18,7 @@
  */
 
 #include "CurieIMU.h"
-#include "internal/ss_spi.h"
+#include "ss_spi.h"
 #include "interrupt.h"
 
 #define CURIE_IMU_CHIP_ID 0xD1
@@ -34,14 +34,7 @@
  */
 bool CurieIMUClass::begin()
 {
-    /* Configure pin-mux settings on the Intel Curie module to 
-     * enable SPI mode usage */
-    SET_PIN_MODE(35, QRK_PMUX_SEL_MODEA); // SPI1_SS_MISO 
-    SET_PIN_MODE(36, QRK_PMUX_SEL_MODEA); // SPI1_SS_MOSI
-    SET_PIN_MODE(37, QRK_PMUX_SEL_MODEA); // SPI1_SS_SCK
-    SET_PIN_MODE(38, QRK_PMUX_SEL_MODEA); // SPI1_SS_CS_B[0]
- 
-    ss_spi_init();
+    ss_spi_init(SPI_SENSING_1, 2000, SPI_BUSMODE_0, SPI_8_BIT, SPI_SE_1);
 
     /* Perform a dummy read from 0x7f to switch to spi interface */
     uint8_t dummy_reg = 0x7F;
@@ -59,14 +52,14 @@ bool CurieIMUClass::begin()
 
 void CurieIMUClass::end()
 {
-    ss_spi_disable();
+    ss_spi_disable(SPI_SENSING_1);
 }
 
 int CurieIMUClass::getGyroRate()
 {
     int rate;
 
-    switch(BMI160Class::getGyroRate()) {
+    switch (BMI160Class::getGyroRate()) {
         case BMI160_GYRO_RATE_25HZ:
             rate = 25;
             break;
@@ -133,7 +126,7 @@ float CurieIMUClass::getAccelerometerRate()
 {
     float rate;
 
-    switch(BMI160Class::getAccelRate()) {
+    switch (BMI160Class::getAccelRate()) {
         case BMI160_ACCEL_RATE_25_2HZ:
             rate = 12.5;
             break;
@@ -875,8 +868,6 @@ float CurieIMUClass::getMotionDetectionDuration()
     int bmiDuration = BMI160Class::getMotionDetectionDuration();
 
     return (bmiDuration / getAccelerometerRate());
-
-
 }
 void CurieIMUClass::setMotionDetectionDuration(float duration)
 {
@@ -1454,7 +1445,7 @@ void CurieIMUClass::enableInterrupt(int feature, bool enabled)
             setIntZeroMotionEnabled(enabled);
             break;
 
-       case CURIE_IMU_TAP:
+        case CURIE_IMU_TAP:
             setIntTapEnabled(enabled);
             break;
 
@@ -1493,7 +1484,7 @@ bool CurieIMUClass::interruptsEnabled(int feature)
         case CURIE_IMU_ZERO_MOTION:
             return getIntZeroMotionEnabled();
 
-       case CURIE_IMU_TAP:
+        case CURIE_IMU_TAP:
             return getIntTapEnabled();
 
         case CURIE_IMU_DOUBLE_TAP:
@@ -1562,12 +1553,13 @@ float CurieIMUClass::convertRaw(int16_t raw, float range_abs)
 
     /* Input range will be -32768 to 32767
      * Output range must be -range_abs to range_abs */
-    val = (float) raw;
+    val = (float)raw;
     slope = (range_abs * 2.0f) / BMI160_SENSOR_RANGE;
     return -(range_abs) + slope * (val + BMI160_SENSOR_LOW);
 }
 
-void CurieIMUClass::readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy, int& gz)
+void CurieIMUClass::readMotionSensor(int &ax, int &ay, int &az, int &gx,
+                                     int &gy, int &gz)
 {
     short sax, say, saz, sgx, sgy, sgz;
 
@@ -1581,8 +1573,8 @@ void CurieIMUClass::readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy
     gz = sgz;
 }
 
-void CurieIMUClass::readMotionSensorScaled(float& ax, float& ay, float& az,
-                                           float& gx, float& gy, float& gz)
+void CurieIMUClass::readMotionSensorScaled(float &ax, float &ay, float &az,
+                                           float &gx, float &gy, float &gz)
 {
     int16_t sax, say, saz, sgx, sgy, sgz;
 
@@ -1596,7 +1588,7 @@ void CurieIMUClass::readMotionSensorScaled(float& ax, float& ay, float& az,
     gz = convertRaw(sgz, gyro_range);
 }
 
-void CurieIMUClass::readAccelerometer(int& x, int& y, int& z)
+void CurieIMUClass::readAccelerometer(int &x, int &y, int &z)
 {
     short sx, sy, sz;
 
@@ -1607,7 +1599,7 @@ void CurieIMUClass::readAccelerometer(int& x, int& y, int& z)
     z = sz;
 }
 
-void CurieIMUClass::readAccelerometerScaled(float& x, float& y, float& z)
+void CurieIMUClass::readAccelerometerScaled(float &x, float &y, float &z)
 {
     int16_t sx, sy, sz;
 
@@ -1618,7 +1610,7 @@ void CurieIMUClass::readAccelerometerScaled(float& x, float& y, float& z)
     z = convertRaw(sz, accel_range);
 }
 
-void CurieIMUClass::readGyro(int& x, int& y, int& z)
+void CurieIMUClass::readGyro(int &x, int &y, int &z)
 {
     short sx, sy, sz;
 
@@ -1629,7 +1621,7 @@ void CurieIMUClass::readGyro(int& x, int& y, int& z)
     z = sz;
 }
 
-void CurieIMUClass::readGyroScaled(float& x, float& y, float& z)
+void CurieIMUClass::readGyroScaled(float &x, float &y, float &z)
 {
     int16_t sx, sy, sz;
 
@@ -1650,7 +1642,7 @@ int CurieIMUClass::readAccelerometer(int axis)
         return getAccelerationZ();
     }
 
-    return 0; 
+    return 0;
 }
 
 float CurieIMUClass::readAccelerometerScaled(int axis)
@@ -1783,7 +1775,8 @@ bool CurieIMUClass::stepsDetected()
  *  to use for accessing device registers.  This implementation uses the SPI
  *  bus on the Intel Curie module to communicate with the BMI160.
  */
-int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
+int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt,
+                                          unsigned rx_cnt)
 {
     int flags, status;
 
@@ -1795,7 +1788,7 @@ int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
      * - avoid delays in SPI transfer due to unrelated interrupts
      */
     flags = interrupt_lock();
-    status = ss_spi_xfer(buf, tx_cnt, rx_cnt);
+    status = ss_spi_xfer(SPI_SENSING_1, buf, tx_cnt, rx_cnt);
     interrupt_unlock(flags);
 
     return status;
@@ -1831,8 +1824,8 @@ void CurieIMUClass::attachInterrupt(void (*callback)(void))
     cfg.gpio_cb = bmi160_pin1_isr;
     soc_gpio_set_config(SOC_GPIO_AON, BMI160_GPIN_AON_PIN, &cfg);
 
-    setInterruptMode(1);  // Active-Low
-    setInterruptDrive(0); // Push-Pull
+    setInterruptMode(1);                        // Active-Low
+    setInterruptDrive(0);                       // Push-Pull
     setInterruptLatch(BMI160_LATCH_MODE_10_MS); // 10ms pulse
     setIntEnabled(true);
 }

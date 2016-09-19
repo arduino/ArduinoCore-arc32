@@ -14,20 +14,20 @@
 
 void setup()
 {
-  Wire.begin();        // join i2c bus (address optional for master)
   Serial.begin(9600);  // start serial for output
+  while(!Serial);
+  Wire.begin();        // join i2c bus (address optional for master)
 }
 
 void loop()
 {
-  Wire.requestFrom(8, 6,false);    // request 6 bytes from slave device #8
+  Wire.requestFrom(8, 6, true);    // request 6 bytes from slave device #8
 
   while (Wire.available())   // slave may send less than requested
   {
     char c = Wire.read(); // receive a byte as character
-    Serial.print(c); // print the character
+    Serial.print(c, HEX); // print the character
     Serial.println();
-    
   }
 
   delay(500);
