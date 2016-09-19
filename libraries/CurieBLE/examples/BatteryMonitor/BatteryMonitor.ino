@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
- */
+   Copyright (c) 2016 Intel Corporation.  All rights reserved.
+   See the bottom of this file for the license terms.
+*/
 
 #include <CurieBLE.h>
 
@@ -21,14 +21,18 @@ BLEService batteryService("180F"); // BLE Battery Service
 // BLE Battery Level Characteristic"
 BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID  defined in the URL above
     BLERead | BLENotify);     // remote clients will be able to
-                              // get notifications if this characteristic changes
+// get notifications if this characteristic changes
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
 
 void setup() {
   Serial.begin(9600);    // initialize serial communication
-  pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
+  // wait for the Serial port to connect. Open the Serial Monitor to continue executing the sketch
+  while (!Serial) {
+    ;
+  }
+  pinMode(LED_BUILTIN, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
 
   /* Set a local name for the BLE device
      This name will appear in advertising packets
@@ -57,7 +61,7 @@ void loop() {
     // print the central's MAC address:
     Serial.println(central.address());
     // turn on the LED to indicate the connection:
-    digitalWrite(13, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
 
     // check the battery level every 200ms
     // as long as the central is still connected:
@@ -68,17 +72,17 @@ void loop() {
         previousMillis = currentMillis;
         updateBatteryLevel();
 
-        static unsigned short count = 0;  
+        static unsigned short count = 0;
         count++;
         // update the connection interval
-        if(count%5 == 0){
+        if (count % 5 == 0) {
           delay(1000);
-          updateIntervalParams(central);  
+          updateIntervalParams(central);
         }
       }
     }
     // when the central disconnects, turn off the LED:
-    digitalWrite(13, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
   }
@@ -113,16 +117,16 @@ void updateIntervalParams(BLECentralHelper &central) {
   Serial.println(m_conn_param.latency );
   Serial.print("timeout = " );
   Serial.println(m_conn_param.timeout );
-        
+
   //Update connection interval
   Serial.println("set Connection Interval");
-  central.setConnectionInterval(interval,interval);
+  central.setConnectionInterval(interval, interval);
 
   interval++;
-  if(interval<0x06)
+  if (interval < 0x06)
     interval = 0x06;
-  if(interval>0x100)
-    interval = 0x06; 
+  if (interval > 0x100)
+    interval = 0x06;
 }
 /*
    Copyright (c) 2016 Intel Corporation.  All rights reserved.

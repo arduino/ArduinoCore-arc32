@@ -2,7 +2,7 @@
    America's Greatest Makers with help from Intel.
    MIDI over BLE info from: https://developer.apple.com/bluetooth/Apple-Bluetooth-Low-Energy-MIDI-Specification.pdf
   This sketch is not written to pair with any of the central examples.
-  
+
   This sketch plays a random MIDI note (between 0 and 127) every 400ms.
   For a 'smarter' sketch, check out my Airpeggiator example.
   The Airpeggiator uses the Curie's IMU to allow you to play
@@ -26,8 +26,8 @@
   Towards the bottom of advanced, you will see 'Bluetooth MIDI devices'.
   You should see your Arduino 101 advertising in the list. Connect to
   your device and it should be available to all other iOS MIDI apps you have.
-  
-  If you do not have iOS, you can still use a BLE app on Android and just subscribe 
+
+  If you do not have iOS, you can still use a BLE app on Android and just subscribe
   to the midiChar charcteristic and see the updates.
 
   To send data, you use the following line: char.setValue(d, n); where char is
@@ -97,6 +97,10 @@ BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BL
 
 void setup() {
   Serial.begin(9600);
+  // wait for the Serial port to connect. Open the Serial Monitor to continue executing the sketch
+  while (!Serial) {
+    ;
+  }
 
   BLESetup();
   Serial.println(("Bluetooth device active, waiting for connections..."));

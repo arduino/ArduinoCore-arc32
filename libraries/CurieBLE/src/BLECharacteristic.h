@@ -166,7 +166,7 @@ public:
      *
      * @param   none
      *
-     * @return  unsigned char   The totla number of the notify attributes
+     * @return  unsigned char   The total number of the notify attributes
      *
      * @note  none
      */
@@ -303,8 +303,6 @@ protected:
 
 private:
     void _setValue(const uint8_t value[], uint16_t length);
-
-private:
     
     static unsigned char _numNotifyAttributes;
     static bt_uuid_16_t _gatt_chrc_uuid;
@@ -329,7 +327,7 @@ private:
     bt_gatt_attr_t *_attr_cccd;
     
     // For central device to subscribe the Notification/Indication
-   bt_gatt_subscribe_params_t _sub_params;
+    bt_gatt_subscribe_params_t _sub_params;
     
     bool _reading;
     bt_gatt_read_params_t _read_params;

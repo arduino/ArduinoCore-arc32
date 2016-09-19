@@ -70,7 +70,7 @@ public:
      * @param[in]  uuidsize     The max size of UUID
      *
      * @return  bool    true - UUID is the same with data
-     *                  		false- UUID is not the same with data
+     *                  false- UUID is not the same with data
      *
      * @note  none
      */
@@ -104,7 +104,7 @@ protected:
     void setHandle(uint16_t handle);
 
     static unsigned char numAttributes(void);
-    // The below APIs are for central device to discover the
+    // The below APIs are for central device to discover peripheral devices
     virtual void discover(bt_gatt_discover_params_t *params) = 0;
     virtual void discover(const bt_gatt_attr_t *attr,
                           bt_gatt_discover_params_t *params) = 0;
