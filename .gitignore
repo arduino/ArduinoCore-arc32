@@ -1,5 +1,5 @@
 *.o
-*.a
+/system/libarc32_arduino101/libarc32drv_arduino101.a
 *.map
 *.elf
 *.swp
