@@ -93,7 +93,7 @@ void UARTClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
   while (uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
       uart_fifo_read(CONFIG_UART_CONSOLE_INDEX, &c, 1);
 
-
+  uart_irq_err_enable(CONFIG_UART_CONSOLE_INDEX);
   uart_irq_rx_enable(CONFIG_UART_CONSOLE_INDEX);
 
 }
@@ -116,6 +116,7 @@ void UARTClass::end( void )
   //enable loopback, needed to prevent a short disconnection to be 
   //interpreted as a packet and corrupt receiver state
   uart_loop_enable(CONFIG_UART_CONSOLE_INDEX);
+  uart_irq_err_disable(CONFIG_UART_CONSOLE_INDEX);
 
   SET_PIN_MODE(17, GPIO_MUX_MODE); // Rdx SOC PIN (Arduino header pin 0)
   SET_PIN_MODE(16, GPIO_MUX_MODE); // Txd SOC PIN (Arduino header pin 1)
@@ -168,7 +169,7 @@ int UARTClass::read( void )
 
 void UARTClass::flush( void )
 {
-  while (_tx_buffer->_iHead != _tx_buffer->_iTail); //wait for transmit data to be sent
+  while (_tx_buffer->_iHead != *(volatile int*)&(_tx_buffer->_iTail)); //wait for transmit data to be sent
   // Wait for transmission to complete
   while(!uart_tx_complete(CONFIG_UART_CONSOLE_INDEX));
 }
@@ -179,11 +180,11 @@ size_t UARTClass::write( const uint8_t uc_data )
     return(0);
 
   // Is the hardware currently busy?
-  if (_tx_buffer->_iTail != _tx_buffer->_iHead)
+  if (_tx_buffer->_iTail != _tx_buffer->_iHead || !uart_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
     // If busy we buffer
     int l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
-    while (_tx_buffer->_iTail == l)
+    while (*(volatile int*)&(_tx_buffer->_iTail) == l)
       ; // Spin locks if we're about to overwrite the buffer. This continues once the data is sent
 
     _tx_buffer->_aucBuffer[_tx_buffer->_iHead] = uc_data;
@@ -201,21 +202,39 @@ size_t UARTClass::write( const uint8_t uc_data )
 
 void UARTClass::IrqHandler( void )
 {
-  uint8_t uc_data;
-  int ret;
-  ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
-  
-  while ( ret != -1 ) {
-    _rx_buffer->store_char(uc_data);
+  uart_irq_update(CONFIG_UART_CONSOLE_INDEX);
+  // if irq is Receiver Line Status
+  if(uart_irq_err_detected(CONFIG_UART_CONSOLE_INDEX))
+  {
+    // if it is a break line, we discard the data
+    if(uart_break_check(CONFIG_UART_CONSOLE_INDEX))
+    {
+      uint8_t uc_data;
+      uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    }
+  }
+  // if irq is Receiver Data Available
+  else if(uart_irq_rx_ready(CONFIG_UART_CONSOLE_INDEX))
+  {
+    uint8_t uc_data;
+    int ret;
     ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    
+    while ( ret != -1 ) {
+      _rx_buffer->store_char(uc_data);
+      ret = uart_poll_in(CONFIG_UART_CONSOLE_INDEX, &uc_data);
+    }
   }
 
-  // Do we need to keep sending data?
-  if (!uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
+  // if irq is Transmitter Holding Register
+  else if(uart_irq_tx_ready(CONFIG_UART_CONSOLE_INDEX))
   {
-    if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
-      uart_poll_out(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
-      _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+    if(_tx_buffer->_iTail != _tx_buffer->_iHead)
+    {
+      int end = (_tx_buffer->_iTail < _tx_buffer->_iHead) ? _tx_buffer->_iHead:SERIAL_BUFFER_SIZE;
+      int l = min(end - _tx_buffer->_iTail, UART_FIFO_SIZE);
+      uart_fifo_fill(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer+_tx_buffer->_iTail, l);
+      _tx_buffer->_iTail = (_tx_buffer->_iTail+l)%SERIAL_BUFFER_SIZE;
     }
     else
     {
