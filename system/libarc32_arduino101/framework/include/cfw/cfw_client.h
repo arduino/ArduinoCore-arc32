@@ -40,22 +40,6 @@
  * @{
  */
 
-/**
- * Create a handle to the component framework.
- * This handle is to be used for all other requests
- * to the component framework
- *
- * Implementation is different in the master and the slave contexts.
- * The master context will be pseudo-synchronous, while the slave
- * implementation will actually pass a message to the master context
- * in order to register a new client.
- *
- * \param queue pointer to service queue
- * \param cb the callback that will be called for each message reception
- * \param param the param passed along with the message to the callback
- */
-cfw_handle_t cfw_init(void * queue, handle_msg_cb_t cb, void * param);
-
 
 /**
  * Allocate a request message for a service.

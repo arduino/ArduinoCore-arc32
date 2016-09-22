@@ -27,18 +27,110 @@
 template<typename T> class BLETypedCharacteristic : public BLECharacteristic
 {
 public:
+    /**
+     * @brief   The constructor of the template BLE Characteristic
+     *
+     * @param[in]   uuid        The characteristic UUID 16/128 bits
+     *
+     * @param[in]   properties  The property of the characteristic (BLERead, 
+     *                           BLEWrite or BLE Notify. Combine with | )
+     *
+     * @return  none
+     *
+     * @note  none
+     */
     BLETypedCharacteristic(const char* uuid, unsigned char properties);
 
+    /**
+     * @brief   Set the characteristic value
+     *
+     * @param[in]   value   New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
     bool setValue(T value);
+    /**
+     * @brief   Get the value of the Characteristic
+     *
+     * @param   none
+     *
+     * @return  T       The value of characteristic
+     *
+     * @note  none
+     */
     T value(void);
 
+    /**
+     * @brief   Set the characteristic value in Little Endian
+     *
+     * @param[in]   value   New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
     bool setValueLE(T value);
+    /**
+     * @brief   Get the value of the Characteristic in Little Endian
+     *
+     * @param   none
+     *
+     * @return  T       The value of characteristic
+     *
+     * @note  none
+     */
     T valueLE(void);
 
+    /**
+     * @brief   Set the characteristic value in Big Endian
+     *
+     * @param[in]   value   New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
     bool setValueBE(T value);
+    /**
+     * @brief   Get the value of the Characteristic in Big Endian
+     *
+     * @param   none
+     *
+     * @return  T       The value of characteristic
+     *
+     * @note  none
+     */
     T valueBE(void);
+    
+    /**
+     * @brief   Set the peer peripheral device's characteristic value
+     *
+     * @param[in]   Peripheral  The peer peripheral device that want to set the characteristic value
+     *
+     * @param[in]   value       New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
+    bool write(BLEPeripheralHelper &Peripheral, T value);
 
 private:
+    /**
+     * @brief   Swap the bytes
+     *
+     * @param   value   The typed value
+     *
+     * @return  T       The swapped value
+     *
+     * @note  none
+     */
     T byteSwap(T value);
 };
 
@@ -77,6 +169,10 @@ template<typename T> bool BLETypedCharacteristic<T>::setValueBE(T value) {
 
 template<typename T> T BLETypedCharacteristic<T>::valueBE() {
     return byteSwap(value());
+}
+
+template<typename T> bool BLETypedCharacteristic<T>::write(BLEPeripheralHelper &Peripheral, T value){
+	return BLECharacteristic::write(Peripheral, (unsigned char *)(&value), sizeof(T));
 }
 
 template<typename T> T BLETypedCharacteristic<T>::byteSwap(T value) {

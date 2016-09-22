@@ -39,7 +39,6 @@ extern "C" {
 #endif
 
 void    cfw_platform_init(void);
-void    cfw_platform_nordic_init(void);
 T_QUEUE cfw_get_service_queue(void);
 
 #ifdef __cplusplus

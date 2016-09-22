@@ -122,54 +122,6 @@ struct cfw_message * cfw_alloc_internal_msg(int msg_id, int size, void * priv) {
     return evt;
 }
 
-void default_msg_handler(struct cfw_message * msg, void *data) {
-    pr_error(LOG_MODULE_CFW, "Bug: %s should not be called data: %p", __func__, data);
-    cfw_dump_message(msg);
-}
-
-void client_handle_message(struct cfw_message * msg, void *param) {
-    _cfw_handle_t * h = (_cfw_handle_t*)param;
-    switch(CFW_MESSAGE_ID(msg)) {
-    case MSG_ID_CFW_OPEN_SERVICE:
-    {
-        cfw_open_conn_rsp_msg_t * cnf = (cfw_open_conn_rsp_msg_t *) msg;
-        /** Make client handle point to server handle */
-        ((svc_client_handle_t*)cnf->client_handle)->server_handle = cnf->svc_server_handle;
-        /** Initialize service port. */
-        ((svc_client_handle_t*)cnf->client_handle)->port = cnf->port;
-#ifndef CONFIG_INFRA_IS_MASTER
-        /* Set local port and cpu id */
-        if (get_cpu_id() != cnf->cpu_id) {
-            port_set_port_id(cnf->port);
-            port_set_cpu_id(cnf->port, cnf->cpu_id);
-        }
-#endif
-        break;
-    }
-    case MSG_ID_CFW_CLOSE_SERVICE:
-    {
-        /* Free client-side conn */
-        bfree(msg->conn);
-        break;
-    }
-    default:
-        //Nothing to do
-        break;
-    }
-    h->handle_msg(msg, h->data);
-}
-
-cfw_handle_t cfw_init(void * queue, handle_msg_cb_t cb, void *cb_data) {
-    _cfw_handle_t * handle = (_cfw_handle_t*)balloc(sizeof(*handle), NULL);
-    handle->handle_msg = cb;
-    handle->data = cb_data;
-
-    handle->client_port_id = port_alloc(queue);
-
-    cfw_port_set_handler(handle->client_port_id, client_handle_message, handle);
-
-    return (cfw_handle_t) handle;
-}
 
 int _cfw_send_message(struct cfw_message * message)
 {

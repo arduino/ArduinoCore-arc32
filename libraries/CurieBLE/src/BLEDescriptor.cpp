@@ -46,7 +46,7 @@ BLEDescriptor::BLEDescriptor(const char* uuid, const char* value) :
 }
 
 const unsigned char*
-BLEDescriptor::BLEDescriptor::value() const
+BLEDescriptor::value() const
 {
     return _value;
 }
@@ -63,23 +63,34 @@ BLEDescriptor::operator[] (int offset) const
     return _value[offset];
 }
 
-bool
-BLEDescriptor::add(uint16_t serviceHandle)
+void BLEDescriptor::discover(const bt_gatt_attr_t *attr,
+                             bt_gatt_discover_params_t *params)
 {
-    bt_uuid uuid = btUuid();
-    struct ble_gatts_descriptor desc;
-    uint16_t handle = 0;
+    if (!attr)
+    {
+        // Discovery complete
+        _discoverying = false;
+        return;
+    }
+    
+    // Chracteristic Char
+    if (params->uuid == this->uuid())
+    {
+        // Set Discover CCCD parameter
+        params->start_handle = attr->handle + 1;
+        // Complete the discover
+        _discoverying = false;
+    }
 
-    memset(&desc, 0, sizeof(desc));
-
-    desc.p_uuid = &uuid;
-
-    desc.p_value = _value;
-    desc.length = _value_length;
-
-    // this class only supports read-only descriptors
-    desc.perms.rd = GAP_SEC_MODE_1 | GAP_SEC_LEVEL_1;
-    desc.perms.wr = GAP_SEC_NO_PERMISSION;
-
-    return (ble_client_gatts_add_descriptor(serviceHandle, &desc, &handle) == BLE_STATUS_SUCCESS); 
 }
+
+
+void BLEDescriptor::discover(bt_gatt_discover_params_t *params)
+{
+    params->type = BT_GATT_DISCOVER_DESCRIPTOR;
+    params->uuid = this->uuid();
+    // Start discovering
+    _discoverying = true;
+}
+
+

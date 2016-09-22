@@ -30,9 +30,9 @@ public:
     /**
      * Constructor for BLE Descriptor
      *
-     * @param uuid        16-bit UUID (in string form) defined by BLE standard
-     * @param value       Value of descriptor, as a byte array.  Data is stored in internal copy.
-     * @param valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
+     * @param[in] uuid        16-bit UUID (in string form) defined by BLE standard
+     * @param[in] value       Value of descriptor, as a byte array.  Data is stored in internal copy.
+     * @param[in] valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
      */
     BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength);
 
@@ -41,8 +41,8 @@ public:
     /**
      * Constructor for BLE Descriptor
      *
-     * @param uuid        16-bit UUID (in string form) defined by BLE standard
-     * @param value       String value of descriptor.  Data is stored in internal copy. 
+     * @param[in] uuid        16-bit UUID (in string form) defined by BLE standard
+     * @param[in] value       String value of descriptor.  Data is stored in internal copy. 
      *                    (String length <= BLE_MAX_ATTR_DATA_LEN)
      */
     BLEDescriptor(const char* uuid, const char* value);
@@ -62,10 +62,35 @@ public:
     unsigned short valueLength(void) const;
 
 
+    /**
+     * @brief   For central to discover the peripherial profile
+     *
+     * @param[in]   attr    The discover response
+     *
+     * @param[in]   params  The discover parameter that need to fill
+     *
+     * @return  none
+     *
+     * @note  Only for central
+     */
+    void discover(const bt_gatt_attr_t *attr,
+                  bt_gatt_discover_params_t *params);
+    
+    /**
+     * @brief   For central to discover the peripherial profile
+     *
+     * @param[in]   params  The discover parameter that need to fill
+     *
+     * @return  none
+     *
+     * @note  Only for central
+     */
+    void discover(bt_gatt_discover_params_t *params);
+    
+
     unsigned char operator[] (int offset) const;
 
 protected:
-    bool add(uint16_t serviceHandle);
 
     friend BLEPeripheral;
 

@@ -2,13 +2,27 @@
  * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
+ 
+ /*
+  This example can work with LEDCentral.
+
+  You should see the LED blink on and off.
+  This example demonstrates the use of Callback or event Handlers responding to events.
+  BLEConnected, BLEDisconnected and BLEWritten are events.
+  To test interactively, use a Phone app like nrf Controller (Android) or Light Blue (iOS).
+  Connect to BLE device named LEDCB and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214.
+  Writing a byte value such as 0x40 should turn on the LED.
+  Writing a byte value of 0x00 should turn off the LED.
+ */
 
 #include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLEPeripheral blePeripheral; // create peripheral instance
+BLECentralHelper *bleCentral1 = NULL; // peer central device 
 
-BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
+                                                               // Long UUID denote custom user created UUID
 
 // create switch characteristic and allow remote device to read and write
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
@@ -45,19 +59,25 @@ void loop() {
   blePeripheral.poll();
 }
 
-void blePeripheralConnectHandler(BLECentral& central) {
+// The function parameter (BLEHelper& central) is for peripheral devices
+// This enable us to have access to the central's data like its bluetooth address
+
+void blePeripheralConnectHandler(BLEHelper& central) {
   // central connected event handler
+  bleCentral1 = blePeripheral.getPeerCentralBLE(central);
   Serial.print("Connected event, central: ");
-  Serial.println(central.address());
+  Serial.println(bleCentral1->address());
 }
 
-void blePeripheralDisconnectHandler(BLECentral& central) {
+void blePeripheralDisconnectHandler(BLEHelper& central) {
   // central disconnected event handler
   Serial.print("Disconnected event, central: ");
   Serial.println(central.address());
 }
 
-void switchCharacteristicWritten(BLECentral& central, BLECharacteristic& characteristic) {
+// In addtion to the BLECentral& central parameter, we also have to have to BLECharacteristic& characteristic parameter
+
+void switchCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
   // central wrote new value to characteristic, update LED
   Serial.print("Characteristic event, written: ");
 

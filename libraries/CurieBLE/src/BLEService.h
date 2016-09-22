@@ -22,6 +22,10 @@
 
 #include "BLEAttribute.h"
 #include "BLECommon.h"
+#include "BLEProfile.h"
+
+class BLEPeripheral;
+class BLEProfile;
 
 /**
  * BLE GATT Service
@@ -31,14 +35,20 @@ public:
     /**
      * Constructor for BLE Service
      *
-     * @param uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
+     * @param[in] uuid    16-bit or 128-bit UUID (in string form) defined by BLE standard
      */
     BLEService(const char* uuid);
 
 protected:
     friend BLEPeripheral;
-
-    bool add(void);
+    friend BLEProfile;
+    void discover(const bt_gatt_attr_t *attr,
+	              bt_gatt_discover_params_t *params);
+    void discover(bt_gatt_discover_params_t *params);
+    
+    static bt_uuid_t *getPrimayUuid(void);
+private:
+    static bt_uuid_16 _gatt_primary_uuid;
 };
 
 #endif // _BLE_SERVICE_H_INCLUDED

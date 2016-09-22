@@ -22,28 +22,17 @@
 
 #include "internal/ble_client.h"
 
-#include "BLEAttribute.h"
-#include "BLECentral.h"
-#include "BLECharacteristic.h"
 #include "BLECommon.h"
-
-/**
- * BLE Peripheral Events
- */
-enum BLEPeripheralEvent {
-  BLEConnected = 0,
-  BLEDisconnected = 1,
-
-  BLEPeripheralEventLast = 2
-};
+#include "BLERoleBase.h"
+#include "BLEPeripheralHelper.h"
 
 /** Function prototype for BLE Peripheral Device event callback */
-typedef void (*BLEPeripheralEventHandler)(BLECentral &central);
+typedef void (*BLEPeripheralEventHandler)(BLECentralHelper &central);
 
 /**
  * BLE Peripheral
  */
-class BLEPeripheral {
+class BLEPeripheral{
 public:
     /**
      * Default Constructor for BLE Peripheral Device
@@ -56,36 +45,19 @@ public:
     virtual ~BLEPeripheral(void);
 
     /**
-     * Return the number of bytes in the advertising block.
-     * Useful for debugging advertising problems.
-     *
-     * @note Call only after calling begin().
-     */
-    uint8_t getAdvertisingLength();
-
-    /**
-     * Returns a pointer to the advertising block
-     * of length getAdvertisingLength().
-     * Useful for debugging advertising problems.
-     *
-     * @note Call only after calling begin().
-     */
-    uint8_t* getAdvertising();
-
-    /**
      * Set the service UUID that the BLE Peripheral Device advertises
      *
-     * @param advertisedServiceUuid  16-bit or 128-bit UUID to advertis
+     * @param[in] advertisedServiceUuid  16-bit or 128-bit UUID to advertis
      *                               (in string form)
      *
      * @note This method must be called before the begin method
      */
-    void setAdvertisedServiceUuid(const char* advertisedServiceUuid);
+    void setAdvertisedServiceUuid(const bt_uuid_t* advertisedServiceUuid);
 
     /**
      * Set the local name that the BLE Peripheral Device advertises
      *
-     * @param localName  local name to advertise
+     * @param[in] localName  local name to advertise
      *
      * @note This method must be called before the begin method
      */
@@ -94,14 +66,14 @@ public:
     /**
      * Set the Service Data that the BLE Peripheral Device advertises
      *
-     * @param serviceDataUuid 16-bit Service UUID for this Service Data
+     * @param[in] serviceDataUuid 16-bit Service UUID for this Service Data
      *   (in string form). Must match the UUID parameter
      *   of setAdvertisedServiceUuid(). To fit into BLE_MAX_ADV_SIZE,
      *   the UUID must be a 16-bit UUID.
      *
-     * @param serviceData binary array of Service Data.
+     * @param[in] serviceData binary array of Service Data.
      *
-     * @param serviceDataLength length (bytes) of serviceData[]
+     * @param[in] serviceDataLength length (bytes) of serviceData[]
      *
      * @note the entire advertising packet must be no more than
      *   BLE_MAX_ADV_SIZE bytes, which is currently 31.
@@ -113,14 +85,53 @@ public:
      *   the service data will silently not be copied
      *   into the advertising block.
      */
-    void setAdvertisedServiceData(const char* serviceDataUuid, uint8_t* serviceData, uint8_t serviceDataLength);
-
+    void setAdvertisedServiceData(const bt_uuid_t* serviceDataUuid, 
+                                  uint8_t* serviceData, 
+                                  uint8_t serviceDataLength);
+    
+    /**
+     * @brief   Set advertising interval
+     *
+     * @param[in]   advertisingInterval    Advertising Interval (N * 0.625)
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void setAdvertisingInterval(float advertisingInterval);
+    
+    /**
+     * @brief   Set advertising interval
+     *
+     * @param[in]   interval_min    Minimum Advertising Interval (millisecond)
+     *
+     * @param[in]   interval_max    Maximum Advertising Interval (millisecond)
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void setAdvertisingInterval(float interval_min,
+                                float interval_max);
+    
+    /**
+     * @brief   Set advertising type as connectable/non-connectable
+     *
+     * @param[in]   connectable     true  - The device connectable
+     *                              false - The device non-connectable
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void setConnectable(bool connectable);
+    
     /**
      * Set the device name for the BLE Peripheral Device
      *
      * If device name is not set, a default name will be used instead
      *
-     * @param device  User-defined name string for this device.  Truncated if
+     * @param[in] device  User-defined name string for this device.  Truncated if
      *                   more than maximum allowed string length (20 bytes).
      *
      * @note This method must be called before the begin method
@@ -133,7 +144,7 @@ public:
      * See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
      * for available options.
      *
-     * @param appearance Appearance category identifier as defined by BLE Standard
+     * @param[in] appearance Appearance category identifier as defined by BLE Standard
      *
      * @return BleStatus indicating success or error
      *
@@ -144,8 +155,8 @@ public:
     /**
      * Set the min and max connection interval BLE Peripheral Device
      *
-     * @param minConnInterval Minimum connection interval (1.25 ms units), minimum 0x0006 (7.5ms)
-     * @param maxConnInterval Maximum connection interval (1.25 ms units), maximum 0x095f (2998.75ms)
+     * @param[in] minConnInterval Minimum connection interval (1.25 ms units), minimum 0x0006 (7.5ms)
+     * @param[in] maxConnInterval Maximum connection interval (1.25 ms units), maximum 0x095f (2998.75ms)
      *
      * @note This method must be called before the begin method
      */
@@ -154,21 +165,22 @@ public:
     /**
      * Add an attribute to the BLE Peripheral Device
      *
-     * @param attribute Attribute to add to Peripheral
+     * @param[in] attribute Attribute to add to Peripheral
      *
      * @return BleStatus indicating success or error
      *
      * @note This method must be called before the begin method
+     *        Only need check return value at first call. Memory only alloc at first call
      */
-    void addAttribute(BLEAttribute& attribute);
+    BleStatus addAttribute(BLEAttribute& attribute);
 
     /**
      * Provide a function to be called when events related to this Device are raised
      *
-     * @param event    Event type for callback
-     * @param callback Pointer to callback function to invoke when an event occurs.
+     * @param[in] event    Event type for callback
+     * @param[in] callback Pointer to callback function to invoke when an event occurs.
      */
-    void setEventHandler(BLEPeripheralEvent event, BLEPeripheralEventHandler callback);
+    void setEventHandler(BLERoleEvent event, BLERoleEventHandler callback);
 
     /**
      * Setup attributes and start advertising
@@ -199,7 +211,7 @@ public:
      *
      * @return BleStatus indicating success or error
      */
-    BLECentral central(void);
+    BLECentralHelper central(void);
 
     /**
      * Is a central connected?
@@ -207,52 +219,61 @@ public:
      * @return boolean_t true if central connected, otherwise false
      */
     bool connected(void);
-
+    
+    /**
+     * @brief   Init the ADV data and start send advertisement
+     *
+     * @param   none
+     *
+     * @return  BleStatus       0 - Success. Others - error code
+     *
+     * @note  none
+     */
+    BleStatus startAdvertising(void);
+    
+    /**
+     * @brief   Stop send advertisement
+     *
+     * @param   none
+     *
+     * @return  BleStatus       0 - Success. Others - error code
+     *
+     * @note  none
+     */
+    BleStatus stopAdvertising(void);
+    
+    /**
+     * Get peer central device
+     *
+     *@param   central peer central device of the peripheral board   
+     *
+     * @return pointer of peer central device
+     */
+    BLECentralHelper  *getPeerCentralBLE(BLEHelper& central);	
+    
 protected:
-    friend void blePeripheralGapEventHandler(ble_client_gap_event_t event, struct ble_gap_event *event_data, void *param);
-    friend void blePeripheralGattsEventHandler(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data, void *param);
-
-    void handleGapEvent(ble_client_gap_event_t event, struct ble_gap_event *event_data);
-    void handleGattsEvent(ble_client_gatts_event_t event, struct ble_gatts_evt_msg *event_data);
 
 private:
-    BleStatus _init(void);
-    BleStatus _startAdvertising(void);
+    
     BleStatus _stop(void);
 
-    void _advDataInit(void);
+    BleStatus _advDataInit(void);
 
 private:
-
-    enum BLEPeripheralState {
-        BLE_PERIPH_STATE_NOT_READY = 0,
-        BLE_PERIPH_STATE_READY,
-        BLE_PERIPH_STATE_ADVERTISING,
-        BLE_PERIPH_STATE_CONNECTED,
-    };
-
-    BLEPeripheralState _state;
-
-    const char* _advertise_service_uuid;
     const char* _local_name;
-    const char* _service_data_uuid;
+    
+    const bt_uuid_t* _service_data_uuid;
     uint8_t* _service_data;
-    uint8_t _service_data_length;
-    char       _device_name[BLE_MAX_DEVICE_NAME+1];
+    uint8_t  _service_data_length;
+    uint8_t  _service_data_buf[BLE_MAX_ADV_SIZE];
+    
     uint16_t   _appearance;
-    uint16_t   _min_conn_interval;
-    uint16_t   _max_conn_interval;
-    uint8_t    _adv_data[BLE_MAX_ADV_SIZE];
-    uint8_t    _adv_data_len;
-    ble_addr_t _local_bda;
-    BLECentral _central;
-
-    BLEPeripheralEventHandler _event_handlers[BLEPeripheralEventLast];
-
-    BLEAttribute** _attributes;
-    uint16_t _num_attributes;
-
-    BLECharacteristic* _last_added_characteritic;
+    
+    const bt_uuid_t* _advertise_service_uuid;
+    
+    uint8_t    _adv_type;
+    bt_data_t _adv_data[4];
+    size_t       _adv_data_idx;
 };
 
 #endif // _BLE_DEVICE_H_INCLUDED

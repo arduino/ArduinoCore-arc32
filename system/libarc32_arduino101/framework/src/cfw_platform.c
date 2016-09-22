@@ -42,10 +42,11 @@
 
 #include "cfw/cfw_messages.h"
 
-#include "nordic_interface.h"
+#include "nble_driver.h"
 
 /* FIXME: Service manager API */
 extern void _cfw_init(void *);
+extern void ble_cfw_service_init(int service_id, T_QUEUE queue);
 
 extern void *services;
 
@@ -81,21 +82,6 @@ static void free_message_ipc(struct message *msg) {
 extern "C" {
 #endif
 
-
-void cfw_platform_nordic_init(void)
-{
-    /* Setup UART0 for BLE communication, HW flow control required  */
-    SET_PIN_MODE(18, QRK_PMUX_SEL_MODEA); /* UART0_RXD        */
-    SET_PIN_MODE(19, QRK_PMUX_SEL_MODEA); /* UART0_TXD        */
-    SET_PIN_MODE(40, QRK_PMUX_SEL_MODEB); /* UART0_CTS_B      */
-    SET_PIN_MODE(41, QRK_PMUX_SEL_MODEB); /* UART0_RTS_B      */
-
-    /* Reset the nordic to force sync - Warning: not working everytime */
-    nordic_interface_init(service_mgr_queue);
-    uart_ipc_init(0);
-    uart_ipc_set_channel(uart_ipc_channel_open(SYNC_CHANNEL, uart_ipc_message_cback));
-}
-
 static void cfw_platform_mbx_int_enable(void)
 {
     /* Set up mailbox interrupt handler */
@@ -116,8 +102,6 @@ void cfw_platform_init(void)
     set_cpu_id(CPU_ID_ARC);
     set_cpu_message_sender(ipc_remote_cpu, send_message_ipc);
     set_cpu_free_handler(ipc_remote_cpu, free_message_ipc);
-    set_cpu_message_sender(CPU_ID_BLE, send_message_ipc_uart);
-    set_cpu_free_handler(CPU_ID_BLE, free_message_ipc_uart);
 
     service_mgr_queue = queue_create(IPC_QUEUE_DEPTH, NULL);
 
@@ -131,6 +115,7 @@ void cfw_platform_init(void)
                     shared_data->services, shared_data->service_mgr_port_id);
 #else
     _cfw_init(service_mgr_queue);
+    ble_cfw_service_init(BLE_SERVICE_ID, service_mgr_queue);
 
     /* Initialized shared structure. */
     shared_data->ports = port_get_port_table();
