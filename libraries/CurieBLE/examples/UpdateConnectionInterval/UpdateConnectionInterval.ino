@@ -21,11 +21,14 @@ ble_conn_param_t conn_param = {30.0,    // minimum interval in ms 7.5 - 4000
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLECentral bleCentral; // create central instance
-BLEPeripheralHelper *blePeripheral1 = NULL; // // peer peripheral device
+BLEPeripheralHelper *blePeripheral1 = NULL; // peer peripheral device
 
-BLEService batteryService("180F"); // create service with a 16-bit UUID
-BLECharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);// create switch characteristic 
-//and allow remote device to read and notify
+// create a new service with a 16-bit UUID
+BLEService batteryService("180F");
+
+// create switch characteristic with Read and Notify properties
+// to allow remote devices to read and notify the characteristic value
+BLECharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);
 
 bool adv_found(uint8_t type,
                const uint8_t *dataPtr,
@@ -34,8 +37,13 @@ bool adv_found(uint8_t type,
 
 void setup()
 {
+    // initialize serial communication
     Serial.begin(9600);
-
+    // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+    // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+    // remove or comment out the next line
+    while(!Serial) ;
+    
     // add service and characteristic
     bleCentral.addAttribute(batteryService);
     bleCentral.addAttribute(batteryLevelChar);
@@ -43,16 +51,17 @@ void setup()
     // assign event handlers for connected, disconnected to central
     bleCentral.setEventHandler(BLEConnected, bleCentralConnectHandler);
     bleCentral.setEventHandler(BLEDisconnected, bleCentralDisconnectHandler);
+    // assign event handler to central device to update connection params
     bleCentral.setEventHandler(BLEUpdateParam, bleCentralUpdateParam);
 
-    // advertise the service
+    // add adv_fund() handler to get advertising packets
     bleCentral.setAdvertiseHandler(adv_found);
 
-    // assign event handlers for characteristic
+    // assign event handler for characteristic
     batteryLevelChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
 
     bleCentral.begin();
-    Serial.println(("Bluetooth device active, waiting for connections..."));
+    Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop()

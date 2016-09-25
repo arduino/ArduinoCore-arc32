@@ -20,13 +20,17 @@ ble_conn_param_t conn_param = {30.0,    // minimum interval in ms 7.5 - 4000
                                4000     // timeout in ms 100 - 32000ms
                                };
 
-const int ledPin = 13; // set ledPin to use on-board LED
+const int ledPin = 13; // set ledPin to use the on-board LED
 BLECentral bleCentral; // create central instance
 BLEPeripheralHelper *blePeripheral1 = NULL; // peer peripheral device
 
-BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
-                                                               // Long UUID denote custom user created UUID
-BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);// create switch characteristic and allow remote device to read and write
+// create a new service with a 128-bit UUID (32 characters exclusive of dashes).
+// Long UUID denote custom user created UUID
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214");
+
+// create switch characteristic with Read and Write properties to allow remote device 
+// to read and write this characteristic value
+BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 // function prototype for function that determines if the advertising data is found
 bool adv_found(uint8_t type,
@@ -36,8 +40,12 @@ bool adv_found(uint8_t type,
 
 void setup()
 {
-    Serial.begin(9600);
-    pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
+    // initialize serial communication
+    // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+    // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+    // remove or comment out the next line
+    while(!Serial) ;
+    pinMode(ledPin, OUTPUT); // set the pin of the on-board LED as output
 
     // add service and characteristic
     bleCentral.addAttribute(ledService);
@@ -47,14 +55,14 @@ void setup()
     bleCentral.setEventHandler(BLEConnected, bleCentralConnectHandler);
     bleCentral.setEventHandler(BLEDisconnected, bleCentralDisconnectHandler);
 
-    // advertise the service
+    // add adv_fund() function to get advertising packets
     bleCentral.setAdvertiseHandler(adv_found);
 
     // assign event handlers for characteristic
     switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
 
     bleCentral.begin();
-    Serial.println(("Bluetooth device active, waiting for connections..."));
+    Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop()

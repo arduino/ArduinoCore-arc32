@@ -14,6 +14,7 @@
 */
 
 #define MAX_IMU_RECORD 1
+#define IMU_BUF_INDEX 0
 
 typedef struct {
     int index;
@@ -23,32 +24,47 @@ typedef struct {
 // Buffer to hold IMU data
 imuFrameType imuBuf[MAX_IMU_RECORD];
 
-unsigned seqNum = 0;
+unsigned int seqNum = 0;
 
 BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're programming)
-BLEService bleImuService("F7580001-153E-D4F6-F26D-43D8D98EEB13"); // Tx IMU data Characteristic
-BLECharacteristic bleImuChar("F7580003-153E-D4F6-F26D-43D8D98EEB13", // standard 128-bit characteristic UUID
-                             BLERead | BLENotify, sizeof(imuBuf));   // remote clients will be able to
-                                                                     // get notifications if this characteristic changes
+
+// create a new service with a custom 128-bit UUID
+BLEService bleImuService("F7580001-153E-D4F6-F26D-43D8D98EEB13");
+
+// standard 128-bit characteristic UUID with Read and Notify properties that allow
+// remote clients to get notifications when this characteristic changes
+BLECharacteristic bleImuChar("F7580003-153E-D4F6-F26D-43D8D98EEB13", 
+                             BLERead | BLENotify, sizeof(imuBuf));
+
 void setup()
 {
-    Serial.begin(9600);    // initialize serial communication
-    pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
+    // initialize serial communication
+    Serial.begin(9600);
+    // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+    // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+    // remove or comment out the next line
+    while(!Serial) ;
+    // initialize the LED on pin 13 to indicate when a central is connected
+    pinMode(LED_BUILTIN, OUTPUT);
 
 
     /* Set a local name for the BLE device
      This name will appear in advertising packets
      and can be used by remote devices to identify this BLE device
      The name can be changed but maybe be truncated based on space left in advertisement packet */
-    blePeripheral.setLocalName("Imu");
-    blePeripheral.setAdvertisedServiceUuid(bleImuService.uuid());  // add the service UUID
-    blePeripheral.addAttribute(bleImuService);   // Add the Imu service
-    blePeripheral.addAttribute(bleImuChar); // add the Imu characteristic
+    blePeripheral.setLocalName("ImuBle");
+    // add the 128-bit UUID of bleImuService
+    blePeripheral.setAdvertisedServiceUuid(bleImuService.uuid());
+    // add the bleImuService 
+    blePeripheral.addAttribute(bleImuService);
+    // add the bleImuChar characteristic
+    blePeripheral.addAttribute(bleImuChar);
 
     /* Now activate the BLE device.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
      until it receives a new connection */
     blePeripheral.begin();
+    Serial.println("ImuBle Peripheral");
     // Start the IMU
     CurieIMU.begin();
 }
@@ -56,7 +72,7 @@ void setup()
 void loop()
 {
     // listen for BLE peripherals to connect:
-    // Since we are a peripheral we need a central object to connect to
+    // since we are a peripheral we need a central object to connect to
     BLECentralHelper central = blePeripheral.central();
 
     // if a central is connected to peripheral:
@@ -69,8 +85,9 @@ void loop()
         Serial.print("IMU buffer size: ");
         Serial.println(sizeof(imuBuf));
 
-        // turn on the LED to indicate the connection:
-        digitalWrite(13, HIGH);
+        // turn the LED on to indicate that the BLE peripheral (Arduino/Genuino 101)
+        // is connected to the central device
+        digitalWrite(LED_BUILTIN, HIGH);
 
         long currentMillis, sentTime;
 
@@ -81,14 +98,14 @@ void loop()
             // Take IMU data every 100 msec
             if ((millis() - sentTime) >= 100)
             {
-                recordImuData(0);
+                recordImuData(IMU_BUF_INDEX);
                 sentTime = millis();
-                bleImuChar.setValue((unsigned char *)&(imuBuf[0]), sizeof(imuBuf));
+                bleImuChar.setValue((unsigned char *)&(imuBuf[IMU_BUF_INDEX]), sizeof(imuBuf));
             }
         } // end of while loop
 
         // when the central disconnects, turn off the LED:
-        digitalWrite(13, LOW);
+        digitalWrite(LED_BUILTIN, LOW);
         Serial.print("Disconnected from central: ");
         Serial.println(central.address());
     }

@@ -34,13 +34,19 @@ bool adv_found(uint8_t type,
 
 void setup()
 {
-    Serial.begin(115200);    // initialize serial communication
+    // initialize serial communication
+    Serial.begin(115200);
+    // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+    // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+    // remove or comment out the next line
+    while(!Serial) ;
     
-    /* Setup callback */
+    // Setup adv_found() callback function for advertising packets
     bleCentral.setAdvertiseHandler(adv_found);
     
-    /* Now activate the BLE device.
-       It will start continuously scanning BLE advertising
+    /* Now activate the BLE central device.
+       It will start continuously scanning BLE advertising packets
+       sent by BLE peripheral devices
      */
     bleCentral.begin();
     Serial.println("Bluetooth device active, start scanning...");
@@ -52,7 +58,8 @@ void loop()
     delay(3000);
     Serial.print("\r\n\r\n\t\t\tScaning result\r\n \tMAC\t\t\t\tLocal Name\r\n");
     Serial.print("-------------------------------------------------------------\r\n");
-    
+
+    // print MAC address and local name of new scanned devices
     for (int i = 0; i < list_index; i++)
     {
         

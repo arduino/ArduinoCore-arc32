@@ -8,7 +8,7 @@
 /*
   This sketch example works with IMUBleNotification.ino
 
-  IMUBleNotification.ino will send notification to this central sketch.
+  IMUBleNotification.ino will send notifications to this central sketch.
   This sketch will receive the notifications and output the received data in the serial monitor.
   It also illustrates using a non-typed characteristic.
   Set the baud rate to 115200 on the serial monitor to accomodate the speed of constant data updates from IMU subsystem.
@@ -31,14 +31,18 @@ typedef struct {
 imuFrameType imuBuf[MAX_IMU_RECORD];
 BLECentral bleCentral;      // BLE Central Device (the board you're programming)
 
+// create a new service with a custom 128-bit UUID
 BLEService bleImuService("F7580001-153E-D4F6-F26D-43D8D98EEB13");
-BLECharacteristic bleImuChar("F7580003-153E-D4F6-F26D-43D8D98EEB13",    // standard 128-bit characteristic UUID
-                             BLERead | BLENotify, sizeof(imuBuf));      // remote clients will be able to
-                                                                        // get notifications if this characteristic changes
-																		// We have a third parameter which is the size of imyBuffer. This is because it is a non-typed characteristic
-																		// If we are only writing to this characteristic we can set this buffer to 512 bytes
-																		// But because of the limitation of the Nordic FW, please do not set this to more than 128 if you intend to read it.
-																		// MAX_IMU_RECORD value is 1 so we are safe
+
+// standard 128-bit characteristic UUID with Read and Notify properties that allow
+// remote clients to get notifications when this characteristic changes
+// We have a third parameter which is the size of imyBuffer. This is because it is a non-typed characteristic.
+// If we are only writing to this characteristic we can set this buffer to 512 bytes,
+// but because of the limitation of the Nordic FW, please do not set this to more than 128 if you intend to read it.
+// MAX_IMU_RECORD value is 1 so we are safe
+BLECharacteristic bleImuChar("F7580003-153E-D4F6-F26D-43D8D98EEB13",
+                             BLERead | BLENotify, sizeof(imuBuf));
+
 // function prototype for function that determines if the advertising data is found
 bool adv_found(uint8_t type,
                const uint8_t *dataPtr,
@@ -47,18 +51,26 @@ bool adv_found(uint8_t type,
 
 void setup()
 {
+    // initialize serial communication and set the baud rate to 115200 bps.
     // This is set to higher baud rate because accelerometer data changes very quickly
-	Serial.begin(115200);    // initialize serial communication
-    pinMode(13, OUTPUT);    // initialize the LED on pin 13 to indicate when a central is connected
+	  Serial.begin(115200);
+    // wait for the Serial port to connect. Open the Serial Monitor to continue executing the sketch
+    // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+    // remove or comment out the next line
+    while(!Serial) ;
+    // initialize the LED on pin 13 to indicate when a central is connected
+    pinMode(LED_BUILTIN, OUTPUT);
+    
     // set the event handeler function for the bleImuChar characteristic
     bleImuChar.setEventHandler(BLEWritten, bleImuCharacteristicWritten);
     
     bleCentral.addAttribute(bleImuService); // Add the BLE IMU service
     bleCentral.addAttribute(bleImuChar);    // Add the BLE IMU characteristic
 
-    // Setup callback whenever a Peripheral advertising data is found)
+    // Setup callback whenever a Peripheral advertising data is found
     bleCentral.setAdvertiseHandler(adv_found);
     bleCentral.setEventHandler(BLEConnected, ble_connected);
+    bleCentral.setEventHandler(BLEDisconnected, ble_disconnected);
     
     /* Now activate the BLE device.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
@@ -80,10 +92,23 @@ void ble_connected(BLEHelper &role)
 {
     // since we are a central device we create a BLEPeripheralHelper peripheral
     BLEPeripheralHelper *peripheral = bleCentral.getPeerPeripheralBLE(role);
-    Serial.println("Connected");
+    Serial.print("Connected to peripheral ");
+    // print MAC Address of peripheral device
+    Serial.println(peripheral->address());
+    // the BLE central device is connected to peripheral so turn the on-board LED on 
+    digitalWrite(LED_BUILTIN, HIGH);
     
     // Start discovery the profiles in peripheral device
     peripheral->discover();
+}
+
+void ble_disconnected(BLEHelper &peripheral)
+{
+    Serial.print("Disconnected form peripheral ");
+    // print MAC Address of peripheral device
+    Serial.println(peripheral.address());
+    // if peripheral disconnects from the BLE central device turn the on-board LED off
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
 void bleImuCharacteristicWritten(BLEHelper& peripheral, BLECharacteristic& characteristic)

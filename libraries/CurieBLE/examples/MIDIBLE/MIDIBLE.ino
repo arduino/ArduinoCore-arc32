@@ -90,56 +90,66 @@ void noteOff(char chan, char note) //channel 1
 
 BLEPeripheral midiDevice; // create peripheral instance
 
-BLEService midiSvc("03B80E5A-EDE8-4B33-A751-6CE34EC4C700"); // create service
+// create a new service with a custom 128-bit UUID
+BLEService midiService("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
 
-// create switch characteristic and allow remote device to read and write
-BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BLEWriteWithoutResponse | BLENotify | BLERead, 5);
+// create switch characteristic with Read, Write, Write without response and Notify properties 
+// to allow remote central devices to read and write characteristic 
+// and to get notifications when this characteristic changes
+BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BLEWriteWithoutResponse | BLENotify | BLERead, sizeof(midiData));
 
 void setup() {
+  // initialize serial communication
   Serial.begin(9600);
+  // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+  // remove or comment out the next line
+  while(!Serial) ;
 
   BLESetup();
-  Serial.println(("Bluetooth device active, waiting for connections..."));
+  Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {
 
-  /*Simple randome note player to test MIDI output
+  /*Simple random note player to test MIDI output
      Plays random note every 400ms
   */
   int note = random(0, 127);
-  //readMIDI();
+  
   noteOn(0, note, 127); //loads up midiData buffer
-  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
+  midiChar.setValue(midiData, sizeof(midiData));  // post 5 bytes
   delay(200);
   noteOff(0, note);
-  midiChar.setValue(midiData, 5);//midiData); //posts 5 bytes
+  midiChar.setValue(midiData, sizeof(midiData));  // post 5 bytes
   delay(200);
 }
 
 void BLESetup()
 {
-  // set the local name peripheral advertises
+  // Set the local name for this BLE device
+  // This name will appear in advertising packets
+  // and can be used by remote devices to identify this BLE device
   midiDevice.setLocalName("Auxren");
   midiDevice.setDeviceName("Auxren");
 
   // set the UUID for the service this peripheral advertises
-  midiDevice.setAdvertisedServiceUuid(midiSvc.uuid());
+  midiDevice.setAdvertisedServiceUuid(midiService.uuid());
 
   // add service and characteristic
-  midiDevice.addAttribute(midiSvc);
+  midiDevice.addAttribute(midiService);
   midiDevice.addAttribute(midiChar);
 
   // assign event handlers for connected, disconnected to peripheral
   midiDevice.setEventHandler(BLEConnected, midiDeviceConnectHandler);
   midiDevice.setEventHandler(BLEDisconnected, midiDeviceDisconnectHandler);
 
-  // assign event handlers for characteristic
+  // assign event handler for characteristic
   midiChar.setEventHandler(BLEWritten, midiCharacteristicWritten);
-  // set an initial value for the characteristic
-  midiChar.setValue(midiData, 5);
+  // set the initial value of midiChar characteristic
+  midiChar.setValue(midiData, sizeof(midiData));
 
-  // advertise the service
+  // start advertising midiService
   midiDevice.begin();
 }
 
@@ -156,6 +166,19 @@ void midiDeviceDisconnectHandler(BLEHelper& central) {
 }
 
 void midiCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
-  // central wrote new value to characteristic, update LED
-  Serial.print("Characteristic event, written: ");
+  // when central writes new data to midiChar characteristic, print the data received:
+  const unsigned char *newData = characteristic.value();
+  unsigned int dataLength = characteristic.valueLength();
+  if(dataLength == sizeof(midiData)) {
+    Serial.println("MIDI data written by central device:");
+    for(uint8_t value = 0; value < dataLength; value++) {
+      Serial.print(newData[value], HEX);
+      Serial.print(" ");
+      // update midiData buffer
+      if(value >= 2) {
+        midiData[value] = newData[value];
+      }
+    }
+  }
+  Serial.println();
 }
