@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
+ *  Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *  See the bottom of this file for the license terms.
  */
- 
- /*
+
+/*
   This example can work with LEDCentral
 
   This example is similar to CallbackLED example in functionality.
@@ -13,8 +13,8 @@
   Connect to BLE device named LED and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214.
   Writing a byte value such as 0x40 should turn on the LED.
   Writing a byte value of 0x00 should turn off the LED.
- */
- 
+*/
+
 #include <CurieBLE.h>
 
 BLEPeripheral blePeripheral;  // BLE Peripheral Device (the board you're programming)
@@ -33,9 +33,9 @@ void setup() {
   // initialize serial communication
   Serial.begin(9600);
   // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
-  // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
   // remove or comment out the next line
-  while(!Serial) ;
+  while (!Serial) ;
 
   // set LED pin to output mode
   pinMode(ledPin, OUTPUT);

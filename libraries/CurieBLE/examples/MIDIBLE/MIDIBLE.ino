@@ -2,7 +2,7 @@
    America's Greatest Makers with help from Intel.
    MIDI over BLE info from: https://developer.apple.com/bluetooth/Apple-Bluetooth-Low-Energy-MIDI-Specification.pdf
   This sketch is not written to pair with any of the central examples.
-  
+
   This sketch plays a random MIDI note (between 0 and 127) every 400ms.
   For a 'smarter' sketch, check out my Airpeggiator example.
   The Airpeggiator uses the Curie's IMU to allow you to play
@@ -26,8 +26,8 @@
   Towards the bottom of advanced, you will see 'Bluetooth MIDI devices'.
   You should see your Arduino 101 advertising in the list. Connect to
   your device and it should be available to all other iOS MIDI apps you have.
-  
-  If you do not have iOS, you can still use a BLE app on Android and just subscribe 
+
+  If you do not have iOS, you can still use a BLE app on Android and just subscribe
   to the midiChar charcteristic and see the updates.
 
   To send data, you use the following line: char.setValue(d, n); where char is
@@ -62,17 +62,17 @@
 */
 #include <CurieBLE.h>
 
-#define TXRX_BUF_LEN              20 //max number of bytes
-#define RX_BUF_LEN                20 //max number of bytes
+#define TXRX_BUF_LEN 20  // max number of bytes
+#define RX_BUF_LEN 20    // max number of bytes
 uint8_t rx_buf[RX_BUF_LEN];
 int rx_buf_num, rx_state = 0;
 uint8_t rx_temp_buf[20];
 uint8_t outBufMidi[128];
 
-//Buffer to hold 5 bytes of MIDI data. Note the timestamp is forced
+// Buffer to hold 5 bytes of MIDI data. Note the timestamp is forced
 uint8_t midiData[] = {0x80, 0x80, 0x00, 0x00, 0x00};
 
-//Loads up buffer with values for note On
+// Loads up buffer with values for note On
 void noteOn(char chan, char note, char vel) //channel 1
 {
   midiData[2] = 0x90 + chan;
@@ -80,8 +80,8 @@ void noteOn(char chan, char note, char vel) //channel 1
   midiData[4] = vel;
 }
 
-//Loads up buffer with values for note Off
-void noteOff(char chan, char note) //channel 1
+// Loads up buffer with values for note Off
+void noteOff(char chan, char note) // channel 1
 {
   midiData[2] = 0x80 + chan;
   midiData[3] = note;
@@ -93,8 +93,8 @@ BLEPeripheral midiDevice; // create peripheral instance
 // create a new service with a custom 128-bit UUID
 BLEService midiService("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
 
-// create switch characteristic with Read, Write, Write without response and Notify properties 
-// to allow remote central devices to read and write characteristic 
+// create switch characteristic with Read, Write, Write without response and Notify properties
+// to allow remote central devices to read and write characteristic
 // and to get notifications when this characteristic changes
 BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BLEWriteWithoutResponse | BLENotify | BLERead, sizeof(midiData));
 
@@ -102,9 +102,9 @@ void setup() {
   // initialize serial communication
   Serial.begin(9600);
   // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
-  // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
   // remove or comment out the next line
-  while(!Serial) ;
+  while (!Serial) ;
 
   BLESetup();
   Serial.println("Bluetooth device active, waiting for connections...");
@@ -112,12 +112,11 @@ void setup() {
 
 void loop() {
 
-  /*Simple random note player to test MIDI output
-     Plays random note every 400ms
-  */
+  // Simple random note player to test MIDI output.
+  // Plays random note every 400ms
   int note = random(0, 127);
-  
-  noteOn(0, note, 127); //loads up midiData buffer
+
+  noteOn(0, note, 127); // loads up midiData buffer
   midiChar.setValue(midiData, sizeof(midiData));  // post 5 bytes
   delay(200);
   noteOff(0, note);
@@ -169,13 +168,13 @@ void midiCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteri
   // when central writes new data to midiChar characteristic, print the data received:
   const unsigned char *newData = characteristic.value();
   unsigned int dataLength = characteristic.valueLength();
-  if(dataLength == sizeof(midiData)) {
+  if (dataLength == sizeof(midiData)) {
     Serial.println("MIDI data written by central device:");
-    for(uint8_t value = 0; value < dataLength; value++) {
+    for (uint8_t value = 0; value < dataLength; value++) {
       Serial.print(newData[value], HEX);
       Serial.print(" ");
       // update midiData buffer
-      if(value >= 2) {
+      if (value >= 2) {
         midiData[value] = newData[value];
       }
     }

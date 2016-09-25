@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
+ *  Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *  See the bottom of this file for the license terms.
  */
- 
- /*
+
+/*
   This example can work with LEDCentral.
 
   You should see the LED blink on and off.
@@ -13,13 +13,13 @@
   Connect to BLE device named LEDCB and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214.
   Writing a byte value such as 0x40 should turn on the LED.
   Writing a byte value of 0x00 should turn off the LED.
- */
+*/
 
 #include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLEPeripheral blePeripheral; // create peripheral instance
-BLECentralHelper *bleCentral1 = NULL; // peer central device 
+BLECentralHelper *bleCentral1 = NULL; // peer central device
 
 // create service with a 128-bit UUID (32 characters exclusive of dashes).
 // Long UUID denote custom user created UUID.
@@ -33,9 +33,9 @@ void setup() {
   // initialize serial communication
   Serial.begin(9600);
   // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
-  // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
   // remove or comment out the next line
-  while(!Serial) ;
+  while (!Serial) ;
   // set the pin 13 of the on-board LED as output
   pinMode(ledPin, OUTPUT);
 
@@ -94,7 +94,8 @@ void switchCharacteristicWritten(BLEHelper& central, BLECharacteristic& characte
   if (switchChar.value()) {
     Serial.println("LED on");
     digitalWrite(ledPin, HIGH);
-  } else {
+  }
+  else {
     Serial.println("LED off");
     digitalWrite(ledPin, LOW);
   }

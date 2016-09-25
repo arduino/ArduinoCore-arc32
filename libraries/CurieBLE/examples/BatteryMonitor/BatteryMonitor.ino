@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
+ *  Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *  See the bottom of this file for the license terms.
  */
 
 #include <CurieBLE.h>
@@ -18,7 +18,7 @@ BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're pr
 BLEService batteryService("180F"); // BLE Battery Service with standard 16-bit UUID
 
 // BLE Battery Level Characteristic with standard 16-bit characteristic UUID
-// This characteristic has Read and Notify properties that allow remote clients 
+// This characteristic has Read and Notify properties that allow remote clients
 // to get notifications when this characteristic changes
 BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);
 
@@ -29,9 +29,9 @@ void setup() {
   // initialize serial communication
   Serial.begin(9600);
   // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
-  // If you don't care to see text messages sent to the Serial Monitor during board initialization, 
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
   // remove or comment out the next line
-  while(!Serial) ;
+  while (!Serial) ;
   // initialize the LED on pin 13 to indicate when a central is connected
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -73,12 +73,12 @@ void loop() {
         previousMillis = currentMillis;
         updateBatteryLevel();
 
-        static unsigned short count = 0;  
+        static unsigned short count = 0;
         count++;
         // update the connection interval
-        if(count%5 == 0){
+        if (count % 5 == 0) {
           delay(1000);
-          updateIntervalParams(central);  
+          updateIntervalParams(central);
         }
       }
     }
@@ -90,9 +90,8 @@ void loop() {
 }
 
 void updateBatteryLevel() {
-  /* Read the current voltage level on the A0 analog input pin.
-     This is used here to simulate the charge level of a battery.
-  */
+  // Read the current voltage level on the A0 analog input pin.
+  // This is used here to simulate the charge level of a battery.
   int battery = analogRead(A0);
   int batteryLevel = map(battery, 0, 1023, 0, 100);
 
@@ -110,24 +109,24 @@ void updateIntervalParams(BLECentralHelper &central) {
   ble_conn_param_t m_conn_param;
   // Get connection interval that peer central device wanted
   central.getConnParams(m_conn_param);
-  Serial.print("min interval = " );
-  Serial.println(m_conn_param.interval_min );
-  Serial.print("max interval = " );
-  Serial.println(m_conn_param.interval_max );
-  Serial.print("latency = " );
-  Serial.println(m_conn_param.latency );
-  Serial.print("timeout = " );
-  Serial.println(m_conn_param.timeout );
-        
+  Serial.print("min interval = ");
+  Serial.println(m_conn_param.interval_min);
+  Serial.print("max interval = ");
+  Serial.println(m_conn_param.interval_max);
+  Serial.print("latency = ");
+  Serial.println(m_conn_param.latency);
+  Serial.print("timeout = ");
+  Serial.println(m_conn_param.timeout);
+
   //Update connection interval
   Serial.println("set Connection Interval");
-  central.setConnectionInterval(interval,interval);
+  central.setConnectionInterval(interval, interval);
 
   interval++;
-  if(interval<0x06)
+  if (interval < 0x06)
     interval = 0x06;
-  if(interval>0x100)
-    interval = 0x06; 
+  if (interval > 0x100)
+    interval = 0x06;
 }
 /*
    Copyright (c) 2016 Intel Corporation.  All rights reserved.
