@@ -138,7 +138,7 @@ String::String(float value, unsigned char decimalPlaces)
 
 	if(decimalPlaces)  totalSize += 1 + ((int)decimalPlaces & 0x0FF);
 
-	char buf[totalSize+1];
+	char buf[totalSize + 2];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
@@ -149,7 +149,7 @@ String::String(double value, unsigned char decimalPlaces)
 
 	if(decimalPlaces)  totalSize += 1 + ((int)decimalPlaces & 0x0FF);
 
-	char buf[totalSize+1];
+	char buf[totalSize + 2];
 	*this = dtostrf(value, 0, decimalPlaces, buf);
 }
 
