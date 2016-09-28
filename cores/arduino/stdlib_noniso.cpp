@@ -215,6 +215,12 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
       number = -number;
     }
 
+    // rounding up to the precision
+    rounding = 0.5;
+    for (i = 0; i < prec; ++i)
+        rounding /= 10.0;
+    number += rounding;
+
     // seperate integral and fractional parts
     integer = (unsigned long long) number;
     fraction = (double) (number - integer);
@@ -230,12 +236,6 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
     out[i - 1] = ASCII_ZERO + integer;
     out += before;
     if (!prec) goto end;
-
-    // rounding up to the precision
-    rounding = 0.5;
-    for (i = 0; i < prec; ++i)
-        rounding /= 10.0;
-    fraction += rounding;
 
     // generate chars for each digit of the fractional part
     *out++ = '.';
