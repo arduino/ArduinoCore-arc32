@@ -95,6 +95,8 @@ typedef struct _PinDescription
 /* Pins table to be instanciated into variant.cpp */
 extern PinDescription g_APinDescription[] ;
 
+extern uint32_t pwmPeriod[4];
+
 #ifdef __cplusplus
 } // extern "C"
 

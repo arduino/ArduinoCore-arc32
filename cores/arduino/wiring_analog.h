@@ -33,6 +33,8 @@ typedef enum _eAnalogReference
   AR_DEFAULT,
 } eAnalogReference ;
 
+#define PWM_PERIOD 	65306	//490 Hz
+
 /*
  * \brief Configures the reference voltage used for analog input (i.e. the value used as the top of the input range).
  * This function is kept only for compatibility with existing AVR based API.
@@ -47,7 +49,7 @@ extern void analogReference( eAnalogReference ulMode ) ;
  * \param pin
  * \param val
  */
-extern void analogWrite( uint8_t pin, int val ) ;
+extern void analogWrite( uint8_t pin, uint32_t val ) ;
 
 /*
  * \brief Reads the value from the specified analog pin.
@@ -71,6 +73,13 @@ extern void analogReadResolution(int res);
  * \param res
  */
 extern void analogWriteResolution(int res);
+
+/*
+ * \brief Set the frequency of analogWrite parameters.
+ *
+ * \param res
+ */
+extern void analogWriteFrequency(uint8_t pin, uint32_t freq);
 
 #ifdef __cplusplus
 }

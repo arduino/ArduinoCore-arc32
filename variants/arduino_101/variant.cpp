@@ -98,6 +98,7 @@ PinDescription g_APinDescription[]=
     {  3,   SOC_GPIO_32, SOC_GPIO,   SOC_GPIO_AON_BASE_ADDR, 3,     GPIO_MUX_MODE, INVALID, INVALID,         INVALID, INPUT_MODE }, // Arduino IO28
 } ;
 
+uint32_t pwmPeriod[] = {PWM_PERIOD, PWM_PERIOD/2, PWM_PERIOD/2, PWM_PERIOD};
 #ifdef __cplusplus
 }
 #endif
