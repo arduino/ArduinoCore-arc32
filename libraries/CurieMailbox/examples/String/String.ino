@@ -18,9 +18,7 @@
 int receiveChannel = 0;  /* Receiving messages on this channel */
 
 void setup (void) {
-    /* Printing to Serial1, since this example uses custom x86 firmware
-     * which lacks the CDC-ACM driver that makes the Serial class work */
-    Serial1.begin(9600);
+    Serial.begin(9600);
 
     /* Enable the mailbox */
     CurieMailbox.begin();
@@ -32,8 +30,8 @@ void setup (void) {
 void printMessageAsString (CurieMailboxMsg msg)
 {
     char *p = (char *)msg.data;
-    Serial1.print("Received message '" + String(p) + "' from channel ");
-    Serial1.println(msg.channel);
+    Serial.print("Received message '" + String(p) + "' from channel ");
+    Serial.println(msg.channel);
 }
 
 void loop (void) {

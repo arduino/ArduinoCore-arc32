@@ -26,9 +26,7 @@ int sendChannel = 0;     /* We'll send mailbox messages on this channel */
 int receiveChannel = 1;  /* And receive them on this channel */
 
 void setup (void) {
-    /* Printing to Serial1, since this example uses custom x86 firmware
-     * which lacks the CDC-ACM driver that makes the Serial class work */
-    Serial1.begin(9600);
+    Serial.begin(9600);
 
     /* Enable the mailbox */
     CurieMailbox.begin();
@@ -55,9 +53,9 @@ void loop (void) {
     /* Read the response */
     inMsg = CurieMailbox.get();
 
-    Serial1.print("Sent '" + String(outMsg.data[0]) + "' on channel ");
-    Serial1.print(String(outMsg.channel) + ", got reply '" + String(inMsg.data[0]));
-    Serial1.println("' on channel " + String(inMsg.channel));
+    Serial.print("Sent '" + String(outMsg.data[0]) + "' on channel ");
+    Serial.print(String(outMsg.channel) + ", got reply '" + String(inMsg.data[0]));
+    Serial.println("' on channel " + String(inMsg.channel));
 
     /* Update our count value with the value received from mailbox */
     count = inMsg.data[0] + 1;
