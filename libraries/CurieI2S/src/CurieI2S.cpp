@@ -419,9 +419,6 @@ void Curie_I2S::muxRX(bool enable)
     SET_PIN_MODE(49, mux_mode); //I2S_RXD
     SET_PIN_MODE(51, mux_mode); //I2S_RWS
     SET_PIN_MODE(50,  mux_mode); //I2S_RSCK
-    g_APinDescription[I2S_RXD].ulPinMode = mux_mode;
-    g_APinDescription[I2S_RWS].ulPinMode = mux_mode;
-    g_APinDescription[I2S_RSCK].ulPinMode  = mux_mode;
 }
 
 void Curie_I2S::muxTX(bool enable)
@@ -436,9 +433,6 @@ void Curie_I2S::muxTX(bool enable)
     SET_PIN_MODE(g_APinDescription[I2S_TXD].ulSocPin, mux_mode);
     SET_PIN_MODE(g_APinDescription[I2S_TWS].ulSocPin, mux_mode);
     SET_PIN_MODE(g_APinDescription[I2S_TSCK].ulSocPin,  mux_mode);
-    g_APinDescription[I2S_TXD].ulPinMode = mux_mode;
-    g_APinDescription[I2S_TWS].ulPinMode = mux_mode;
-    g_APinDescription[I2S_TSCK].ulPinMode  = mux_mode;
 }
 
 void Curie_I2S::initRX()
