@@ -94,9 +94,6 @@ void SPIClass::begin()
         SET_PIN_MODE(g_APinDescription[MOSI].ulSocPin, SPI_MUX_MODE);
         SET_PIN_MODE(g_APinDescription[MISO].ulSocPin, SPI_MUX_MODE);
         SET_PIN_MODE(g_APinDescription[SCK].ulSocPin,  SPI_MUX_MODE);
-        g_APinDescription[MOSI].ulPinMode = SPI_MUX_MODE;
-        g_APinDescription[MISO].ulPinMode = SPI_MUX_MODE;
-        g_APinDescription[SCK].ulPinMode  = SPI_MUX_MODE;
 
     }
     initialized++; /* reference count */

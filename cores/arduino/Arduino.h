@@ -60,7 +60,7 @@ typedef void (*voidFuncPtr)( void ) ;
 
 /* Types used for the tables below */
 /* TODO - consider using smaller types to optimise storage space */
-typedef struct _PinDescription
+typedef const struct _PinDescription
 {
         uint32_t                ulGPIOId;               // GPIO port pin
         uint32_t                ulGPIOPort;             // GPIO port ID

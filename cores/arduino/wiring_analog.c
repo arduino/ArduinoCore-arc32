@@ -97,16 +97,13 @@ void analogWrite(uint8_t pin, int val)
         offset = ((p->ulPwmChan * QRK_PWM_N_REGS_LEN) + QRK_PWM_N_LOAD_COUNT1);
         MMIO_REG_VAL(QRK_PWM_BASE_ADDR + offset) = lcnt;
 
-        if (p->ulPinMode != PWM_MUX_MODE) {
-            /* start the PWM output */
-            offset = ((p->ulPwmChan * QRK_PWM_N_REGS_LEN) + QRK_PWM_N_CONTROL);
-            SET_MMIO_MASK(QRK_PWM_BASE_ADDR + offset, QRK_PWM_CONTROL_ENABLE);
+        /* start the PWM output */
+        offset = ((p->ulPwmChan * QRK_PWM_N_REGS_LEN) + QRK_PWM_N_CONTROL);
+        SET_MMIO_MASK(QRK_PWM_BASE_ADDR + offset, QRK_PWM_CONTROL_ENABLE);
 
-            /* Disable pull-up and set pin mux for PWM output */
-            SET_PIN_PULLUP(p->ulSocPin, 0);
-            SET_PIN_MODE(p->ulSocPin, PWM_MUX_MODE);
-            p->ulPinMode = PWM_MUX_MODE;
-        }
+        /* Disable pull-up and set pin mux for PWM output */
+        SET_PIN_PULLUP(p->ulSocPin, 0);
+        SET_PIN_MODE(p->ulSocPin, PWM_MUX_MODE);
     }
 }
 uint32_t analogRead(uint32_t pin)
@@ -120,11 +117,8 @@ uint32_t analogRead(uint32_t pin)
     PinDescription *p = &g_APinDescription[pin];
 
     /* Disable pull-up and set pin mux for ADC output */
-    if (p->ulPinMode != ADC_MUX_MODE) {
-       SET_PIN_MODE(p->ulSocPin, ADC_MUX_MODE);
-       p->ulPinMode = ADC_MUX_MODE;
-       SET_PIN_PULLUP(p->ulSocPin,0);
-    }
+    SET_PIN_MODE(p->ulSocPin, ADC_MUX_MODE);
+    SET_PIN_PULLUP(p->ulSocPin,0);
 
     /* Reset sequence pointer */
     SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST);
