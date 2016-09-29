@@ -63,13 +63,10 @@ extern "C" {
 #define I2S_MODE_SAMPLE_DEL (0x10)
 #define I2S_MODE_WS_DSP     (0x20)
 
-#define I2S_MODE_PHILLIPS   (I2S_MODE_SCK_POL | I2S_MODE_LR_ALIGN)
-#define I2S_MODE_RJ         (I2S_MODE_SCK_POL | I2S_MODE_WS_POL | \
-			     I2S_MODE_SAMPLE_DEL)
-#define I2S_MODE_LJ         (I2S_MODE_SCK_POL | I2S_MODE_WS_POL | \
-			     I2S_MODE_LR_ALIGN | I2S_MODE_SAMPLE_DEL)
-#define I2S_MODE_DSP        (I2S_MODE_SCK_POL | I2S_MODE_LR_ALIGN | \
-			     I2S_MODE_WS_DSP)
+#define I2S_MODE_PHILLIPS   (I2S_MODE_LR_ALIGN)
+#define I2S_MODE_RJ         (I2S_MODE_WS_POL | I2S_MODE_SAMPLE_DEL)
+#define I2S_MODE_LJ         (I2S_MODE_WS_POL | I2S_MODE_LR_ALIGN | I2S_MODE_SAMPLE_DEL)
+#define I2S_MODE_DSP        (I2S_MODE_LR_ALIGN | I2S_MODE_WS_DSP)
 
 // I2S configuration object
 struct soc_i2s_cfg {
