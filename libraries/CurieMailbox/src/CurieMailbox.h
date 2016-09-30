@@ -10,8 +10,8 @@ public:
     void begin (bool master);
     void end (void);
 
-    void enableReceive (unsigned int channel);
-    void disableReceive (unsigned int channel);
+    void enableReceive (int channel);
+    void disableReceive (int channel);
 
     int available (void);
     void put (CurieMailboxMsg msg);

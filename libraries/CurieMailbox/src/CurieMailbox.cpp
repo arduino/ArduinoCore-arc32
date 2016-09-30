@@ -12,7 +12,7 @@
 #define CHANNEL_STS_BITS            (CHANNEL_STS_MASK | CHANNEL_INT_MASK)
 
 #define CAP_CHAN(chan)              chan = (chan >= NUM_CHANNELS) ? \
-                                    NUM_CHANNELS - 1 : chan
+                                    NUM_CHANNELS - 1 : ((chan < 0) ? 0 : chan)
 
 /* Mailbox channel status register */
 #define IO_REG_MAILBOX_CHALL_STS    (SCSS_REGISTER_BASE + 0xAC0)
@@ -158,13 +158,13 @@ int CurieMailboxClass::available (void)
     return ((head + BUFSIZE) - tail) % BUFSIZE;
 }
 
-void CurieMailboxClass::enableReceive (unsigned int channel)
+void CurieMailboxClass::enableReceive (int channel)
 {
     CAP_CHAN(channel);
     intmask->ss_intmask &= ~(1 << channel);
 }
 
-void CurieMailboxClass::disableReceive (unsigned int channel)
+void CurieMailboxClass::disableReceive (int channel)
 {
     CAP_CHAN(channel);
     intmask->ss_intmask |= 1 << channel;
@@ -191,10 +191,7 @@ void CurieMailboxClass::end (void)
 
 void CurieMailboxClass::put (CurieMailboxMsg msg)
 {
-    if (msg.channel > (NUM_CHANNELS - 1)) {
-        msg.channel = NUM_CHANNELS - 1;
-    }
-
+    CAP_CHAN(msg.channel);
     write_channel(msg);
 }
 
