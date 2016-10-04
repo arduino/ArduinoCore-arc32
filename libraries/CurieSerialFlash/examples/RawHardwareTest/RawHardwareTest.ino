@@ -25,8 +25,6 @@
 #include <CurieSerialFlash.h>
 #include <SPI.h>
 
-const int FlashChipSelect = 21; // digital pin for flash chip CS pin
-
 SerialFlashFile file;
 
 const unsigned long testIncrement = 4096;
@@ -48,7 +46,7 @@ void setup() {
   delay(100);
 
   Serial.println("Raw SerialFlash Hardware Test");
-  SerialFlash.begin(SPI1, FlashChipSelect);
+  SerialFlash.begin(ONBOARD_FLASH_SPI_PORT, ONBOARD_FLASH_CS_PIN);
 
   if (test()) {
     Serial.println();
