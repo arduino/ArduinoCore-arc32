@@ -134,7 +134,7 @@ uint32_t UARTClass::getInterruptPriority()
 
 int UARTClass::available( void )
 {
-  return (uint32_t)(SERIAL_BUFFER_SIZE + _rx_buffer->_iHead - _rx_buffer->_iTail) % SERIAL_BUFFER_SIZE;
+  return (uint32_t)(UART_BUFFER_SIZE + _rx_buffer->_iHead - _rx_buffer->_iTail) % UART_BUFFER_SIZE;
 }
 
 int UARTClass::availableForWrite(void)
@@ -143,7 +143,7 @@ int UARTClass::availableForWrite(void)
     return(0);
   int head = _tx_buffer->_iHead;
   int tail = _tx_buffer->_iTail;
-  if (head >= tail) return SERIAL_BUFFER_SIZE - 1 - head + tail;
+  if (head >= tail) return UART_BUFFER_SIZE - 1 - head + tail;
   return tail - head - 1;
 }
 
@@ -162,7 +162,7 @@ int UARTClass::read( void )
     return -1;
 
   uint8_t uc = _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
-  _rx_buffer->_iTail = (unsigned int)(_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+  _rx_buffer->_iTail = (unsigned int)(_rx_buffer->_iTail + 1) % UART_BUFFER_SIZE;
   return uc;
 }
 
@@ -182,7 +182,7 @@ size_t UARTClass::write( const uint8_t uc_data )
   if (_tx_buffer->_iTail != _tx_buffer->_iHead)
   {
     // If busy we buffer
-    int l = (_tx_buffer->_iHead + 1) % SERIAL_BUFFER_SIZE;
+    int l = (_tx_buffer->_iHead + 1) % UART_BUFFER_SIZE;
     while (_tx_buffer->_iTail == l)
       ; // Spin locks if we're about to overwrite the buffer. This continues once the data is sent
 
@@ -215,7 +215,7 @@ void UARTClass::IrqHandler( void )
   {
     if (_tx_buffer->_iTail != _tx_buffer->_iHead) {
       uart_poll_out(CONFIG_UART_CONSOLE_INDEX, _tx_buffer->_aucBuffer[_tx_buffer->_iTail]);
-      _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
+      _tx_buffer->_iTail = (unsigned int)(_tx_buffer->_iTail + 1) % UART_BUFFER_SIZE;
     }
     else
     {

@@ -39,12 +39,12 @@
 #define CPU_ID_HOST 3
 #define NUM_CPU     4
 
-#define SERIAL_BUFFER_SIZE 256
+#define CDCACM_BUFFER_SIZE 256
 
 struct cdc_ring_buffer
 {
     /** Ring buffer data */
-    uint8_t data[SERIAL_BUFFER_SIZE];
+    uint8_t data[CDCACM_BUFFER_SIZE];
     /** Ring buffer head pointer, modified by producer */
     int head;
     /** Ring buffer head pointer, modified by consumer */

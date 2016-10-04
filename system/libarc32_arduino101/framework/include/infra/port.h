@@ -41,7 +41,7 @@
  * @{
  */
 
-#define MAX_PORTS       50
+#define MAX_PORTS       6
 
 
 #ifndef CONFIG_INFRA_IS_MASTER

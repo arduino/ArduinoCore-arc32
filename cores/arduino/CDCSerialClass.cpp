@@ -83,7 +83,7 @@ void CDCSerialClass::end( void )
 
 int CDCSerialClass::available( void )
 {
-#define SBS	SERIAL_BUFFER_SIZE
+#define SBS	CDCACM_BUFFER_SIZE
 
   if (!_shared_data->device_open)
     return (0);
@@ -100,7 +100,7 @@ int CDCSerialClass::availableForWrite(void)
     int tail = _tx_buffer->tail;
 
     if (head >= tail)
-        return SERIAL_BUFFER_SIZE - head + tail - 1;
+        return CDCACM_BUFFER_SIZE - head + tail - 1;
     return tail - head - 1;
 }
 
@@ -118,7 +118,7 @@ int CDCSerialClass::read( void )
     return -1;
 
   uint8_t uc = _rx_buffer->data[_rx_buffer->tail];
-  _rx_buffer->tail = (_rx_buffer->tail + 1) % SERIAL_BUFFER_SIZE;
+  _rx_buffer->tail = (_rx_buffer->tail + 1) % CDCACM_BUFFER_SIZE;
   return uc;
 }
 
@@ -138,7 +138,7 @@ size_t CDCSerialClass::write( const uint8_t uc_data )
         return(0);
 
     do {
-        int i = (uint32_t)(_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE;
+        int i = (uint32_t)(_tx_buffer->head + 1) % CDCACM_BUFFER_SIZE;
         // if we should be storing the received character into the location
         // just before the tail (meaning that the head would advance to the
         // current location of the tail), we're about to overflow the buffer
