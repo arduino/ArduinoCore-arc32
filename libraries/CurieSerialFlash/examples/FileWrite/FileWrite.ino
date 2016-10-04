@@ -8,8 +8,6 @@
 const char *filename = "myfile.txt";
 const char *contents = "0123456789ABCDEF";
 
-const int FlashChipSelect = 21; // digital pin for flash chip CS pin
-
 void setup() {
   Serial.begin(9600);
 
@@ -18,7 +16,7 @@ void setup() {
   delay(100);
 
   // Init. SPI Flash chip
-  if (!SerialFlash.begin(SPI1, FlashChipSelect)) {
+  if (!SerialFlash.begin(ONBOARD_FLASH_SPI_PORT, ONBOARD_FLASH_CS_PIN)) {
     Serial.println("Unable to access SPI Flash chip");
   }
 

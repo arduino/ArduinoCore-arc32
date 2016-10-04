@@ -81,14 +81,12 @@
 #define BYTE_ESCAPE      0x7d
 #define BYTE_SEPARATOR    0x7c
 
-#define CSPIN             21
-
 void setup(){
   Serial.begin(9600);  //Teensy serial is always at full USB speed and buffered... the baud rate here is required but ignored
 
   pinMode(13, OUTPUT);
   
-  SerialFlash.begin(SPI1, CSPIN);
+  SerialFlash.begin(ONBOARD_FLASH_SPI_PORT, ONBOARD_FLASH_CS_PIN);
 
   //We start by formatting the flash...
   uint8_t id[5];

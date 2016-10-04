@@ -3,8 +3,6 @@
 #include <CurieSerialFlash.h>
 #include <SPI.h>
 
-const int FlashChipSelect = 21; // digital pin for flash chip CS pin
-
 SerialFlashFile file;
 
 const unsigned long testIncrement = 4096;
@@ -26,7 +24,7 @@ void setup() {
   while (!Serial && (millis() - startMillis < 10000)) ;
   delay(100);
 
-  SerialFlash.begin(SPI1, FlashChipSelect);
+  SerialFlash.begin(ONBOARD_FLASH_SPI_PORT, ONBOARD_FLASH_CS_PIN);
   unsigned char id[5];
   SerialFlash.readID(id);
   unsigned long size = SerialFlash.capacity(id);

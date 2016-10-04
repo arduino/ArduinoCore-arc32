@@ -113,6 +113,12 @@ extern "C"{
  * ADC
  */
 
+/*
+ * ONBOARD SPI FLASH
+ */
+#define ONBOARD_FLASH_SPI_PORT  SPI1
+#define ONBOARD_FLASH_CS_PIN    21
+
 /* EAI ADC device registers */
 #define ADC_SET                    (0x80015000)
 #define ADC_DIVSEQSTAT             (0x80015001)

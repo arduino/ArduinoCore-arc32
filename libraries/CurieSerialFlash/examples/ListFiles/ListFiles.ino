@@ -3,8 +3,6 @@
 #include <CurieSerialFlash.h>
 #include <SPI.h>
 
-const int FlashChipSelect = 21; // digital pin for flash chip CS pin
-
 void setup() {
   //uncomment these if using Teensy audio shield
   //SPI.setSCK(14);  // Audio shield has SCK on pin 14
@@ -22,7 +20,7 @@ void setup() {
   delay(100);
   Serial.println("All Files on SPI Flash chip:");
 
-  if (!SerialFlash.begin(SPI1, FlashChipSelect)) {
+  if (!SerialFlash.begin(ONBOARD_FLASH_SPI_PORT, ONBOARD_FLASH_CS_PIN)) {
     error("Unable to access SPI Flash chip");
   }
 
