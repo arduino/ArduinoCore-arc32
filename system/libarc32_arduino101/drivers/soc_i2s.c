@@ -46,14 +46,15 @@ struct soc_i2s_info g_i2s_info = {
 	{
 		.clk_gate_register = PERIPH_CLK_GATE_CTRL,
 		.bits_mask = I2S_CLK_GATE_MASK,
-	}
+	},
+ 	.hw_initialized = 0
 };
 
 struct soc_i2s_info* i2s_info = &g_i2s_info;
 
 /* Function Prototypes */
 static void i2s_enable(uint8_t channel);
-static void i2s_disable(uint8_t channel);
+static void i2s_disable(uint8_t channel, int dmaResetOnly);
 static void i2s_isr(void);
 DRIVER_API_RC soc_i2s_config(uint8_t channel, struct soc_i2s_cfg *cfg);
 DRIVER_API_RC soc_i2s_deconfig(uint8_t channel);
@@ -63,7 +64,7 @@ DRIVER_API_RC soc_i2s_stop_listen(void);
 DRIVER_API_RC soc_i2s_write(void *buf, uint32_t len, uint32_t len_per_data);
 DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uint32_t num_bufs);
 DRIVER_API_RC soc_i2s_stop_stream(void);
-DRIVER_API_RC soc_i2s_init();
+DRIVER_API_RC soc_i2s_init(uint8_t channel);
 
 /* Internal functions */
 static void i2s_enable(uint8_t channel)
@@ -90,7 +91,7 @@ static void i2s_enable(uint8_t channel)
 	return;
 }
 
-static void i2s_disable(uint8_t channel)
+static void i2s_disable(uint8_t channel, int dmaResetOnly)
 {
 	uint32_t reg;
 	uint32_t num_active;
@@ -103,6 +104,10 @@ static void i2s_disable(uint8_t channel)
 		soc_dma_release(&(i2s_info->dma_ch[channel]));
 		soc_dma_free_list(&(i2s_info->dma_cfg[channel]));
 	}
+
+	if (dmaResetOnly == 1)
+	  return;
+
  	// Clear enabled flag for channel
 	i2s_info->en[channel] = 0;
 
@@ -115,7 +120,7 @@ static void i2s_disable(uint8_t channel)
 			num_active++;
 		}
 	}
- 
+
 	// Disable channel and hold parts in reset
 	reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].ctrl);
 	reg &= ~(1 << (i2s_reg_map[channel].ctrl_fifo_rst));
@@ -155,7 +160,7 @@ static void i2s_isr(void)
 			i2s_info->cfg[I2S_CHANNEL_TX].cb_err_arg=(void *)stat;
 			i2s_info->cfg[I2S_CHANNEL_TX].cb_err(i2s_info->cfg[I2S_CHANNEL_TX].cb_err_arg);
 		}
-		i2s_disable(I2S_CHANNEL_TX);
+		i2s_disable(I2S_CHANNEL_TX, 1);
 	}
 	if (stat & (1 << SOC_I2S_STAT_RDATA_OVRERR)) 
 	{
@@ -164,7 +169,7 @@ static void i2s_isr(void)
 			i2s_info->cfg[I2S_CHANNEL_RX].cb_err_arg=(void *)stat;
 			i2s_info->cfg[I2S_CHANNEL_RX].cb_err(i2s_info->cfg[I2S_CHANNEL_RX].cb_err_arg);
 		}
-		i2s_disable(I2S_CHANNEL_RX);
+		i2s_disable(I2S_CHANNEL_RX, 1);
 	}
 
 	return;
@@ -184,7 +189,7 @@ static void i2s_dma_cb_err(void *num)
 	{
 		i2s_info->cfg[channel].cb_err(i2s_info->cfg[channel].cb_err_arg);
 	}
-	i2s_disable(channel);
+	i2s_disable(channel, 1);
 
 	return;
 }
@@ -207,7 +212,7 @@ static void i2s_dma_cb_done(void *num)
 		i2s_info->cfg[channel].cb_done(i2s_info->cfg[channel].cb_done_arg);
 	}
  
-	i2s_disable(channel);
+	i2s_disable(channel, 1);
  
 	return;
 }
@@ -228,7 +233,7 @@ static void i2s_dma_cb_block(void *num)
 DRIVER_API_RC soc_i2s_config(uint8_t channel, struct soc_i2s_cfg *cfg)
 {
 	uint32_t reg;
-	uint16_t sample_rate;
+	//	uint16_t sample_rate;
 
 	// Check channel no in use
 	if (channel >= I2S_NUM_CHANNELS) 
@@ -247,12 +252,12 @@ DRIVER_API_RC soc_i2s_config(uint8_t channel, struct soc_i2s_cfg *cfg)
 	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].ctrl) = reg;
 
 	// Calculate sample_rate divider (note, acts as if resolution is always 32)
-	sample_rate = i2s_info->clk_speed / (cfg->sample_rate * cfg->resolution * 2);
+	// sample_rate = i2s_info->clk_speed / (cfg->sample_rate * cfg->resolution * 2);
 
 	// Setup resolution and sampling rate
 	reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].srr);
 	reg &= ~(i2s_reg_map[channel].srr_mask);
-	reg |= (sample_rate & 0x7FF) << i2s_reg_map[channel].srr_sample_rate;
+	reg |= (cfg->clk_divider & 0x7FF) << i2s_reg_map[channel].srr_sample_rate;
 	reg |= ((cfg->resolution - 1) & 0x1F) << i2s_reg_map[channel].srr_resolution;
 	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].srr) = reg;
 
@@ -426,7 +431,7 @@ DRIVER_API_RC soc_i2s_listen(void *buf, uint32_t len, uint32_t len_per_data, uin
 	return DRV_RC_OK;
 
 fail:
-	i2s_disable(channel);
+	i2s_disable(channel, 0);
 	soc_dma_release(&(i2s_info->dma_ch[channel]));
 	return DRV_RC_FAIL;
 }
@@ -446,7 +451,7 @@ DRIVER_API_RC soc_i2s_stop_listen(void)
 	}
 
 	save = interrupt_lock();
-	i2s_disable(channel);
+	i2s_disable(channel, 0);
 	interrupt_unlock(save);
 
 	return DRV_RC_OK;
@@ -472,11 +477,12 @@ DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uin
 	{
 		return DRV_RC_FAIL;
 	} 
+#ifdef NOT
 	else if (i2s_info->en[channel] || !(i2s_info->cfgd[channel])) 
 	{
 		return DRV_RC_FAIL;
 	}
-
+#endif
 	// Get a DMA channel
 	ret = soc_dma_acquire(&(i2s_info->dma_ch[channel]));
 
@@ -486,7 +492,8 @@ DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uin
 	}
 
 	// Enable the channel
-	i2s_enable(channel);
+	if (!(i2s_info->en[channel]))
+	  i2s_enable(channel);
 
 	// Determine the length of a single buffer
 	if (num_bufs == 0) 
@@ -591,7 +598,7 @@ DRIVER_API_RC soc_i2s_stream(void *buf, uint32_t len, uint32_t len_per_data, uin
 	return DRV_RC_OK;
 
 fail:
-	i2s_disable(channel);
+	i2s_disable(channel, 0);
 	soc_dma_release(&(i2s_info->dma_ch[channel]));
 	return DRV_RC_FAIL;
 }
@@ -612,59 +619,57 @@ DRIVER_API_RC soc_i2s_stop_stream(void)
 	}
 
 	save = interrupt_lock();
-	i2s_disable(channel);
+	i2s_disable(channel, 0);
 	interrupt_unlock(save);
 
 	return DRV_RC_OK;
 }
 
 /* Driver API */
-DRIVER_API_RC soc_i2s_init()
+DRIVER_API_RC soc_i2s_init(uint8_t channel)
 {
-	int i;
-	uint32_t reg;
+  uint32_t reg;
 
-	// Prep info struct
-	for (i = 0; i < I2S_NUM_CHANNELS; i++) 
-	{
-		i2s_info->en[i] = 0;
-		i2s_info->cfgd[i] = 0;
-		i2s_info->cfg[i].cb_done = NULL;
-		i2s_info->cfg[i].cb_err = NULL;
-	}
+  // Prep the channel info struct
+  i2s_info->en[channel] = 0;
+  i2s_info->cfgd[channel] = 0;
+  i2s_info->cfg[channel].cb_done = NULL;
+  i2s_info->cfg[channel].cb_err = NULL;
 
-	// Enable global clock, use local clock gating per channel instead
-	set_clock_gate(i2s_info->clk_gate_info, CLK_GATE_ON);
+  if (i2s_info->hw_initialized == 0)
+  {
+    // Enable global clock, use local clock gating per channel instead
+    set_clock_gate(i2s_info->clk_gate_info, CLK_GATE_ON);
 
-	// Setup ISR (and enable)
-	SET_INTERRUPT_HANDLER(i2s_info->int_vector, i2s_interrupt_handler);
-	SOC_UNMASK_INTERRUPTS(i2s_info->int_mask);
+    // Setup ISR (and enable)
+    SET_INTERRUPT_HANDLER(i2s_info->int_vector, i2s_interrupt_handler);
+    SOC_UNMASK_INTERRUPTS(i2s_info->int_mask);
 
-	// Set up control register
-	reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL);
-	reg |= (1 << SOC_I2S_CTRL_TR_CFG_0);
- 	reg &= ~(1 << SOC_I2S_CTRL_TSYNC_LOOP_BACK);
-	reg &= ~(1 << SOC_I2S_CTRL_RSYNC_LOOP_BACK);
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL) = reg;
+    // Set up control register
+    reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL);
+    reg |= (1 << SOC_I2S_CTRL_TR_CFG_0);
+    reg &= ~(1 << SOC_I2S_CTRL_TSYNC_LOOP_BACK);
+    reg &= ~(1 << SOC_I2S_CTRL_RSYNC_LOOP_BACK);
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CTRL) = reg;
 
-	// Set the watermark levels
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_TFIFO_CTRL) &= 0xFFFCFFFF;
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_TFIFO_CTRL) |= (I2S_TFIFO_THR << SOC_I2S_TFIFO_CTRL_TAFULL_THRS);
+    // Set the watermark levels
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_TFIFO_CTRL) &= 0xFFFCFFFF;
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_TFIFO_CTRL) |= (I2S_TFIFO_THR << SOC_I2S_TFIFO_CTRL_TAFULL_THRS);
 
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_RFIFO_CTRL) &= 0xFFFCFFFF;
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_RFIFO_CTRL) |= (I2S_RFIFO_THR << SOC_I2S_RFIFO_CTRL_RAFULL_THRS);
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_RFIFO_CTRL) &= 0xFFFCFFFF;
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_RFIFO_CTRL) |= (I2S_RFIFO_THR << SOC_I2S_RFIFO_CTRL_RAFULL_THRS);
 
-	// Enable global interrupt mask
-	reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CID_CTRL);
-	reg |= (1 << SOC_I2S_CID_CTRL_INTREQ_MASK);
-	MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CID_CTRL) = reg;
+    // Enable global interrupt mask
+    reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CID_CTRL);
+    reg |= (1 << SOC_I2S_CID_CTRL_INTREQ_MASK);
+    MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, SOC_I2S_CID_CTRL) = reg;
 
-	// Initially, have all channels disabled
-	for (i = 0; i < I2S_NUM_CHANNELS; i++) 
-	{
-		i2s_disable(i);
-	}
+    i2s_info->hw_initialized = 1;
+  }
 
-	return DRV_RC_OK;
+  // Initially, have all channels disabled
+  i2s_disable(channel, 0);
+
+  return DRV_RC_OK;
 }
 
