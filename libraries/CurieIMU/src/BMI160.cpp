@@ -2386,3 +2386,19 @@ uint8_t BMI160Class::getRegister(uint8_t reg) {
 void BMI160Class::setRegister(uint8_t reg, uint8_t data) {
     reg_write(reg, data);
 }
+
+/** Check if new gyroscope data is available
+ * @return True if new data is available, else false.
+ */
+bool BMI160Class::gyroDataReady()
+{
+    return reg_read_bits(BMI160_RA_STATUS, BMI160_STATUS_DRDY_GYR, 1);
+}
+
+/** Check if new accelerometer data is available
+ * @return True if new data is available, else false.
+ */
+bool BMI160Class::accelDataReady()
+{
+    return reg_read_bits(BMI160_RA_STATUS, BMI160_STATUS_DRDY_ACC, 1);
+}
