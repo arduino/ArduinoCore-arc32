@@ -47,12 +47,12 @@ MEMORY
 /* Define default stack size and FIRQ stack size.
  * See below stack section for __stack_start and __firq_stack_start
  */
-__stack_size = 2048;
-__firq_stack_size = 512;
+__stack_size = 3072;
+__firq_stack_size = 1024;
 
-/* Minimum heap size to allocate
+/* Minimum heap size to allocate 8192
  * Actual heap size might be bigger due to page size alignment */
-__HEAP_SIZE_MIN = 8192;
+__HEAP_SIZE_MIN = 9216;
 /* This should be set to the page size used by the malloc implementation */
 __PAGE_SIZE = 4096;
 
