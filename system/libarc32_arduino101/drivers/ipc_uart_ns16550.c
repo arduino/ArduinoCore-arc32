@@ -155,7 +155,7 @@ static void ipc_uart_push_frame(uint16_t len, uint8_t *p_data)
 	//	 "len %d, src %d, channel %d", ipc.rx_hdr.len, len,
 	//	 ipc.rx_hdr.src_cpu_id,
 	//	 ipc.rx_hdr.channel);
-    pr_debug(LOG_MODULE_IPC,"data[0 - 1]: %x-%x", p_data[0], p_data[1]);
+    //pr_debug(LOG_MODULE_IPC,"data[0 - 1]: %x-%x", p_data[0], p_data[1]);
 
 	if ((ipc.rx_hdr.channel < IPC_UART_MAX_CHANNEL) &&
 	    (ipc.channels[ipc.rx_hdr.channel].cb != NULL)) {
@@ -172,165 +172,165 @@ static void ipc_uart_push_frame(uint16_t len, uint8_t *p_data)
 
 void ipc_uart_isr()
 {
-	/* TODO: remove once IRQ supports parameter */
-	uint8_t *p_tx;
+    /* TODO: remove once IRQ supports parameter */
+    uint8_t *p_tx;
 
-	while (UART_IRQ_HW_UPDATE(IPC_UART) && 
-	       UART_IRQ_IS_PENDING(IPC_UART)) {
-		if (UART_IRQ_ERR_DETECTED(IPC_UART))
+    while (UART_IRQ_HW_UPDATE(IPC_UART) && 
+           UART_IRQ_IS_PENDING(IPC_UART)) {
+        if (UART_IRQ_ERR_DETECTED(IPC_UART))
         {
-			uint8_t c;
-			if (UART_BREAK_CHECK(IPC_UART)) {
-				panic(-1);
-			}
-			UART_POLL_IN(IPC_UART, &c);
-		}
+            uint8_t c;
+            if (UART_BREAK_CHECK(IPC_UART)) {
+                panic(-1);
+            }
+            UART_POLL_IN(IPC_UART, &c);
+        }
         if (UART_IRQ_RX_READY(IPC_UART)) {
-			int rx_cnt;
+            int rx_cnt;
 
-			while ((rx_cnt =
-					UART_FIFO_READ(IPC_UART,
-						       ipc.rx_ptr,
-						       ipc.rx_size)) != 0)
-			{
-				if ((ipc.uart_enabled) &&
-				    (ipc.rx_state == STATUS_RX_IDLE)) {
-					/* acquire wakelock until frame is fully received */
-					//pm_wakelock_acquire(&info->rx_wl);
-					ipc.rx_state = STATUS_RX_HDR;
-				}
+            while ((rx_cnt =
+                    UART_FIFO_READ(IPC_UART,
+                               ipc.rx_ptr,
+                               ipc.rx_size)) != 0)
+            {
+                if ((ipc.uart_enabled) &&
+                    (ipc.rx_state == STATUS_RX_IDLE)) {
+                    /* acquire wakelock until frame is fully received */
+                    //pm_wakelock_acquire(&info->rx_wl);
+                    ipc.rx_state = STATUS_RX_HDR;
+                }
 
-				/* Until UART has enabled at least one channel, data should be discarded */
-				if (ipc.uart_enabled) {
-					ipc.rx_size -= rx_cnt;
-					ipc.rx_ptr += rx_cnt;
-				}
+                /* Until UART has enabled at least one channel, data should be discarded */
+                if (ipc.uart_enabled) {
+                    ipc.rx_size -= rx_cnt;
+                    ipc.rx_ptr += rx_cnt;
+                }
 
-				if (ipc.rx_size == 0) {
-					if (ipc.rx_state == STATUS_RX_HDR) {
-    pr_error(0, "%s-%d", __FUNCTION__, ipc.rx_hdr.len);
-						ipc.rx_ptr = balloc(
-							ipc.rx_hdr.len, NULL);
+                if (ipc.rx_size == 0) {
+                    if (ipc.rx_state == STATUS_RX_HDR) {
+    //pr_error(0, "%s-%d", __FUNCTION__, ipc.rx_hdr.len);
+                        ipc.rx_ptr = balloc(
+                            ipc.rx_hdr.len, NULL);
                         
-							//pr_debug(
-							//	LOG_MODULE_IPC,
-							//	"ipc_uart_isr: rx_ptr is %p",
-							//	ipc.rx_ptr);
-						ipc.rx_size = ipc.rx_hdr.len;
-						ipc.rx_state = STATUS_RX_DATA;
-					} else {
+                            //pr_debug(
+                            //  LOG_MODULE_IPC,
+                            //  "ipc_uart_isr: rx_ptr is %p",
+                            //  ipc.rx_ptr);
+                        ipc.rx_size = ipc.rx_hdr.len;
+                        ipc.rx_state = STATUS_RX_DATA;
+                    } else {
 #ifdef IPC_UART_DBG_RX
-						uint8_t *p_rx = ipc.rx_ptr -
-								ipc.rx_hdr.len;
-						for (int i = 0;
-						     i < ipc.rx_hdr.len;
-						     i++) {
-							pr_debug(
-								LOG_MODULE_IPC,
-								"ipc_uart_isr: %d byte is %d",
-								i, p_rx[i]);
-						}
+                        uint8_t *p_rx = ipc.rx_ptr -
+                                ipc.rx_hdr.len;
+                        for (int i = 0;
+                             i < ipc.rx_hdr.len;
+                             i++) {
+                            pr_debug(
+                                LOG_MODULE_IPC,
+                                "ipc_uart_isr: %d byte is %d",
+                                i, p_rx[i]);
+                        }
 #endif
 
-						ipc_uart_push_frame(
-							ipc.rx_hdr.len,
-							ipc.rx_ptr -
-							ipc.rx_hdr.len);
-						ipc.rx_size = sizeof(ipc.rx_hdr);
-						ipc.rx_ptr =
-							(uint8_t *)&ipc.rx_hdr;
-						ipc.rx_state = STATUS_RX_IDLE;
-					}
-				}
-			}
-		} 
+                        ipc_uart_push_frame(
+                            ipc.rx_hdr.len,
+                            ipc.rx_ptr -
+                            ipc.rx_hdr.len);
+                        ipc.rx_size = sizeof(ipc.rx_hdr);
+                        ipc.rx_ptr =
+                            (uint8_t *)&ipc.rx_hdr;
+                        ipc.rx_state = STATUS_RX_IDLE;
+                    }
+                }
+            }
+        } 
         if (UART_IRQ_TX_READY(IPC_UART)) {
-			int tx_len;
+            int tx_len;
 
-			if (ipc.tx_state == STATUS_TX_DONE) {
-				uint8_t lsr = UART_LINE_STATUS(IPC_UART);
-				ipc.tx_state = STATUS_TX_IDLE;
-				UART_IRQ_TX_DISABLE(IPC_UART);
-				
-				/* wait for FIFO AND THR being empty! */
-				while ((lsr & BOTH_EMPTY) != BOTH_EMPTY) {
-					lsr = UART_LINE_STATUS(IPC_UART);
-				}
+            if (ipc.tx_state == STATUS_TX_DONE) {
+                uint8_t lsr = UART_LINE_STATUS(IPC_UART);
+                ipc.tx_state = STATUS_TX_IDLE;
+                UART_IRQ_TX_DISABLE(IPC_UART);
+                
+                /* wait for FIFO AND THR being empty! */
+                while ((lsr & BOTH_EMPTY) != BOTH_EMPTY) {
+                    lsr = UART_LINE_STATUS(IPC_UART);
+                }
 
-				/* No more TX activity, send event and release wakelock */
-				if (ipc.tx_cb) {
-					ipc.tx_cb(0, ipc.tx_cb_param);
-				}
-				//pm_wakelock_release(&info->tx_wl);
-				ipc.tx_wakelock_acquired = 0;
-				return;
-			}
-			if (NULL == ipc.tx_data) {
-				pr_warning(LOG_MODULE_IPC,
-					   "ipc_uart_isr: Bad Tx data");
-				return;
-			}
+                /* No more TX activity, send event and release wakelock */
+                if (ipc.tx_cb) {
+                    ipc.tx_cb(0, ipc.tx_cb_param);
+                }
+                //pm_wakelock_release(&info->tx_wl);
+                ipc.tx_wakelock_acquired = 0;
+                return;
+            }
+            if (NULL == ipc.tx_data) {
+                pr_warning(LOG_MODULE_IPC,
+                       "ipc_uart_isr: Bad Tx data");
+                return;
+            }
 
-			if (!ipc.tx_wakelock_acquired) {
-				ipc.tx_wakelock_acquired = 1;
-				/* Starting TX activity, send wake assert event and acquire wakelock */
-				if (ipc.tx_cb) {
-					ipc.tx_cb(1, ipc.tx_cb_param);
-				}
-				//pm_wakelock_acquire(&info->tx_wl);
-			}
-			if (ipc.send_counter < sizeof(ipc.tx_hdr)) {
-				p_tx = (uint8_t *)&ipc.tx_hdr +
-				       ipc.send_counter;
-				tx_len = sizeof(ipc.tx_hdr) - ipc.send_counter;
-			} else {
-				p_tx = ipc.tx_data +
-				       (ipc.send_counter - sizeof(ipc.tx_hdr));
-				tx_len = ipc.tx_hdr.len -
-					 (ipc.send_counter - sizeof(ipc.tx_hdr));
-			}
-			ipc.send_counter += UART_FIFO_FILL(IPC_UART, 
-			                                   p_tx,
-							                   tx_len);
+            if (!ipc.tx_wakelock_acquired) {
+                ipc.tx_wakelock_acquired = 1;
+                /* Starting TX activity, send wake assert event and acquire wakelock */
+                if (ipc.tx_cb) {
+                    ipc.tx_cb(1, ipc.tx_cb_param);
+                }
+                //pm_wakelock_acquire(&info->tx_wl);
+            }
+            if (ipc.send_counter < sizeof(ipc.tx_hdr)) {
+                p_tx = (uint8_t *)&ipc.tx_hdr +
+                       ipc.send_counter;
+                tx_len = sizeof(ipc.tx_hdr) - ipc.send_counter;
+            } else {
+                p_tx = ipc.tx_data +
+                       (ipc.send_counter - sizeof(ipc.tx_hdr));
+                tx_len = ipc.tx_hdr.len -
+                     (ipc.send_counter - sizeof(ipc.tx_hdr));
+            }
+            ipc.send_counter += UART_FIFO_FILL(IPC_UART, 
+                                               p_tx,
+                                               tx_len);
 
-			if (ipc.send_counter ==
-			    (ipc.tx_hdr.len + sizeof(ipc.tx_hdr))) {
-				ipc.send_counter = 0;
+            if (ipc.send_counter ==
+                (ipc.tx_hdr.len + sizeof(ipc.tx_hdr))) {
+                ipc.send_counter = 0;
 #ifdef IPC_UART_DBG_TX
-				pr_debug(
-					LOG_MODULE_IPC,
-					"ipc_uart_isr: sent IPC FRAME "
-					"len %d", ipc.tx_hdr.len);
+                pr_debug(
+                    LOG_MODULE_IPC,
+                    "ipc_uart_isr: sent IPC FRAME "
+                    "len %d", ipc.tx_hdr.len);
 #endif
 
-				p_tx = ipc.tx_data;
-				ipc.tx_data = NULL;
-				ipc.tx_state = STATUS_TX_DONE;
+                p_tx = ipc.tx_data;
+                ipc.tx_data = NULL;
+                ipc.tx_state = STATUS_TX_DONE;
 
-				/* free sent message and pull send next frame one in the queue */
-				if (ipc.channels[ipc.tx_hdr.channel].cb)
-				{
-					ipc.channels[ipc.tx_hdr.channel].cb(
-						ipc.tx_hdr.channel,
-						IPC_MSG_TYPE_FREE,
-						ipc.tx_hdr.len,
-						p_tx);
-				}
-				else
-				{
-					bfree(p_tx);
-				}
-				
+                /* free sent message and pull send next frame one in the queue */
+                if (ipc.channels[ipc.tx_hdr.channel].cb)
+                {
+                    ipc.channels[ipc.tx_hdr.channel].cb(
+                        ipc.tx_hdr.channel,
+                        IPC_MSG_TYPE_FREE,
+                        ipc.tx_hdr.len,
+                        p_tx);
+                }
+                else
+                {
+                    bfree(p_tx);
+                }
+                
 #ifdef IPC_UART_DBG_TX
-				uint8_t lsr = UART_LINE_STATUS(IPC_UART);//(info->uart_num);
-				pr_debug(LOG_MODULE_IPC,
-					 "ipc_isr_tx: tx_idle LSR: 0x%2x\n",
-					 lsr);
+                uint8_t lsr = UART_LINE_STATUS(IPC_UART);//(info->uart_num);
+                pr_debug(LOG_MODULE_IPC,
+                     "ipc_isr_tx: tx_idle LSR: 0x%2x\n",
+                     lsr);
 #endif
-			}
-		}
-		
-	}
+            }
+        }
+        
+    }
 }
 
 void *ipc_uart_channel_open(int channel_id,
@@ -368,7 +368,7 @@ int ipc_uart_ns16550_send_pdu(void *handle, int len, void *p_data)
 {
 	struct ipc_uart_channels *chan = (struct ipc_uart_channels *)handle;
 
-    pr_debug(LOG_MODULE_IPC, "%s: %d", __FUNCTION__, ipc.tx_state);
+    //pr_debug(LOG_MODULE_IPC, "%s: %d", __FUNCTION__, ipc.tx_state);
 
 	if (ipc.tx_state == STATUS_TX_BUSY) {
 		return IPC_UART_TX_BUSY;

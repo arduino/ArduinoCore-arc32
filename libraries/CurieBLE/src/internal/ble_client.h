@@ -107,8 +107,9 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
                      ble_client_update_param_event_cb_t update_param_cb, void* update_param_param);
 void ble_client_get_factory_config(bt_addr_le_t *bda, char *name);
 void ble_gap_set_tx_power(int8_t tx_power);
-BleStatus errorno_to_ble_status(int err);
+BLE_STATUS_T errorno_to_ble_status(int err);
 
+void ble_client_get_mac_address(bt_addr_le_t *bda);
 
 #ifdef __cplusplus
 }

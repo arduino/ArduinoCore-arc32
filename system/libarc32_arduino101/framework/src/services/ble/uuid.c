@@ -61,9 +61,11 @@ static void uuid_to_uuid128(const struct bt_uuid *src, struct bt_uuid_128 *dst)
 {
 	switch (src->type) {
 	case BT_UUID_TYPE_16:
-		*dst = uuid128_base;
-		u16_to_uuid128(&dst->val[UUID_16_BASE_OFFSET],
-			       BT_UUID_16(src)->val);
+		//*dst = uuid128_base;
+		memcpy(dst, &uuid128_base, sizeof(*dst));
+		//u16_to_uuid128(&dst->val[UUID_16_BASE_OFFSET],
+		//	       BT_UUID_16(src)->val);
+		memcpy(&dst->val[UUID_16_BASE_OFFSET], &BT_UUID_16(src)->val, 2);
 		return;
 	case BT_UUID_TYPE_128:
 		memcpy(dst, src, sizeof(*dst));
@@ -89,7 +91,7 @@ int bt_uuid_cmp(const struct bt_uuid *u1, const struct bt_uuid *u2)
 
 	switch (u1->type) {
 	case BT_UUID_TYPE_16:
-		return (int)BT_UUID_16(u1)->val - (int)BT_UUID_16(u2)->val;
+		return memcmp(&BT_UUID_16(u1)->val, &BT_UUID_16(u2)->val, 2);//(int)BT_UUID_16(u1)->val - (int)BT_UUID_16(u2)->val;
 	case BT_UUID_TYPE_128:
 		return memcmp(BT_UUID_128(u1)->val, BT_UUID_128(u2)->val, 16);
 	}

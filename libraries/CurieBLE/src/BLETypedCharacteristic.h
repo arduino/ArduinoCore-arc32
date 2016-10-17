@@ -20,7 +20,7 @@
 #ifndef _BLE_TYPED_CHARACTERISTIC_H_INCLUDED
 #define _BLE_TYPED_CHARACTERISTIC_H_INCLUDED
 
-#include "Arduino.h"
+#include "CurieBLE.h"
 
 #include "BLECharacteristic.h"
 
@@ -52,6 +52,19 @@ public:
      * @note  none
      */
     bool setValue(T value);
+    
+    /**
+     * @brief   Update the characteristic value
+     *
+     * @param[in]   value   New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
+    bool writeValue(T value);
+    
     /**
      * @brief   Get the value of the Characteristic
      *
@@ -106,20 +119,6 @@ public:
      * @note  none
      */
     T valueBE(void);
-    
-    /**
-     * @brief   Set the peer peripheral device's characteristic value
-     *
-     * @param[in]   Peripheral  The peer peripheral device that want to set the characteristic value
-     *
-     * @param[in]   value       New value to set
-     *
-     * @return      bool    true - set value success, 
-     *                      false - on error
-     *
-     * @note  none
-     */
-    bool write(BLEPeripheralHelper &Peripheral, T value);
 
 private:
     /**
@@ -147,6 +146,10 @@ template<typename T> bool BLETypedCharacteristic<T>::setValue(T value) {
     return BLECharacteristic::setValue((unsigned char*)&value, sizeof(T));
 }
 
+template<typename T> bool BLETypedCharacteristic<T>::writeValue(T value) {
+    return BLECharacteristic::writeValue((unsigned char*)&value, sizeof(T));
+}
+
 template<typename T> T BLETypedCharacteristic<T>::value() {
     T value;
 
@@ -169,10 +172,6 @@ template<typename T> bool BLETypedCharacteristic<T>::setValueBE(T value) {
 
 template<typename T> T BLETypedCharacteristic<T>::valueBE() {
     return byteSwap(value());
-}
-
-template<typename T> bool BLETypedCharacteristic<T>::write(BLEPeripheralHelper &Peripheral, T value){
-	return BLECharacteristic::write(Peripheral, (unsigned char *)(&value), sizeof(T));
 }
 
 template<typename T> T BLETypedCharacteristic<T>::byteSwap(T value) {

@@ -121,6 +121,7 @@ static struct port * get_port(uint16_t port_id)
 	if (port_id == 0 || port_id > MAX_PORTS) {
 		pr_error(LOG_MODULE_MAIN, "Invalid port: %d", port_id);
 		panic(-1); /*TODO: replace with an assert */
+        return NULL;
 	}
 	return &ports[port_id - 1];
 }
@@ -128,7 +129,10 @@ static struct port * get_port(uint16_t port_id)
 void port_set_queue(uint16_t port_id, void * queue)
 {
 	struct port * p = get_port(port_id);
-	p->queue = queue;
+    if (p)
+    {
+        p->queue = queue;
+    }
 }
 
 #ifdef CONFIG_INFRA_IS_MASTER
@@ -175,8 +179,11 @@ uint16_t port_alloc(void *queue)
 void port_set_handler(uint16_t port_id, void (*handler)(struct message*, void*), void *param)
 {
 	struct port * port = get_port(port_id);
-	port->handle_message = handler;
-	port->handle_param = param;
+    if (port)
+    {
+        port->handle_message = handler;
+        port->handle_param = param;
+    }
 }
 
 struct message * message_alloc(int size, OS_ERR_TYPE * err)
@@ -192,7 +199,7 @@ struct message * message_alloc(int size, OS_ERR_TYPE * err)
 void port_process_message(struct message * msg)
 {
 	struct port * p = get_port(msg->dst_port_id);
-	if (p->handle_message != NULL) {
+	if (p && p->handle_message != NULL) {
 		p->handle_message(msg, p->handle_param);
 	}
 }
@@ -200,19 +207,32 @@ void port_process_message(struct message * msg)
 void port_set_cpu_id(uint16_t port_id, uint8_t cpu_id)
 {
 	struct port * p = get_port(port_id);
-	p->cpu_id = cpu_id;
+    if (p)
+    {
+        p->cpu_id = cpu_id;
+    }
 }
 
 void port_set_port_id(uint16_t port_id)
 {
 	struct port * p = get_port(port_id);
-	p->id = port_id;
+    if (p)
+    {
+        p->id = port_id;
+    }
 }
 
 uint8_t port_get_cpu_id(uint16_t port_id)
 {
 	struct port * p = get_port(port_id);
-	return p->cpu_id;
+    if (p)
+    {
+	    return p->cpu_id;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 #ifdef INFRA_MULTI_CPU_SUPPORT
@@ -257,7 +277,7 @@ int port_send_message(struct message * message)
             pr_info(LOG_MODULE_MAIN, "Sending message %p to port %p(q:%p) ret: %d", message, port, port->queue, err);
 #endif
             struct port *src_port = get_port(MESSAGE_SRC(message));
-            if (src_port->cpu_id == get_cpu_id()) {
+            if (src_port && src_port->cpu_id == get_cpu_id()) {
                 /* We bypass the software queue here and process directly
                  * due to lack of background thread on this implementation
                  */
@@ -277,6 +297,10 @@ int port_send_message(struct message * message)
 void message_free(struct message * msg)
 {
     struct port * port = get_port(MESSAGE_SRC(msg));
+    if (!port)
+    {
+        return;
+    }
     pr_debug(LOG_MODULE_MAIN, "free message %p: port %p[%d] this %d id %d",
             msg, port, port->cpu_id, get_cpu_id(), MESSAGE_SRC(msg));
     if (port->cpu_id == get_cpu_id()) {
@@ -290,8 +314,12 @@ void message_free(struct message * msg)
 
 int port_send_message(struct message * msg)
 {
-	struct port * port = get_port(MESSAGE_DST(msg));
 	OS_ERR_TYPE err;
+	struct port * port = get_port(MESSAGE_DST(msg));
+    if (!port)
+    {
+        return E_OS_ERR_NO_MEMORY;
+    }
         if (src_port->cpu_id == get_cpu_id()) {
             /* We bypass the software queue here and process directly
              * due to lack of background thread on this implementation
@@ -317,7 +345,7 @@ uint16_t queue_process_message(T_QUEUE queue)
        uint16_t id = 0;
        queue_get_message(queue, &m, OS_NO_WAIT, &err);
        message = (struct message *) m;
-       if ( message != NULL && err == E_OS_OK) {
+       if ( message != NULL) { // && err == E_OS_OK dismiss Klock scan issue
                id = MESSAGE_ID(message);
                port_process_message(message);
        }

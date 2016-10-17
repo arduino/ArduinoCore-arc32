@@ -83,8 +83,9 @@ static uint8_t bt_gatt_uuid_memcpy(uint8_t *buf,
 	/* Store the UUID data */
 	if (uuid->type == BT_UUID_TYPE_16) {
 		uint16_t le16;
-
-		le16 = sys_cpu_to_le16(BT_UUID_16(uuid)->val);
+        
+        memcpy(&le16, &BT_UUID_16(uuid)->val, sizeof(le16));
+		le16 = sys_cpu_to_le16(le16);
 		memcpy(ptr, &le16, sizeof(le16));
 		ptr += sizeof(le16);
 	} else {
@@ -208,10 +209,12 @@ void on_nble_gatt_register_rsp(const struct nble_gatt_register_rsp *rsp,
 
 		for (i = 0; i < rsp->attr_count; i++) {
 			if (handles[i].handle != 0) {
+                uint16_t le16;
+                memcpy(&le16, &BT_UUID_16(rsp->attr_base[i].uuid)->val, sizeof(le16));
 				BT_DBG("gatt: i %d, h %d, type %d, u16 0x%x",
 				       i, handles[i].handle,
 				       rsp->attr_base[i].uuid->type,
-				       BT_UUID_16(rsp->attr_base[i].uuid)->val);
+				       le16);
 			}
 		}
 	}
@@ -245,7 +248,10 @@ ssize_t bt_gatt_attr_read_service(struct bt_conn *conn,
 	struct bt_uuid *uuid = attr->user_data;
 
 	if (uuid->type == BT_UUID_TYPE_16) {
-		uint16_t uuid16 = sys_cpu_to_le16(BT_UUID_16(uuid)->val);
+		uint16_t uuid16;
+
+        memcpy(&uuid16, &BT_UUID_16(uuid)->val, sizeof(uuid16));
+        uuid16 = sys_cpu_to_le16(uuid16);
 
 		return bt_gatt_attr_read(conn, attr, buf, len, offset,
 					 &uuid16, 2);
@@ -279,7 +285,8 @@ ssize_t bt_gatt_attr_read_included(struct bt_conn *conn,
 	 * Bluetooth UUID.
 	 */
 	if (incl->uuid->type == BT_UUID_TYPE_16) {
-		pdu.uuid16 = sys_cpu_to_le16(BT_UUID_16(incl->uuid)->val);
+        memcpy(&pdu.uuid16, &BT_UUID_16(incl->uuid)->val, sizeof(pdu.uuid16));
+		pdu.uuid16 = sys_cpu_to_le16(pdu.uuid16);
 		value_len += sizeof(pdu.uuid16);
 	}
 
@@ -325,7 +332,8 @@ ssize_t bt_gatt_attr_read_chrc(struct bt_conn *conn,
 	value_len = sizeof(pdu.properties) + sizeof(pdu.value_handle);
 
 	if (chrc->uuid->type == BT_UUID_TYPE_16) {
-		pdu.uuid16 = sys_cpu_to_le16(BT_UUID_16(chrc->uuid)->val);
+        memcpy(&pdu.uuid16, &BT_UUID_16(chrc->uuid)->val, sizeof(pdu.uuid16));
+		pdu.uuid16 = sys_cpu_to_le16(pdu.uuid16);
 		value_len += 2;
 	} else {
 		memcpy(pdu.uuid, BT_UUID_128(chrc->uuid)->val, 16);
@@ -1040,6 +1048,7 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 		struct bt_gatt_attr *attr = NULL;
 
 		if (rsp->type == BT_GATT_DISCOVER_PRIMARY) {
+    //BT_DBG("%s-%d", __FUNCTION__, __LINE__);
 			const struct nble_gattc_primary *gattr =
 					(void *)&data[i * sizeof(*gattr)];
 			if ((gattr->range.start_handle < params->start_handle) &&
@@ -1052,7 +1061,7 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 				goto complete;
 			}
 			svc_value.end_handle = gattr->range.end_handle;
-			svc_value.uuid = params->uuid;
+			svc_value.uuid = (struct bt_uuid*)(&(gattr->uuid));//params->uuid;
 			attr = (&(struct bt_gatt_attr)BT_GATT_PRIMARY_SERVICE(&svc_value));
 			attr->handle = gattr->handle;
 			last_handle = svc_value.end_handle;

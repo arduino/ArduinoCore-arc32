@@ -6,99 +6,150 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-BLEAttribute	KEYWORD1
+BLEAttributeWithValue	KEYWORD1
+BLEBoolCharacteristic	KEYWORD1
+BLEByteCharacteristic	KEYWORD1
 BLECentral	KEYWORD1
 BLECharacteristic	KEYWORD1
+BLECharCharacteristic	KEYWORD1
 BLEDescriptor	KEYWORD1
+BLEDevice	KEYWORD1
+BLEDoubleCharacteristic	KEYWORD1
+BLEFloatCharacteristic	KEYWORD1
+BLEIntCharacteristic	KEYWORD1
+BLELongCharacteristic	KEYWORD1
 BLEPeripheral	KEYWORD1
 BLEService	KEYWORD1
-BLETypedCharacteristic	KEYWORD1
-BLEHelper	KEYWORD1
-BLECentralHelper	KEYWORD1
-BLEPeripheralHelper	KEYWORD1
-
-BLECharCharacteristic	KEYWORD1
-BLEUnsignedCharCharacteristic	KEYWORD1
 BLEShortCharacteristic	KEYWORD1
-BLEUnsignedShortCharacteristic	KEYWORD1
-BLEIntCharacteristic	KEYWORD1
+BLEUnsignedCharCharacteristic	KEYWORD1
 BLEUnsignedIntCharacteristic	KEYWORD1
-BLELongCharacteristic	KEYWORD1
 BLEUnsignedLongCharacteristic	KEYWORD1
-BLEFloatCharacteristic	KEYWORD1
-BLEDoubleCharacteristic	KEYWORD1
+BLEUnsignedShortCharacteristic	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+valueSize	KEYWORD2
+value	KEYWORD2
+writeValue	KEYWORD2
+stringValue	KEYWORD2
+charValue	KEYWORD2
+unsignedCharValue	KEYWORD2
+byteValue	KEYWORD2
+shortValue	KEYWORD2
+unsignedShortValue	KEYWORD2
+intValue	KEYWORD2
+unsignedIntValue	KEYWORD2
+longValue	KEYWORD2
+unsignedLongValue	KEYWORD2
+floatValue	KEYWORD2
+doubleValue	KEYWORD2
+writeString	KEYWORD2
+writeString	KEYWORD2
+writeChar	KEYWORD2
+writeUnsignedChar	KEYWORD2
+writeByte	KEYWORD2
+writeShort	KEYWORD2
+writeUnsignedShort	KEYWORD2
+writeInt	KEYWORD2
+writeUnsignedInt	KEYWORD2
+writeLong	KEYWORD2
+writeUnsignedLong	KEYWORD2
+writeFloat	KEYWORD2
+writeDouble	KEYWORD2
+setEventHandler	KEYWORD2
+descriptor	KEYWORD2
+hasDescriptor	KEYWORD2
+descriptorCount	KEYWORD2
+addDescriptor	KEYWORD2
+valueUpdated	KEYWORD2
+unsubscribe	KEYWORD2
+subscribe	KEYWORD2
+write	KEYWORD2
+read	KEYWORD2
 
 uuid	KEYWORD2
-numAttributes	KEYWORD2
+properties	KEYWORD2
+valueLength	KEYWORD2
+setValue	KEYWORD2
+writeValue	KEYWORD2
+broadcast	KEYWORD2
+written	KEYWORD2
+subscribed	KEYWORD2
+canNotify	KEYWORD2
+canIndicate	KEYWORD2
+canRead	KEYWORD2
+canWrite	KEYWORD2
+canSubscribe	KEYWORD2
+canUnsubscribe	KEYWORD2
 
 connected	KEYWORD2
 address	KEYWORD2
-poll	KEYWORD2
 disconnect	KEYWORD2
-discover	KEYWORD2
-startScan	KEYWORD2
-stopScan	KEYWORD2
-
-getConnParams	KEYWORD2
-setConnectionInterval	KEYWORD2
-
-properties	KEYWORD2
-valueSize	KEYWORD2
-value	KEYWORD2
-valueLength	KEYWORD2
-setValue	KEYWORD2
-setEventHandler	KEYWORD2
-written	KEYWORD2
-subscribed	KEYWORD2
+poll	KEYWORD2
 
 begin	KEYWORD2
-
-stopAdvertising	KEYWORD2
-setConnectable	KEYWORD2
-startAdvertising	KEYWORD2	 
+poll	KEYWORD2
+end	KEYWORD2
+disconnect	KEYWORD2
+address	KEYWORD2
 setAdvertisedServiceUuid	KEYWORD2
-setAdvertisedServiceData	KEYWORD2
+setAdvertisedService	KEYWORD2
+setServiceSolicitationUuid	KEYWORD2
+setManufacturerData	KEYWORD2
 setLocalName	KEYWORD2
-setDeviceName	KEYWORD2
-setAppearance	KEYWORD2
+setAdvertisingInterval	KEYWORD2
 setConnectionInterval	KEYWORD2
-addAttribute	KEYWORD2
+setTxPower	KEYWORD2
+setConnectable	KEYWORD2
+setDeviceName	KEYWORD2
+addService	KEYWORD2
+advertise	KEYWORD2
+stopAdvertise	KEYWORD2
 central	KEYWORD2
-
-setValueLE	KEYWORD2
-valueLE	KEYWORD2
-setValueBE	KEYWORD2
-valueBE	KEYWORD2
-
-getPeerPeripheralBLE	KEYWORD2
-getPeerCentralBLE	KEYWORD2
-uuidCompare	KEYWORD2
+peripheral	KEYWORD2
+scan	KEYWORD2
+scanForName	KEYWORD2
+scanForUuid	KEYWORD2
+stopScan	KEYWORD2
+available	KEYWORD2
+hasLocalName	KEYWORD2
+hasAdvertisedServiceUuid	KEYWORD2
+advertisedServiceUuidCount	KEYWORD2
+localName	KEYWORD2
+advertisedServiceUuid	KEYWORD2
+rssi	KEYWORD2
+connect	KEYWORD2
+discoverAttributes	KEYWORD2
+discoverAttributesByService	KEYWORD2
+deviceName	KEYWORD2
+serviceCount	KEYWORD2
+hasService	KEYWORD2
+service	KEYWORD2
+characteristicCount	KEYWORD2
+hasCharacteristic	KEYWORD2
+characteristic	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 
-BLETypeService	LITERAL1
-BLETypeCharacteristic	LITERAL1
-BLETypeDescriptor	LITERAL1
+BLEWritten	LITERAL1
+BLESubscribed	LITERAL1
+BLEUnsubscribed	LITERAL1
+BLEValueUpdated	LITERAL1
 
+BLEBroadcast	LITERAL1
 BLERead	LITERAL1
 BLEWriteWithoutResponse	LITERAL1
 BLEWrite	LITERAL1
 BLENotify	LITERAL1
 BLEIndicate	LITERAL1
 
+BLEDiscovered	LITERAL1
 BLEConnected	LITERAL1
 BLEDisconnected	LITERAL1
-BLEUpdateParam	LITERAL1
-
-BLEWritten	LITERAL1
-BLESubscribed	LITERAL1
-BLEUnsubscribed	LITERAL1
+BLEConParamUpdate	LITERAL1
 
 ble_conn_param_t	LITERAL1
 bt_uuid_t	LITERAL1

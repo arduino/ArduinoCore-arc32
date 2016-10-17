@@ -40,6 +40,24 @@ public:
     BLEBoolCharacteristic(const char* uuid, unsigned char properties);
 };
 
+class BLEByteCharacteristic : public BLETypedCharacteristic<byte> {
+public:
+    /**
+     * @brief   Instantiate a Byte Typed Characteristic. 
+     *           Default constructor for BLE Byte Characteristic
+     *
+     * @param[in]   uuid        The characteristic UUID 16/128 bits
+     *
+     * @param[in]   properties  The property of the characteristic (BLERead, 
+     *                           BLEWrite or BLE Notify. Combine with | )
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    BLEByteCharacteristic(const char* uuid, unsigned char properties);
+};
+
 class BLECharCharacteristic : public BLETypedCharacteristic<char> {
 public:
     /**

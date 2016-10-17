@@ -112,9 +112,7 @@ static struct bt_conn_cb conn_callbacks = {
     .le_param_updated = on_le_param_updated
 };
 
-
-
-void ble_client_get_factory_config(bt_addr_le_t *bda, char *name)
+void ble_client_get_mac_address(bt_addr_le_t *bda)
 {
     struct curie_oem_data *p_oem = NULL;
     unsigned i;
@@ -132,6 +130,13 @@ void ble_client_get_factory_config(bt_addr_le_t *bda, char *name)
             }
         }
     }
+}
+
+void ble_client_get_factory_config(bt_addr_le_t *bda, char *name)
+{
+    struct curie_oem_data *p_oem = NULL;
+    
+    ble_client_get_mac_address(bda);
 
     /* Set a default name if one has not been specified */
     if (name) {
@@ -165,6 +170,7 @@ void ble_client_get_factory_config(bt_addr_le_t *bda, char *name)
         if (bda && bda->type != BLE_DEVICE_ADDR_INVALID) 
         {
             *suffix++ = '-';
+            p_oem = (struct curie_oem_data *) &global_factory_data->oem_data.project_data;
             BYTE_TO_STR(suffix, p_oem->bt_address[4]);
             BYTE_TO_STR(suffix, p_oem->bt_address[5]);
             *suffix = 0; /* NULL-terminate the string. Note the macro BYTE_TO_STR 
@@ -198,9 +204,9 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
     return;
 }
 
-BleStatus errorno_to_ble_status(int err)
+BLE_STATUS_T errorno_to_ble_status(int err)
 {
-    BleStatus err_code;
+    BLE_STATUS_T err_code;
     err = 0 - err;
     
     switch(err) {

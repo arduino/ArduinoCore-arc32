@@ -61,9 +61,10 @@ _do_reset:
 .balign 4
 _do_fault:
 _exit_halt:
-    /* Set halt flag */
-    flag 0x01
+    /* Set halt flag
+    flag 0x0 */
     nop
+    j @_Fault
     nop
     nop
     /* loop forever */
@@ -76,8 +77,15 @@ _exit_halt:
  */
 .balign 4
 _do_isr:
-     /* Init the SP for the FIRQ bank */
-     mov sp, @__firq_stack_start
+    /* Init the SP for the FIRQ bank */
+    mov sp, @__firq_stack_start
+    /* Save the loop count related register */
+    mov r0, lp_count
+    lr r1, [ARC_V2_LP_START]
+    lr r2, [ARC_V2_LP_END]
+    push_s r0
+    push_s r1
+    push_s r2
     /* Read IRQ Cause */
     lr r0, [ARC_V2_ICAUSE]
     sub r0, r0, 16
@@ -89,5 +97,13 @@ _do_isr:
     jl_s.d [r1]
     nop
 
+    /* Restore the loop count related register */
+    pop_s r2
+    pop_s r1
+    pop_s r0
+	
+    sr r2, [ARC_V2_LP_END]
+    sr r1, [ARC_V2_LP_START]
+    mov lp_count, r0
     rtie
 

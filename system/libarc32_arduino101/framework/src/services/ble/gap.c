@@ -910,3 +910,14 @@ void bt_le_set_device_name(char *device_name, int len)
     nble_gap_service_write_req(&gap_service_params);
 }
 
+void bt_le_set_mac_address(bt_addr_le_t bda)
+{
+    // Update the MAC addr
+    struct nble_set_bda_params params;
+    params.cb = NULL;
+    params.user_data = NULL;
+    params.bda = bda;
+
+    nble_set_bda_req(&params);
+}
+
