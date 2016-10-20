@@ -27,7 +27,7 @@ Rx does not work for pin 13
 
 #include <inttypes.h>
 #include <Stream.h>
-
+#include <Arduino.h>
 /******************************************************************************
 * Definitions
 ******************************************************************************/
@@ -56,7 +56,7 @@ private:
   bool _inverse_logic = false;
 
   // static data
-  static char _receive_buffer[_SS_MAX_RX_BUFF]; 
+  static char *_receive_buffer;
   static volatile uint8_t _receive_buffer_tail;
   static volatile uint8_t _receive_buffer_head;
   static SoftwareSerial *active_object;

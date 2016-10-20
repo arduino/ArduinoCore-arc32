@@ -31,14 +31,13 @@ Rx does not work for pin 13
 // 
 // Includes
 // 
-#include <Arduino.h>
 #include <SoftwareSerial.h>
 
 //
 // Statics
 //
 SoftwareSerial *SoftwareSerial::active_object = 0;
-char SoftwareSerial::_receive_buffer[_SS_MAX_RX_BUFF]; 
+char *SoftwareSerial::_receive_buffer;
 volatile uint8_t SoftwareSerial::_receive_buffer_tail = 0;
 volatile uint8_t SoftwareSerial::_receive_buffer_head = 0;
 
@@ -231,6 +230,7 @@ SoftwareSerial::SoftwareSerial(uint32_t receivePin, uint32_t transmitPin, bool i
   _transmitPin = transmitPin;
   setRX(receivePin);
   _receivePin = receivePin;
+  _receive_buffer = (char*)dccm_malloc(_SS_MAX_RX_BUFF);
 }
 
 //
