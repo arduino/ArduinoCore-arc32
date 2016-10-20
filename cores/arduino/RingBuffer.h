@@ -18,6 +18,7 @@
 #define _RING_BUFFER_
 
 #include <stdint.h>
+#include "dccm/dccm_alloc.h"
 
 // Define constants and variables for buffering incoming serial data.  We're
 // using a ring buffer (I think), in which head is the index of the location
@@ -28,7 +29,7 @@
 class RingBuffer
 {
 public:
-	uint8_t _aucBuffer[UART_BUFFER_SIZE] ;
+	uint8_t *_aucBuffer;
 	int _iHead ;
 	int _iTail ;
 	bool _buffer_overflow ;

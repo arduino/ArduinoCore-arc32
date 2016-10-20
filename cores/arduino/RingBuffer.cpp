@@ -23,6 +23,7 @@
 
 RingBuffer::RingBuffer( void )
 {
+    _aucBuffer = (uint8_t*)dccm_malloc(UART_BUFFER_SIZE);
     memset( _aucBuffer, 0, UART_BUFFER_SIZE ) ;
     _iHead=0 ;
     _iTail=0 ;
