@@ -33,7 +33,8 @@ TwoWire::TwoWire(I2C_CONTROLLER _controller_id)
     : rxBufferIndex(0), rxBufferLength(0), init_status(-1),
       controller_id(_controller_id)
 {
-    // Empty
+    rxBuffer = (uint8_t*)dccm_malloc(BUFFER_LENGTH);
+    txBuffer = (uint8_t*)dccm_malloc(BUFFER_LENGTH);
 }
 
 void TwoWire::begin(void)

@@ -58,13 +58,13 @@ public:
 
 private:
 	// RX Buffer
-	uint8_t rxBuffer[BUFFER_LENGTH];
+	uint8_t *rxBuffer;
 	uint8_t rxBufferIndex;
 	uint8_t rxBufferLength;
 
 	// TX Buffer
 	uint8_t txAddress;
-	uint8_t txBuffer[BUFFER_LENGTH];
+	uint8_t *txBuffer;
 	uint8_t txBufferLength;
 
 	int init_status;
