@@ -34,7 +34,8 @@ bt_uuid_t *BLEServiceImp::getPrimayUuid(void)
 BLEServiceImp::BLEServiceImp(BLEService& service): 
     BLEAttribute(service.uuid(), BLETypeService), 
     _start_handle(0),
-    _end_handle(0xFFFF)
+    _end_handle(0xFFFF),
+    _cur_discover_chrc(NULL)
 {
     memset(&_characteristics_header, 0, sizeof(_characteristics_header));
     service.setServiceImp(this);
@@ -43,7 +44,8 @@ BLEServiceImp::BLEServiceImp(BLEService& service):
 BLEServiceImp::BLEServiceImp(const bt_uuid_t* uuid): 
     BLEAttribute(uuid, BLETypeService),
     _start_handle(0),
-    _end_handle(0xFFFF)
+    _end_handle(0xFFFF),
+    _cur_discover_chrc(NULL)
 {
     memset(&_characteristics_header, 0, sizeof(_characteristics_header));
 }
@@ -56,8 +58,46 @@ BLEServiceImp::~BLEServiceImp()
 
 int BLEServiceImp::addCharacteristic(BLEDevice& bledevice, BLECharacteristic& characteristic)
 {
-    BLECharacteristicImp* characteristicImp = new BLECharacteristicImp(characteristic, bledevice);
+    BLECharacteristicImp* characteristicImp = this->characteristic(characteristic.uuid());
+    if (NULL != characteristicImp)
+    {
+        pr_info(LOG_MODULE_BLE, "%s-%d: Already exist",__FUNCTION__, __LINE__);
+        return BLE_STATUS_SUCCESS;
+    }
+    characteristicImp = new BLECharacteristicImp(characteristic, bledevice);
     pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    if (NULL == characteristicImp)
+    {
+        return BLE_STATUS_NO_MEMORY;
+    }
+    
+    BLECharacteristicNodePtr node = link_node_create(characteristicImp);
+    if (NULL == node)
+    {
+        delete[] characteristicImp;
+        return BLE_STATUS_NO_MEMORY;
+    }
+    link_node_insert_last(&_characteristics_header, node);
+    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    return BLE_STATUS_SUCCESS;
+}
+
+int BLEServiceImp::addCharacteristic(BLEDevice& bledevice, 
+                                     const bt_uuid_t* uuid, 
+                                     uint16_t handle, 
+                                     unsigned char properties)
+{
+    BLECharacteristicImp* characteristicImp = this->characteristic(uuid);
+    if (NULL != characteristicImp)
+    {
+        pr_info(LOG_MODULE_BLE, "%s-%d: Already exist",__FUNCTION__, __LINE__);
+        return BLE_STATUS_SUCCESS;
+    }
+    pr_debug(LOG_MODULE_BLE, "%s-%d:handle-%d",__FUNCTION__, __LINE__,handle);
+    characteristicImp = new BLECharacteristicImp(uuid, 
+                                                 properties, 
+                                                 handle, 
+                                                 bledevice);
     if (NULL == characteristicImp)
     {
         return BLE_STATUS_NO_MEMORY;
@@ -173,10 +213,15 @@ BLECharacteristicImp* BLEServiceImp::characteristic(uint16_t handle)
     return characteristicImp;
 }
 
-BLECharacteristicImp* BLEServiceImp::characteristic(const char* uuid)
+BLECharacteristicImp* BLEServiceImp::characteristic(const bt_uuid_t* uuid)
 {
     BLECharacteristicImp* characteristicImp = NULL;
     BLECharacteristicNodePtr node = link_node_get_first(&_characteristics_header);
+    // Just for debug
+    //char uuid_tmp[37];
+    //BLEUtils::uuidBT2String(uuid, uuid_tmp);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d: %s", __FUNCTION__, __LINE__, uuid_tmp);
+    
     while (NULL != node)
     {
         characteristicImp = node->value;
@@ -184,6 +229,8 @@ BLECharacteristicImp* BLEServiceImp::characteristic(const char* uuid)
         {
             break;
         }
+    //BLEUtils::uuidBT2String(characteristicImp->bt_uuid(), uuid_tmp);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d: %s", __FUNCTION__, __LINE__, uuid_tmp);
         node = node->next;
     }
     
@@ -194,9 +241,21 @@ BLECharacteristicImp* BLEServiceImp::characteristic(const char* uuid)
     return characteristicImp;
 }
 
+BLECharacteristicImp* BLEServiceImp::characteristic(const char* uuid)
+{
+    bt_uuid_128_t uuid_tmp;
+    BLEUtils::uuidString2BT(uuid, (bt_uuid_t *)&uuid_tmp);
+    return characteristic((const bt_uuid_t *)&uuid_tmp);
+}
+
+bool BLEServiceImp::discovering()
+{
+    return (_cur_discover_chrc != NULL);
+}
+
 bool BLEServiceImp::discoverAttributes(BLEDevice* device)
 {
-    
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     int err;
     bt_conn_t* conn;
     bt_gatt_discover_params_t* temp = NULL;
@@ -244,26 +303,43 @@ uint8_t BLEServiceImp::discoverResponseProc(bt_conn_t *conn,
     BLEDevice device(dst_addr);
     uint8_t retVal = BT_GATT_ITER_STOP;
     
-    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
-    if (NULL == attr)
-    {
-        return BT_GATT_ITER_STOP;
-    }
-    const bt_uuid_t* chrc_uuid = attr->uuid;
-    struct bt_gatt_chrc* psttemp = (struct bt_gatt_chrc*)attr->user_data;
-    char uuidbuffer[37];
-    BLEUtils::uuidBT2String(chrc_uuid, uuidbuffer);
-    pr_debug(LOG_MODULE_BLE, "%s-%d: uuid type: %d\r\n%s", __FUNCTION__, __LINE__, chrc_uuid->type, uuidbuffer);
-    
-    BLEUtils::uuidBT2String(psttemp->uuid, uuidbuffer);
-    pr_debug(LOG_MODULE_BLE, "%s-%d:%p uuid type: %d properties: %d\r\n%s", __FUNCTION__, __LINE__,psttemp, psttemp->uuid->type, psttemp->properties, uuidbuffer);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d: type-%d", __FUNCTION__, __LINE__, params->type);
+
     // Process the service
     switch (params->type)
     {
         case BT_GATT_DISCOVER_CHARACTERISTIC:
         {
-            //characteristicDiscoverRsp(attr, attribute_tmp);
-            //send_discover = true;
+            if (NULL != attr)
+            {
+                //const bt_uuid_t* chrc_uuid = attr->uuid;
+                uint16_t chrc_handle = attr->handle + 1;
+                struct bt_gatt_chrc* psttemp = (struct bt_gatt_chrc*)attr->user_data;
+                int retval = (int)addCharacteristic(device, 
+                                                    psttemp->uuid,
+                                                    chrc_handle,
+                                                    psttemp->properties);
+                
+    //pr_debug(LOG_MODULE_BLE, "%s-%d:handle-%d:%d", __FUNCTION__, __LINE__,attr->handle, chrc_handle);
+                if (BLE_STATUS_SUCCESS != retval)
+                {
+                    pr_error(LOG_MODULE_BLE, "%s-%d: Error-%d", 
+                             __FUNCTION__, __LINE__, retval);
+                }
+                //retVal = BT_GATT_ITER_CONTINUE;
+            }
+            break;
+        }
+        case BT_GATT_DISCOVER_DESCRIPTOR:
+        {
+            // 
+            
+            if (NULL != _cur_discover_chrc)
+            {
+                retVal = _cur_discover_chrc->discoverResponseProc(conn, 
+                                                                     attr, 
+                                                                     params);
+            }
             break;
         }
         default:
@@ -273,12 +349,14 @@ uint8_t BLEServiceImp::discoverResponseProc(bt_conn_t *conn,
         }
     }
     
+    pr_debug(LOG_MODULE_BLE, "%s-%d:ret-%d",__FUNCTION__, __LINE__, retVal);
     if (retVal == BT_GATT_ITER_STOP)
     {
-        const BLECharacteristicLinkNodeHeader* serviceHeader = &_characteristics_header;
+        const BLECharacteristicLinkNodeHeader* chrcHeader = &_characteristics_header;
         BLECharacteristicImp* chrcCurImp = NULL;
-        BLECharacteristicNodePtr node = serviceHeader->next;
+        BLECharacteristicNodePtr node = chrcHeader->next;
         
+    pr_debug(LOG_MODULE_BLE, "%s-%d: node-%p",__FUNCTION__, __LINE__, node);
         // Discover next service
         while (node != NULL)
         {
@@ -286,7 +364,8 @@ uint8_t BLEServiceImp::discoverResponseProc(bt_conn_t *conn,
             
             if (NULL == _cur_discover_chrc)
             {
-                bool result = true;//serviceCurImp->discoverAttributes(&device);
+                bool result = chrcCurImp->discoverAttributes(&device);
+                pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
                 if (result == true)
                 {
                     // Record the current discovering service

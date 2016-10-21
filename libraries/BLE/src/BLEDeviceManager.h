@@ -340,6 +340,7 @@ class BLEDeviceManager
     int rssi() const; // returns the RSSI of the peripheral at discovery
 
     bool connect(BLEDevice &device); // connect to the peripheral
+    bool connectToDevice(BLEDevice &device);
 
     String deviceName(); // read the device name attribute of the peripheral, and return String value
     int appearance(); // read the appearance attribute of the peripheral and return value as int
@@ -380,6 +381,7 @@ private:
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _dv_critical_service_uuid;
+    bt_addr_le_t _wait_for_connect_peripheral;
     
     // For peripheral
     struct bt_le_adv_param _adv_param;

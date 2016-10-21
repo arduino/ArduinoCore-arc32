@@ -186,14 +186,14 @@ BLEDevice::operator bool() const
     return BLEUtils::macAddressValid(_bt_addr);
 }
 
-BLEDevice& BLEDevice::operator=(const BLEDevice& device)
-{
-    if (*this != device)
-    {
-        memcpy(&(this->_bt_addr), &(device._bt_addr), sizeof (bt_addr_le_t));
-    }
-    return *this;
-}
+//BLEDevice& BLEDevice::operator=(const BLEDevice& device)
+//{
+//    if (*this != device)
+//    {
+//        memcpy(&(this->_bt_addr), &(device._bt_addr), sizeof (bt_addr_le_t));
+//    }
+//    return *this;
+//}
 
 bool BLEDevice::operator==(const BLEDevice& device) const
 {

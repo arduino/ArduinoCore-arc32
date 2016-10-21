@@ -54,6 +54,7 @@ public:
      *       Or be called in discover process.
      */
     BLE_STATUS_T addService (BLEDevice &bledevice, BLEService& service);
+    BLE_STATUS_T addService (BLEDevice &bledevice, const bt_uuid_t* uuid);
     
     /**
      * @brief   Register the profile to Nordic BLE stack
@@ -99,7 +100,13 @@ public:
                                  bt_gatt_discover_params_t *params);
     
     bool discoverAttributes(BLEDevice* device);
+    bool discoverService(BLEDevice* device, const bt_uuid_t* svc_uuid);
     void handleConnectedEvent(const bt_addr_le_t* deviceAddr);
+    uint8_t serviceReadRspProc(bt_conn_t *conn, 
+                               int err,
+                               bt_gatt_read_params_t *params,
+                               const void *data, 
+                               uint16_t length);
 protected:
     friend ssize_t profile_write_process(bt_conn_t *conn,
                                      const bt_gatt_attr_t *attr,
@@ -113,7 +120,6 @@ private:
     BLEProfileManager();
     ~BLEProfileManager (void);
     
-    BLE_STATUS_T addService (BLEDevice &bledevice, const bt_uuid_t* uuid);
     void serviceDiscoverComplete(const BLEDevice &bledevice);
     
     int getDeviceIndex(const bt_addr_le_t* macAddr);
@@ -166,13 +172,22 @@ private:
      */
     void clearProfile(BLEDevice &bledevice);
     
+    void readService(const BLEDevice &bledevice, uint16_t handle);
+    bool discovering();
+    void setDiscovering(bool discover);
+    
 private:
     // The last header is for local BLE
     BLEServiceLinkNodeHeader _service_header_array[BLE_MAX_CONN_CFG + 1]; // The connected devices' service and self service
     bt_addr_le_t  _addresses[BLE_MAX_CONN_CFG + 1]; // The BLE devices' address
-    
+
+    bool _start_discover;
+
+    bool _discovering;
+    uint64_t _discover_timestamp;
     bt_gatt_discover_params_t _discover_params[BLE_MAX_CONN_CFG];
     BLEServiceImp* _cur_discover_service;
+    bt_gatt_read_params_t _read_params;
     
     bt_gatt_attr_t *_attr_base; // Allocate the memory for BLE stack
     int _attr_index;
