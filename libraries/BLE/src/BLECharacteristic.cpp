@@ -39,6 +39,7 @@ BLECharacteristic::BLECharacteristic(BLECharacteristicImp *characteristicImp,
     _bledev(bleDev), _internal(characteristicImp), 
     _value(NULL)
 {
+    BLEUtils::uuidBT2String(characteristicImp->bt_uuid(), _uuid_cstr);
     _properties = characteristicImp->properties();
     _value_size = characteristicImp->valueSize();
 }

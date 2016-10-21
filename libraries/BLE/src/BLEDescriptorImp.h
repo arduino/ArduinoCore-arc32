@@ -35,6 +35,9 @@ public:
      * @param[in] valueLength Data length required for descriptor value (<= BLE_MAX_ATTR_DATA_LEN)
      */
     BLEDescriptorImp(BLEDevice& bledevice, BLEDescriptor &descriptor);
+    BLEDescriptorImp(const bt_uuid_t* uuid, 
+                     uint16_t handle,
+                     BLEDevice& bledevice);
 
     virtual ~BLEDescriptorImp();
 
@@ -61,6 +64,7 @@ protected:
 
 private:
     unsigned short _value_length;
+    unsigned short _value_handle;
     unsigned char* _value;
     
     bt_uuid_128 _descriptor_uuid;

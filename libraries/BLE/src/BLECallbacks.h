@@ -49,5 +49,11 @@ void ble_central_device_found(const bt_addr_le_t *addr,
                               const uint8_t *ad, 
                               uint8_t len);
 
+uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
+                                 int err,
+                                 bt_gatt_read_params_t *params,
+                                 const void *data, 
+                                 uint16_t length);
+
 #endif
 

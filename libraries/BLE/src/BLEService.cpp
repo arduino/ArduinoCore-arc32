@@ -38,6 +38,13 @@ BLEService::BLEService(const char* uuid):_bledevice(),_service_imp(NULL)
     _bledevice.setAddress(*BLEUtils::bleGetLoalAddress());
 }
 
+BLEService::BLEService(const bt_uuid_t* uuid):_bledevice(),_service_imp(NULL)
+{
+    memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
+    BLEUtils::uuidBT2String(uuid, _uuid_cstr);
+    _bledevice.setAddress(*BLEUtils::bleGetLoalAddress());
+}
+
 BLEService::BLEService(BLEServiceImp* serviceImp, const BLEDevice* bledev):
     _bledevice(bledev),_service_imp(serviceImp)
 {
