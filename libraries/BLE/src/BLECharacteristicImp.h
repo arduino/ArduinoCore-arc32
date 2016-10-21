@@ -51,6 +51,8 @@ public:
      * @note  none
      */
     int addDescriptor(BLEDescriptor& descriptor);
+    int addDescriptor(const bt_uuid_t* uuid, 
+                      uint16_t handle);
     
     void releaseDescriptors();
 
@@ -160,7 +162,16 @@ public:
     bool write(const unsigned char value[], 
                uint16_t length);
 
+    void setCCCDHandle(uint16_t handle);
+    void setHandle(uint16_t handle);
     int descriptorCount() const;
+    uint8_t discoverResponseProc(bt_conn_t *conn,
+                                 const bt_gatt_attr_t *attr,
+                                 bt_gatt_discover_params_t *params);
+    bool discoverAttributes(BLEDevice* device);
+    
+    BLEDescriptorImp* descrptor(const bt_uuid_t* uuid);
+    BLEDescriptorImp* descrptor(const char* uuid);
 
 protected:
     friend class BLEProfileManager;
@@ -172,6 +183,10 @@ protected:
      * @param[in] bledevice         The device that has this characteristic
      */
     BLECharacteristicImp(BLECharacteristic& characteristic, const BLEDevice& bledevice);
+    BLECharacteristicImp(const bt_uuid_t* uuid, 
+                         unsigned char properties,
+                         uint16_t handle,
+                         const BLEDevice& bledevice);
     
     friend int profile_longflush_process(struct bt_conn *conn,
                                          const struct bt_gatt_attr *attr, 
@@ -215,13 +230,9 @@ protected:
      * @note  Only for peripheral
      */
     uint16_t cccdHandle(void);
-
     
-    void setUserDescription(BLEDescriptor *descriptor);
-    void setPresentationFormat(BLEDescriptor *descriptor);
-    
-    _bt_gatt_ccc_t* getCccCfg(void);
-    bt_gatt_chrc_t* getCharacteristicAttValue(void);
+    inline _bt_gatt_ccc_t* getCccCfg(void);
+    inline bt_gatt_chrc_t* getCharacteristicAttValue(void);
     static bt_uuid_t* getCharacteristicAttributeUuid(void);
     static bt_uuid_t* getClientCharacteristicConfigUuid(void);
     
@@ -274,6 +285,7 @@ protected:
 
 private:
     void _setValue(const uint8_t value[], uint16_t length);
+    bool isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid);
 
 private:
     // Those 2 UUIDs are used for define the characteristic.
@@ -286,14 +298,16 @@ private:
     unsigned char* _value_buffer;
     bool _value_updated;
 
-    uint16_t            _value_handle;
+    uint16_t            _value_handle; // GATT client only
+    uint16_t            _cccd_handle;  // GATT client only
+    bt_gatt_discover_params_t _discover_params;// GATT client only
+    
     bt_gatt_ccc_cfg_t   _ccc_cfg;
     _bt_gatt_ccc_t      _ccc_value;
     bt_gatt_chrc_t      _gatt_chrc;
     
-    bt_gatt_attr_t *_attr_chrc_declaration;
-    bt_gatt_attr_t *_attr_chrc_value;
-    bt_gatt_attr_t *_attr_cccd;
+    bt_gatt_attr_t *_attr_chrc_value; // GATT server only
+    bt_gatt_attr_t *_attr_cccd; // GATT server only
     
     // For GATT Client to subscribe the Notification/Indication
     bt_gatt_subscribe_params_t _sub_params;

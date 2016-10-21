@@ -344,7 +344,7 @@ class BLEDevice
     operator bool() const;
     bool operator==(const BLEDevice& device) const;
     bool operator!=(const BLEDevice& device) const;
-    BLEDevice& operator=(const BLEDevice& device);
+    //BLEDevice& operator=(const BLEDevice& device);
     // central mode
     void startScanning(String name); // start scanning for peripherals
     void startScanningWithDuplicates(); // start scanning for peripherals, and report all duplicates
