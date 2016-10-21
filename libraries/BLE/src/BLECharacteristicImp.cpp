@@ -26,13 +26,78 @@
 bt_uuid_16_t BLECharacteristicImp::_gatt_chrc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CHRC_VAL};
 bt_uuid_16_t BLECharacteristicImp::_gatt_ccc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CCC_VAL};
 
+BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid, 
+                                           unsigned char properties,
+                                           uint16_t handle,
+                                           const BLEDevice& bledevice):
+    BLEAttribute(uuid, BLETypeCharacteristic),
+    _value_length(0),
+    _value_buffer(NULL),
+    _value_updated(false),
+    _value_handle(handle),
+    _cccd_handle(0),
+    _attr_chrc_value(NULL),
+    _attr_cccd(NULL),
+    _ble_device()
+{
+    _value_size = BLE_MAX_ATTR_DATA_LEN;// Set as MAX value. TODO: long read/write need to twist
+    _value = (unsigned char*)balloc(_value_size, NULL);
+    if (_value_size > BLE_MAX_ATTR_DATA_LEN)
+    {
+        _value_buffer = (unsigned char*)balloc(_value_size, NULL);
+    }
+    
+    memset(_value, 0, _value_size);
+    
+    memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
+    memset(&_ccc_value, 0, sizeof(_ccc_value));
+    memset(&_gatt_chrc, 0, sizeof(_gatt_chrc));
+    memset(&_sub_params, 0, sizeof(_sub_params));
+    memset(&_discover_params, 0, sizeof(_discover_params));
+    
+    _ccc_value.cfg = &_ccc_cfg;
+    _ccc_value.cfg_len = 1;
+    if (BLERead & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_READ;
+    }
+    if (BLEWrite & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_WRITE;
+    }
+    if (BLEWriteWithoutResponse & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_WRITE_WITHOUT_RESP;
+    }
+    if (BLENotify & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_NOTIFY;
+        _sub_params.value |= BT_GATT_CCC_NOTIFY;
+    }
+    if (BLEIndicate & properties)
+    {
+        _gatt_chrc.properties |= BT_GATT_CHRC_INDICATE;
+        _sub_params.value |= BT_GATT_CCC_INDICATE;
+    }
+    _gatt_chrc.uuid = (bt_uuid_t*)this->bt_uuid();//&_characteristic_uuid;//this->uuid();
+    memset(_event_handlers, 0, sizeof(_event_handlers));
+    
+    _sub_params.notify = profile_notify_process;
+        
+    // Update BLE device object
+    _ble_device.setAddress(*bledevice.bt_le_address());
+    
+    memset(&_descriptors_header, 0, sizeof(_descriptors_header));
+}
+
 BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic, 
                                            const BLEDevice& bledevice):
     BLEAttribute(characteristic.uuid(), BLETypeCharacteristic),
     _value_length(0),
     _value_buffer(NULL),
     _value_updated(false),
-    _attr_chrc_declaration(NULL),
+    _value_handle(0),
+    _cccd_handle(0),
     _attr_chrc_value(NULL),
     _attr_cccd(NULL),
     _ble_device()
@@ -49,6 +114,7 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
     memset(&_ccc_value, 0, sizeof(_ccc_value));
     memset(&_gatt_chrc, 0, sizeof(_gatt_chrc));
     memset(&_sub_params, 0, sizeof(_sub_params));
+    memset(&_discover_params, 0, sizeof(_discover_params));
     
     _ccc_value.cfg = &_ccc_cfg;
     _ccc_value.cfg_len = 1;
@@ -217,33 +283,43 @@ BLECharacteristicImp::setEventHandler(BLECharacteristicEvent event, BLECharacter
     interrupts();
 }
 
+void
+BLECharacteristicImp::setHandle(uint16_t handle)
+{
+    // GATT client
+    _value_handle = handle;
+}
+
+void
+BLECharacteristicImp::setCCCDHandle(uint16_t handle)
+{
+    // GATT client
+    _cccd_handle = handle;
+}
+
 uint16_t
 BLECharacteristicImp::valueHandle()
 {
     uint16_t handle = 0;
     if (NULL != _attr_chrc_value)
     {
+        //GATT server
         handle = _attr_chrc_value->handle;
     }
-    
-    return handle;
-}
-
-uint16_t
-BLECharacteristicImp::cccdHandle()
-{
-    uint16_t handle = 0;
-    if (NULL != _attr_cccd)
+    else
     {
-        handle = _attr_cccd->handle;
+        // GATT client
+        handle = _value_handle;
     }
+    
     return handle;
 }
 
 void
 BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length)
 {
-    if (length > _value_size) {
+    if (length > _value_size)
+    {
         length = _value_size;
     }
     
@@ -284,58 +360,6 @@ bt_uuid_t* BLECharacteristicImp::getCharacteristicAttributeUuid(void)
 bt_uuid_t* BLECharacteristicImp::getClientCharacteristicConfigUuid(void)
 {
     return (bt_uuid_t*) &_gatt_ccc_uuid;
-}
-
-#if 0
-void BLECharacteristicImp::discover(bt_gatt_discover_params_t *params)
-{
-    params->type = BT_GATT_DISCOVER_CHARACTERISTIC;
-    params->uuid = this->uuid();
-    // Start discovering
-    _discoverying = true;
-    // Re-Init the read/write parameter
-    _reading = false;
-}
-
-
-void BLECharacteristicImp::discover(const bt_gatt_attr_t *attr,
-			                     bt_gatt_discover_params_t *params)
-{
-    if (!attr)
-    {
-        // Discovery complete
-        _discoverying = false;
-        return;
-    }
-    
-    // Chracteristic Char
-    if (params->uuid == this->uuid())
-    {
-        // Set Discover CCCD parameter
-        params->start_handle = attr->handle + 2;
-        if (subscribed())
-        {
-            // Include CCCD
-            params->type = BT_GATT_DISCOVER_DESCRIPTOR;
-            params->uuid = this->getClientCharacteristicConfigUuid();
-        }
-        else
-        {
-            // Complete the discover
-            _discoverying = false;
-        }
-    }
-    else if (params->uuid == this->getClientCharacteristicConfigUuid())
-    {
-        params->start_handle = attr->handle + 1;
-        _discoverying = false;
-    }
-}
-#endif
-
-bt_gatt_subscribe_params_t *BLECharacteristicImp::getSubscribeParams()
-{
-    return &_sub_params;
 }
 
 bool BLECharacteristicImp::read()
@@ -513,7 +537,13 @@ int BLECharacteristicImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
 
 int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
 {
-    BLEDescriptorImp* descriptorImp = new BLEDescriptorImp(_ble_device, descriptor);
+    BLEDescriptorImp* descriptorImp = descrptor(descriptor.uuid());
+    if (NULL != descriptorImp)
+    {
+        return BLE_STATUS_SUCCESS;
+    }
+    
+    descriptorImp = new BLEDescriptorImp(_ble_device, descriptor);
     pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     if (NULL == descriptorImp)
     {
@@ -530,6 +560,61 @@ int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
     link_node_insert_last(&_descriptors_header, node);
     pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     return BLE_STATUS_SUCCESS;
+}
+
+int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid, 
+                                        uint16_t handle)
+{
+    BLEDescriptorImp* descriptorImp = descrptor(uuid);
+    if (NULL != descriptorImp)
+    {
+        return BLE_STATUS_SUCCESS;
+    }
+    
+    descriptorImp = new BLEDescriptorImp(uuid, handle, _ble_device);
+    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    if (NULL == descriptorImp)
+    {
+        return BLE_STATUS_NO_MEMORY;
+    }
+    
+    BLEDescriptorNodePtr node = link_node_create(descriptorImp);
+    if (NULL == node)
+    {
+        delete[] descriptorImp;
+        return BLE_STATUS_NO_MEMORY;
+    }
+    link_node_insert_last(&_descriptors_header, node);
+    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    return BLE_STATUS_SUCCESS;
+}
+
+BLEDescriptorImp* BLECharacteristicImp::descrptor(const bt_uuid_t* uuid)
+{
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLEDescriptorNodePtr node = link_node_get_first(&_descriptors_header);
+    
+    while (NULL != node)
+    {
+        descriptorImp = node->value;
+        if (true == descriptorImp->compareUuid(uuid))
+        {
+            break;
+        }
+    }
+    
+    if (NULL == node)
+    {
+        descriptorImp = NULL;
+    }
+    return descriptorImp;
+}
+
+BLEDescriptorImp* BLECharacteristicImp::descrptor(const char* uuid)
+{
+    bt_uuid_128_t uuid_tmp;
+    BLEUtils::uuidString2BT(uuid, (bt_uuid_t *)&uuid_tmp);
+    return descrptor((const bt_uuid_t *)&uuid_tmp);
 }
 
 void BLECharacteristicImp::releaseDescriptors()
@@ -555,6 +640,110 @@ int BLECharacteristicImp::descriptorCount() const
 {
     int counter = link_list_size(&_descriptors_header);
     return counter;
+}
+
+bool BLECharacteristicImp::discoverAttributes(BLEDevice* device)
+{
+    
+    int err;
+    bt_conn_t* conn;
+    bt_gatt_discover_params_t* temp = NULL;
+    const bt_uuid_t* service_uuid = bt_uuid();
+    
+    if (service_uuid->type == BT_UUID_TYPE_16)
+    {
+        uint16_t uuid_tmp = ((bt_uuid_16_t*)service_uuid)->val;
+        if (BT_UUID_GAP_VAL == uuid_tmp ||
+            BT_UUID_GATT_VAL == uuid_tmp)
+        {
+            return false;
+        }
+    }
+
+    conn = bt_conn_lookup_addr_le(device->bt_le_address());
+    if (NULL == conn)
+    {
+        // Link lost
+        pr_debug(LOG_MODULE_BLE, "Can't find connection\n");
+        return false;
+    }
+    temp = &_discover_params;
+    temp->start_handle = _value_handle + 1;
+    temp->end_handle = _value_handle + 20; // TODO: the max descriptor is not more than 20
+    temp->uuid = NULL;
+    temp->type = BT_GATT_DISCOVER_DESCRIPTOR;
+    temp->func = profile_discover_process;
+    pr_debug(LOG_MODULE_BLE, "%s-%d-charc",__FUNCTION__, __LINE__);
+    err = bt_gatt_discover(conn, temp);
+    bt_conn_unref(conn);
+    if (err)
+    {
+        pr_debug(LOG_MODULE_BLE, "Discover failed(err %d)\n", err);
+        return false;
+    }
+    return true;
+}
+
+bool BLECharacteristicImp::isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid)
+{
+    bool ret = false;
+    uint16_t cccd_uuid = BT_UUID_GATT_CCC_VAL;
+    if (uuid->type == BT_UUID_TYPE_16)
+    {
+        if (0 == memcmp(&BT_UUID_16(uuid)->val, &cccd_uuid, sizeof(uint16_t)))
+        {
+            ret = true;
+        }
+    }
+    return ret;
+}
+
+uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
+                                                   const bt_gatt_attr_t *attr,
+                                                   bt_gatt_discover_params_t *params)
+{
+    const bt_addr_le_t* dst_addr = bt_conn_get_dst(conn);
+    BLEDevice device(dst_addr);
+    uint8_t retVal = BT_GATT_ITER_STOP;
+    
+    pr_debug(LOG_MODULE_BLE, "%s-%d: type-%d", __FUNCTION__, __LINE__, params->type);
+
+    // Process the service
+    switch (params->type)
+    {
+        case BT_GATT_DISCOVER_DESCRIPTOR:
+        {
+            if (NULL != attr)
+            {
+                const bt_uuid_t* desc_uuid = attr->uuid;
+                uint16_t desc_handle = attr->handle;
+    pr_debug(LOG_MODULE_BLE, "%s-%d:handle-%d:%d", __FUNCTION__, __LINE__,attr->handle, desc_handle);
+                if (isClientCharacteristicConfigurationDescriptor(desc_uuid))
+                {
+                    setCCCDHandle(desc_handle);
+                }
+                else
+                {
+                    int retval = (int)addDescriptor(desc_uuid,
+                                                    desc_handle);
+                    
+                    if (BLE_STATUS_SUCCESS != retval)
+                    {
+                        pr_error(LOG_MODULE_BLE, "%s-%d: Error-%d", 
+                                 __FUNCTION__, __LINE__, retval);
+                    }
+                    
+                }
+                retVal = BT_GATT_ITER_CONTINUE;
+            }
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+    return retVal;
 }
 
 

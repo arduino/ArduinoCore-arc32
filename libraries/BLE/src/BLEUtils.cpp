@@ -39,6 +39,28 @@ void BLEUtils::macAddressString2BT(const char* mac_str, bt_addr_le_t &bd_addr)
     
 }
 
+bool BLEUtils::macAddressSame(const bt_addr_le_t &bd_addr1, 
+                              const bt_addr_le_t &bd_addr2)
+{
+    bool temp = true;//(memcmp(bd_addr1.val, bd_addr2.val, 6) != 0);//
+    #if 1
+    for (int i = 0; i < 6; i++)
+    {
+        if (bd_addr1.val[i] != bd_addr2.val[i])
+        {
+        
+pr_info(LOG_MODULE_BLE, "%s-idx %d-%.2x:%.2x", __FUNCTION__, i ,bd_addr1.val[i], bd_addr2.val[i]);
+pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr1).c_str());
+pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr2).c_str());
+            temp = false;
+            break;
+        }
+    }
+    #endif
+    return temp;
+    
+}
+
 bool BLEUtils::macAddressValid(const bt_addr_le_t &bd_addr)
 {
     static const bt_addr_le_t zero = {0,{0,0,0,0,0,0}};
@@ -98,8 +120,9 @@ void BLEUtils::uuidString2BT(const char* uuid, bt_uuid_t* pstuuid)
     if (length == 2)
     {
         uint16_t temp = (uuid_tmp.val[1] << 8)| uuid_tmp.val[0];
+        uint8_t* uuid16_val = (uint8_t*)&((bt_uuid_16_t*)(&uuid_tmp.uuid))->val;
         uuid_tmp.uuid.type = BT_UUID_TYPE_16;
-        ((bt_uuid_16_t*)(&uuid_tmp.uuid))->val = temp;
+        memcpy(uuid16_val, &temp, sizeof (uint16_t));
     }
     else
     {
@@ -134,12 +157,31 @@ void BLEUtils::uuidBT2String(const bt_uuid_t* pstuuid, char* uuid)
     }
 }
 
+bool BLEUtils::uuidBTSame(const bt_uuid_t* pstuuid1,
+                          const bt_uuid_t* pstuuid2)
+{
+    bool temp = (pstuuid1->type == pstuuid2->type);
+    if (true == temp)
+    {
+        if (pstuuid1->type == BT_UUID_TYPE_16)
+        {
+            temp = (0 == memcmp(&BT_UUID_16(pstuuid1)->val, &BT_UUID_16(pstuuid2)->val, 2));
+        }
+        else
+        {
+            temp = (0 == memcmp(BT_UUID_128(pstuuid1)->val, BT_UUID_128(pstuuid2)->val, 16));
+        }
+    }
+    return temp;
+    
+}
+
 BLEDevice& BLEUtils::getLoacalBleDevice()
 {
     return BLE;
 }
 
-bool BLEUtils::isLocalBLE(BLEDevice& device)
+bool BLEUtils::isLocalBLE(const BLEDevice& device)
 {
     return (device == BLE);
 }

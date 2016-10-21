@@ -25,12 +25,25 @@
 #include "BLECallbacks.h"
 
 BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice, BLEDescriptor &descriptor):
-     BLEAttribute(descriptor.uuid(), BLETypeDescriptor)
+     BLEAttribute(descriptor.uuid(), BLETypeDescriptor),
+    _value_handle(0)
 {
     _value_length = descriptor.valueLength();
     _value = (unsigned char*)balloc(_value_length, NULL);
 
     memcpy(_value, descriptor.value(), _value_length);
+}
+
+BLEDescriptorImp::BLEDescriptorImp(const bt_uuid_t* uuid, 
+                                   uint16_t handle,
+                                   BLEDevice& bledevice):
+    BLEAttribute(uuid, BLETypeDescriptor),
+    _value_handle(handle)
+{
+    _value_length = BLE_MAX_ATTR_DATA_LEN;
+    _value = (unsigned char*)balloc(_value_length, NULL);
+
+    memset(_value, 0, _value_length);
 }
 
 BLEDescriptorImp::~BLEDescriptorImp() {
