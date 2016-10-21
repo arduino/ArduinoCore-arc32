@@ -43,6 +43,7 @@ BLEDeviceManager::BLEDeviceManager():
     _local_ble(NULL)
 {
     memset(&_local_bda, 0, sizeof(_local_bda));
+    memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
     
     memset(&_service_uuid, 0, sizeof(_service_uuid));
     memset(&_service_solicit_uuid, 0, sizeof(_service_solicit_uuid));
@@ -106,17 +107,18 @@ void BLEDeviceManager::end()
 bool BLEDeviceManager::connected(BLEDevice *device)
 {
     bt_conn_t* conn = bt_conn_lookup_addr_le(device->bt_le_address());
+    bool retval = false;
     //pr_debug(LOG_MODULE_BLE, "%s-%d: add-%s", __FUNCTION__, __LINE__, device->address().c_str());
     if (NULL != conn)
     {
         //pr_debug(LOG_MODULE_BLE, "%s-%d: state-%d", __FUNCTION__, __LINE__,conn->state);
         if (conn->state == BT_CONN_CONNECTED)
         {
-            return true;
+            retval = true;
         }
         bt_conn_unref(conn);
     }
-    return false;
+    return retval;
 }
 
 bool BLEDeviceManager::disconnect(BLEDevice *device)
@@ -496,6 +498,33 @@ int BLEDeviceManager::rssi() const
 
 bool BLEDeviceManager::connect(BLEDevice &device)
 {
+    // 
+    uint64_t timestamp = millis();
+    uint64_t timestampcur = timestamp;
+    bool ret = true;
+    bt_addr_le_copy(&_wait_for_connect_peripheral, device.bt_le_address());
+    startScanning();
+    
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    // Wait for the connection
+    while (ret && (true == BLEUtils::macAddressValid(_wait_for_connect_peripheral)))
+    {
+        timestampcur = millis();
+        // TODO: dismiss the magic number
+        ret = (timestampcur - timestamp < 3000); // Time out
+    }
+    
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+        
+    if (ret == false)
+    {
+        memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
+    }
+    return ret;
+}
+
+bool BLEDeviceManager::connectToDevice(BLEDevice &device)
+{
     bt_addr_le_t* temp   = NULL;
     bt_addr_le_t* unused = NULL;
     bool link_existed = false;
@@ -572,6 +601,7 @@ void BLEDeviceManager::handleConnectEvent(bt_conn_t *conn, uint8_t err)
     }
     else
     {
+        memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
         // Peripheral has established the connection with this Central device
         BLEProfileManager::instance()->handleConnectedEvent(bt_conn_get_dst(conn));
     }
@@ -693,7 +723,7 @@ BLEDevice BLEDeviceManager::available()
         if (true == BLEUtils::macAddressValid(*temp))
         {
             tempdevice.setAddress(*temp);
-            //pr_debug(LOG_MODULE_BLE, "%s-%d:Con addr-%s", __FUNCTION__, __LINE__, BLEUtils::macAddressBT2String(*temp).c_str());
+            pr_debug(LOG_MODULE_BLE, "%s-%d:Con addr-%s", __FUNCTION__, __LINE__, BLEUtils::macAddressBT2String(*temp).c_str());
             _peer_adv_mill[index] -= 2000; // Set it as expired
         }
     }
@@ -775,17 +805,24 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
 
             if (true == advertiseDataProc(data[1], &data[2], len - 1))
             {
-                // The critical is accepted
-                //  Find the oldest and expired buffer 
-                if(false == setAdvertiseBuffer(addr))
+                if (true == BLEUtils::macAddressValid(_wait_for_connect_peripheral))
                 {
-                    pr_info(LOG_MODULE_BLE, "No buffer to store the ADV\n");
+                    // Not add to the buffer when try to establish the connection
+                    if (true == BLEUtils::macAddressSame(*addr, _wait_for_connect_peripheral))
+                    {
+                        BLEDevice testdev(addr);
+                        stopScanning();
+                        connectToDevice(testdev);
+                    }
                 }
                 else
                 {
-                    BLEDevice testdev(addr);
-                    stopScanning();
-                    connect(testdev);
+                    // The critical is accepted
+                    //  Find the oldest and expired buffer 
+                    if(false == setAdvertiseBuffer(addr))
+                    {
+                        pr_info(LOG_MODULE_BLE, "No buffer to store the ADV\n");
+                    }
                 }
                 pr_debug(LOG_MODULE_BLE, "%s-%d: Done", __FUNCTION__, __LINE__);
                 return;

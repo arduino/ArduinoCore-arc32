@@ -111,8 +111,11 @@ uint8_t profile_discover_process(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params)
 {
+    uint8_t ret = BT_GATT_ITER_STOP;
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
-    return BLEProfileManager::instance()->discoverResponseProc(conn, attr, params);
+    ret = BLEProfileManager::instance()->discoverResponseProc(conn, attr, params);
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    return ret;
 }
 
 // GATT Client only
@@ -133,7 +136,19 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
     chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->single.handle);
     
     chrc->setValue((const unsigned char *)data, length);
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     return BT_GATT_ITER_STOP;
+}
+
+uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
+                                 int err,
+                                 bt_gatt_read_params_t *params,
+                                 const void *data, 
+                                 uint16_t length)
+{
+    uint8_t ret = BLEProfileManager::instance()->serviceReadRspProc(conn, err, params, data, length);
+    pr_debug(LOG_MODULE_BLE, "%s-%d:ret-%d", __FUNCTION__, __LINE__, ret);
+    return ret;
 }
 
 

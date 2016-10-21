@@ -122,7 +122,15 @@ public:
 protected:
     friend class BLEDevice;
     friend class BLEServiceImp;
+    friend class BLEProfileManager;
+    friend uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
+                                                    int err,
+                                                    bt_gatt_read_params_t *params,
+                                                    const void *data, 
+                                                    uint16_t length);
+
     BLEService(BLEServiceImp* serviceImp, const BLEDevice* bledev);
+    BLEService(const bt_uuid_t* uuid);
     void setServiceImp(BLEServiceImp* serviceImp);
 private:
     BLEServiceImp* getServiceImp();

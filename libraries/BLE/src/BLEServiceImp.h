@@ -52,9 +52,13 @@ public:
      * @note  none
      */
     int addCharacteristic(BLEDevice& bledevice, BLECharacteristic& characteristic);
-    
+    int addCharacteristic(BLEDevice& bledevice, 
+                          const bt_uuid_t* uuid, 
+                          uint16_t handle, 
+                          unsigned char properties);
     int getCharacteristicCount();
 
+    BLECharacteristicImp* characteristic(const bt_uuid_t* uuid);
     BLECharacteristicImp* characteristic(const char* uuid);
     BLECharacteristicImp* characteristic(int index);
     BLECharacteristicImp* characteristic(uint16_t handle);
@@ -67,6 +71,7 @@ public:
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
+    bool discovering();
 protected:
     friend class BLEProfileManager;
     
