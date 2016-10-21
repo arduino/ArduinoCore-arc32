@@ -89,7 +89,7 @@ int bt_uuid_cmp(const struct bt_uuid *u1, const struct bt_uuid *u2)
 
 	switch (u1->type) {
 	case BT_UUID_TYPE_16:
-		return (int)BT_UUID_16(u1)->val - (int)BT_UUID_16(u2)->val;
+		return memcmp(&BT_UUID_16(u1)->val, &BT_UUID_16(u2)->val, 2);//(int)BT_UUID_16(u1)->val - (int)BT_UUID_16(u2)->val;
 	case BT_UUID_TYPE_128:
 		return memcmp(BT_UUID_128(u1)->val, BT_UUID_128(u2)->val, 16);
 	}
