@@ -346,6 +346,30 @@ BLECharacteristicImp* BLEProfileManager::characteristic(const BLEDevice &bledevi
     return characteristicImp;
 }
 
+BLECharacteristicImp* BLEProfileManager::characteristic(const BLEDevice &bledevice, uint16_t handle)
+{
+    BLECharacteristicImp* characteristicImp = NULL;
+    BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(bledevice);
+    if (NULL == serviceHeader)
+    {
+        // Doesn't find the service
+        return NULL;
+    }
+    
+    BLEServiceNodePtr node = serviceHeader->next;
+    while (node != NULL)
+    {
+        BLEServiceImp *service = node->value;
+        characteristicImp = service->characteristic(handle);
+        if (NULL != characteristicImp)
+        {
+            break;
+        }
+        node = node->next;
+    }
+    return characteristicImp;
+}
+
 BLECharacteristicImp* BLEProfileManager::characteristic(const BLEDevice &bledevice, 
                                                         const char* uuid, 
                                                         int index)
@@ -846,214 +870,5 @@ uint8_t BLEProfileManager::serviceReadRspProc(bt_conn_t *conn,
     return BT_GATT_ITER_STOP;
 }
 
-#if 0
-void BLEProfileManager::characteristicDiscoverRsp(const bt_gatt_attr_t *attr, BLEAttribute* bleattr)
-{
-    bt_gatt_attr_t *attr_dec = declarationAttr(bleattr);
-    if ((NULL != attr) && (NULL != attr_dec))
-    {
-        if (bt_uuid_cmp (attr_dec->uuid, attr->uuid) == 0)
-        {
-            attr_dec++;
-            attr_dec->handle = attr->handle + 1;
-        }
-    }
-    bleattr->discover(attr, &_discover_params);
-}
-
-void BLEProfileManager::descriptorDiscoverRsp(const bt_gatt_attr_t *attr, BLEAttribute* bleattr)
-{
-    int err;
-    bt_gatt_attr_t *attr_dec = declarationAttr(bleattr);
-    if (BLETypeCharacteristic == bleattr->type())
-    {
-        BLECharacteristic *chrc = (BLECharacteristic *)bleattr;
-        if (bt_uuid_cmp (chrc->getClientCharacteristicConfigUuid(), attr->uuid) == 0)
-        {
-            //CCCD
-            bt_gatt_attr_t *attr_chrc = attr_dec + 1;
-            bt_gatt_attr_t *attr_cccd = attr_dec + 2;
-            bt_gatt_subscribe_params_t *sub_param_tmp = chrc->getSubscribeParams();
-            bt_gatt_subscribe_params_t *sub_param = _sub_param + _sub_param_idx;
-            bt_conn_t *conn = bt_conn_lookup_addr_le(_peripheral->bt_le_address());
-            if (NULL == conn)
-            {
-                // Link lost
-                return;
-            }
-            
-            _sub_param_idx++;
-            attr_cccd->handle = attr->handle;
-            memcpy(sub_param, sub_param_tmp, sizeof(bt_gatt_subscribe_params_t));
-            sub_param->ccc_handle = attr_cccd->handle;
-            sub_param->value_handle = attr_chrc->handle;
-            
-            // Enable CCCD to allow peripheral send Notification/Indication
-            err = bt_gatt_subscribe(conn, sub_param);
-            bt_conn_unref(conn);
-            if (err && err != -EALREADY)
-            {
-                pr_debug(LOG_MODULE_APP, "Subscribe failed (err %d)\n", err);
-            }
-            bleattr->discover(attr, &_discover_params);
-        }
-        else
-        {
-            // Not CCCD
-            //  If want to support more descriptor, 
-            //   change the offset 3 as a loop to search the ATTR
-            bt_gatt_attr_t *attr_descriptor = attr_dec + 3;
-            if (attr_descriptor->uuid != NULL && 
-                bt_uuid_cmp (attr_descriptor->uuid, attr->uuid) == 0)
-            {
-                attr_descriptor->handle = attr->handle;
-            }
-        }
-    }
-    else if (BLETypeDescriptor == bleattr->type())
-    {
-        bt_gatt_attr_t *attr_descriptor = attr_dec++; // The descriptor is separate
-        if (bt_uuid_cmp (attr_dec->uuid, attr->uuid) == 0)
-        {
-            attr_descriptor->handle = attr->handle;
-        }
-        bleattr->discover(attr, &_discover_params);
-    }
-}
-
-uint8_t BLEProfileManager::discover(const bt_gatt_attr_t *attr)
-{
-    BLEAttribute* attribute_tmp = NULL;
-    int i;
-    int err;
-    uint8_t ret = BT_GATT_ITER_STOP;
-    bool send_discover = false;
-    
-    for (i = 0; i < _num_attributes; i++)
-    {
-        // Find the discovering attribute
-        attribute_tmp = _attributes[i];
-        if (attribute_tmp->discovering())
-        {
-            if (NULL == attr)
-            {
-                attribute_tmp->discover(attr, &_discover_params);
-                break;
-            }
-            // Discover success
-            switch (_discover_params.type)
-            {
-                case BT_GATT_DISCOVER_CHARACTERISTIC:
-                {
-                    characteristicDiscoverRsp(attr, attribute_tmp);
-                    send_discover = true;
-                    break;
-                }
-                case BT_GATT_DISCOVER_DESCRIPTOR:
-                {
-                    descriptorDiscoverRsp(attr, attribute_tmp);
-                    break;
-                }
-                case BT_GATT_DISCOVER_PRIMARY:
-                    send_discover = true;
-                default:
-                {
-                    attribute_tmp->discover(attr, &_discover_params);
-                    break;
-                }
-            }
-            break;
-        }
-    }
-    
-    //  Find next attribute to discover
-    if (attribute_tmp->discovering() == false)
-    {
-        // Current attribute complete discovery
-        i++;
-        while (i < _num_attributes)
-        {
-            attribute_tmp = _attributes[i];
-            if (attribute_tmp->type() == BLETypeDescriptor)
-            {
-                // The descriptor may have been discovered by previous descriptor
-                bt_gatt_attr_t *attr_gatt = NULL;
-                for (int j = 0; j < _attr_index; j++)
-                {
-                    attr_gatt = _attr_base + i;
-                    if (attribute_tmp->uuid() == attr_gatt->uuid)
-                    {
-                        break;
-                    }
-                }
-                
-                if (attr_gatt->handle != 0)
-                {
-                    // Skip discovered descriptor
-                    i++;
-                    continue;
-                }
-            }
-            
-            attribute_tmp->discover(&_discover_params);
-            ret = BT_GATT_ITER_CONTINUE;
-            break;
-        }
-    }
-    else
-    {
-        ret = BT_GATT_ITER_CONTINUE;
-    }
-    
-    // Send the discover request if necessary
-    if (send_discover && attribute_tmp->discovering())
-    {
-        bt_conn_t *conn = bt_conn_lookup_addr_le(_peripheral->bt_le_address());
-        
-        ret = BT_GATT_ITER_STOP;
-        if (NULL == conn)
-        {
-            // Link lost
-            pr_debug(LOG_MODULE_APP, "Can't find connection\n");
-            return ret;
-        }
-        err = bt_gatt_discover(conn, &_discover_params);
-        bt_conn_unref(conn);
-        if (err)
-        {
-            pr_debug(LOG_MODULE_APP, "Discover failed(err %d)\n", err);
-            return ret;
-        }
-    }
-    return ret;
-}
-
-
-void BLEProfileManager::discover()
-{
-    int err;
-    BLEService *serviceattr = (BLEService *)_attributes[0];
-    bt_conn_t *conn = bt_conn_lookup_addr_le(_peripheral->bt_le_address());
-    
-    if (NULL == conn)
-    {
-        // Link lost
-        pr_debug(LOG_MODULE_APP, "Can't find connection\n");
-        return;
-    }
-    
-    // Reset start handle
-    _discover_params.start_handle = 0x0001;
-    serviceattr->discover(&_discover_params);
-    
-    err = bt_gatt_discover(conn, &_discover_params);
-    bt_conn_unref(conn);
-    if (err)
-    {
-        pr_debug(LOG_MODULE_APP, "Discover failed(err %d)\n", err);
-        return;
-    }
-}
-#endif
 
 

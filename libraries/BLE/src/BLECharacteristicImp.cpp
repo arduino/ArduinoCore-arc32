@@ -38,6 +38,7 @@ BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid,
     _cccd_handle(0),
     _attr_chrc_value(NULL),
     _attr_cccd(NULL),
+    _subscribed(false),
     _ble_device()
 {
     _value_size = BLE_MAX_ATTR_DATA_LEN;// Set as MAX value. TODO: long read/write need to twist
@@ -100,6 +101,7 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
     _cccd_handle(0),
     _attr_chrc_value(NULL),
     _attr_cccd(NULL),
+    _subscribed(false),
     _ble_device()
 {
     unsigned char properties = characteristic._properties;
@@ -270,7 +272,117 @@ bool BLECharacteristicImp::valueUpdated()
 bool
 BLECharacteristicImp::subscribed()
 {
-    return (_gatt_chrc.properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE));
+    return _subscribed;
+}
+
+bool BLECharacteristicImp::canNotify()
+{
+    if (false == BLEUtils::isLocalBLE(_ble_device))
+    {
+        // GATT server can't subscribe
+        return false;
+    }
+    return (_ccc_value.value & BT_GATT_CCC_NOTIFY);
+}
+
+bool BLECharacteristicImp::canIndicate()
+{
+    if (false == BLEUtils::isLocalBLE(_ble_device))
+    {
+        // GATT server can't subscribe
+        return false;
+    }
+    return (_ccc_value.value & BT_GATT_CCC_INDICATE);
+}
+
+bool BLECharacteristicImp::unsubscribe(void)
+{
+    int retval = 0;
+    bt_conn_t* conn = NULL;
+    
+    if (true == BLEUtils::isLocalBLE(_ble_device))
+    {
+        // GATT server can't subscribe
+        return false;
+    }
+    
+    if (false == _subscribed)
+    {
+        return true;
+    }
+    
+    _sub_params.value = 0;
+    
+    if (0 == (_gatt_chrc.properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE)))
+    {
+        // The characteristic not support the Notify and Indicate
+        return false;
+    }
+    
+    conn = bt_conn_lookup_addr_le(_ble_device.bt_le_address());
+    if (NULL == conn)
+    {
+        return false;
+    }
+    
+    bt_addr_le_copy(&_sub_params._peer, bt_conn_get_dst(conn));
+    _sub_params.ccc_handle = _cccd_handle;
+    _sub_params.value_handle = _value_handle;
+    
+    // Enable CCCD to allow peripheral send Notification/Indication
+    retval = bt_gatt_unsubscribe(conn, &_sub_params);
+    bt_conn_unref(conn);
+    if (0 == retval)
+    {
+        _subscribed = false;
+    }
+    return _subscribed;
+}
+
+bool BLECharacteristicImp::subscribe(void)
+{
+    int retval = 0;
+    bt_conn_t* conn = NULL;
+    
+    if (true == BLEUtils::isLocalBLE(_ble_device))
+    {
+        // GATT server can't subscribe
+        return false;
+    }
+    
+    if (_gatt_chrc.properties & BT_GATT_CHRC_NOTIFY)
+    {
+        _sub_params.value |= BT_GATT_CCC_NOTIFY;
+    }
+    
+    if (_gatt_chrc.properties & BT_GATT_CHRC_INDICATE)
+    {
+        _sub_params.value |= BT_GATT_CCC_INDICATE;
+    }
+    
+    if (_sub_params.value == 0)
+    {
+        return false;
+    }
+    
+    conn = bt_conn_lookup_addr_le(_ble_device.bt_le_address());
+    if (NULL == conn)
+    {
+        return false;
+    }
+    
+    bt_addr_le_copy(&_sub_params._peer, bt_conn_get_dst(conn));
+    _sub_params.ccc_handle = _cccd_handle;
+    _sub_params.value_handle = _value_handle;
+    
+    // Enable CCCD to allow peripheral send Notification/Indication
+    retval = bt_gatt_subscribe(conn, &_sub_params);
+    bt_conn_unref(conn);
+    if (0 == retval)
+    {
+        _subscribed = true;
+    }
+    return _subscribed;
 }
 
 void
@@ -505,7 +617,7 @@ int BLECharacteristicImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
     index++;
     counter++;
     
-    if (this->subscribed())
+    if (0 != (_gatt_chrc.properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE)))
     {
         // Descriptor
         memset(start, 0, sizeof(bt_gatt_attr_t));

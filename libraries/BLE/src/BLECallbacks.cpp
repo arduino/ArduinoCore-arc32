@@ -97,12 +97,14 @@ uint8_t profile_notify_process (bt_conn_t *conn,
     //BLEAttribute* notifyatt = peripheral->attribute(params); // Find attribute by params
     BLECharacteristicImp* chrc = NULL;
     BLEDevice bleDevice(bt_conn_get_dst(conn));
-    BLEProfileManager::instance()->characteristic(bleDevice, params->value_handle);
+    chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->value_handle);
     
     //assert(notifyatt->type() == BLETypeCharacteristic);
     pr_debug(LOG_MODULE_APP, "%s1", __FUNCTION__);
-    
-    chrc->setValue((const unsigned char *)data, length);
+    if (NULL != chrc)
+    {
+        chrc->setValue((const unsigned char *)data, length);
+    }
     return BT_GATT_ITER_CONTINUE;
 }
 

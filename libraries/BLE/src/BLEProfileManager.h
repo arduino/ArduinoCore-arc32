@@ -89,6 +89,8 @@ public:
                                          const char* uuid);
     BLECharacteristicImp* characteristic(const BLEDevice &bledevice, 
                                          int index);
+    BLECharacteristicImp* characteristic(const BLEDevice &bledevice, 
+                                         uint16_t handle);
     BLEServiceImp* service(const BLEDevice &bledevice, const char * uuid) const;
     BLEServiceImp* service(const BLEDevice &bledevice, int index) const;
     BLEServiceImp* service(const BLEDevice &bledevice, const bt_uuid_t* uuid) const;
