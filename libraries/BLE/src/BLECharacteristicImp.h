@@ -127,6 +127,10 @@ public:
      */
     bool subscribed(void);
     bool canNotify();
+    bool canIndicate();
+    
+    bool subscribe(void);
+    bool unsubscribe(void);
 
     /**
      * Provide a function to be called when events related to this Characteristic are raised
@@ -162,12 +166,11 @@ public:
     bool write(const unsigned char value[], 
                uint16_t length);
 
-    void setCCCDHandle(uint16_t handle);
-    void setHandle(uint16_t handle);
     int descriptorCount() const;
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
+    
     bool discoverAttributes(BLEDevice* device);
     
     BLEDescriptorImp* descrptor(const bt_uuid_t* uuid);
@@ -284,6 +287,9 @@ protected:
    bt_gatt_subscribe_params_t* getSubscribeParams();
 
 private:
+    
+    void setCCCDHandle(uint16_t handle);
+    void setHandle(uint16_t handle);
     void _setValue(const uint8_t value[], uint16_t length);
     bool isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid);
 
@@ -311,6 +317,7 @@ private:
     
     // For GATT Client to subscribe the Notification/Indication
     bt_gatt_subscribe_params_t _sub_params;
+    bool        _subscribed;
     
     bool _reading;
     bt_gatt_read_params_t _read_params; // GATT read parameter

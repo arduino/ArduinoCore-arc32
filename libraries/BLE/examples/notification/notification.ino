@@ -50,19 +50,26 @@ i++;
     Serial.println(central.address());
 
     Serial.print(temp);
+    
+    unsigned char ledstate = 0;
 
     while (central.connected()) {
       // central still connected to peripheral
-      if (switchCharacteristic.written()) {
-        char ledValue = *switchCharacteristic.value();
-        // central wrote new value to characteristic, update LED
-        if (ledValue) {
-          Serial.println(F("LED on"));
-          digitalWrite(LED_PIN, HIGH);
-        } else {
-          Serial.println(F("LED off"));
-          digitalWrite(LED_PIN, LOW);
+      if (switchCharacteristic.canNotify()) 
+      {
+        
+        if (ledstate == 1)
+        {
+            ledstate = 0;
+            digitalWrite(LED_PIN, LOW);
         }
+        else
+        {
+            ledstate = 1;
+            digitalWrite(LED_PIN, HIGH);
+        }
+        switchCharacteristic.writeValue(&ledstate, sizeof(ledstate));
+        delay(5000);
       }
     }
 

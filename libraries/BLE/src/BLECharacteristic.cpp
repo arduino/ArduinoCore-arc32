@@ -127,7 +127,7 @@ bool BLECharacteristic::writeValue(const byte value[], int length)
     
     if (NULL != characteristicImp)
     {
-        characteristicImp->setValue((const unsigned char *)value, (uint16_t)length);
+        characteristicImp->writeValue(value, length);
         retVar = true;
     }
     return retVar;
@@ -189,8 +189,14 @@ bool BLECharacteristic::canNotify()
 
 bool BLECharacteristic::canIndicate()
 {
-    // TODO: Need more confirmation
-    return false;
+    bool retVar = false;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        retVar = characteristicImp->canIndicate();
+    }
+    return retVar;
 }
 
 bool BLECharacteristic::canRead()
@@ -245,8 +251,7 @@ bool BLECharacteristic::subscribe()
     
     if (NULL != characteristicImp)
     {
-        // TODO: Central feature. Peripheral first
-        //retVar = characteristicImp->s();
+        retVar = characteristicImp->subscribe();
     }
     return retVar;
 }
@@ -258,8 +263,7 @@ bool BLECharacteristic::unsubscribe()
     
     if (NULL != characteristicImp)
     {
-        // TODO: Central feature
-        //retVar = characteristicImp->canNotify();
+        retVar = characteristicImp->unsubscribe();
     }
     return retVar;
 }

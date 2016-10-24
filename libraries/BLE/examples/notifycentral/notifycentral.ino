@@ -53,23 +53,24 @@ void controlLed(BLEDevice &peripheral)
         }
         return;
     } 
+      ledCharacteristic.subscribe();
       
-      
-      unsigned char ledstate = 0;
 
     discovered = false;
     while (peripheral.connected())
     {
-        if (ledstate == 1)
+        if (ledCharacteristic.valueUpdated())
         {
-            ledstate = 0;
+            char ledValue = *ledCharacteristic.value();
+        
+            if (ledValue) {
+              Serial.println(F("LED on"));
+              digitalWrite(LED_PIN, HIGH);
+            } else {
+              Serial.println(F("LED off"));
+              digitalWrite(LED_PIN, LOW);
+            }
         }
-        else
-        {
-            ledstate = 1;
-        }
-        ledCharacteristic.write(&ledstate, sizeof(ledstate));
-        delay(5000);
     }
     Serial.print("Disconnected");
     Serial.println(peripheral.address());
