@@ -56,7 +56,7 @@ BLEDevice::BLEDevice(const bt_addr_le_t* bleaddress):
 BLEDevice::BLEDevice(const BLEDevice* bleaddress)
 {
     memcpy(&_bt_addr, bleaddress->bt_le_address(), sizeof(bt_addr_le_t));
-    memcpy(&_conn_param, bleaddress->bt_conn_param(), sizeof (ble_conn_param_t));
+    memcpy(&_conn_param, &bleaddress->_conn_param, sizeof (ble_conn_param_t));
 }
 
 BLEDevice::~BLEDevice()
@@ -409,7 +409,7 @@ BLECharacteristic BLEDevice::characteristic(const char * uuid, int index) const
 void BLEDevice::setEventHandler(BLEDeviceEvent event, 
                                 BLEDeviceEventHandler eventHandler)
 {
-    // TODO:
+    BLEDeviceManager::instance()->setEventHandler(event, eventHandler);
 }
 
 const bt_addr_le_t* BLEDevice::bt_le_address() const

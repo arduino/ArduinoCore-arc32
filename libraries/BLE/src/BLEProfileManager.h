@@ -104,6 +104,7 @@ public:
     bool discoverAttributes(BLEDevice* device);
     bool discoverService(BLEDevice* device, const bt_uuid_t* svc_uuid);
     void handleConnectedEvent(const bt_addr_le_t* deviceAddr);
+    void handleDisconnectedEvent(const bt_addr_le_t* deviceAddr);
     uint8_t serviceReadRspProc(bt_conn_t *conn, 
                                int err,
                                bt_gatt_read_params_t *params,
@@ -172,7 +173,7 @@ private:
      *
      * @note  none
      */
-    void clearProfile(BLEDevice &bledevice);
+    void clearProfile(BLEServiceLinkNodeHeader* serviceHeader);
     
     void readService(const BLEDevice &bledevice, uint16_t handle);
     bool discovering();

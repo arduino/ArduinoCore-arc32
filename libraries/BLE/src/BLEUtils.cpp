@@ -21,7 +21,7 @@ void BLEUtils::macAddressString2BT(const char* mac_str, bt_addr_le_t &bd_addr)
     
     bd_addr.type = BT_ADDR_LE_PUBLIC;
 
-    for (int i = strLength - 1; i >= 0 && length < MAX_UUID_SIZE; i -= 2)
+    for (int i = strLength - 1; i >= 0 && length < BLE_ADDR_LEN; i -= 2)
     {
         if (mac_str[i] == ':') 
         {

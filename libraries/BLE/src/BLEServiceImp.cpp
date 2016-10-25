@@ -74,7 +74,7 @@ int BLEServiceImp::addCharacteristic(BLEDevice& bledevice, BLECharacteristic& ch
     BLECharacteristicNodePtr node = link_node_create(characteristicImp);
     if (NULL == node)
     {
-        delete[] characteristicImp;
+        delete characteristicImp;
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_characteristics_header, node);
@@ -106,7 +106,7 @@ int BLEServiceImp::addCharacteristic(BLEDevice& bledevice,
     BLECharacteristicNodePtr node = link_node_create(characteristicImp);
     if (NULL == node)
     {
-        delete[] characteristicImp;
+        delete characteristicImp;
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_characteristics_header, node);
@@ -165,14 +165,15 @@ int BLEServiceImp::getCharacteristicCount()
 void BLEServiceImp::releaseCharacteristic()
 {
     BLECharacteristicNodePtr node = link_node_get_first(&_characteristics_header);
-    
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     while (NULL != node)
     {
         BLECharacteristicImp* characteristicImp = node->value;
-        delete[] characteristicImp;
+        delete characteristicImp;
         link_node_remove_first(&_characteristics_header);
         node = link_node_get_first(&_characteristics_header);
     }
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 }
 
 
