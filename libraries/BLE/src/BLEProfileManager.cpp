@@ -102,7 +102,7 @@ BLEProfileManager::addService (BLEDevice &bledevice, BLEService& service)
     BLEServiceNodePtr node = link_node_create(serviceImp);
     if (NULL == node)
     {
-        delete[] serviceImp;
+        delete serviceImp;
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(serviceheader, node);
@@ -296,9 +296,8 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     return ret;
 }
 
-void BLEProfileManager::clearProfile(BLEDevice &bledevice)
+void BLEProfileManager::clearProfile(BLEServiceLinkNodeHeader* serviceHeader)
 {
-    BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(bledevice);
     if (NULL == serviceHeader)
     {
         return;
@@ -309,7 +308,7 @@ void BLEProfileManager::clearProfile(BLEDevice &bledevice)
     while (NULL != node)
     {
         BLEServiceImp *service = node->value;
-        delete[] service;
+        delete service;
         link_node_remove_first(serviceHeader);
         node = link_node_get_first(serviceHeader);
     }
@@ -494,6 +493,27 @@ void BLEProfileManager::handleConnectedEvent(const bt_addr_le_t* deviceAddr)
         return;
     }
     bt_addr_le_copy(&_addresses[index], deviceAddr);
+}
+
+void BLEProfileManager::handleDisconnectedEvent(const bt_addr_le_t* deviceAddr)
+{    
+    BLEServiceLinkNodeHeader* serviceheader = NULL;
+    int i;
+    for (i = 0; i < BLE_MAX_CONN_CFG; i++)
+    {
+        if ((bt_addr_le_cmp(deviceAddr, &_addresses[i]) == 0))
+        {
+            break;
+        }
+    }
+    if (i >= BLE_MAX_CONN_CFG)
+    {
+        return;
+    }
+    
+    serviceheader = &_service_header_array[i];
+    clearProfile(serviceheader);
+    memset(&_addresses[i], 0, sizeof(bt_addr_le_t));
 }
 
 bool BLEProfileManager::discoverAttributes(BLEDevice* device)

@@ -19,12 +19,17 @@
 #include "BLEDescriptor.h"
 #include "BLEUtils.h"
 
-BLEDescriptor::BLEDescriptor()
-{}
+BLEDescriptor::BLEDescriptor():
+    _properties(0),
+    _value_size(0),
+    _value(NULL)
+{
+    memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
+}
 
 BLEDescriptor::BLEDescriptor(const char* uuid, 
                              const unsigned char value[], 
-                             unsigned char valueLength):
+                             unsigned short valueLength):
     _bledev()
 {
     bt_uuid_128_t uuid_tmp;

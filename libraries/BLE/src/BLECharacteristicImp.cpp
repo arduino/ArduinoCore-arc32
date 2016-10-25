@@ -143,7 +143,16 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
         _sub_params.value |= BT_GATT_CCC_INDICATE;
     }
     _gatt_chrc.uuid = (bt_uuid_t*)this->bt_uuid();//&_characteristic_uuid;//this->uuid();
-    memset(_event_handlers, 0, sizeof(_event_handlers));
+    if (NULL != characteristic._event_handlers)
+    {
+        memcpy(_event_handlers, 
+               characteristic._event_handlers, 
+               sizeof(_event_handlers));
+    }
+    else
+    {
+        memset(_event_handlers, 0, sizeof(_event_handlers));
+    }
     
     _sub_params.notify = profile_notify_process;
     
@@ -182,6 +191,7 @@ BLECharacteristicImp::properties() const
 bool BLECharacteristicImp::writeValue(const byte value[], int length)
 {
     int status;
+    bool retVal = false;
     
     _setValue(value, length);
     
@@ -192,16 +202,16 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length)
     {
         // Notify for peripheral.
         status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
-        if (0 != status)
+        if (0 == status)
         {
-            return false;
+            retVal = true;
         }
     }
     
     //Not schedule write request for central
     // The write request may failed. 
     // If user want to get latest set value. Call read and get the real value
-    return true;
+    return retVal;
 }
 
 bool
@@ -389,7 +399,7 @@ void
 BLECharacteristicImp::setEventHandler(BLECharacteristicEvent event, BLECharacteristicEventHandler callback)
 {
     noInterrupts();
-    if (event < sizeof(_event_handlers)) {
+    if (event < BLECharacteristicEventLast) {
         _event_handlers[event] = callback;
     }
     interrupts();
@@ -666,7 +676,7 @@ int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
     BLEDescriptorNodePtr node = link_node_create(descriptorImp);
     if (NULL == node)
     {
-        delete[] descriptorImp;
+        delete descriptorImp;
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_descriptors_header, node);
@@ -693,7 +703,7 @@ int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid,
     BLEDescriptorNodePtr node = link_node_create(descriptorImp);
     if (NULL == node)
     {
-        delete[] descriptorImp;
+        delete descriptorImp;
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_descriptors_header, node);
@@ -736,7 +746,7 @@ void BLECharacteristicImp::releaseDescriptors()
     while (NULL != node)
     {
         BLEDescriptorImp* descriptorImp = node->value;
-        delete[] descriptorImp;
+        delete descriptorImp;
         link_node_remove_first(&_descriptors_header);
         node = link_node_get_first(&_descriptors_header);
     }

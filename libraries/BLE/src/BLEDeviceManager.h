@@ -100,6 +100,8 @@ class BLEDeviceManager
      */
     bool disconnect(BLEDevice *device);
     
+    void setEventHandler(BLEDeviceEvent event, 
+                         BLEDeviceEventHandler eventHandler);
     /**
      * @brief   Set the service UUID that the BLE Peripheral Device advertises
      *
@@ -412,6 +414,8 @@ private:
     // Connected device object
     bt_addr_le_t _peer_central;
     bt_addr_le_t _peer_peripheral[BLE_MAX_CONN_CFG];
+
+    BLEDeviceEventHandler _device_events[BLEDeviceLastEvent];
 };
 
 #endif

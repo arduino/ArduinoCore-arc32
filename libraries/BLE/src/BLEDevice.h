@@ -28,12 +28,12 @@
 //class BLEDevice;
 
 enum BLEDeviceEvent {
-  BLEDiscovered = 0,        // Discover profile completed
-  BLEConnected = 1,         // BLE device connected
-  BLEDisconnected = 2,      // BLE device disconnected 
-  BLEConParamUpdate = 3,    // Update the connection parameter 
+  BLEConnected = 0,         // BLE device connected
+  BLEDisconnected = 1,      // BLE device disconnected 
+  BLEConParamUpdate = 2,    // Update the connection parameter 
                             //  Connection update request in central
                             //  Connection parameter updated in peripheral
+  BLEDeviceLastEvent
 };
 
 typedef void (*BLEDeviceEventHandler)(BLEDevice& device);

@@ -9,15 +9,16 @@
 
 BLECharacteristic::BLECharacteristic():
     _bledev(), _internal(NULL), _properties(0), 
-    _value_size(0), _value(NULL)
+    _value_size(0), _value(NULL),_event_handlers(NULL)
 {
     memset(_uuid_cstr, 0, sizeof(_uuid_cstr));
 }
 
 BLECharacteristic::BLECharacteristic(const char* uuid, 
                                      unsigned char properties, 
-                                     unsigned char valueSize):
-    _bledev(), _internal(NULL), _properties(properties), _value(NULL)
+                                     unsigned short valueSize):
+    _bledev(), _internal(NULL), _properties(properties), _value(NULL),
+    _event_handlers(NULL)
 {
     bt_uuid_128 bt_uuid_tmp;
     _value_size = valueSize > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : valueSize;
@@ -37,7 +38,7 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
 BLECharacteristic::BLECharacteristic(BLECharacteristicImp *characteristicImp,
                                      const BLEDevice *bleDev):
     _bledev(bleDev), _internal(characteristicImp), 
-    _value(NULL)
+    _value(NULL),_event_handlers(NULL)
 {
     BLEUtils::uuidBT2String(characteristicImp->bt_uuid(), _uuid_cstr);
     _properties = characteristicImp->properties();
@@ -50,6 +51,12 @@ BLECharacteristic::~BLECharacteristic()
     {
         bfree(_value);
         _value = NULL;
+    }
+    
+    if (_event_handlers != NULL)
+    {
+        bfree(_event_handlers);
+        _event_handlers = NULL;
     }
 }
 
@@ -329,9 +336,33 @@ BLEDescriptor BLECharacteristic::descriptor(const char * uuid, int index) const
     // TODO: Not support now
     return BLEDescriptor();
 }
+
 void BLECharacteristic::setEventHandler(BLECharacteristicEvent event, 
                                         BLECharacteristicEventHandler eventHandler)
-{}
+{
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    if (event >= BLECharacteristicEventLast)
+    {
+        return;
+    }
+    
+    if (NULL != characteristicImp)
+    {
+        characteristicImp->setEventHandler(event, eventHandler);
+    }
+    else
+    {
+        if (_event_handlers == NULL)
+        {
+            _event_handlers = (BLECharacteristicEventHandler*)balloc(sizeof(BLECharacteristicEventHandler) * BLECharacteristicEventLast, NULL);
+        }
+        
+        if (_event_handlers != NULL)
+        {
+            _event_handlers[event] = eventHandler;
+        }
+    }
+}
 
 
 void

@@ -28,7 +28,7 @@ class BLEDescriptor
 {
   public:
     BLEDescriptor();
-    BLEDescriptor(const char* uuid, const unsigned char value[], unsigned char valueLength); // create a descriptor the specified uuid and value
+    BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength); // create a descriptor the specified uuid and value
     BLEDescriptor(const char* uuid, const char* value); // create a descriptor the specified uuid and string value
 
     virtual ~BLEDescriptor();
@@ -91,7 +91,7 @@ private:
     
     unsigned char _properties;      // The characteristic property
     
-    unsigned char _value_size;       // The value size
+    unsigned short _value_size;       // The value size
     unsigned char* _value;          // The value. Will delete after create the _internal
 };
 

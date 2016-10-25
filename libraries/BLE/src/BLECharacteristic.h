@@ -69,7 +69,7 @@ public:
      */
     BLECharacteristic(const char* uuid, 
                       unsigned char properties, 
-                      unsigned char valueSize);
+                      unsigned short valueSize);
     
     /**
      * @brief   Create a characteristic with string value
@@ -498,8 +498,10 @@ protected:
     friend class BLECharacteristicImp;
     unsigned char _properties;      // The characteristic property
     
-    unsigned char _value_size;       // The value size
+    unsigned short _value_size;       // The value size
     unsigned char* _value;          // The value. Will delete after create the _internal
+    
+    BLECharacteristicEventHandler* _event_handlers;
 };
 
 #endif

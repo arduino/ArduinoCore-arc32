@@ -68,6 +68,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(&_adv_accept_critical, 0, sizeof(_adv_accept_critical));
     
     memset(_peer_peripheral, 0, sizeof(_peer_peripheral));
+    memset(_device_events, 0, sizeof(_device_events));
 }
 
 BLEDeviceManager::~BLEDeviceManager()
@@ -383,7 +384,9 @@ BLEDevice BLEDeviceManager::peripheral()
 }
 
 void BLEDeviceManager::linkLost()
-{}
+{
+    
+}
 
 bool BLEDeviceManager::startScanning()
 {
@@ -405,7 +408,7 @@ bool BLEDeviceManager::startScanningWithDuplicates()
 bool BLEDeviceManager::stopScanning()
 {
     int err = bt_le_scan_stop();
-    if (err)
+    if (0 != err)
     {
         pr_info(LOG_MODULE_BLE, "Stop LE scan failed (err %d)\n", err);
         return false;
@@ -531,6 +534,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
     bool retval = false;
     
     pr_debug(LOG_MODULE_BLE, "%s-%d-1", __FUNCTION__, __LINE__);
+    
     // Find free peripheral Items
     for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
     {
@@ -555,7 +559,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
     }
     pr_debug(LOG_MODULE_BLE, "%s-%d:link_existed-%d unused-%p", __FUNCTION__, __LINE__, link_existed, unused);
     
-    if (!link_existed)
+    if (!link_existed && NULL != unused)
     {
     pr_debug(LOG_MODULE_BLE, "%s-%d-Device:%s", __FUNCTION__, __LINE__, device.address().c_str());
         // Send connect request
@@ -589,6 +593,13 @@ BLEDeviceManager* BLEDeviceManager::instance()
     return _instance;
 }
 
+void BLEDeviceManager::setEventHandler(BLEDeviceEvent event, 
+                                       BLEDeviceEventHandler eventHandler)
+{
+    if (event < BLEDeviceLastEvent)
+        _device_events[event] = eventHandler;
+}
+
 void BLEDeviceManager::handleConnectEvent(bt_conn_t *conn, uint8_t err)
 {
     struct bt_conn_info role_info;
@@ -605,6 +616,12 @@ void BLEDeviceManager::handleConnectEvent(bt_conn_t *conn, uint8_t err)
         // Peripheral has established the connection with this Central device
         BLEProfileManager::instance()->handleConnectedEvent(bt_conn_get_dst(conn));
     }
+    
+    if (NULL != _device_events[BLEConnected])
+    {
+        BLEDevice tempdev(bt_conn_get_dst(conn));
+        _device_events[BLEConnected](tempdev);
+    }
 }
 
 void BLEDeviceManager::handleDisconnectEvent(bt_conn_t *conn, uint8_t reason)
@@ -619,7 +636,25 @@ void BLEDeviceManager::handleDisconnectEvent(bt_conn_t *conn, uint8_t reason)
     }
     else
     {
+        bt_addr_le_t* temp   = NULL;
+        const bt_addr_le_t* disConnAddr = bt_conn_get_dst(conn);
+        for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
+        {
+            temp = &_peer_peripheral[i];
+            if (bt_addr_le_cmp(temp, disConnAddr) == 0)
+            {
+                memset(temp, 0, sizeof(bt_addr_le_t));
+                break;
+            }
+        }
         // Peripheral has established the connection with this Central device
+        BLEProfileManager::instance()->handleDisconnectedEvent(bt_conn_get_dst(conn));
+    }
+    
+    if (NULL != _device_events[BLEDisconnected])
+    {
+        BLEDevice tempdev(bt_conn_get_dst(conn));
+        _device_events[BLEDisconnected](tempdev);
     }
 }
 
@@ -628,7 +663,11 @@ void BLEDeviceManager::handleParamUpdated (bt_conn_t *conn,
                                            uint16_t latency, 
                                            uint16_t timeout)
 {
-    
+    if (NULL != _device_events[BLEConParamUpdate])
+    {
+        BLEDevice tempdev(bt_conn_get_dst(conn));
+        _device_events[BLEConParamUpdate](tempdev);
+    }
 }
 
 bool BLEDeviceManager::advertiseDataProc(uint8_t type, 
