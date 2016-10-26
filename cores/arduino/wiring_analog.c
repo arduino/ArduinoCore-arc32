@@ -93,10 +93,14 @@ void analogWrite(uint8_t pin, uint32_t val)
         /* start the PWM output */
         offset = ((p->ulPwmChan * QRK_PWM_N_REGS_LEN) + QRK_PWM_N_CONTROL);
         SET_MMIO_MASK(QRK_PWM_BASE_ADDR + offset, QRK_PWM_CONTROL_ENABLE);
-
-        /* Disable pull-up and set pin mux for PWM output */
-        SET_PIN_PULLUP(p->ulSocPin, 0);
-        SET_PIN_MODE(p->ulSocPin, PWM_MUX_MODE);
+        
+        if(pinmuxMode[pin] != PWM_MUX_MODE)
+        {
+            /* Disable pull-up and set pin mux for PWM output */
+            SET_PIN_PULLUP(p->ulSocPin, 0);
+            SET_PIN_MODE(p->ulSocPin, PWM_MUX_MODE);
+            pinmuxMode[pin] = PWM_MUX_MODE;
+        }
     }
 }
 uint32_t analogRead(uint32_t pin)

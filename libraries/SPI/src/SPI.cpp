@@ -94,7 +94,9 @@ void SPIClass::begin()
         SET_PIN_MODE(g_APinDescription[MOSI].ulSocPin, SPI_MUX_MODE);
         SET_PIN_MODE(g_APinDescription[MISO].ulSocPin, SPI_MUX_MODE);
         SET_PIN_MODE(g_APinDescription[SCK].ulSocPin,  SPI_MUX_MODE);
-
+        pinmuxMode[MISO] = SPI_MUX_MODE;
+        pinmuxMode[MOSI] = SPI_MUX_MODE;
+        pinmuxMode[SCK] = SPI_MUX_MODE;
     }
     initialized++; /* reference count */
     interrupt_unlock(flags);
