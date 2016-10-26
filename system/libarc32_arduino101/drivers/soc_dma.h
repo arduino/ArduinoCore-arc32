@@ -230,8 +230,26 @@ DRIVER_API_RC soc_dma_alloc_list_item(struct soc_dma_xfer_item **ret, struct soc
  *           - DRV_RC_OK on success
  */
 DRIVER_API_RC soc_dma_free_list(struct soc_dma_cfg *cfg);
-
+/**
+ *  Function to initialize the DMA:
+ *
+ *  @param   none
+ *
+ *  @return
+ *           - DRV_RC_OK on success
+ */
 DRIVER_API_RC soc_dma_init();
+/**
+ *  Function to update the source/distination adress for DMAtransfer
+ *
+ *  @param   channel         : pointer to channel object
+ *
+ *  @param   cfg             : pointer to configuration object
+ *
+ *  @return
+ *           - DRV_RC_OK on success
+ */
+DRIVER_API_RC dma_update_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg);
 
 #ifdef __cplusplus
 }

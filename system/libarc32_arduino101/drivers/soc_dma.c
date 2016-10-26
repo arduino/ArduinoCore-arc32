@@ -70,6 +70,7 @@ DRIVER_API_RC soc_dma_start_transfer(struct soc_dma_channel *channel);
 DRIVER_API_RC soc_dma_stop_transfer(struct soc_dma_channel *channel);
 DRIVER_API_RC soc_dma_alloc_list_item(struct soc_dma_xfer_item **ret, struct soc_dma_xfer_item *base);
 DRIVER_API_RC soc_dma_free_list(struct soc_dma_cfg *cfg);
+DRIVER_API_RC dma_update_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg);
 DRIVER_API_RC dma_init();
 
 DECLARE_INTERRUPT_HANDLER static void dma_ch0_interrupt_handler()
@@ -280,6 +281,39 @@ static struct dma_lli *dma_find_ll_end(struct dma_lli *head)
 
 	return t;
 }
+
+DRIVER_API_RC dma_update_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg)
+{
+	struct dma_lli *lli;
+	struct soc_dma_xfer_item *xfer;
+	struct soc_dma_xfer_item *last_xfer;
+	uint8_t list_done;
+
+	if (channel->ll == NULL) 
+	{
+		return DRV_RC_FAIL;
+	}
+          
+	lli = (struct dma_lli *)(channel->ll);
+	xfer = &(cfg->xfer);
+	last_xfer = dma_find_list_end(xfer);
+    
+	list_done = 0;
+    
+	while (!list_done)
+	{
+		lli->sar = (uint32_t)(xfer->src.addr);
+		if ((xfer->next) == last_xfer)
+			list_done = 1;
+		else
+		{  
+			xfer = xfer->next;
+			lli =  (struct dma_lli *)lli->llp;
+		} 
+	} 
+    
+	return DRV_RC_OK;
+} 
 
 static DRIVER_API_RC dma_create_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg)
 {

@@ -64,27 +64,6 @@ int32_t sawtooth[WAV_SIZE] = {0};
 int32_t triangle[WAV_SIZE] = {0};
 int32_t square[WAV_SIZE]   = {0};
 
-#ifdef ARDUINO_ARCH_ARC32
-
-// Create ping pong buffers for streaming audio data out via DMA in foreground while
-// Background fills up the buffers.
-
-#define NUMBER_OF_SAMPLES  256
-
-struct pingpongstruct {
-  int32_t buf[NUMBER_OF_SAMPLES];  // Left and right samples
-  uint16_t empty;
-} ppBuffer[2];
-
-uint16_t i2sRunning = 0;
-uint16_t needKickoff = 0;
-int16_t sendIndex = 0;
-int16_t fillIndex = 0;
-
-uint32_t sendErrorCount = 0;
-uint32_t bufCount;
-#endif
-
 #ifndef ARDUINO_ARCH_ARC32
 /***********************
 // Create I2S audio transmitter object.
@@ -137,96 +116,11 @@ void generateSquare(uint16_t amplitude, int32_t* buffer, uint16_t length) {
   }
 }
 
-#ifdef ARDUINO_ARCH_ARC32
-
-void sendDoneCallback(uint16_t result)
-{
-  if (result)  sendErrorCount++;
-
-  ppBuffer[sendIndex].empty = 1;
-  i2sRunning = 0;
-
-  sendIndex = (sendIndex + 1) & 0x01;
-  needKickoff = (ppBuffer[sendIndex].empty) ? 0 : 1;
-
-  bufCount++;
-}
-
-void kickOff()
-{
-  if (i2sRunning == 0)  // Kick off a transmission only if I2S is not running
-  {
-    int16_t whichBuffer = -1;  // Find a filled buffer
-    if (ppBuffer[sendIndex].empty == 0) {
-      whichBuffer  = sendIndex;
-    }
-    else {
-      int16_t nextBuffer = (sendIndex + 1) & 0x01;
-      if (ppBuffer[nextBuffer].empty == 0) {
-        whichBuffer = nextBuffer;
-      }
-    }
-
-    if (whichBuffer != -1) {    // Found a non-emptied buffer, kick off sending
-      sendIndex = whichBuffer;
-
-      if (I2SOutput.write(ppBuffer[sendIndex].buf, NUMBER_OF_SAMPLES * 4,
-      	 		  4, 0) == SUCCESS) {
-        i2sRunning = 1;
-      }
-      else {    // I2S failed to kick off, skip the buffer
-        ppBuffer[sendIndex].empty = 1;
-        Serial.print("I2SOutput write failed, skipped buffer: ");
-	Serial.println(sendIndex);
-      }
-    }
-    needKickoff = 0;
-  }
-}
-
-void sendSample(int32_t left, int32_t right, uint16_t flush)
-{
-  static int bufIndex = 0;
-
-  ppBuffer[fillIndex].buf[bufIndex++] = left;
-  ppBuffer[fillIndex].buf[bufIndex++] = right;
-
-  if (flush) {
-    while (bufIndex < NUMBER_OF_SAMPLES)
-      ppBuffer[fillIndex].buf[bufIndex++] = 0;
-  }
-
-  if (bufIndex < NUMBER_OF_SAMPLES) {
-    if (needKickoff)
-      kickOff();
-    return;
-  }
-
-  // Buffer is filled
-  ppBuffer[fillIndex].empty = 0;
-  int16_t nextBuffer = (fillIndex + 1) & 0x01;
-
-  while (bufIndex >= NUMBER_OF_SAMPLES) {
-    kickOff();
-
-    if (ppBuffer[nextBuffer].empty == 1) {
-      fillIndex = nextBuffer;
-      bufIndex = 0;
-    }
-  }
-}
-
-#endif
-
-
 
 void playWave(int32_t* buffer, uint16_t length, float frequency, float seconds) {
 #ifdef ARDUINO_ARCH_ARC32
-  bufCount = 0;
-  sendErrorCount = 0;
   // push some silence to get things going
-  for (int i = 0; i < 64; i++)
-    sendSample(0, 0, 0);
+  I2SOutput.write(0, 0, 1);
 #endif
   
   // Play back the provided waveform buffer for the specified
@@ -251,13 +145,13 @@ void playWave(int32_t* buffer, uint16_t length, float frequency, float seconds) 
     // stereo sound.
 
 #ifdef ARDUINO_ARCH_ARC32
-    sendSample(sample, sample, 0);
+    I2SOutput.write(sample, sample);
 #else
     i2s.write(sample);
     i2s.write(sample);
 #endif
   }
-  sendSample(0, 0, 1);
+  I2SOutput.write(0, 0, 1);
 
   Serial.print("Iterations: ");
   Serial.println(iterations);
@@ -272,11 +166,9 @@ void setup() {
 
 #ifdef ARDUINO_ARCH_ARC32
 
-  ppBuffer[0].empty = ppBuffer[1].empty = 1;
   // setup the I2S hardware in the specified mode, sample rate, bits per sample
   // and master/slave mode.
   I2SOutput.begin(SAMPLE_RATE, I2S_32bit, I2S_MODE_PHILLIPS);
-  I2SOutput.attachCallback(sendDoneCallback);
 
 #else
   // Initialize the I2S transmitter.

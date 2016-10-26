@@ -72,7 +72,8 @@ typedef enum {
   SUCCESS = 0,
   I2S_INIT_FAIL,             // I2S controller initialization failure.
   I2S_WRITE_BUSY,            // Previous operation not completed when I2S write is called.
-  I2S_WRITE_FAIL,            // I2S controller write operation failure.
+  I2S_WRITE_DRIVER_FAIL,     // I2S driver write operation failure.
+  I2S_WRITE_FAIL,            // I2S controller failure, check Tx error count.
   I2S_READ_BUSY,             // Previous operation not completed when I2S read is called.
   I2S_READ_FAIL,             // I2S controller read operation failure.
   I2S_MISC_ERROR
