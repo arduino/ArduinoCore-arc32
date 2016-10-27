@@ -71,8 +71,8 @@ recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compil
 recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lnsim -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
 ## Save output with debug symbols (.debug.elf file). Uncomment if you wish to use OpenOCD to debug.
-#recipe.hooks.objcopy.preobjcopy.1.pattern=cp -f "{build.path}/{build.project_name}.elf" "{build.path}/../arduino101_sketch.debug.elf"
-#recipe.hooks.objcopy.preobjcopy.1.pattern.windows=cmd /C copy /y "{build.path}\{build.project_name}.elf" "{build.path}\..\arduino101_sketch.debug.elf"
+recipe.hooks.objcopy.preobjcopy.1.pattern=cp -f "{build.path}/{build.project_name}.elf" "{build.path}/../arduino101_sketch.debug.elf"
+recipe.hooks.objcopy.preobjcopy.1.pattern.windows={runtime.tools.arduino101load.path}/arduino101load/arduino101copy.exe "{build.path}\{build.project_name}.elf" "{build.path}\..\arduino101_sketch.debug.elf"
 
 ## Create output (.bin file)
 recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
