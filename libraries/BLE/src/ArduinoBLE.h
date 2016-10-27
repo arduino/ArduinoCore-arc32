@@ -36,6 +36,10 @@ class BLECharacteristicImp;
 #include "BLEDescriptor.h"
 #include "BLEService.h"
 
+#include "BLETypedCharacteristics.h"
+
+#include "BLECentral.h"
+#include "BLEPeripheral.h"
 
 extern BLEDevice BLE;
 

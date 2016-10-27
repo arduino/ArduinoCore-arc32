@@ -1,9 +1,11 @@
 
 //#include "internal/ble_client.h"
+#include "ArduinoBLE.h"
+
+#include "BLEUtils.h"
 
 #include "BLECharacteristic.h"
 #include "BLEProfileManager.h"
-#include "BLEUtils.h"
 
 #include "BLECharacteristicImp.h"
 
@@ -87,10 +89,10 @@ int BLECharacteristic::valueSize() //const
     return valuesize;
 }
 
-const byte* BLECharacteristic::value() //const
+const byte* BLECharacteristic::value() const
 {
     const byte* value_temp = NULL;
-    BLECharacteristicImp *characteristicImp = getImplementation();
+    BLECharacteristicImp *characteristicImp = _internal;//getImplementation();
     if (NULL != characteristicImp)
     {
         value_temp = characteristicImp->value();
@@ -125,6 +127,11 @@ byte BLECharacteristic::operator[] (int offset) //const
         data = (*characteristicImp)[offset];
     }
     return data;
+}
+
+bool BLECharacteristic::setValue(const unsigned char value[], unsigned short length)
+{
+    return writeValue(value, (int)length);
 }
 
 bool BLECharacteristic::writeValue(const byte value[], int length)
