@@ -144,7 +144,7 @@ public:
      *
      * @note  none
      */
-    virtual const byte* value();//const
+    virtual const byte* value() const;//
     
     /**
      * @brief   Get the current length of the value
@@ -167,6 +167,18 @@ public:
      * @note  none
      */
     virtual byte operator[] (int offset);//const
+
+    /**
+     * Set the current value of the Characteristic
+     *
+     * @param[in] value  New value to set, as a byte array.  Data is stored in internal copy.
+     * @param[in] length Length, in bytes, of valid data in the array to write.
+     *               Must not exceed maxLength set for this characteristic.
+     *
+     * @return bool true set value success, false on error
+     * @note    GATT Server only
+     */
+    bool setValue(const unsigned char value[], unsigned short length);
 
     /**
      * @brief   Write the value of the characteristic

@@ -36,7 +36,7 @@ enum BLEDeviceEvent {
   BLEDeviceLastEvent
 };
 
-typedef void (*BLEDeviceEventHandler)(BLEDevice& device);
+typedef void (*BLEDeviceEventHandler)(BLEDevice device);
 
 class BLEDevice
 {
