@@ -133,18 +133,19 @@ DRIVER_API_RC soc_i2s_deconfig(uint8_t channel);
 DRIVER_API_RC soc_i2s_write(void *buf, int bufSize, int dataSize);
 
 /**
- *  Function to continuously transmit blocks of audio data
+ *  Function to continuously transmit blocks of audio data in round a robin fashion
  *
- *  @param   buf             : pointer to buffer to read data from
- *  @param   len             : length of buffer (in bytes)
- *  @param   num_bufs        : number of parts into which to split the buffer; calling the callback
- *                             after each is sent
+ *  @param   bufPtrArray     : an array of buffer pointers (addresses)
+ *  @param   numBuf          : number of buffers for transmission (in bufPtrArray)
+ *  @param   bufSize         : length of buffer (in bytes)
+ *  @param   dataSize        : data size - 8, 16, 32 bits (in bytes)
  *
  *  @return
  *           - DRV_RC_OK on success
  *           - DRV_RC_FAIL otherwise
  */
-DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int bufSize, int dataSize);
+DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int numBuf, int bufSize,
+				    int dataSize);
 
 /**
  *  Function to stop a continuous audio data write

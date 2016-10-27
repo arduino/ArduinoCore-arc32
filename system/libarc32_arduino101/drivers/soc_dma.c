@@ -578,6 +578,7 @@ DRIVER_API_RC soc_dma_config(struct soc_dma_channel *channel, struct soc_dma_cfg
 	SETV(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_U),
 		SOC_DMA_CFG_U_SRC_PER, SOC_DMA_CFG_U_SRC_PER_LEN, cfg->src_interface);
 
+	// Per I2S controller specification.
 	if ((cfg->src_interface == SOC_DMA_INTERFACE_I2S_RX) ||
 	    (cfg->dest_interface == SOC_DMA_INTERFACE_I2S_TX)) {
 	  SETV(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_L),

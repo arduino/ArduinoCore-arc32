@@ -37,7 +37,7 @@
                              // but these tones are so simple it won't make a difference.  44.1khz is
                              // standard CD quality sound.
 
-#define AMPLITUDE     100    // Set the amplitude of generated waveforms.  This controls how loud
+#define AMPLITUDE    10000000    // Set the amplitude of generated waveforms.  This controls how loud
                              // the signals are, and can be any value from 0 to 65535.  Start with
                              // a low value like 5000 or less to prevent damaging speakers!
 
@@ -77,42 +77,42 @@ Adafruit_ZeroI2S_TX i2s = Adafruit_ZeroI2S_TX();
 #endif
 
 
-void generateSine(uint16_t amplitude, int32_t* buffer, uint16_t length) {
+void generateSine(int32_t amplitude, int32_t* buffer, uint16_t length) {
   // Generate a sine wave signal with the provided amplitude and store it in
   // the provided buffer of size length.
   for (int i=0; i<length; ++i) {
-    buffer[i] = uint32_t(float(amplitude)*sin(2.0*PI*(1.0/length)*i) + amplitude);
+    buffer[i] = int32_t(float(amplitude)*sin(2.0*PI*(1.0/length)*i));
   }
 }
-void generateSawtooth(uint16_t amplitude, int32_t* buffer, uint16_t length) {
+void generateSawtooth(int32_t amplitude, int32_t* buffer, uint16_t length) {
   // Generate a sawtooth signal that goes from -amplitude/2 to amplitude/2
   // and store it in the provided buffer of size length.
   float delta = float(amplitude)/float(length);
   for (int i=0; i<length; ++i) {
-    buffer[i] = -(amplitude/2)+delta*i+amplitude;
+    buffer[i] = -(amplitude/2)+delta*i;
   }
 }
 
-void generateTriangle(uint16_t amplitude, int32_t* buffer, uint16_t length) {
+void generateTriangle(int32_t amplitude, int32_t* buffer, uint16_t length) {
   // Generate a triangle wave signal with the provided amplitude and store it in
   // the provided buffer of size length.
   float delta = float(amplitude)/float(length);
   for (int i=0; i<length/2; ++i) {
-    buffer[i] = -(amplitude/2)+delta*i+amplitude;
+    buffer[i] = -(amplitude/2)+delta*i;
   }
   for (int i=length/2; i<length; ++i) {
-    buffer[i] = (amplitude/2)-delta*(i-length/2)+amplitude;
+    buffer[i] = (amplitude/2)-delta*(i-length/2);
   }
 }
 
-void generateSquare(uint16_t amplitude, int32_t* buffer, uint16_t length) {
+void generateSquare(int32_t amplitude, int32_t* buffer, uint16_t length) {
   // Generate a square wave signal with the provided amplitude and store it in
   // the provided buffer of size length.
   for (int i=0; i<length/2; ++i) {
-    buffer[i] = -(amplitude/2)+amplitude;
+    buffer[i] = -(amplitude/2);
   }
     for (int i=length/2; i<length; ++i) {
-    buffer[i] = (amplitude/2)+amplitude;
+    buffer[i] = (amplitude/2);
   }
 }
 
@@ -151,10 +151,14 @@ void playWave(int32_t* buffer, uint16_t length, float frequency, float seconds) 
     i2s.write(sample);
 #endif
   }
-  I2SOutput.write(0, 0, 1);
 
-  Serial.print("Iterations: ");
-  Serial.println(iterations);
+#ifdef ARDUINO_ARCH_ARC32
+    // Flush the temporary holding buffer before exiting.
+    I2SOutput.write(0, 0, 1);
+#endif
+
+//  Serial.print("Iterations: ");
+//  Serial.println(iterations);
 }
 
 void setup() {

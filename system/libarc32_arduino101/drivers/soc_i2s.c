@@ -62,7 +62,8 @@ DRIVER_API_RC soc_i2s_read(void *buf, uint32_t len, uint32_t len_per_data);
 DRIVER_API_RC soc_i2s_listen(void *buf, uint32_t len, uint32_t len_per_data, uint8_t num_bufs);
 DRIVER_API_RC soc_i2s_stop_listen(void);
 DRIVER_API_RC soc_i2s_write(void *buf, int bufSize, int dataSize);
-DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int bufSize, int dataSize);
+DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int numBuf, int bufSize,
+				    int dataSize);
 DRIVER_API_RC soc_i2s_stop_transmit(void);
 DRIVER_API_RC soc_i2s_init(uint8_t channel);
 
@@ -240,6 +241,7 @@ DRIVER_API_RC soc_i2s_config(uint8_t channel, struct soc_i2s_cfg *cfg)
 
 	// Calculate sample_rate divider (note, acts as if resolution is always 32)
 	// sample_rate = i2s_info->clk_speed / (cfg->sample_rate * cfg->resolution * 2);
+	// Instead of calculating here, user provides clock divider for sample rate.
 
 	// Setup resolution and sampling rate
 	reg = MMIO_REG_VAL_FROM_BASE(SOC_I2S_BASE, i2s_reg_map[channel].srr);
@@ -450,18 +452,18 @@ DRIVER_API_RC soc_i2s_write(void *buf, int bufSize, int dataSize)
 
   // Calling stream with 0 buffers is the same as a onetime write of the whole buffer
   bufArray[0] = buf;
-  return soc_i2s_transmit_loop(bufArray, bufSize, dataSize);
+  return soc_i2s_transmit_loop(bufArray, 1, bufSize, dataSize);
 }
 
-DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int bufSize, int dataSize)
+DRIVER_API_RC soc_i2s_transmit_loop(void *bufPtrArray[], int numBuf, int bufSize,
+				    int dataSize)
 {
   uint32_t reg;
   int i, length;
   struct soc_dma_xfer_item *dma_list;
-  int numBuf = sizeof(bufPtrArray) / sizeof(void *);
 
 
-  if ((numBuf == 0) || (bufSize < dataSize))
+  if ((bufPtrArray == NULL) || (numBuf == 0) || (bufSize < dataSize))
     return DRV_RC_FAIL;
 
   // Check channel no in use and configured

@@ -131,7 +131,8 @@ static i2sErrorCode kickOff(void)
       j = 0;
   }
 
-  if (soc_i2s_transmit_loop(bufPtrArray, sizeof(ppBuffer[0].buf), sizeof(int32_t)) != DRV_RC_OK) {
+  if (soc_i2s_transmit_loop(bufPtrArray, numPpBuffer, sizeof(ppBuffer[0].buf),
+			    sizeof(int32_t)) != DRV_RC_OK) {
     return I2S_WRITE_DRIVER_FAIL;
   }
   i2sRunning = 1;
