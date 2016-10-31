@@ -36,6 +36,7 @@ public:
      */
     BLEDescriptorImp(BLEDevice& bledevice, BLEDescriptor &descriptor);
     BLEDescriptorImp(const bt_uuid_t* uuid, 
+                     unsigned char properties, 
                      uint16_t handle,
                      BLEDevice& bledevice);
 
@@ -58,6 +59,8 @@ public:
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
 
     unsigned char operator[] (int offset) const;
+    unsigned char properties() const;
+    int valueSize() const;
 
 protected:
 
@@ -66,8 +69,11 @@ private:
     unsigned short _value_length;
     unsigned short _value_handle;
     unsigned char* _value;
+    unsigned char _properties;      // The characteristic property
     
     bt_uuid_128 _descriptor_uuid;
+    
+    BLEDevice _bledev; 
 };
 
 #endif // _BLE_DESCRIPTOR_H_INCLUDED

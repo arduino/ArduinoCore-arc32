@@ -31,6 +31,8 @@ class BLEDescriptor
     BLEDescriptor(const char* uuid, const unsigned char value[], unsigned short valueLength); // create a descriptor the specified uuid and value
     BLEDescriptor(const char* uuid, const char* value); // create a descriptor the specified uuid and string value
 
+    BLEDescriptor(BLEDescriptorImp* descriptorImp, const BLEDevice *bleDev);
+
     virtual ~BLEDescriptor();
 
     const char* uuid() const;
@@ -85,6 +87,8 @@ class BLEDescriptor
     bool write(const byte value[], int length, int offset);
     bool write(const char* value);
     bool read();
+    unsigned char properties() const;
+    int valueSize() const;
 private:
     char    _uuid_cstr[37];  // The characteristic UUID
     BLEDevice _bledev; 

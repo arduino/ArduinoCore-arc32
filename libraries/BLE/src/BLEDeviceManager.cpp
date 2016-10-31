@@ -35,6 +35,7 @@ BLEDeviceManager::BLEDeviceManager():
     _max_conn_interval(0),
     _adv_critical_local_name(""),
     _has_service_uuid(false),
+    _has_service_solicit_uuid(false),
     _appearance(0),
     _adv_type(0),
     _adv_data_idx(0),
@@ -66,6 +67,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(_peer_adv_buffer, 0, sizeof(_peer_adv_buffer));
     memset(_peer_adv_mill, 0, sizeof(_peer_adv_mill));
     memset(&_adv_accept_critical, 0, sizeof(_adv_accept_critical));
+    memset(&_adv_critical_service_uuid, 0, sizeof(_adv_critical_service_uuid));
     
     memset(_peer_peripheral, 0, sizeof(_peer_peripheral));
     memset(_device_events, 0, sizeof(_device_events));
@@ -142,13 +144,9 @@ void BLEDeviceManager::setAdvertisedServiceUuid(const char* advertisedServiceUui
     BLEUtils::uuidString2BT(advertisedServiceUuid, (bt_uuid_t *)&_service_uuid);
 }
 
-void BLEDeviceManager::setAdvertisedService(const BLEService& service)
-{
-    //TODO: Different with setAdvertisedServiceUuid?
-}
-
 void BLEDeviceManager::setServiceSolicitationUuid(const char* serviceSolicitationUuid)
 {
+    _has_service_solicit_uuid = true;
     BLEUtils::uuidString2BT(serviceSolicitationUuid, (bt_uuid_t *)&_service_solicit_uuid);
 }
 
@@ -270,6 +268,37 @@ BLEDeviceManager::_advDataInit(void)
         }
     }
     
+    if (_has_service_solicit_uuid) 
+    {
+        uint8_t type;
+        uint8_t length;
+        uint8_t *data = NULL;
+        
+        pr_info(LOG_MODULE_BLE, "ADV Type-%d", _service_solicit_uuid.uuid.type);
+        if (BT_UUID_TYPE_16 == _service_solicit_uuid.uuid.type)
+        {
+            //UINT16_TO_LESTREAM(adv_tmp, uuid.uuid16);
+            data = (uint8_t *)&(((bt_uuid_16_t *)&_service_solicit_uuid)->val);
+            length = UUID_SIZE_16;
+            type = BT_DATA_SOLICIT16;
+        }
+        else if (BT_UUID_TYPE_128 == _service_solicit_uuid.uuid.type)
+        {
+            data = _service_solicit_uuid.val;
+            length = UUID_SIZE_128;
+            type = BT_DATA_SOLICIT128;
+        }
+        if (NULL != data)
+        {
+            _adv_data[_adv_data_idx].type = type;
+            _adv_data[_adv_data_idx].data = data;
+            _adv_data[_adv_data_idx].data_len = length;
+            _adv_data_idx++;
+            lengthTotal += length;
+            
+            pr_info(LOG_MODULE_BLE, "Service UUID Len -%d", length);
+        }
+    }
 
     if (_local_name.length() > 0)
     {
@@ -426,7 +455,7 @@ void BLEDeviceManager::setAdvertiseCritical(String name)
 
 void BLEDeviceManager::setAdvertiseCritical(BLEService& service)
 {
-    BLEUtils::uuidString2BT(service.uuid(),(bt_uuid_t *)&_dv_critical_service_uuid);
+    BLEUtils::uuidString2BT(service.uuid(),(bt_uuid_t *)&_adv_critical_service_uuid);
     uint8_t type = 0;
     uint8_t length = 0;
     uint8_t *data = NULL;
@@ -449,11 +478,6 @@ void BLEDeviceManager::setAdvertiseCritical(BLEService& service)
     _adv_accept_critical.data_len = length;
     _adv_accept_critical.data = data;
 }
-
-
-//void setAcceptAdvertiseLocalName(String name);
-//void setAcceptAdvertiseLocalName(BLEService& service);
-//void setAcceptAdvertiseCallback(String name);
 
 bool BLEDeviceManager::hasLocalName() const
 {

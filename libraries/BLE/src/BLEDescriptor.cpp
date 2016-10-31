@@ -16,8 +16,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
+#include "BLEAttribute.h"
 #include "BLEDescriptor.h"
 #include "BLEUtils.h"
+#include "BLEDescriptorImp.h"
 
 BLEDescriptor::BLEDescriptor():
     _properties(0),
@@ -25,6 +27,21 @@ BLEDescriptor::BLEDescriptor():
     _value(NULL)
 {
     memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
+}
+    
+BLEDescriptor::BLEDescriptor(BLEDescriptorImp* descriptorImp, 
+                             const BLEDevice *bleDev):
+    _bledev(bleDev),
+    _value_size(0),
+    _value(NULL)
+{
+    _properties = descriptorImp->properties();
+    memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
+    BLEUtils::uuidBT2String(descriptorImp->bt_uuid(), _uuid_cstr);
+    
+    _value_size = descriptorImp->valueSize();
+    _value = (unsigned char*)balloc(_value_size, NULL);
+    memcpy(_value, descriptorImp->value(), _value_size);
 }
 
 BLEDescriptor::BLEDescriptor(const char* uuid, 
@@ -128,5 +145,16 @@ bool BLEDescriptor::read()
 {
     // TODO: Not support now
     return false;
+}
+
+unsigned char BLEDescriptor::properties() const
+{
+    return _properties;
+}
+
+
+int BLEDescriptor::valueSize() const
+{
+    return _value_size;
 }
 

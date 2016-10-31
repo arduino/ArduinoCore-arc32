@@ -24,10 +24,13 @@
 
 #include "BLECallbacks.h"
 
-BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice, BLEDescriptor &descriptor):
+BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice,
+                                   BLEDescriptor &descriptor):
      BLEAttribute(descriptor.uuid(), BLETypeDescriptor),
     _value_handle(0)
 {
+    
+    _properties = descriptor.properties();
     _value_length = descriptor.valueLength();
     _value = (unsigned char*)balloc(_value_length, NULL);
 
@@ -35,10 +38,12 @@ BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice, BLEDescriptor &descript
 }
 
 BLEDescriptorImp::BLEDescriptorImp(const bt_uuid_t* uuid, 
+                                   unsigned char properties, 
                                    uint16_t handle,
                                    BLEDevice& bledevice):
     BLEAttribute(uuid, BLETypeDescriptor),
-    _value_handle(handle)
+    _value_handle(handle),
+    _properties(properties)
 {
     _value_length = BLE_MAX_ATTR_DATA_LEN;
     _value = (unsigned char*)balloc(_value_length, NULL);
@@ -82,6 +87,16 @@ int BLEDescriptorImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
     pr_debug(LOG_MODULE_BLE, "Descriptor-%p", start);
     index++;
     return 1;
+}
+
+unsigned char BLEDescriptorImp::properties() const
+{
+    return _properties;
+}
+
+int BLEDescriptorImp::valueSize() const
+{
+    return _value_length;
 }
 
 

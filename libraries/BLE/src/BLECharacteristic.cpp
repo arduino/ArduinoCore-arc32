@@ -1,5 +1,4 @@
 
-//#include "internal/ble_client.h"
 #include "ArduinoBLE.h"
 
 #include "BLEUtils.h"
@@ -67,7 +66,7 @@ const char* BLECharacteristic::uuid() const
     return _uuid_cstr;
 }
 
-unsigned char BLECharacteristic::properties()
+unsigned char BLECharacteristic::properties() const
 {
     unsigned char property = 0;
     BLECharacteristicImp *characteristicImp = getImplementation();
@@ -78,7 +77,7 @@ unsigned char BLECharacteristic::properties()
     return property;
 }
 
-int BLECharacteristic::valueSize() //const
+int BLECharacteristic::valueSize() const
 {
     int valuesize = 0;
     BLECharacteristicImp *characteristicImp = getImplementation();
@@ -100,7 +99,7 @@ const byte* BLECharacteristic::value() const
     return value_temp;
 }
 
-int BLECharacteristic::valueLength() //const
+int BLECharacteristic::valueLength() const
 {
     int valueLength = 0;
     BLECharacteristicImp *characteristicImp = getImplementation();
@@ -117,7 +116,7 @@ BLECharacteristic::operator bool() const
 }
 
 
-byte BLECharacteristic::operator[] (int offset) //const
+byte BLECharacteristic::operator[] (int offset) const
 {
     byte data = 0;
     BLECharacteristicImp *characteristicImp = getImplementation();
@@ -144,14 +143,20 @@ bool BLECharacteristic::writeValue(const byte value[], int length)
         characteristicImp->writeValue(value, length);
         retVar = true;
     }
-    return retVar;
+    return writeValue(value, length, 0);
 }
 
 bool BLECharacteristic::writeValue(const byte value[], int length, int offset)
 {
-    // TODO: Not support it now.
-    // Will add this feature.
-    return false;
+    bool retVar = false;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        characteristicImp->writeValue(value, length, offset);
+        retVar = true;
+    }
+    return retVar;
 }
 
 bool BLECharacteristic::writeValue(const char* value)
@@ -306,7 +311,7 @@ int BLECharacteristic::addDescriptor(BLEDescriptor& descriptor)
     return retVar;
 }
 
-int BLECharacteristic::descriptorCount() //const
+int BLECharacteristic::descriptorCount() const
 {
     int count = 0;
     BLECharacteristicImp *characteristicImp = getImplementation();
@@ -320,28 +325,97 @@ int BLECharacteristic::descriptorCount() //const
 
 bool BLECharacteristic::hasDescriptor(const char* uuid) const
 {
-    // TODO: Not support now
-    return false;
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        descriptorImp = characteristicImp->descrptor(uuid);
+    }
+    
+    return (descriptorImp != NULL);
 }
+
 bool BLECharacteristic::hasDescriptor(const char* uuid, int index) const
 {
-    // TODO: Not support now
-    return false;
+    bool retVal = false;
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        descriptorImp = characteristicImp->descrptor(index);
+        if (NULL != descriptorImp)
+        {
+            retVal = descriptorImp->compareUuid(uuid);
+        }
+    }
+    
+    return retVal;
 }
+
 BLEDescriptor BLECharacteristic::descriptor(int index) const
 {
-    // TODO: Not support now
-    return BLEDescriptor();
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        descriptorImp = characteristicImp->descrptor(index);
+    }
+    
+    if (descriptorImp != NULL)
+    {
+        return BLEDescriptor(descriptorImp, &_bledev);
+    }
+    else
+    {
+        return BLEDescriptor();
+    }
 }
 BLEDescriptor BLECharacteristic::descriptor(const char * uuid) const
 {
-    // TODO: Not support now
-    return BLEDescriptor();
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        descriptorImp = characteristicImp->descrptor(uuid);
+    }
+    
+    if (descriptorImp != NULL)
+    {
+        return BLEDescriptor(descriptorImp, &_bledev);
+    }
+    else
+    {
+        return BLEDescriptor();
+    }
 }
+
 BLEDescriptor BLECharacteristic::descriptor(const char * uuid, int index) const
 {
-    // TODO: Not support now
-    return BLEDescriptor();
+    bool retVal = false;
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLECharacteristicImp *characteristicImp = getImplementation();
+    
+    if (NULL != characteristicImp)
+    {
+        descriptorImp = characteristicImp->descrptor(index);
+        if (NULL != descriptorImp)
+        {
+            retVal = descriptorImp->compareUuid(uuid);
+        }
+    }
+    
+    if (descriptorImp != NULL && true == retVal)
+    {
+        return BLEDescriptor(descriptorImp, &_bledev);
+    }
+    else
+    {
+        return BLEDescriptor();
+    }
 }
 
 void BLECharacteristic::setEventHandler(BLECharacteristicEvent event, 
@@ -391,13 +465,15 @@ BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
     memcpy(_value, value, length);
 }
 
-BLECharacteristicImp* BLECharacteristic::getImplementation()
+BLECharacteristicImp* BLECharacteristic::getImplementation() const
 {
-    if (NULL == _internal)
+    BLECharacteristicImp* tmp = NULL;
+    tmp = _internal;
+    if (NULL == tmp)
     {
-        _internal = BLEProfileManager::instance()->characteristic(_bledev, (const char*)_uuid_cstr);
+        tmp = BLEProfileManager::instance()->characteristic(_bledev, (const char*)_uuid_cstr);
     }
-    return _internal;
+    return tmp;
 }
 
 void BLECharacteristic::setBLECharacteristicImp(BLECharacteristicImp *characteristicImp)

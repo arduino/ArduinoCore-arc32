@@ -112,17 +112,7 @@ class BLEDeviceManager
      *        Only for peripheral mode.
      */
     void setAdvertisedServiceUuid(const char* advertisedServiceUuid);
-    
-    /**
-     * @brief   Set the service that the BLE Peripheral Device will advertise this UUID
-     *
-     * @param[in] service  The service the will in advertise data.
-     *
-     * @note This method must be called before the begin method
-     *        Only for peripheral mode.
-     */
-    void setAdvertisedService(const BLEService& service);
-    
+        
     /**
      * @brief   Set the service UUID that is solicited in the BLE Peripheral 
      *           Device advertises
@@ -374,7 +364,7 @@ private:
     uint16_t   _min_conn_interval;
     uint16_t   _max_conn_interval;
     bt_addr_le_t _local_bda;
-    char       _device_name[BLE_MAX_DEVICE_NAME+1];
+    char       _device_name[BLE_MAX_DEVICE_NAME + 1];
     
     // For Central
     bt_le_scan_param_t _scan_param;     // Scan parameter
@@ -382,13 +372,14 @@ private:
     uint64_t     _peer_adv_mill[3];     // The ADV found time stamp
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
-    bt_uuid_128_t _dv_critical_service_uuid;
+    bt_uuid_128_t _adv_critical_service_uuid;
     bt_addr_le_t _wait_for_connect_peripheral;
     
     // For peripheral
     struct bt_le_adv_param _adv_param;
     bool _has_service_uuid;
     bt_uuid_128_t _service_uuid;
+    bool _has_service_solicit_uuid;
     bt_uuid_128_t _service_solicit_uuid;
     uint16_t   _appearance;
     

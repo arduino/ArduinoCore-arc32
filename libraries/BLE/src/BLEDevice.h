@@ -22,11 +22,6 @@
 
 #include <Arduino.h>
 
-//#include "BLEService.h"
-//#include "BLECharacteristic.h"
-
-//class BLEDevice;
-
 enum BLEDeviceEvent {
   BLEConnected = 0,         // BLE device connected
   BLEDisconnected = 1,      // BLE device disconnected 
@@ -44,25 +39,42 @@ class BLEDevice
     /**
      * @brief   The BLE device constructure
      *
-     * @param   bleaddress  BLE device address
+     * @param   none
      *
      * @return  none
      *
      * @note  none
      */
     BLEDevice();
-    //BLEDevice(String bleaddress);
-    //BLEDevice(const char* bleaddress);
+    
+    /**
+     * @brief   The BLE device constructure
+     *
+     * @param[in]   bleaddress  BLE device address
+     *
+     * @return  none
+     *
+     * @note  none
+     */
     BLEDevice(const bt_addr_le_t* bleaddress);
-    BLEDevice(const BLEDevice* bleaddress);
+    /**
+     * @brief   The BLE device constructure
+     *
+     * @param[in]   bledevice  BLE device
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    BLEDevice(const BLEDevice* bledevice);
     
     virtual ~BLEDevice();
 
     
     /**
-     * @brief Initiliaze the BLE hardware
+     * @brief   Initiliaze the BLE hardware
      *
-     * @return bool indicating success or error
+     * @return  bool indicating success or error
      *
      * @note  This method are for real BLE device. 
      *          Not for peer BLE device.
@@ -102,7 +114,7 @@ class BLEDevice
      *
      * @param   none
      *
-     * @return  none
+     * @return   bool indicating success or error
      *
      * @note  none
      */
@@ -113,10 +125,10 @@ class BLEDevice
      *
      * @param   none
      *
-     * @return  none
+     * @return   bool indicating success or error    
      *
      * @note  The BLE may connected multiple devices.
-     *          This call will disconnect all conected devices.
+     *        This call will disconnect all conected devices.
      */
     bool disconnect();
     
@@ -124,7 +136,11 @@ class BLEDevice
     /**
      * @brief   Get the BLE address of the BLE in string format
      *
-     * @return const char* address of the BLE in string format
+     * @param   none
+     *
+     * @return String   The address of the BLE in string format
+     *
+     * @note  none
      */
     String address() const;
 
@@ -344,19 +360,76 @@ class BLEDevice
     operator bool() const;
     bool operator==(const BLEDevice& device) const;
     bool operator!=(const BLEDevice& device) const;
-    //BLEDevice& operator=(const BLEDevice& device);
+    
     // central mode
-    void startScanning(String name); // start scanning for peripherals
-    void startScanningWithDuplicates(); // start scanning for peripherals, and report all duplicates
-    void stopScanning(); // stop scanning for peripherals
+    /**
+     * @brief   Start scanning for peripherals and filter by device name in ADV
+     *
+     * @param   name    The device's local name.
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void startScanning(String name);
     
-    void setAcceptAdvertiseLocalName(String name);
-    void setAcceptAdvertiseLocalName(BLEService& service);
-    void setAcceptAdvertiseCallback(String name);
+    /**
+     * @brief   Start scanning for peripherals and filter by service in ADV
+     *
+     * @param   service    The service
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void startScanning(BLEService& service);
     
-    BLEDevice available(); // retrieve a discovered peripheral
+    /**
+     * @brief   start scanning for peripherals, and report all duplicates
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  none 
+         // Does this necessory? This will take more memory to store the ADV
+         //  I suggest delete it.
+     */
+    void startScanningWithDuplicates();
+    
+    /**
+     * @brief   Stop scanning for peripherals
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void stopScanning();
+    
+    /**
+     * @brief   Retrieve a discovered peripheral
+     *
+     * @param   none
+     *
+     * @return  BLEDevice   The BLE device that central scanned
+     *
+     * @note  none
+     */
+    BLEDevice available();
 
-    bool hasLocalName() const; // does the peripheral advertise a local name
+    /**
+     * @brief   Does the peripheral advertise a local name
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  none //TODO: The implementation doesn't save the ADV's local name.
+     */
+    bool hasLocalName() const;
+    
     bool hasAdvertisedServiceUuid() const; // does the peripheral advertise a service
     bool hasAdvertisedServiceUuid(int index) const; // does the peripheral advertise a service n
     int advertisedServiceUuidCount() const; // number of services the peripheral is advertising
@@ -374,21 +447,163 @@ class BLEDevice
     int appearance(); // read the appearance attribute of the peripheral and return value as int
 
     // For GATT
-    int serviceCount() const; // returns the number of services the peripheral has
-    bool hasService(const char* uuid) const; // does the peripheral have a service with the specified UUID
-    bool hasService(const char* uuid, int index) const;  // does the peripheral have an nth service with the specified UUID
-    BLEService service(int index) const; // return the nth service of the peripheral
-    BLEService service(const char * uuid) const; // return the service with the specified UUID
-    BLEService service(const char * uuid, int index) const; // return the nth service with the specified UUID
+    /**
+     * @brief   returns the number of services the BLE device has
+     *
+     * @param   none
+     *
+     * @return  int     The number of services
+     *
+     * @note  none
+     */
+    int serviceCount() const; 
+    
+    /**
+     * @brief   Does the peripheral have a service with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @return  bool    true - Found
+     *                  false- Not found
+     *
+     * @note  none
+     */
+    bool hasService(const char* uuid) const;
+    
+    /**
+     * @brief   Does the peripheral have an nth service with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @param   index   The index
+     *
+     * @return  bool    true - Found
+     *                  false- Not found
+     *
+     * @note  none
+     */
+    bool hasService(const char* uuid, int index) const;
+    
+    /**
+     * @brief   Return the nth service of the peripheral
+     *
+     * @param   index   The index
+     *
+     * @return  BLEService    The BLE service
+     *
+     * @note  none
+     */
+    BLEService service(int index) const;
+    
+    /**
+     * @brief   Return the service with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @return  BLEService    The BLE service
+     *
+     * @note  none
+     */
+    BLEService service(const char * uuid) const;
+    
+    /**
+     * @brief   Return the nth service with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @param   index   The index
+     *
+     * @return  BLEService    The BLE service
+     *
+     * @note  none
+     */
+    BLEService service(const char * uuid, int index) const;
 
-    int characteristicCount() const; // returns the number of characteristics the peripheral has
-    bool hasCharacteristic(const char* uuid) const; // does the peripheral have a characteristic with the specified UUID
-    bool hasCharacteristic(const char* uuid, int index) const; // does the peripheral have an nth characteristic with the specified UUID
-    BLECharacteristic characteristic(int index) const; // return the nth characteristic of the peripheral
-    BLECharacteristic characteristic(const char * uuid) const; // return the characteristic with the specified UUID
-    BLECharacteristic characteristic(const char * uuid, int index) const; // return the nth characteristic with the specified UUID
+    /**
+     * @brief   Returns the number of characteristics the BLE device has
+     *
+     * @param   none
+     *
+     * @return  int     The number of characteristics
+     *
+     * @note  none
+     */
+    int characteristicCount() const;
+    
+    /**
+     * @brief   Does the device have a characteristic with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @return  bool    true - Found
+     *                  false- Not found
+     *
+     * @note  none
+     */
+    bool hasCharacteristic(const char* uuid) const;
+    
+    /**
+     * @brief   Does the device have an nth characteristic with the 
+     *           specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @param   index   The index
+     *
+     * @return  bool    true - Found
+     *                  false- Not found
+     *
+     * @note  none
+     */
+    bool hasCharacteristic(const char* uuid, int index) const;
+    
+    /**
+     * @brief   Return the nth characteristic of the BLE device
+     *
+     * @param   index   The index
+     *
+     * @return  BLECharacteristic   The BLE characteristic
+     *
+     * @note  none
+     */
+    BLECharacteristic characteristic(int index) const;
+    
+    /**
+     * @brief   Return the characteristic with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @return  BLECharacteristic   The BLE characteristic
+     *
+     * @note  none
+     */
+    BLECharacteristic characteristic(const char * uuid) const;
+    
+    /**
+     * @brief   Return the nth characteristic with the specified UUID
+     *
+     * @param   uuid    The 128/16 bits UUID
+     *
+     * @param   index   The index
+     *
+     * @return  BLECharacteristic   The BLE characteristic
+     *
+     * @note  none
+     */
+    BLECharacteristic characteristic(const char * uuid, int index) const;
 
     // event handler
+    /**
+     * @brief   Set the event callbacks
+     *
+     * @param   event           The BLE device event
+     *
+     * @param   eventHandler    The BLE device event handler
+     *
+     * @return  none
+     *
+     * @note  none
+     */
     void setEventHandler(BLEDeviceEvent event, BLEDeviceEventHandler eventHandler); // set an event handler (callback)
     
 protected:
