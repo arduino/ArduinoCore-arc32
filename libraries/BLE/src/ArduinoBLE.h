@@ -27,6 +27,7 @@ class BLECharacteristic;
 class BLEDescriptor;
 class BLEService;
 class BLECharacteristicImp;
+class BLEDescriptorImp;
 
 #include "BLECommon.h"
 

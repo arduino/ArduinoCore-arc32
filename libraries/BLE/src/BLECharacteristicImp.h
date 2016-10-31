@@ -52,6 +52,7 @@ public:
      */
     int addDescriptor(BLEDescriptor& descriptor);
     int addDescriptor(const bt_uuid_t* uuid, 
+                      unsigned char property, 
                       uint16_t handle);
     
     void releaseDescriptors();
@@ -70,6 +71,7 @@ public:
      * @note  none
      */
     bool writeValue(const byte value[], int length);
+    bool writeValue(const byte value[], int length, int offset);
 
     /**
      * Set the current value of the Characteristic
@@ -175,6 +177,7 @@ public:
     
     BLEDescriptorImp* descrptor(const bt_uuid_t* uuid);
     BLEDescriptorImp* descrptor(const char* uuid);
+    BLEDescriptorImp* descrptor(int index);
 
 protected:
     friend class BLEProfileManager;
@@ -290,7 +293,7 @@ private:
     
     void setCCCDHandle(uint16_t handle);
     void setHandle(uint16_t handle);
-    void _setValue(const uint8_t value[], uint16_t length);
+    void _setValue(const uint8_t value[], uint16_t length, uint16_t offset);
     bool isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid);
 
 private:

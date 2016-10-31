@@ -1,8 +1,5 @@
 
 #include "ArduinoBLE.h"
-#include "BLEAttribute.h"
-#include "BLECharacteristicImp.h"
-#include "BLEProfileManager.h"
 
 // LED pin
 #define LED_PIN   13
@@ -15,7 +12,7 @@ BLECharacteristic   switchCharacteristic("19b10101e8f2537e4f6cd104768a1214", BLE
 BLEDescriptor       switchDescriptor("2901", "switch");
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial.println("test---");
     
     // set LED pin to output mode

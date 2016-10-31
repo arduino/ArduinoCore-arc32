@@ -20,14 +20,9 @@
 #ifndef ARDUINO_BLE_CHARACTERISTIC_H
 #define ARDUINO_BLE_CHARACTERISTIC_H
 
-//#include "BLEAttributeWithValue.h"
-#include "BLECommon.h"
-//#include "BLEDescriptor.h"
 #include "ArduinoBLE.h"
 
 #include "BLEDevice.h"
-//#include "BLECharacteristicImp.h"
-//class BLEDescriptorImp;
 
 enum BLECharacteristicEvent {
   BLEWritten = 0,
@@ -122,7 +117,7 @@ public:
      *
      * @note  none
      */
-    unsigned char properties();
+    unsigned char properties() const;
 
     /**
      * @brief   Get the maximum size of the value
@@ -133,7 +128,7 @@ public:
      *
      * @note  none
      */
-    int valueSize();//const
+    int valueSize() const;
     
     /**
      * @brief   Get the value buffer
@@ -144,7 +139,7 @@ public:
      *
      * @note  none
      */
-    virtual const byte* value() const;//
+    virtual const byte* value() const;
     
     /**
      * @brief   Get the current length of the value
@@ -155,7 +150,7 @@ public:
      *
      * @note  TODO: How to handle if the data is RAW data? This API is danger
      */
-    virtual int valueLength();//const
+    virtual int valueLength() const;
     
     /**
      * @brief   Get a byte of the value at the specified offset
@@ -166,7 +161,7 @@ public:
      *
      * @note  none
      */
-    virtual byte operator[] (int offset);//const
+    virtual byte operator[] (int offset) const;
 
     /**
      * Set the current value of the Characteristic
@@ -358,7 +353,17 @@ public:
      */
     bool unsubscribe();
 
-    bool valueUpdated(); // Read response updated the characteristic
+
+    /**
+     * @brief   Read response or notification updated the characteristic
+     *
+     * @param   none
+     *
+     * @return  bool    true - Written, false - Not changed
+     *
+     * @note  GATT client only. GATT server always return false.
+     */
+    bool valueUpdated();
     
     /**
      * @brief   Add the characteristic's descriptor
@@ -380,7 +385,7 @@ public:
      *
      * @note  none
      */
-    int descriptorCount();//const
+    int descriptorCount() const;
     
     /**
      * @brief   Does the characteristic have a descriptor with the specified UUID
@@ -498,7 +503,7 @@ protected:
     
 private:
     void _setValue(const uint8_t value[], uint16_t length);
-    BLECharacteristicImp *getImplementation();
+    BLECharacteristicImp *getImplementation() const;
     
 private:
     char    _uuid_cstr[37];  // The characteristic UUID

@@ -1,14 +1,11 @@
 
 #include "ArduinoBLE.h"
-#include "BLEAttribute.h"
-#include "BLECharacteristicImp.h"
-#include "BLEProfileManager.h"
 
 // LED pin
 #define LED_PIN   13
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial.println("test---");
     
     // set LED pin to output mode
@@ -45,12 +42,9 @@ void controlLed(BLEDevice &peripheral)
     
     if (!ledCharacteristic)
     {
-        //peripheral.disconnect();
-        while(1)
-        {
+        peripheral.disconnect();
         Serial.println("Peripheral does not have LED characteristic!");
         delay(5000);
-        }
         return;
     } 
       ledCharacteristic.subscribe();

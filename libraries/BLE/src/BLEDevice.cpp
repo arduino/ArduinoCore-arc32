@@ -53,10 +53,10 @@ BLEDevice::BLEDevice(const bt_addr_le_t* bleaddress):
     memcpy(&_bt_addr, bleaddress, sizeof(bt_addr_le_t));
 }
 
-BLEDevice::BLEDevice(const BLEDevice* bleaddress)
+BLEDevice::BLEDevice(const BLEDevice* bledevice)
 {
-    memcpy(&_bt_addr, bleaddress->bt_le_address(), sizeof(bt_addr_le_t));
-    memcpy(&_conn_param, &bleaddress->_conn_param, sizeof (ble_conn_param_t));
+    memcpy(&_bt_addr, bledevice->bt_le_address(), sizeof(bt_addr_le_t));
+    memcpy(&_conn_param, &bledevice->_conn_param, sizeof (ble_conn_param_t));
 }
 
 BLEDevice::~BLEDevice()
@@ -101,10 +101,14 @@ void BLEDevice::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 }
 
 void BLEDevice::setAdvertisedService(const BLEService& service)
-{}
+{
+    setAdvertisedServiceUuid(service.uuid());
+}
 
 void BLEDevice::setServiceSolicitationUuid(const char* serviceSolicitationUuid)
-{}
+{
+    BLEDeviceManager::instance()->setServiceSolicitationUuid(serviceSolicitationUuid);
+}
 
 void BLEDevice::setManufacturerData(const unsigned char manufacturerData[], 
                                     unsigned char manufacturerDataLength)
@@ -213,6 +217,13 @@ void BLEDevice::startScanning(String name)
     BLEDeviceManager::instance()->startScanning();
 }
 
+void BLEDevice::startScanning(BLEService& service)
+{
+    preCheckProfile();
+    BLEDeviceManager::instance()->setAdvertiseCritical(service);
+    BLEDeviceManager::instance()->startScanning();
+}
+
 void BLEDevice::startScanningWithDuplicates()
 {}
 
@@ -220,10 +231,6 @@ void BLEDevice::stopScanning()
 {
     BLEDeviceManager::instance()->stopScanning();
 }
-
-//void setAcceptAdvertiseLocalName(String name);
-//void setAcceptAdvertiseLocalName(BLEService& service);
-//void setAcceptAdvertiseCallback(String name);
 
 BLEDevice BLEDevice::available()
 {

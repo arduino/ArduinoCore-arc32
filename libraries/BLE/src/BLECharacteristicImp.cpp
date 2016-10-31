@@ -193,7 +193,33 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length)
     int status;
     bool retVal = false;
     
-    _setValue(value, length);
+    _setValue(value, length, 0);
+    
+    // Address same is GATT server. Send notification if CCCD enabled
+    // Different is GATT client. Send write request
+    if (true == BLEUtils::isLocalBLE(_ble_device) &&
+        NULL != _attr_chrc_value)
+    {
+        // Notify for peripheral.
+        status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
+        if (0 == status)
+        {
+            retVal = true;
+        }
+    }
+    
+    //Not schedule write request for central
+    // The write request may failed. 
+    // If user want to get latest set value. Call read and get the real value
+    return retVal;
+}
+
+bool BLECharacteristicImp::writeValue(const byte value[], int length, int offset)
+{
+    int status;
+    bool retVal = false;
+    
+    _setValue(value, length, offset);
     
     // Address same is GATT server. Send notification if CCCD enabled
     // Different is GATT client. Send write request
@@ -217,7 +243,7 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length)
 bool
 BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
 {
-    _setValue(value, length);
+    _setValue(value, length, 0);
     // Read response/Notification/Indication for GATT client
     // Write request for GATT server
     if (_event_handlers[BLEWritten]) 
@@ -438,15 +464,26 @@ BLECharacteristicImp::valueHandle()
 }
 
 void
-BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length)
+BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length, uint16_t offset)
 {
-    if (length > _value_size)
+    if (length + offset > _value_size)
     {
-        length = _value_size;
+        if (_value_size > offset)
+        {
+            uint16_t temp_len = _value_size - offset;
+            if (length > temp_len)
+            {
+                length = temp_len;
+            }
+        }
+        else
+        {
+            return;
+        }
     }
     
     _value_updated = true;
-    memcpy(_value, value, length);
+    memcpy(_value + offset, value, length);
     _value_length = length;
 }
 
@@ -685,6 +722,7 @@ int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
 }
 
 int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid, 
+                                        unsigned char property, 
                                         uint16_t handle)
 {
     BLEDescriptorImp* descriptorImp = descrptor(uuid);
@@ -693,7 +731,7 @@ int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid,
         return BLE_STATUS_SUCCESS;
     }
     
-    descriptorImp = new BLEDescriptorImp(uuid, handle, _ble_device);
+    descriptorImp = new BLEDescriptorImp(uuid, property, handle, _ble_device);
     pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     if (NULL == descriptorImp)
     {
@@ -737,6 +775,24 @@ BLEDescriptorImp* BLECharacteristicImp::descrptor(const char* uuid)
     bt_uuid_128_t uuid_tmp;
     BLEUtils::uuidString2BT(uuid, (bt_uuid_t *)&uuid_tmp);
     return descrptor((const bt_uuid_t *)&uuid_tmp);
+}
+
+
+BLEDescriptorImp* BLECharacteristicImp::descrptor(int index)
+{
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLEDescriptorNodePtr node = link_node_get_first(&_descriptors_header);
+    while (NULL != node)
+    {
+        if (0 >= index)
+        {
+            descriptorImp = node->value;
+            break;
+        }
+        index--;
+        node = node->next;
+    }
+    return descriptorImp;
 }
 
 void BLECharacteristicImp::releaseDescriptors()
@@ -847,6 +903,7 @@ uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
                 else
                 {
                     int retval = (int)addDescriptor(desc_uuid,
+                                                    attr->perm,
                                                     desc_handle);
                     
                     if (BLE_STATUS_SUCCESS != retval)
