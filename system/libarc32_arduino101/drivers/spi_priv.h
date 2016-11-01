@@ -60,8 +60,9 @@
 #define     SPI_NDF_SET_MASK    (0x0000ffff)
 #define     SPI_SRL_SET_MASK    (0xfffff7ff)
 #define     SPI_TMOD_SET_MASK   (0xfffffcff)
-#define     SPI_SCPL_SET_MASK   (0xffffff7f)
-#define     SPI_SCPH_SET_MASK   (0xffffffbf)
+#define     SPI_SCPL_SET_MASK   (0x80)
+#define     SPI_SCPH_SET_MASK   (0x40)
+#define     SPI_FRF_SET_MASK    (0x30)
 #define     SPI_DFS_SET_MASK    (0xfffffff0)
 
 #define     SPI_CLK_ENABLED     (1 << 15)
