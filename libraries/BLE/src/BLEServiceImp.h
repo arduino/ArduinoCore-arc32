@@ -72,6 +72,8 @@ public:
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
     bool discovering();
+    
+    static bt_uuid_t *getPrimayUuid(void);
 protected:
     friend class BLEProfileManager;
     
@@ -79,8 +81,6 @@ protected:
     
     
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
-    
-    static bt_uuid_t *getPrimayUuid(void);
 private:
     typedef LinkNode<BLECharacteristicImp *>  BLECharacteristicLinkNodeHeader;
     typedef LinkNode<BLECharacteristicImp *>* BLECharacteristicNodePtr;

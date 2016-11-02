@@ -99,7 +99,10 @@ typedef uint16_t ble_status_t; /**< Response and event BLE service status type @
 
 typedef ble_status_t BleStatus;
 
-#define BLE_MAX_CONN_CFG    2
+#define BLE_LIB_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
+
+#define BLE_MAX_CONN_CFG            2
+#define BLE_MAX_ADV_BUFFER_CFG      3
 
 typedef bool (*ble_advertise_handle_cb_t)(uint8_t type, const uint8_t *dataPtr,
                                           uint8_t data_len, const bt_addr_le_t *addrPtr);

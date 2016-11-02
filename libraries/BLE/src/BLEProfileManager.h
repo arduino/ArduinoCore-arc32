@@ -27,6 +27,10 @@
 //#include "BLECommon.h"
 //#include "BLEDevice.h"
 //#include "BLEService.h"
+typedef struct {
+    bt_addr_le_t  address;
+    uint16_t      handle;
+}ServiceRead_t;
 
 class BLEProfileManager{
 public:
@@ -120,6 +124,10 @@ private:
     typedef LinkNode<BLEServiceImp *>* BLEServiceNodePtr;
     typedef LinkNode<BLEServiceImp *> BLEServiceNode;
     
+    typedef LinkNode<ServiceRead_t> ServiceReadLinkNodeHeader;
+    typedef LinkNode<ServiceRead_t>* ServiceReadLinkNodePtr;
+    typedef LinkNode<ServiceRead_t> ServiceReadLinkNode;
+    
     BLEProfileManager();
     ~BLEProfileManager (void);
     
@@ -175,9 +183,10 @@ private:
      */
     void clearProfile(BLEServiceLinkNodeHeader* serviceHeader);
     
-    void readService(const BLEDevice &bledevice, uint16_t handle);
+    bool readService(const BLEDevice &bledevice, uint16_t handle);
     bool discovering();
     void setDiscovering(bool discover);
+    void checkReadService();
     
 private:
     // The last header is for local BLE
@@ -191,12 +200,11 @@ private:
     bt_gatt_discover_params_t _discover_params[BLE_MAX_CONN_CFG];
     BLEServiceImp* _cur_discover_service;
     bt_gatt_read_params_t _read_params;
+    bool _reading;
+    ServiceReadLinkNodeHeader _read_service_header;
     
     bt_gatt_attr_t *_attr_base; // Allocate the memory for BLE stack
     int _attr_index;
-    
-    bt_gatt_subscribe_params_t *_sub_param;
-    int _sub_param_idx;
     
     static BLEProfileManager* _instance; // The profile manager instance
     bool _profile_registered;

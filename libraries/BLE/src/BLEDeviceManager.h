@@ -294,17 +294,6 @@ class BLEDeviceManager
      */
     BLEDevice peripheral();
     
-    /**
-     * @brief   Release the resources when link lost
-     *
-     * @param   none
-     *
-     * @return  none
-     *
-     * @note  Peer devices only. Do nothing if local BLE device called.
-     */
-    void linkLost();
-    
     operator bool() const;
 
     // central mode
@@ -358,7 +347,9 @@ private:
     bool advertiseDataProc(uint8_t type, 
                            const uint8_t *dataPtr, 
                            uint8_t data_len);
-    bool setAdvertiseBuffer(const bt_addr_le_t* bt_addr);
+    bool setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
+                            const uint8_t *ad, 
+                            uint8_t data_len);
 
 private:
     uint16_t   _min_conn_interval;
@@ -368,8 +359,10 @@ private:
     
     // For Central
     bt_le_scan_param_t _scan_param;     // Scan parameter
-    bt_addr_le_t _peer_adv_buffer[3];   // Accepted peer device adress
-    uint64_t     _peer_adv_mill[3];     // The ADV found time stamp
+    bt_addr_le_t _peer_adv_buffer[BLE_MAX_ADV_BUFFER_CFG];   // Accepted peer device adress
+    uint64_t     _peer_adv_mill[BLE_MAX_ADV_BUFFER_CFG];     // The ADV found time stamp
+    uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _adv_critical_service_uuid;
@@ -382,6 +375,8 @@ private:
     bool _has_service_solicit_uuid;
     bt_uuid_128_t _service_solicit_uuid;
     uint16_t   _appearance;
+    uint8_t    _manufacturer_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _manufacturer_data_length;
     
     // ADV data for peripheral
     uint8_t     _adv_type;

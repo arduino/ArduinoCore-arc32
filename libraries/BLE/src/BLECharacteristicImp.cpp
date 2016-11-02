@@ -18,6 +18,7 @@
  */
 
 #include "BLEAttribute.h"
+#include "BLEServiceImp.h"
 #include "BLECharacteristicImp.h"
 
 #include "BLECallbacks.h"
@@ -811,6 +812,11 @@ void BLECharacteristicImp::releaseDescriptors()
 int BLECharacteristicImp::getAttributeCount()
 {
     int counter = link_list_size(&_descriptors_header) + 2; // Declaration and descriptor
+    // Notification/Indecation
+    if (_gatt_chrc.properties & (BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_INDICATE))
+    {
+        counter++;
+    }
     return counter;
 }
 
@@ -893,12 +899,18 @@ uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
         {
             if (NULL != attr)
             {
+                retVal = BT_GATT_ITER_CONTINUE;
                 const bt_uuid_t* desc_uuid = attr->uuid;
                 uint16_t desc_handle = attr->handle;
     pr_debug(LOG_MODULE_BLE, "%s-%d:handle-%d:%d", __FUNCTION__, __LINE__,attr->handle, desc_handle);
                 if (isClientCharacteristicConfigurationDescriptor(desc_uuid))
                 {
                     setCCCDHandle(desc_handle);
+                }
+                else if (bt_uuid_cmp(BLEServiceImp::getPrimayUuid(), desc_uuid) == 0 ||
+                         bt_uuid_cmp(getCharacteristicAttributeUuid(), desc_uuid) == 0 )
+                {
+                    retVal = BT_GATT_ITER_STOP;
                 }
                 else
                 {
@@ -913,7 +925,6 @@ uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
                     }
                     
                 }
-                retVal = BT_GATT_ITER_CONTINUE;
             }
             break;
         }
