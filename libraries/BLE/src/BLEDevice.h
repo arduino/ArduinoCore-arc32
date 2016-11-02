@@ -226,8 +226,8 @@ class BLEDevice
      *
      * @note  none
      */
-    void setConnectionInterval(float minimumConnectionInterval, 
-                               float maximumConnectionInterval,
+    void setConnectionInterval(int minimumConnectionInterval, 
+                               int maximumConnectionInterval,
                                uint16_t latency, 
                                uint16_t timeout);
     
@@ -243,8 +243,8 @@ class BLEDevice
      *
      * @note  none
      */
-    void setConnectionInterval(float minimumConnectionInterval, 
-                               float maximumConnectionInterval);
+    void setConnectionInterval(int minimumConnectionInterval, 
+                               int maximumConnectionInterval);
     
     /**
      * @brief   Set TX power of the radio in dBM
@@ -345,17 +345,6 @@ class BLEDevice
      * @note  Central mode only. How to distinguish the peripheral?
      */
     BLEDevice peripheral();
-    
-    /**
-     * @brief   Release the resources when link lost
-     *
-     * @param   none
-     *
-     * @return  none
-     *
-     * @note  Peer devices only. Do nothing if local BLE device called.
-     */
-    void linkLost();
     
     operator bool() const;
     bool operator==(const BLEDevice& device) const;

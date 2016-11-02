@@ -124,15 +124,20 @@ void BLEDevice::setAdvertisingInterval(float advertisingInterval)
     BLEDeviceManager::instance()->setAdvertisingInterval(advertisingInterval);
 }
 
-void BLEDevice::setConnectionInterval(float minimumConnectionInterval, 
-                                      float maximumConnectionInterval,
+void BLEDevice::setConnectionInterval(int minimumConnectionInterval, 
+                                      int maximumConnectionInterval,
                                       uint16_t latency, 
                                       uint16_t timeout)
-{}
+{
+    // TODO: Update the connection interval need more discussion
+}
 
-void BLEDevice::setConnectionInterval(float minimumConnectionInterval, 
-                                      float maximumConnectionInterval)
-{}
+void BLEDevice::setConnectionInterval(int minimumConnectionInterval, 
+                                      int maximumConnectionInterval)
+{
+    // TODO: Update the connection interval need more discussion
+
+}
 
 bool BLEDevice::setTxPower(int txPower)
 {
@@ -177,13 +182,10 @@ BLEDevice BLEDevice::central()
 
 BLEDevice BLEDevice::peripheral()
 {
-    // TODO
+    // TODO: How to get the target devices
     BLEDevice temp;
     return temp;
 }
-
-void BLEDevice::linkLost()
-{}
 
 BLEDevice::operator bool() const
 {
@@ -225,7 +227,9 @@ void BLEDevice::startScanning(BLEService& service)
 }
 
 void BLEDevice::startScanningWithDuplicates()
-{}
+{
+    // TODO
+}
 
 void BLEDevice::stopScanning()
 {

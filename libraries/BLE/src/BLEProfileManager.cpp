@@ -44,10 +44,9 @@ BLEProfileManager::BLEProfileManager ():
     _discovering(false),
     _discover_timestamp(0),
     _cur_discover_service(NULL),
+    _reading(false),
     _attr_base(NULL),
     _attr_index(0),
-    _sub_param(NULL),
-    _sub_param_idx(0),
     _profile_registered(false)
 {
     //memset(_service_header_array, 0, sizeof(_service_header_array));
@@ -55,6 +54,7 @@ BLEProfileManager::BLEProfileManager ():
     
     memset(_addresses, 0, sizeof(_addresses));
     memset(&_read_params, 0, sizeof(_read_params));
+    memset(&_read_service_header, 0, sizeof(_read_service_header));
     bt_addr_le_copy(&_addresses[BLE_MAX_CONN_CFG], BLEUtils::bleGetLoalAddress());
     for (int i = 0; i <= BLE_MAX_CONN_CFG; i++)
     {
@@ -70,6 +70,12 @@ BLEProfileManager::~BLEProfileManager (void)
     if (this->_attr_base)
     {
         bfree(this->_attr_base);
+    }
+    ServiceReadLinkNodePtr node = link_node_get_first(&_read_service_header);
+    while (NULL != node)
+    {
+        link_node_remove_first(&_read_service_header);
+        node = link_node_get_first(&_read_service_header);
     }
 }
 
@@ -288,7 +294,7 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     
     ret = bt_gatt_register(_attr_base,
                             _attr_index);
-    pr_debug(LOG_MODULE_APP, "%s: ret, %d", __FUNCTION__, ret);
+    pr_debug(LOG_MODULE_APP, "%s: ret, %d,_attr_index-%d", __FUNCTION__, ret, _attr_index);
     if (0 == ret)
     {
         _profile_registered = true;
@@ -650,6 +656,7 @@ uint8_t BLEProfileManager::discoverResponseProc(bt_conn_t *conn,
                 else
                 {
                     int err_code = (int)addService(device, svc_value->uuid);
+                    params->uuid = NULL;
                     if (BLE_STATUS_SUCCESS == err_code)
                     {
                         BLEServiceImp* service_tmp = service(device, svc_value->uuid);
@@ -679,45 +686,49 @@ uint8_t BLEProfileManager::discoverResponseProc(bt_conn_t *conn,
         }
     }
     
-    if (retVal == BT_GATT_ITER_STOP && discovering() == false)
+    if (retVal == BT_GATT_ITER_STOP)
     {
-        const BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(device);
-        BLEServiceImp* serviceCurImp = NULL;
-        if (NULL == serviceHeader)
+        checkReadService();
+        if (discovering() == false)
         {
-            // Doesn't find the service
-            return BT_GATT_ITER_STOP;
-        }
-        BLEServiceNodePtr node = serviceHeader->next;
-        
-        // Discover next service
-        while (node != NULL)
-        {
-            serviceCurImp = node->value;
-            
-            if (NULL == _cur_discover_service)
+            const BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(device);
+            BLEServiceImp* serviceCurImp = NULL;
+            if (NULL == serviceHeader)
             {
-                bool result = serviceCurImp->discoverAttributes(&device);
-                if (result == true)
+                // Doesn't find the service
+                return BT_GATT_ITER_STOP;
+            }
+            BLEServiceNodePtr node = serviceHeader->next;
+            
+            // Discover next service
+            while (node != NULL)
+            {
+                serviceCurImp = node->value;
+                
+                if (NULL == _cur_discover_service)
                 {
-                    // Record the current discovering service
-                    _cur_discover_service = serviceCurImp;
-                    break;
+                    bool result = serviceCurImp->discoverAttributes(&device);
+                    if (result == true)
+                    {
+                        // Record the current discovering service
+                        _cur_discover_service = serviceCurImp;
+                        break;
+                    }
                 }
+                else if (_cur_discover_service == serviceCurImp)
+                {
+                    // Find next discoverable service
+                    _cur_discover_service = NULL;
+                }
+                
+                node = node->next;
             }
-            else if (_cur_discover_service == serviceCurImp)
+            if (NULL == node)
             {
-                // Find next discoverable service
-                _cur_discover_service = NULL;
+                pr_debug(LOG_MODULE_BLE, "%s-%d: Discover completed", 
+                                     __FUNCTION__, __LINE__);
+                _start_discover = false;
             }
-            
-            node = node->next;
-        }
-        if (NULL == node)
-        {
-            pr_debug(LOG_MODULE_BLE, "%s-%d: Discover completed", 
-                                 __FUNCTION__, __LINE__);
-            _start_discover = false;
         }
     }
     return retVal;
@@ -758,7 +769,7 @@ void BLEProfileManager::serviceDiscoverComplete(const BLEDevice &bledevice)
     return;
 }
 
-void BLEProfileManager::readService(const BLEDevice &bledevice, uint16_t handle)
+bool BLEProfileManager::readService(const BLEDevice &bledevice, uint16_t handle)
 {
     int retval = 0;
     bt_conn_t* conn = NULL;
@@ -766,13 +777,19 @@ void BLEProfileManager::readService(const BLEDevice &bledevice, uint16_t handle)
     if (true == BLEUtils::isLocalBLE(bledevice))
     {
         // GATT server can't write
-        return;// false;
+        return false;
     }
     
-    //if (_reading)
+    if (_reading)
     {
-        // Already in reading state
-        //return false;
+        // Read response not back
+        // Add to buffer
+        ServiceRead_t temp;
+        bt_addr_le_copy(&temp.address, bledevice.bt_le_address());
+        temp.handle = handle;
+        ServiceReadLinkNodePtr node = link_node_create(temp);
+        link_node_insert_last(&_read_service_header, node);
+        return true;
     }
     
     _read_params.func = profile_service_read_rsp_process;
@@ -783,24 +800,39 @@ void BLEProfileManager::readService(const BLEDevice &bledevice, uint16_t handle)
     if (0 == _read_params.single.handle)
     {
         // Discover not complete
-        return ;//false;
+        return false;
     }
     
     conn = bt_conn_lookup_addr_le(bledevice.bt_le_address());
     if (NULL == conn)
     {
-        return ;//false;
+        return false;
     }
-    setDiscovering(true);
     // Send read request
     retval = bt_gatt_read(conn, &_read_params);
     bt_conn_unref(conn);
-    //if (0 == retval)
+    if (0 == retval)
     {
-        //_reading = true;
+        setDiscovering(true);
+        _reading = true;
     }
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
-    return ;//true; //_reading;
+    return _reading;
+}
+
+void BLEProfileManager::checkReadService()
+{
+    ServiceReadLinkNodePtr node = link_node_get_first(&_read_service_header);
+    while (NULL != node)
+    {
+        BLEDevice temp(&node->value.address);
+        if (true == readService(temp, node->value.handle))
+        {
+            break;
+        }
+        link_node_remove_first(&_read_service_header);
+        node = link_node_get_first(&_read_service_header);
+    }
 }
 
 bool BLEProfileManager::discoverService(BLEDevice* device, const bt_uuid_t* svc_uuid)
@@ -856,6 +888,7 @@ uint8_t BLEProfileManager::serviceReadRspProc(bt_conn_t *conn,
                                            const void *data, 
                                            uint16_t length)
 {
+    _reading = false;
     if (NULL == data)
     {
         return BT_GATT_ITER_STOP;
