@@ -212,6 +212,13 @@ bool BLEDevice::operator!=(const BLEDevice& device) const
 }
 
 
+void BLEDevice::startScanning()
+{
+    preCheckProfile();
+    BLEDeviceManager::instance()->clearAdvertiseCritical();
+    BLEDeviceManager::instance()->startScanning();
+}
+
 void BLEDevice::startScanning(String name)
 {
     preCheckProfile();
@@ -243,42 +250,42 @@ BLEDevice BLEDevice::available()
 
 bool BLEDevice::hasLocalName() const
 {
-    return BLEDeviceManager::instance()->hasLocalName();
+    return BLEDeviceManager::instance()->hasLocalName(this);
 }
 
 bool BLEDevice::hasAdvertisedServiceUuid() const
 {
-    return BLEDeviceManager::instance()->hasAdvertisedServiceUuid();
+    return BLEDeviceManager::instance()->hasAdvertisedServiceUuid(this);
 }
 
 bool BLEDevice::hasAdvertisedServiceUuid(int index) const
 {
-    return BLEDeviceManager::instance()->hasAdvertisedServiceUuid(index);
+    return BLEDeviceManager::instance()->hasAdvertisedServiceUuid(this, index);
 }
 
 int BLEDevice::advertisedServiceUuidCount() const
 {
-    return BLEDeviceManager::instance()->advertisedServiceUuidCount();
+    return BLEDeviceManager::instance()->advertisedServiceUuidCount(this);
 }
 
 String BLEDevice::localName() const
 {
-    return BLEDeviceManager::instance()->localName();
+    return BLEDeviceManager::instance()->localName(this);
 }
 
 String BLEDevice::advertisedServiceUuid() const
 {
-    return BLEDeviceManager::instance()->advertisedServiceUuid();
+    return BLEDeviceManager::instance()->advertisedServiceUuid(this);
 }
 
 String BLEDevice::advertisedServiceUuid(int index) const
 {
-    return BLEDeviceManager::instance()->advertisedServiceUuid(index);
+    return BLEDeviceManager::instance()->advertisedServiceUuid(this, index);
 }
 
 int BLEDevice::rssi() const
 {
-    return BLEDeviceManager::instance()->rssi();
+    return BLEDeviceManager::instance()->rssi(this);
 }
 
 bool BLEDevice::connect()

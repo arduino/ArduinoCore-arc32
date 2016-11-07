@@ -352,6 +352,17 @@ class BLEDevice
     
     // central mode
     /**
+     * @brief   Start scanning for peripherals without filter
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    void startScanning();
+    
+    /**
      * @brief   Start scanning for peripherals and filter by device name in ADV
      *
      * @param   name    The device's local name.
@@ -606,6 +617,7 @@ protected:
     const bt_addr_le_t* bt_le_address() const;
     const bt_le_conn_param* bt_conn_param() const;
     void setAddress(const bt_addr_le_t& addr);
+    void setAdvertiseData(const uint8_t* adv_data, uint8_t len);
 private:
     void preCheckProfile();
     
