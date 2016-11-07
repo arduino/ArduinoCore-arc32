@@ -297,6 +297,7 @@ class BLEDeviceManager
     operator bool() const;
 
     // central mode
+    void clearAdvertiseCritical();
     void setAdvertiseCritical(String name);
     void setAdvertiseCritical(BLEService& service);
     bool startScanning(); // start scanning for peripherals
@@ -309,16 +310,16 @@ class BLEDeviceManager
     
     BLEDevice available(); // retrieve a discovered peripheral
 
-    bool hasLocalName() const; // does the peripheral advertise a local name
-    bool hasAdvertisedServiceUuid() const; // does the peripheral advertise a service
-    bool hasAdvertisedServiceUuid(int index) const; // does the peripheral advertise a service n
-    int advertisedServiceUuidCount() const; // number of services the peripheral is advertising
+    bool hasLocalName(const BLEDevice* device) const; // does the peripheral advertise a local name
+    bool hasAdvertisedServiceUuid(const BLEDevice* device) const; // does the peripheral advertise a service
+    bool hasAdvertisedServiceUuid(const BLEDevice* device, int index) const; // does the peripheral advertise a service n
+    int advertisedServiceUuidCount(const BLEDevice* device) const; // number of services the peripheral is advertising
 
-    String localName() const; // returns the advertised local name as a String
-    String advertisedServiceUuid() const; // returns the advertised service as a UUID String
-    String advertisedServiceUuid(int index) const; // returns the nth advertised service as a UUID String
+    String localName(const BLEDevice* device) const; // returns the advertised local name as a String
+    String advertisedServiceUuid(const BLEDevice* device) const; // returns the advertised service as a UUID String
+    String advertisedServiceUuid(const BLEDevice* device, int index) const; // returns the nth advertised service as a UUID String
 
-    int rssi() const; // returns the RSSI of the peripheral at discovery
+    int rssi(const BLEDevice* device) const; // returns the RSSI of the peripheral at discovery
 
     bool connect(BLEDevice &device); // connect to the peripheral
     bool connectToDevice(BLEDevice &device);
@@ -349,7 +350,11 @@ private:
                            uint8_t data_len);
     bool setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
                             const uint8_t *ad, 
-                            uint8_t data_len);
+                            uint8_t data_len,
+                            int8_t rssi);
+    void getDeviceAdvertiseBuffer(const bt_addr_le_t* addr, 
+                                  const uint8_t* &adv_data,
+                                  uint8_t &adv_len) const;
 
 private:
     uint16_t   _min_conn_interval;
@@ -363,10 +368,20 @@ private:
     uint64_t     _peer_adv_mill[BLE_MAX_ADV_BUFFER_CFG];     // The ADV found time stamp
     uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    int8_t     _peer_adv_rssi[BLE_MAX_ADV_BUFFER_CFG];
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _adv_critical_service_uuid;
+    
     bt_addr_le_t _wait_for_connect_peripheral;
+    uint8_t    _wait_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _wait_for_connect_peripheral_adv_data_len;
+    int8_t     _wait_for_connect_peripheral_adv_rssi;
+    
+    bt_addr_le_t _available_for_connect_peripheral;
+    uint8_t    _available_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _available_for_connect_peripheral_adv_data_len;
+    int8_t     _available_for_connect_peripheral_adv_rssi;
     
     // For peripheral
     struct bt_le_adv_param _adv_param;
@@ -400,6 +415,9 @@ private:
     // Connected device object
     bt_addr_le_t _peer_central;
     bt_addr_le_t _peer_peripheral[BLE_MAX_CONN_CFG];
+    uint8_t    _peer_peripheral_adv_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_peripheral_adv_data_len[BLE_MAX_CONN_CFG];
+    uint8_t    _peer_peripheral_adv_rssi[BLE_MAX_CONN_CFG];
 
     BLEDeviceEventHandler _device_events[BLEDeviceLastEvent];
 };
