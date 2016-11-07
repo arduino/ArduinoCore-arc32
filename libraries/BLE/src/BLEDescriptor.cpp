@@ -18,8 +18,8 @@
 */
 #include "BLEAttribute.h"
 #include "BLEDescriptor.h"
-#include "BLEUtils.h"
-#include "BLEDescriptorImp.h"
+#include "./internal/BLEUtils.h"
+#include "./internal/BLEDescriptorImp.h"
 
 BLEDescriptor::BLEDescriptor():
     _properties(0),

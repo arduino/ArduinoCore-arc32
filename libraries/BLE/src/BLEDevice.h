@@ -298,22 +298,22 @@ class BLEDevice
      *
      * @param[in] attribute     The service that will add to Peripheral
      *
-     * @return BLE_STATUS_T     Indicating success or error type
+     * @return int     Indicating success or error type @enum BLE_STATUS_T
      *
      * @note This method must be called before the begin method
      */
-    BLE_STATUS_T addService(BLEService& attribute);
+    int addService(BLEService& attribute);
     
     /**
      * @brief   Construct the ADV data and start send advertisement
      *
      * @param   none
      *
-     * @return  BLE_STATUS_T       0 - Success. Others - error code
+     * @return  int       0 - Success. Others - error code @enum BLE_STATUS_T
      *
      * @note  none
      */
-    BLE_STATUS_T startAdvertising();
+    int startAdvertising();
     
     /**
      * @brief   Stop send advertisement

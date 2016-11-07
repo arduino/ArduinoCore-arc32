@@ -25,10 +25,10 @@ class BLEAttributeWithValue
   public:
     BLEAttributeWithValue();
 
-    virtual int valueLength() const; // returns the length of the attribute value
-    virtual const byte* value() const; // returns the value of the attribute array
-    virtual byte operator[] (int offset) const; // access an attribute value at the specified offset
-    virtual bool writeValue(const byte value[], int length);
+    virtual int valueSize() const = 0; // returns the length of the attribute value
+    virtual const byte* value() const = 0; // returns the value of the attribute array
+    virtual byte operator[] (int offset) const = 0; // access an attribute value at the specified offset
+    virtual bool writeValue(const byte value[], int length) = 0;
 
     // intepret the value of the attribute with the specified type
     String stringValue() const;
