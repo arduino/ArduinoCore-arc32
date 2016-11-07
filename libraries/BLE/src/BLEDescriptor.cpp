@@ -40,7 +40,7 @@ BLEDescriptor::BLEDescriptor(BLEDescriptorImp* descriptorImp,
     BLEUtils::uuidBT2String(descriptorImp->bt_uuid(), _uuid_cstr);
     
     _value_size = descriptorImp->valueSize();
-    _value = (unsigned char*)balloc(_value_size, NULL);
+    _value = (unsigned char*)malloc(_value_size);
     memcpy(_value, descriptorImp->value(), _value_size);
 }
 
@@ -57,7 +57,7 @@ BLEDescriptor::BLEDescriptor(const char* uuid,
     _bledev.setAddress(*BLEUtils::bleGetLoalAddress());
     
     _value_size = valueLength > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : valueLength;
-    _value = (unsigned char*)balloc(_value_size, NULL);
+    _value = (unsigned char*)malloc(_value_size);
     memcpy(_value, value, _value_size);
 }
 
@@ -70,7 +70,7 @@ BLEDescriptor::~BLEDescriptor()
 {
     if (_value)
     {
-        bfree(_value);
+        free(_value);
         _value = NULL;
     }
 }

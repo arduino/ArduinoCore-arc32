@@ -43,10 +43,10 @@ BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid,
     _ble_device()
 {
     _value_size = BLE_MAX_ATTR_DATA_LEN;// Set as MAX value. TODO: long read/write need to twist
-    _value = (unsigned char*)balloc(_value_size, NULL);
+    _value = (unsigned char*)malloc(_value_size);
     if (_value_size > BLE_MAX_ATTR_DATA_LEN)
     {
-        _value_buffer = (unsigned char*)balloc(_value_size, NULL);
+        _value_buffer = (unsigned char*)malloc(_value_size);
     }
     
     memset(_value, 0, _value_size);
@@ -107,10 +107,10 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
 {
     unsigned char properties = characteristic._properties;
     _value_size = characteristic._value_size;
-    _value = (unsigned char*)balloc(_value_size, NULL);
+    _value = (unsigned char*)malloc(_value_size);
     if (_value_size > BLE_MAX_ATTR_DATA_LEN)
     {
-        _value_buffer = (unsigned char*)balloc(_value_size, NULL);
+        _value_buffer = (unsigned char*)malloc(_value_size);
     }
     
     memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
@@ -173,12 +173,12 @@ BLECharacteristicImp::~BLECharacteristicImp()
 {
     releaseDescriptors();
     if (_value) {
-        bfree(_value);
+        free(_value);
         _value = NULL;
     }
     if (_value_buffer)
     {
-        bfree(_value_buffer);
+        free(_value_buffer);
         _value_buffer = NULL;
     }
 }
@@ -245,12 +245,26 @@ bool
 BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
 {
     _setValue(value, length, 0);
-    // Read response/Notification/Indication for GATT client
-    // Write request for GATT server
-    if (_event_handlers[BLEWritten]) 
+    if (BLEUtils::isLocalBLE(_ble_device) == true)
     {
-        BLECharacteristic chrcTmp(this, &_ble_device);
-        _event_handlers[BLEWritten](_ble_device, chrcTmp);
+        // GATT server
+        // Write request for GATT server
+        if (_event_handlers[BLEWritten]) 
+        {
+            BLECharacteristic chrcTmp(this, &_ble_device);
+            _event_handlers[BLEWritten](_ble_device, chrcTmp);
+        }
+    }
+    else
+    {
+        // GATT client
+        // Discovered attribute
+        // Read response/Notification/Indication for GATT client
+        if (_event_handlers[BLEValueUpdated]) 
+        {
+            BLECharacteristic chrcTmp(this, &_ble_device);
+            _event_handlers[BLEValueUpdated](_ble_device, chrcTmp);
+        }
     }
     
     return true;

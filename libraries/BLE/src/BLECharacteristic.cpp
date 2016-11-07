@@ -50,13 +50,13 @@ BLECharacteristic::~BLECharacteristic()
 {
     if (_value) 
     {
-        bfree(_value);
+        free(_value);
         _value = NULL;
     }
     
     if (_event_handlers != NULL)
     {
-        bfree(_event_handlers);
+        free(_event_handlers);
         _event_handlers = NULL;
     }
 }
@@ -435,7 +435,7 @@ void BLECharacteristic::setEventHandler(BLECharacteristicEvent event,
     {
         if (_event_handlers == NULL)
         {
-            _event_handlers = (BLECharacteristicEventHandler*)balloc(sizeof(BLECharacteristicEventHandler) * BLECharacteristicEventLast, NULL);
+            _event_handlers = (BLECharacteristicEventHandler*)malloc(sizeof(BLECharacteristicEventHandler) * BLECharacteristicEventLast);
         }
         
         if (_event_handlers != NULL)
@@ -456,7 +456,7 @@ BLECharacteristic::_setValue(const uint8_t value[], uint16_t length)
     if (NULL == _value)
     {
         // Allocate the buffer for characteristic
-        _value = (unsigned char*)balloc(_value_size, NULL);//malloc(_value_size)
+        _value = (unsigned char*)malloc(_value_size);
     }
     if (NULL == _value)
     {

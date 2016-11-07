@@ -69,7 +69,7 @@ BLEProfileManager::~BLEProfileManager (void)
 {
     if (this->_attr_base)
     {
-        bfree(this->_attr_base);
+        free(this->_attr_base);
     }
     ServiceReadLinkNodePtr node = link_node_get_first(&_read_service_header);
     while (NULL != node)
@@ -246,7 +246,7 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     
     if (NULL == _attr_base)
     {
-        _attr_base = (bt_gatt_attr_t *)balloc(attr_counter * sizeof(bt_gatt_attr_t), NULL);
+        _attr_base = (bt_gatt_attr_t *)malloc(attr_counter * sizeof(bt_gatt_attr_t));
         memset(_attr_base, 0x00, (attr_counter * sizeof(bt_gatt_attr_t)));
         pr_info(LOG_MODULE_BLE, "_attr_base_-%p, size-%d, attr_counter-%d", _attr_base, sizeof(_attr_base), attr_counter);
         if (NULL == _attr_base)
@@ -259,7 +259,7 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     {
         if (NULL != _attr_base)
         {
-            bfree(_attr_base);
+            free(_attr_base);
         }
         return err_code;
     }
