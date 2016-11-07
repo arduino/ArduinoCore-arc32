@@ -45,7 +45,7 @@ typedef void (*BLECharacteristicEventHandler)(BLEDevice& bledev, BLECharacterist
 
 //#include "BLECharacteristicImp.h"
 
-class BLECharacteristic //: public BLEAttributeWithValue
+class BLECharacteristic: public BLEAttributeWithValue
 {
 public:
     BLECharacteristic();

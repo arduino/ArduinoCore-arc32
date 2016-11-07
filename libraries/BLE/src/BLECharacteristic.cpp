@@ -1,12 +1,12 @@
 
 #include "ArduinoBLE.h"
 
-#include "BLEUtils.h"
+#include "./internal/BLEUtils.h"
 
 #include "BLECharacteristic.h"
-#include "BLEProfileManager.h"
+#include "./internal/BLEProfileManager.h"
 
-#include "BLECharacteristicImp.h"
+#include "./internal/BLECharacteristicImp.h"
 
 BLECharacteristic::BLECharacteristic():
     _bledev(), _internal(NULL), _properties(0), 

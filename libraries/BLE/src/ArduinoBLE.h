@@ -32,7 +32,7 @@ class BLEDescriptorImp;
 #include "BLECommon.h"
 
 #include "BLEDevice.h"
-
+#include "BLEAttributeWithValue.h"
 #include "BLECharacteristic.h"
 #include "BLEDescriptor.h"
 #include "BLEService.h"

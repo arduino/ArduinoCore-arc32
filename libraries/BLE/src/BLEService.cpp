@@ -18,10 +18,10 @@
 */
 #include "BLEService.h"
 
-#include "BLEProfileManager.h"
-#include "BLECharacteristicImp.h"
+#include "./internal/BLEProfileManager.h"
+#include "./internal/BLECharacteristicImp.h"
 
-#include "BLEUtils.h"
+#include "./internal/BLEUtils.h"
 
 BLEService::BLEService():_bledevice(),_service_imp(NULL)
 {

@@ -20,7 +20,7 @@
 #include "ArduinoBLE.h"
 #include "BLEAttribute.h"
 
-#include "BLEUtils.h"
+#include "./internal/BLEUtils.h"
 
 
 BLEAttribute::BLEAttribute(const char* uuid, BLEAttributeType type) :

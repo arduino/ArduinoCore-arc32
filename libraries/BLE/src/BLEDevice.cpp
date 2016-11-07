@@ -19,11 +19,11 @@
 #include "ArduinoBLE.h"
 #include "BLEDevice.h"
 
-#include "BLEUtils.h"
+#include "./internal/BLEUtils.h"
 
-#include "BLEProfileManager.h"
-#include "BLEDeviceManager.h"
-#include "BLECharacteristicImp.h"
+#include "./internal/BLEProfileManager.h"
+#include "./internal/BLEDeviceManager.h"
+#include "./internal/BLECharacteristicImp.h"
 
 BLEDevice::BLEDevice()
 {
@@ -159,12 +159,12 @@ void BLEDevice::setAppearance(unsigned short appearance)
     BLEDeviceManager::instance()->setAppearance(appearance);
 }
 
-BLE_STATUS_T BLEDevice::addService(BLEService& attribute)
+int BLEDevice::addService(BLEService& attribute)
 {
     return BLEProfileManager::instance()->addService(*this, attribute);
 }
 
-BLE_STATUS_T BLEDevice::startAdvertising()
+int BLEDevice::startAdvertising()
 {
     preCheckProfile();
     return BLEDeviceManager::instance()->startAdvertising();
