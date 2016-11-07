@@ -32,7 +32,7 @@ BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice,
     
     _properties = descriptor.properties();
     _value_length = descriptor.valueLength();
-    _value = (unsigned char*)balloc(_value_length, NULL);
+    _value = (unsigned char*)malloc(_value_length);
 
     memcpy(_value, descriptor.value(), _value_length);
 }
@@ -46,14 +46,14 @@ BLEDescriptorImp::BLEDescriptorImp(const bt_uuid_t* uuid,
     _properties(properties)
 {
     _value_length = BLE_MAX_ATTR_DATA_LEN;
-    _value = (unsigned char*)balloc(_value_length, NULL);
+    _value = (unsigned char*)malloc(_value_length);
 
     memset(_value, 0, _value_length);
 }
 
 BLEDescriptorImp::~BLEDescriptorImp() {
     if (_value) {
-        bfree(_value);
+        free(_value);
         _value = NULL;
     }
 }
