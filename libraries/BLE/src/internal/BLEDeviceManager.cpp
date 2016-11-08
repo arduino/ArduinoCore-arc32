@@ -948,6 +948,7 @@ BLEDeviceManager* BLEDeviceManager::instance()
     if (_instance == NULL)
     {
         _instance = new BLEDeviceManager();
+        BLE_LIB_ASSERT(_instance != NULL);
     }
     return _instance;
 }
@@ -1201,6 +1202,11 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
                     if(false == setAdvertiseBuffer(addr, ad, data_len, rssi))
                     {
                         pr_info(LOG_MODULE_BLE, "No buffer to store the ADV\n");
+                    }
+                    else if (NULL != _device_events[BLEDiscovered])
+                    {
+                        BLEDevice tempdev = available();
+                        _device_events[BLEDiscovered](tempdev);
                     }
                 }
                 pr_debug(LOG_MODULE_BLE, "%s-%d: Done", __FUNCTION__, __LINE__);

@@ -34,6 +34,7 @@ BLEProfileManager* BLEProfileManager::instance()
     if (NULL == _instance)
     {
         _instance = new BLEProfileManager();
+        BLE_LIB_ASSERT(_instance != NULL);
     }
     pr_debug(LOG_MODULE_BLE, "%s-%d: %p", __FUNCTION__, __LINE__, _instance);
     return _instance;

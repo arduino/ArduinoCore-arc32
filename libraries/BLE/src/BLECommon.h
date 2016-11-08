@@ -120,6 +120,8 @@ extern "C" {
 
 #include "os/os.h"
 
+extern void __assert_fail(void);
+
 /// Define the structure for app
 typedef struct bt_uuid      bt_uuid_t;
 typedef struct bt_uuid_16   bt_uuid_16_t;

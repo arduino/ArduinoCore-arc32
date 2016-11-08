@@ -41,7 +41,7 @@ enum BLEProperty {
   BLEIndicate             = 0x20
 };
 
-typedef void (*BLECharacteristicEventHandler)(BLEDevice& bledev, BLECharacteristic& characteristic);
+typedef void (*BLECharacteristicEventHandler)(BLEDevice bledev, BLECharacteristic characteristic);
 
 //#include "BLECharacteristicImp.h"
 

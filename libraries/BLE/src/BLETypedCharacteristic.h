@@ -52,6 +52,19 @@ public:
      * @note  none
      */
     bool setValue(T value);
+    
+    /**
+     * @brief   Update the characteristic value
+     *
+     * @param[in]   value   New value to set
+     *
+     * @return      bool    true - set value success, 
+     *                      false - on error
+     *
+     * @note  none
+     */
+    bool writeValue(T value);
+    
     /**
      * @brief   Get the value of the Characteristic
      *
@@ -131,6 +144,10 @@ template<typename T> BLETypedCharacteristic<T>::BLETypedCharacteristic(const cha
 
 template<typename T> bool BLETypedCharacteristic<T>::setValue(T value) {
     return BLECharacteristic::setValue((unsigned char*)&value, sizeof(T));
+}
+
+template<typename T> bool BLETypedCharacteristic<T>::writeValue(T value) {
+    return BLECharacteristic::writeValue((unsigned char*)&value, sizeof(T));
 }
 
 template<typename T> T BLETypedCharacteristic<T>::value() {
