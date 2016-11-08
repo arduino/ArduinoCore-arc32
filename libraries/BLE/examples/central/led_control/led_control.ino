@@ -24,6 +24,7 @@
 const int buttonPin = 2;
 int oldButtonState = LOW;
 
+char uuid_buf[70];
 
 void setup() {
   Serial.begin(9600);
@@ -46,16 +47,16 @@ void loop() {
 
   if (peripheral) {
     // discovered a peripheral, print out address, local name, and advertised service
+    peripheral.advertisedServiceUuid(uuid_buf);
     Serial.print("Found ");
     Serial.print(peripheral.address());
     Serial.print(" '");
     Serial.print(peripheral.localName());
     Serial.print("' ");
-    Serial.print(peripheral.advertisedServiceUuid());
-    Serial.println();
+    Serial.println(uuid_buf);
 
     // see if peripheral is advertising the LED service
-    if (peripheral.advertisedServiceUuid() == "19b10000-e8f2-537e-4f6c-d104768a1214") {
+    if (String(uuid_buf) == String("19b10000-e8f2-537e-4f6c-d104768a1214")) {
       // stop scanning
       BLE.stopScanning();
 

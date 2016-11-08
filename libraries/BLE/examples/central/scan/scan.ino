@@ -17,6 +17,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+char uuid_buf[70];
+
 #include <ArduinoBLE.h>
 
 void setup() {
@@ -54,8 +56,8 @@ void loop() {
     if (peripheral.hasAdvertisedServiceUuid()) {
       Serial.print("Service UUID's: ");
       for (int i = 0; i < peripheral.advertisedServiceUuidCount(); i++) {
-        Serial.print(peripheral.advertisedServiceUuid(i));
-        Serial.print(" ");
+        peripheral.advertisedServiceUuid(i, uuid_buf);
+        Serial.print(String(uuid_buf) + " ");
       }
       Serial.println();
     }

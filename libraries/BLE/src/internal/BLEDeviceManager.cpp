@@ -740,28 +740,26 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
     return localname_string;
 }
 
-String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device) const
+void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, char *buf) const
 {
-    return advertisedServiceUuid(device, 0);
+    advertisedServiceUuid(device, 0, buf);
 }
 
-String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int index) const
+void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int index, char *buf) const
 {
     const uint8_t* adv_data = NULL;
     uint8_t adv_data_len = 0;
     uint8_t service_cnt = 0;
     bt_uuid_128_t service_uuid;
-    char uuid_string[37];
-    memset(uuid_string, 0, sizeof(uuid_string));
     
     if (BLEUtils::isLocalBLE(*device) == true)
     {
         // Local device only support advertise 1 service now.
         if (_has_service_uuid && index == 0)
         {
-            BLEUtils::uuidBT2String(&service_uuid.uuid, uuid_string);
+            BLEUtils::uuidBT2String(&service_uuid.uuid, buf);
         }
-        return  uuid_string;
+        return;
     }
     
     getDeviceAdvertiseBuffer(device->bt_le_address(),
@@ -770,7 +768,7 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
     
     if (NULL == adv_data)
     {
-        return uuid_string;
+        return;
     }
     
     while (adv_data_len > 1)
@@ -781,12 +779,12 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         /* Check for early termination */
         if (len == 0)
         {
-            return uuid_string;
+            return;
         }
 
         if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
-            return uuid_string;
+            return;
         }
 
         if (type == BT_DATA_UUID16_ALL ||
@@ -808,7 +806,7 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
                 memcpy(service_uuid.val, &adv_data[2], 16);
             }
             
-            BLEUtils::uuidBT2String(&service_uuid.uuid, uuid_string);
+            BLEUtils::uuidBT2String(&service_uuid.uuid, buf);
             
             break;
         }
@@ -816,7 +814,6 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         adv_data_len -= len + 1;
         adv_data += len + 1;
     }
-    return uuid_string;
 }
 
 int BLEDeviceManager::rssi(const BLEDevice* device) const
