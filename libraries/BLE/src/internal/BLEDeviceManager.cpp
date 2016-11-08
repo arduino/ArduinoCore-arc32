@@ -95,7 +95,7 @@ bool BLEDeviceManager::begin(BLEDevice *device)
     {
         _local_ble = device;
         _local_ble->setAddress(_local_bda);
-        
+        bt_le_set_mac_address(_local_bda);
         // Set device name    
         setDeviceName();
         _state = BLE_PERIPH_STATE_READY;
