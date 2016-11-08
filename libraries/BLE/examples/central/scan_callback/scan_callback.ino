@@ -19,6 +19,8 @@
 
 #include <ArduinoBLE.h>
 
+char uuid_buf[70];
+
 void setup() {
   Serial.begin(9600);
 
@@ -58,8 +60,8 @@ void bleCentralDiscoverHandler(BLEDevice peripheral) {
     if (peripheral.hasAdvertisedServiceUuid()) {
     Serial.print("Service UUID's: ");
     for (int i = 0; i < peripheral.advertisedServiceUuidCount(); i++) {
-      Serial.print(peripheral.advertisedServiceUuid(i));
-      Serial.print(" ");
+      peripheral.advertisedServiceUuid(i, uuid_buf);
+      Serial.print(String(uuid_buf) + " ");
     }
     Serial.println();
   }

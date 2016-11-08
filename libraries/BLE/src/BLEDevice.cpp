@@ -273,14 +273,14 @@ String BLEDevice::localName() const
     return BLEDeviceManager::instance()->localName(this);
 }
 
-String BLEDevice::advertisedServiceUuid() const
+void BLEDevice::advertisedServiceUuid(char *buf) const
 {
-    return BLEDeviceManager::instance()->advertisedServiceUuid(this);
+    BLEDeviceManager::instance()->advertisedServiceUuid(this, buf);
 }
 
-String BLEDevice::advertisedServiceUuid(int index) const
+void BLEDevice::advertisedServiceUuid(int index, char *buf) const
 {
-    return BLEDeviceManager::instance()->advertisedServiceUuid(this, index);
+    BLEDeviceManager::instance()->advertisedServiceUuid(this, index, buf);
 }
 
 int BLEDevice::rssi() const

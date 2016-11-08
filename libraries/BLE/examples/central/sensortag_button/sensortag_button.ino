@@ -19,6 +19,8 @@
 
 #include <ArduinoBLE.h>
 
+uuid_buf[70];
+
 void setup() {
   Serial.begin(9600);
 
@@ -37,13 +39,14 @@ void loop() {
 
   if (peripheral) {
     // discovered a peripheral, print out address, local name, and advertised service
+    peripheral.advertisedServiceUuid(uuid_buf);
+
     Serial.print("Found ");
     Serial.print(peripheral.address());
     Serial.print(" '");
     Serial.print(peripheral.localName());
     Serial.print("' ");
-    Serial.print(peripheral.advertisedServiceUuid());
-    Serial.println();
+    Serial.println(uuid_buf);
 
     // see if peripheral is a SensorTag
     if (peripheral.localName() == "SensorTag") {

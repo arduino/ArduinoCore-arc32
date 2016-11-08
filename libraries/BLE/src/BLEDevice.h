@@ -436,8 +436,8 @@ class BLEDevice
     int advertisedServiceUuidCount() const; // number of services the peripheral is advertising
 
     String localName() const; // returns the advertised local name as a String
-    String advertisedServiceUuid() const; // returns the advertised service as a UUID String
-    String advertisedServiceUuid(int index) const; // returns the nth advertised service as a UUID String
+    void advertisedServiceUuid(char *buf) const; // returns the advertised service as a UUID String
+    void advertisedServiceUuid(int index, char *buf) const; // returns the nth advertised service as a UUID String
 
     int rssi() const; // returns the RSSI of the peripheral at discovery
 
