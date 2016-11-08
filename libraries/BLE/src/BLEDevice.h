@@ -28,6 +28,7 @@ enum BLEDeviceEvent {
   BLEConParamUpdate = 2,    // Update the connection parameter 
                             //  Connection update request in central
                             //  Connection parameter updated in peripheral
+  BLEDiscovered,            // The scanned BLE device
   BLEDeviceLastEvent
 };
 
