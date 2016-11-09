@@ -19,6 +19,8 @@
 
 #include <ArduinoBLE.h>
 
+char addr_buf[BT_ADDR_STR_LEN];
+char name_buf[BLE_MAX_ADV_SIZE];
 char uuid_buf[70];
 
 void setup() {
@@ -46,17 +48,18 @@ void bleCentralDiscoverHandler(BLEDevice peripheral) {
   Serial.println("Discovered a peripheral");
   Serial.println("-----------------------");
 
+  peripheral.address(addr_buf);
+
   // print address
-  Serial.print("Address: ");
-  Serial.println(peripheral.address());
+  Serial.println("Address: " + String(addr_buf));
 
   // print the local name, if present
   if (peripheral.hasLocalName()) {
-    Serial.print("Local Name: ");
-    Serial.println(peripheral.localName());
+    peripheral.localName(name_buf);
+    Serial.println("Local Name: " + String(name_buf));
   }
 
-  // print the advertised service UUID's, if present
+    // print the advertised service UUID's, if present
     if (peripheral.hasAdvertisedServiceUuid()) {
     Serial.print("Service UUID's: ");
     for (int i = 0; i < peripheral.advertisedServiceUuidCount(); i++) {

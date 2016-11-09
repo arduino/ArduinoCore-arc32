@@ -85,9 +85,9 @@ bool BLEDevice::disconnect()
     return BLEDeviceManager::instance()->disconnect(this);
 }
 
-String BLEDevice::address() const
+void BLEDevice::address(char *buf) const
 {
-    return BLEUtils::macAddressBT2String(_bt_addr);
+    BLEUtils::macAddressBT2String(_bt_addr, buf);
 }
 
 void BLEDevice::setAddress(const bt_addr_le_t& addr)
@@ -268,9 +268,9 @@ int BLEDevice::advertisedServiceUuidCount() const
     return BLEDeviceManager::instance()->advertisedServiceUuidCount(this);
 }
 
-String BLEDevice::localName() const
+void BLEDevice::localName(char *buf) const
 {
-    return BLEDeviceManager::instance()->localName(this);
+    BLEDeviceManager::instance()->localName(this, buf);
 }
 
 void BLEDevice::advertisedServiceUuid(char *buf) const

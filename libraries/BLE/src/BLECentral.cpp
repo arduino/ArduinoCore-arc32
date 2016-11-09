@@ -30,9 +30,9 @@ bool BLECentral::connected(void)
     return _device.connected();
 }
 
-const char* BLECentral::address(void) const
+void BLECentral::address(char *buf) const
 {
-    return _device.address().c_str();
+    _device.address(buf);
 }
 
 bool BLECentral::disconnect(void)

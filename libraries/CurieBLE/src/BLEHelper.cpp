@@ -42,10 +42,8 @@ BLEHelper::operator!=(const BLEHelper& rhs) const {
     return !(*this == rhs);
 }
 
-const char* 
-BLEHelper::address() const {
-    static char address[18];
-
+void 
+BLEHelper::address(char *buf) const {
     String addressStr = "";
 
     for (int i = 5; i >= 0; i--) {
@@ -62,9 +60,8 @@ BLEHelper::address() const {
         }
     }
 
-    strcpy(address, addressStr.c_str());
-
-    return address;
+    strncpy(buf, addressStr.c_str(), BT_ADDR_STR_LEN);
+    buf[BT_ADDR_STR_LEN - 1] = 0;
 }
 /*
 const bt_addr_t *BLEHelper::address(void) const

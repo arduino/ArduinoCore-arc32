@@ -23,6 +23,8 @@
 // LED pin
 #define LED_PIN   13
 
+char buf[BT_ADDR_STR_LEN];
+
 // create service
 BLEService              ledService("19b10000e8f2537e4f6cd104768a1214");
 
@@ -66,14 +68,16 @@ void loop() {
 
 void bleDeviceConnectHandler(BLEDevice central) {
   // central connected event handler
-  Serial.print(F("Connected event, central: "));
-  Serial.println(central.address());
+  central.address(buf);
+  Serial.print("Connected event, central: ");
+  Serial.println(buf);
 }
 
 void bleDeviceDisconnectHandler(BLEDevice central) {
   // central disconnected event handler
-  Serial.print(F("Disconnected event, central: "));
-  Serial.println(central.address());
+  central.address(buf);
+  Serial.print("Disconnected event, central: ");
+  Serial.println(buf);
 }
 
 void switchCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {

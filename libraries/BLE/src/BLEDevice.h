@@ -143,7 +143,7 @@ class BLEDevice
      *
      * @note  none
      */
-    String address() const;
+    void address(char *buf) const;
 
     /**
      * @brief   Set the service UUID that the BLE Peripheral Device advertises
@@ -435,7 +435,7 @@ class BLEDevice
     bool hasAdvertisedServiceUuid(int index) const; // does the peripheral advertise a service n
     int advertisedServiceUuidCount() const; // number of services the peripheral is advertising
 
-    String localName() const; // returns the advertised local name as a String
+    void localName(char *buf) const; // returns the advertised local name as a String
     void advertisedServiceUuid(char *buf) const; // returns the advertised service as a UUID String
     void advertisedServiceUuid(int index, char *buf) const; // returns the nth advertised service as a UUID String
 

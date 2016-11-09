@@ -4,17 +4,20 @@
 // LED pin
 #define LED_PIN   13
 
+char buf[BT_ADDR_STR_LEN];
+
 void setup() {
     Serial.begin(9600);
     Serial.println("test---");
-    
+
     // set LED pin to output mode
     pinMode(LED_PIN, OUTPUT);
 
     // begin initialization
     BLE.begin();
-    Serial.println(BLE.address());
-    
+    BLE.address(buf);
+    Serial.println(buf);
+
     BLE.startScanning("LED");
 }
 
@@ -22,33 +25,34 @@ void controlLed(BLEDevice &peripheral)
 {
     static bool discovered = false;
     // connect to the peripheral
+    peripheral.address(buf);
     Serial.print("Connecting ... ");
-    Serial.println(peripheral.address());
+    Serial.println(buf);
 
     if (peripheral.connect())
     {
         Serial.print("Connected: ");
-        Serial.println(peripheral.address());
+        Serial.println(buf);
     }
     else
     {
         Serial.println("Failed to connect!");
         return;
     }
-    
+
     peripheral.discoverAttributes();
-    
+
     BLECharacteristic ledCharacteristic = peripheral.characteristic("19b10101-e8f2-537e-4f6c-d104768a1214");
-    
+
     if (!ledCharacteristic)
     {
         peripheral.disconnect();
         Serial.println("Peripheral does not have LED characteristic!");
         delay(5000);
         return;
-    } 
+    }
       ledCharacteristic.subscribe();
-      
+
 
     discovered = false;
     while (peripheral.connected())
@@ -56,7 +60,7 @@ void controlLed(BLEDevice &peripheral)
         if (ledCharacteristic.valueUpdated())
         {
             char ledValue = *ledCharacteristic.value();
-        
+
             if (ledValue) {
               Serial.println(F("LED on"));
               digitalWrite(LED_PIN, HIGH);
@@ -67,16 +71,16 @@ void controlLed(BLEDevice &peripheral)
         }
     }
     Serial.print("Disconnected");
-    Serial.println(peripheral.address());
+    Serial.println(buf);
 }
 
 void loop() {
-    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     BLEDevice peripheral = BLE.available();
-    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
-    if (peripheral) 
+
+    if (peripheral)
     {
-    Serial.println(peripheral.address());
+        peripheral.address(buf);
+        Serial.println(buf);
         BLE.stopScanning();
         delay (1000);
         // central connected to peripheral

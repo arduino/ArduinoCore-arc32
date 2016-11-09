@@ -30,6 +30,9 @@ BLEService bleImuService("F7580001-153E-D4F6-F26D-43D8D98EEB13"); // Tx IMU data
 BLECharacteristic bleImuChar("F7580003-153E-D4F6-F26D-43D8D98EEB13", // standard 128-bit characteristic UUID
                              BLERead | BLENotify, sizeof(imuBuf));   // remote clients will be able to
                                                                      // get notifications if this characteristic changes
+
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup()
 {
     Serial.begin(9600);    // initialize serial communication
@@ -62,9 +65,9 @@ void loop()
     // if a central is connected to peripheral:
     if (central)
     {
-        Serial.print("Connected to central: ");
         // print the central's MAC address:
-        Serial.println(central.address());
+        central.address(addr_buf);
+        Serial.println("Connected to central: " + String(addr_buf));
 
         Serial.print("IMU buffer size: ");
         Serial.println(sizeof(imuBuf));
@@ -89,8 +92,7 @@ void loop()
 
         // when the central disconnects, turn off the LED:
         digitalWrite(13, LOW);
-        Serial.print("Disconnected from central: ");
-        Serial.println(central.address());
+        Serial.println("Disconnected from central: " + String(addr_buf));
     }
 }
 

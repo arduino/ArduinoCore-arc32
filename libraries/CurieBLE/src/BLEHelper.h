@@ -35,7 +35,7 @@ class BLEHelper {
          *
          * @return const char* address of the BLE in string format
          */
-        const char* address(void) const;
+        void address(char *buf) const;
         
         /**
          * @brief   Get the address of the BLE in raw format

@@ -95,6 +95,8 @@ BLEService midiSvc("03B80E5A-EDE8-4B33-A751-6CE34EC4C700"); // create service
 // create switch characteristic and allow remote device to read and write
 BLECharacteristic midiChar("7772E5DB-3868-4112-A1A9-F2669D106BF3", BLEWrite | BLEWriteWithoutResponse | BLENotify | BLERead, 5);
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup() {
   Serial.begin(9600);
 
@@ -145,14 +147,14 @@ void BLESetup()
 
 void midiDeviceConnectHandler(BLEHelper& central) {
   // central connected event handler
-  Serial.print("Connected event, central: ");
-  Serial.println(central.address());
+  central.address(addr_buf);
+  Serial.println("Connected event, central: " + String(addr_buf));
 }
 
 void midiDeviceDisconnectHandler(BLEHelper& central) {
   // central disconnected event handler
-  Serial.print("Disconnected event, central: ");
-  Serial.println(central.address());
+  central.address(addr_buf);
+  Serial.println("Disconnected event, central: " + String(addr_buf));
 }
 
 void midiCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
