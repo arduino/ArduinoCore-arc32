@@ -84,6 +84,10 @@ public:
                       unsigned char properties, 
                       const char* value);
 
+    BLECharacteristic(const BLECharacteristic&);
+
+    BLECharacteristic& operator=(const BLECharacteristic&);
+
     virtual ~BLECharacteristic();
 
     /**

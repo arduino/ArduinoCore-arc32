@@ -760,9 +760,12 @@ void BLEProfileManager::serviceDiscoverComplete(const BLEDevice &bledevice)
             servicePrevImp->setEndHandle(serviceCurImp->startHandle() - 1);
         }
         
-    pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
+        if (servicePrevImp)
+        {
+            pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
+        }
         servicePrevImp = serviceCurImp;   
-    pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
+        pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
         node = node->next;
     }
     return;

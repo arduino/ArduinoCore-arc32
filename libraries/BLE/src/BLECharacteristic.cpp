@@ -46,6 +46,44 @@ BLECharacteristic::BLECharacteristic(BLECharacteristicImp *characteristicImp,
     _value_size = characteristicImp->valueSize();
 }
 
+BLECharacteristic::BLECharacteristic(const BLECharacteristic& rhs)
+{
+    unsigned char *_value = (unsigned char*)malloc(rhs._value_size);
+    if (_value)
+    {
+        memcpy(_value, rhs._value, rhs._value_size);
+        _value_size = rhs._value_size;
+        memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+        _properties = rhs._properties;
+        _event_handlers = rhs._event_handlers;
+        _internal = rhs._internal;
+        _bledev = BLEDevice(&rhs._bledev);
+    }
+}
+
+BLECharacteristic& BLECharacteristic::operator= (const BLECharacteristic& rhs)
+{
+    if (this != &rhs)
+    {
+        if (_value)
+        {
+            free(_value);
+        }
+        _value = (unsigned char*)malloc(rhs._value_size);
+        if (_value)
+        {
+            memcpy(_value, rhs._value, rhs._value_size);
+            _value_size = rhs._value_size;
+            memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+            _properties = rhs._properties;
+            _event_handlers = rhs._event_handlers;
+            _internal = rhs._internal;
+            _bledev = BLEDevice(&rhs._bledev);
+        }
+    }
+    return *this;
+}
+
 BLECharacteristic::~BLECharacteristic()
 {
     if (_value) 

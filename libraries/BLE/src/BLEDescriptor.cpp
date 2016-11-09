@@ -66,6 +66,40 @@ BLEDescriptor::BLEDescriptor(const char* uuid,
      BLEDescriptor(uuid, (const unsigned char*)value, strlen(value))
 {}
 
+BLEDescriptor::BLEDescriptor(const BLEDescriptor& rhs)
+{
+    unsigned char *_value = (unsigned char*)malloc(rhs._value_size);
+    if (_value)
+    {
+        memcpy(_value, rhs._value, rhs._value_size);
+        _value_size = rhs._value_size;
+        memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+        _properties = rhs._properties;
+        _bledev = BLEDevice(&rhs._bledev);
+    }
+}
+
+BLEDescriptor& BLEDescriptor::operator= (const BLEDescriptor& rhs)
+{
+    if (this != &rhs)
+    {
+        if (_value)
+        {
+            free(_value);
+        }
+        _value = (unsigned char*)malloc(rhs._value_size);
+        if (_value)
+        {
+            memcpy(_value, rhs._value, rhs._value_size);
+            _value_size = rhs._value_size;
+            memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+            _properties = rhs._properties;
+            _bledev = BLEDevice(&rhs._bledev);
+        }
+    }
+    return *this;
+}
+
 BLEDescriptor::~BLEDescriptor()
 {
     if (_value)
