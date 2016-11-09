@@ -757,7 +757,7 @@ void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int index,
         // Local device only support advertise 1 service now.
         if (_has_service_uuid && index == 0)
         {
-            BLEUtils::uuidBT2String(&service_uuid.uuid, buf);
+            BLEUtils::uuidBT2String(&_service_uuid.uuid, buf);
         }
         return;
     }
