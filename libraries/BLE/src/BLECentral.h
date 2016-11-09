@@ -24,7 +24,7 @@ class BLECentral {
   public:
     bool connected(void); // is the central connected
     
-    const char* address(void) const; // address of the Central in string form
+    void address(char *buf) const; // address of the Central in string form
 
     bool disconnect(void); // Disconnect the central if it is connected
     void poll(void); // Poll the central for events

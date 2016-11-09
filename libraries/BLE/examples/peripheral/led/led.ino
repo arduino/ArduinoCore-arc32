@@ -22,6 +22,8 @@
 // LED pin
 #define LED_PIN   13
 
+char buf[BT_ADDR_STR_LEN];
+
 // create service
 BLEService               ledService("19b10000e8f2537e4f6cd104768a1214");
 
@@ -38,7 +40,9 @@ void setup() {
 
   // begin initialization
   BLE.begin();
-  Serial.println(BLE.address());
+
+  BLE.address(buf);
+  Serial.println(buf);
 
   // set advertised local name and service UUID
   BLE.setLocalName("LED");
@@ -60,8 +64,9 @@ void loop() {
 
   if (central) {
     // central connected to peripheral
-    Serial.print(F("Connected to central: "));
-    Serial.println(central.address());
+    central.address(buf);
+    Serial.print("Connected to central: ");
+    Serial.println(buf);
 
     while (central.connected()) {
       // central still connected to peripheral
@@ -79,6 +84,6 @@ void loop() {
 
     // central disconnected
     Serial.print(F("Disconnected from central: "));
-    Serial.println(central.address());
+    Serial.println(buf);
   }
 }

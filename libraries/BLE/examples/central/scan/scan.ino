@@ -17,9 +17,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-char uuid_buf[70];
-
 #include <ArduinoBLE.h>
+
+char addr_buf[BT_ADDR_STR_LEN];
+char name_buf[BLE_MAX_ADV_SIZE];
+char uuid_buf[70];
 
 void setup() {
   Serial.begin(9600);
@@ -43,13 +45,13 @@ void loop() {
     Serial.println("-----------------------");
 
     // print address
-    Serial.print("Address: ");
-    Serial.println(peripheral.address());
+    peripheral.address(addr_buf);
+    Serial.println("Address: " + String(addr_buf));
 
     // print the local name, if present
     if (peripheral.hasLocalName()) {
-      Serial.print("Local Name: ");
-      Serial.println(peripheral.localName());
+      peripheral.localName(name_buf);
+      Serial.println("Local Name: " + String(name_buf));
     }
 
     // print the advertised service UUID's, if present

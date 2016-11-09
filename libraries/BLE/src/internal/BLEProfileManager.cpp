@@ -125,7 +125,6 @@ BLEProfileManager::addService (BLEDevice &bledevice, const bt_uuid_t* uuid)
 
 BLEProfileManager::BLEServiceLinkNodeHeader* BLEProfileManager::getServiceHeader(const BLEDevice &bledevice)
 {
-    String address = bledevice.address();
     int i;
     for (i = 0; i <= BLE_MAX_CONN_CFG; i++)
     {
@@ -144,7 +143,6 @@ BLEProfileManager::BLEServiceLinkNodeHeader* BLEProfileManager::getServiceHeader
 
 const BLEProfileManager::BLEServiceLinkNodeHeader* BLEProfileManager::getServiceHeader(const BLEDevice &bledevice) const
 {
-    String address = bledevice.address();
     int i;
     for (i = 0; i <= BLE_MAX_CONN_CFG; i++)
     {

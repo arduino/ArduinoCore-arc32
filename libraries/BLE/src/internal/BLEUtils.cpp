@@ -3,14 +3,11 @@
 #include "BLEUtils.h"
 #include "internal/ble_client.h"
 
-String BLEUtils::macAddressBT2String(const bt_addr_le_t &bd_addr)
+void BLEUtils::macAddressBT2String(const bt_addr_le_t &bd_addr, char *buf)
 {
-    char mac_string[BT_ADDR_STR_LEN];
-    snprintf(mac_string, BT_ADDR_STR_LEN, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+    snprintf(buf, BT_ADDR_STR_LEN, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
             bd_addr.val[5], bd_addr.val[4], bd_addr.val[3],
             bd_addr.val[2], bd_addr.val[1], bd_addr.val[0]);
-    String temp(mac_string);
-    return temp;
 }
 
 void BLEUtils::macAddressString2BT(const char* mac_str, bt_addr_le_t &bd_addr)
@@ -50,8 +47,8 @@ bool BLEUtils::macAddressSame(const bt_addr_le_t &bd_addr1,
         {
         
 pr_info(LOG_MODULE_BLE, "%s-idx %d-%.2x:%.2x", __FUNCTION__, i ,bd_addr1.val[i], bd_addr2.val[i]);
-pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr1).c_str());
-pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr2).c_str());
+//pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr1).c_str());
+//pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(bd_addr2).c_str());
             temp = false;
             break;
         }

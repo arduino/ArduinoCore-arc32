@@ -25,6 +25,8 @@ BLEUnsignedCharCharacteristic switchCharacteristic("19B10001-E8F2-537E-4F6C-D104
 
 const int ledPin = 13; // pin to use for the LED
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup() {
   Serial.begin(9600);
 
@@ -54,9 +56,9 @@ void loop() {
 
   // if a central is connected to peripheral:
   if (central) {
-    Serial.print("Connected to central: ");
     // print the central's MAC address:
-    Serial.println(central.address());
+    central.address(addr_buf);
+    Serial.println("Connected to central: " + String(addr_buf));
 
     // while the central is still connected to peripheral:
     while (central.connected()) {
@@ -74,8 +76,7 @@ void loop() {
     }
 
     // when the central disconnects, print it out:
-    Serial.print(F("Disconnected from central: "));
-    Serial.println(central.address());
+    Serial.println("Disconnected from central: " + String(addr_buf));;
   }
 }
 

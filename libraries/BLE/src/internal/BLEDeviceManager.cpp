@@ -692,23 +692,23 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
     return service_cnt;
 }
 
-String BLEDeviceManager::localName(const BLEDevice* device) const
+void BLEDeviceManager::localName(const BLEDevice* device, char *buf) const
 {
     if (BLEUtils::isLocalBLE(*device) == true)
     {
-        return _local_name;
+        _local_name.toCharArray(buf, BLE_MAX_ADV_SIZE);
+        return;
     }
+
     const uint8_t* adv_data = NULL;
     uint8_t adv_data_len = 0;
-    char localname_string[BLE_MAX_ADV_SIZE];
-    memset(localname_string, 0, sizeof(localname_string));
     
     getDeviceAdvertiseBuffer(device->bt_le_address(),
                              adv_data,
                              adv_data_len);
     if (NULL == adv_data)
     {
-        return localname_string;
+        return;
     }
     
     while (adv_data_len > 1)
@@ -719,25 +719,24 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
         /* Check for early termination */
         if (len == 0)
         {
-            return localname_string;
+            return;
         }
 
         if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
-            return localname_string;
+            return;
         }
 
         if (type == BT_DATA_NAME_COMPLETE)
         {
-            memcpy(localname_string, &adv_data[2], len - 1);
-            //localname_string[len - 1] = '\0';
+            memcpy(buf, &adv_data[2], len - 1);
+            buf[len - 1] = '\0';
             break;
         }
 
         adv_data_len -= len + 1;
         adv_data += len + 1;
     }
-    return localname_string;
 }
 
 void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, char *buf) const
@@ -917,7 +916,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
     
     if (!link_existed && NULL != unused)
     {
-    pr_debug(LOG_MODULE_BLE, "%s-%d-Device:%s", __FUNCTION__, __LINE__, device.address().c_str());
+        //pr_debug(LOG_MODULE_BLE, "%s-%d-Device:%s", __FUNCTION__, __LINE__, device.address().c_str());
         // Send connect request
         bt_conn_t* conn = bt_conn_create_le(device.bt_le_address(), device.bt_conn_param());
         if (NULL != conn)
@@ -1090,7 +1089,7 @@ BLEDevice BLEDeviceManager::available()
             _available_for_connect_peripheral_adv_data_len = _peer_adv_data_len[index];
             _available_for_connect_peripheral_adv_rssi = _peer_adv_rssi[index];
             
-            pr_debug(LOG_MODULE_BLE, "%s-%d:Con addr-%s", __FUNCTION__, __LINE__, BLEUtils::macAddressBT2String(*temp).c_str());
+            //pr_debug(LOG_MODULE_BLE, "%s-%d:Con addr-%s", __FUNCTION__, __LINE__, BLEUtils::macAddressBT2String(*temp).c_str());
             _peer_adv_mill[index] -= 2000; // Set it as expired
         }
     }

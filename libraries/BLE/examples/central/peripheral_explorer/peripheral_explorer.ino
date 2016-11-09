@@ -19,6 +19,8 @@
 
 #include <ArduinoBLE.h>
 
+char addr_buf[BT_ADDR_STR_LEN];
+char name_buf[BLE_MAX_ADV_SIZE];
 char uuid_buf[70];
 
 void setup() {
@@ -40,15 +42,18 @@ void loop() {
   if (peripheral) {
     // discovered a peripheral, print out address, local name, and advertised service
     peripheral.advertisedServiceUuid(uuid_buf);
+    peripheral.address(addr_buf);
+    peripheral.localName(name_buf);
+
     Serial.print("Found ");
-    Serial.print(peripheral.address());
+    Serial.print(addr_buf);
     Serial.print(" '");
-    Serial.print(peripheral.localName());
+    Serial.print(name_buf);
     Serial.print("' ");
     Serial.println(uuid_buf);
 
     // see if peripheral is a SensorTag
-    if (peripheral.localName() == "SensorTag") {
+    if (String(name_buf) == "SensorTag") {
       // stop scanning
       BLE.stopScanning();
 

@@ -1,7 +1,7 @@
 
 namespace BLEUtils
 {
-    String macAddressBT2String(const bt_addr_le_t &bd_addr);
+    void macAddressBT2String(const bt_addr_le_t &bd_addr, char *buf);
     void macAddressString2BT(const char* mac_str, bt_addr_le_t &bd_addr);
     bool macAddressValid(const bt_addr_le_t &bd_addr);
     bool macAddressSame(const bt_addr_le_t &bd_addr1, const bt_addr_le_t &bd_addr2);
