@@ -300,13 +300,14 @@ BLEDeviceManager::_advDataInit(void)
             length = UUID_SIZE_16;
             type = BT_DATA_UUID16_ALL;
         }
-        else if (BT_UUID_TYPE_128 == _service_uuid.uuid.type)
+	else  	//  Sid. KW, default is BT_UUID_TYPE_128
         {
             data = _service_uuid.val;
             length = UUID_SIZE_128;
             type = BT_DATA_UUID128_ALL;
         }
-        if (NULL != data)
+
+	// if (data)  // Sid.  KW, data is always initialized
         {
             _adv_data[_adv_data_idx].type = type;
             _adv_data[_adv_data_idx].data = data;
@@ -332,13 +333,13 @@ BLEDeviceManager::_advDataInit(void)
             length = UUID_SIZE_16;
             type = BT_DATA_SOLICIT16;
         }
-        else if (BT_UUID_TYPE_128 == _service_solicit_uuid.uuid.type)
+        else  // Sid. KW, default is BT_UUID_TYPE_128
         {
             data = _service_solicit_uuid.val;
             length = UUID_SIZE_128;
             type = BT_DATA_SOLICIT128;
         }
-        if (NULL != data)
+	// Sid. KW, data is always initialized. if (data)
         {
             _adv_data[_adv_data_idx].type = type;
             _adv_data[_adv_data_idx].data = data;
@@ -500,7 +501,8 @@ bool BLEDeviceManager::startScanningWithDuplicates()
 bool BLEDeviceManager::stopScanning()
 {
     int err = bt_le_scan_stop();
-    if (0 != err)
+
+    if (err)  // Sid. TODO: KW detected bt_le_scan_stop return only 0.
     {
         pr_info(LOG_MODULE_BLE, "Stop LE scan failed (err %d)\n", err);
         return false;
@@ -536,7 +538,7 @@ void BLEDeviceManager::setAdvertiseCritical(BLEService& service)
         length = UUID_SIZE_16;
         type = BT_DATA_UUID16_ALL;
     }
-    else if (BT_UUID_TYPE_128 == _adv_critical_service_uuid.uuid.type)
+    else  // Sid. KW, default is BT_UUID_TYPE_128
     {
         data = _adv_critical_service_uuid.val;
         length = UUID_SIZE_128;
@@ -575,7 +577,7 @@ bool BLEDeviceManager::hasLocalName(const BLEDevice* device) const
             return false;
         }
 
-        if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
+        if ((len + 1) > adv_data_len) {    // Sid. KW, can't be (adv_data_len < 2)
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
             return false;
         }
@@ -675,7 +677,7 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
             return service_cnt;
         }
 
-        if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
+        if ((len + 1) > adv_data_len) {    // Sid. KW, can't be (adv_data_len < 2)
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
             return service_cnt;
         }
@@ -706,38 +708,44 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
     getDeviceAdvertiseBuffer(device->bt_le_address(),
                              adv_data,
                              adv_data_len);
-    if (NULL == adv_data)
-    {
-        return localname_string;
+
+    if (NULL == adv_data) {
+        String temp(localname_string);
+        return temp;
     }
-    
+
     while (adv_data_len > 1)
     {
         uint8_t len = adv_data[0];
         uint8_t type = adv_data[1];
 
         /* Check for early termination */
-        if (len == 0)
-        {
-            return localname_string;
+        if (len == 0) {
+	    String temp(localname_string);
+            return temp;
         }
 
-        if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
+	if ((len + 1) > adv_data_len) {    // Sid. KW, cannot be (adv_data_len < 2)
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
-            return localname_string;
+	    String temp(localname_string);
+            return temp;
         }
 
         if (type == BT_DATA_NAME_COMPLETE)
         {
-            memcpy(localname_string, &adv_data[2], len - 1);
-            //localname_string[len - 1] = '\0';
+	    if (len >= BLE_MAX_ADV_SIZE)
+	      len = BLE_MAX_ADV_SIZE-1;
+            memcpy(localname_string, &adv_data[2], len);
+            localname_string[len] = '\0';
             break;
         }
 
         adv_data_len -= len + 1;
         adv_data += len + 1;
     }
-    return localname_string;
+
+    String temp(localname_string);
+    return temp;
 }
 
 void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, char *buf) const
@@ -766,7 +774,7 @@ void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int index,
                              adv_data,
                              adv_data_len);
     
-    if (NULL == adv_data)
+    if ((uint8_t *)NULL == adv_data)
     {
         return;
     }
@@ -782,7 +790,7 @@ void BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int index,
             return;
         }
 
-        if ((len + 1 > adv_data_len) || (adv_data_len < 2)) {
+        if ((len + 1) > adv_data_len) {    // Sid.  KW, cannot be adv_data_len < 2
             pr_info(LOG_MODULE_BLE, "AD malformed\n");
             return;
         }
@@ -901,7 +909,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
         }
         else
         {
-            if (NULL == unused)
+	  if (NULL == unused)
             {
                 unused = temp;
                 // Buffer the ADV data
@@ -1175,7 +1183,7 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
                 return;
             }
 
-            if ((len + 1 > data_len) || (data_len < 2)) {
+            if ((len + 1) > data_len) {    // Sid. KW, cannot be (data_len < 2)
                 pr_info(LOG_MODULE_BLE, "AD malformed\n");
                 return;
             }

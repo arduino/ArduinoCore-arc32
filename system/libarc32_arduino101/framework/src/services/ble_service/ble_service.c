@@ -194,7 +194,7 @@ static void handle_ble_disable(struct ble_enable_req *req, struct _ble_service_c
 	resp = (void *)cfw_alloc_rsp_msg(&req->header,
 				MSG_ID_BLE_ENABLE_RSP,
 				sizeof(*resp));
-	cfw_send_message(resp);
+	cfw_send_message(resp);  // Sid. KW warning ack.
 
 }
 
@@ -227,7 +227,7 @@ static void ble_service_message_handler(struct cfw_message *msg, void *param)
 				MSG_ID_BLE_ENABLE_RSP, sizeof(*resp));
 			resp->status = -EINPROGRESS;
 			resp->enable = 0;
-			cfw_send_message(resp);
+			cfw_send_message(resp);  // Sid. KW warning ack.
 		}
 	}
 		break;

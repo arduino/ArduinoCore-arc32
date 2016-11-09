@@ -40,6 +40,10 @@ public:
                      uint16_t handle,
                      BLEDevice& bledevice);
 
+    BLEDescriptorImp(const BLEDescriptorImp& rhs);
+
+    BLEDescriptorImp& operator=(const BLEDescriptorImp& that);
+
     virtual ~BLEDescriptorImp();
 
     /**

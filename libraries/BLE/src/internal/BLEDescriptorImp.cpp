@@ -34,7 +34,10 @@ BLEDescriptorImp::BLEDescriptorImp(BLEDevice& bledevice,
     _value_length = descriptor.valueLength();
     _value = (unsigned char*)malloc(_value_length);
 
-    memcpy(_value, descriptor.value(), _value_length);
+    if (_value)
+      memcpy(_value, descriptor.value(), _value_length);
+    else
+      _value_length = 0;
 }
 
 BLEDescriptorImp::BLEDescriptorImp(const bt_uuid_t* uuid, 
@@ -48,13 +51,57 @@ BLEDescriptorImp::BLEDescriptorImp(const bt_uuid_t* uuid,
     _value_length = BLE_MAX_ATTR_DATA_LEN;
     _value = (unsigned char*)malloc(_value_length);
 
-    memset(_value, 0, _value_length);
+    if (_value)
+      memset(_value, 0, _value_length);
+    else
+      _value_length = 0;
+}
+
+
+BLEDescriptorImp::BLEDescriptorImp(const BLEDescriptorImp& rhs) :
+    BLEAttribute(rhs)
+{
+    _value_length = rhs._value_length;
+    _value = (unsigned char *)malloc(_value_length);
+    if (_value)
+        memcpy(_value, rhs._value, sizeof(_value_length));
+    else
+        _value_length = 0;
+
+    _value_handle = rhs._value_handle;
+    _properties = rhs._properties;
+    _descriptor_uuid = rhs._descriptor_uuid;
+    _bledev = BLEDevice(&rhs._bledev);
+}
+
+
+BLEDescriptorImp& BLEDescriptorImp::operator=(const BLEDescriptorImp& that)
+{
+    if (this != &that) {
+
+      BLEAttribute::operator=(that);
+      if (_value)
+	free(_value);
+
+      _value_length = that._value_length;
+      _value = (unsigned char *)malloc(_value_length);
+      if (_value)
+          memcpy(_value, that._value, sizeof(_value_length));
+      else
+          _value_length = 0;
+
+      _value_handle = that._value_handle;
+      _properties = that._properties;
+      _descriptor_uuid = that._descriptor_uuid;
+      _bledev = BLEDevice(&that._bledev);
+    }
+    return *this;
 }
 
 BLEDescriptorImp::~BLEDescriptorImp() {
-    if (_value) {
+    if (_value != (unsigned char *)NULL) {
         free(_value);
-        _value = NULL;
+	_value = (unsigned char *)NULL;
     }
 }
 

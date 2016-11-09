@@ -137,7 +137,8 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
     // Get characteristic by handle params->single.handle
     chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->single.handle);
     
-    chrc->setValue((const unsigned char *)data, length);
+    if (chrc)  // KW issue: may be NULL and will be dereferenced
+      chrc->setValue((const unsigned char *)data, length);
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     return BT_GATT_ITER_STOP;
 }

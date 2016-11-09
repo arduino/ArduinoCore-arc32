@@ -68,9 +68,10 @@ BLEProfileManager::BLEProfileManager ():
 
 BLEProfileManager::~BLEProfileManager (void)
 {
-    if (this->_attr_base)
+    if (_attr_base)
     {
-        free(this->_attr_base);
+      free(_attr_base);
+      _attr_base = (bt_gatt_attr_t *)NULL;
     }
     ServiceReadLinkNodePtr node = link_node_get_first(&_read_service_header);
     while (NULL != node)
@@ -248,12 +249,13 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     if (NULL == _attr_base)
     {
         _attr_base = (bt_gatt_attr_t *)malloc(attr_counter * sizeof(bt_gatt_attr_t));
-        memset(_attr_base, 0x00, (attr_counter * sizeof(bt_gatt_attr_t)));
-        pr_info(LOG_MODULE_BLE, "_attr_base_-%p, size-%d, attr_counter-%d", _attr_base, sizeof(_attr_base), attr_counter);
-        if (NULL == _attr_base)
-        {
+        if (NULL == _attr_base) {
             err_code = BLE_STATUS_NO_MEMORY;
         }
+	else {
+	  memset((void *)_attr_base, 0x00, (attr_counter * sizeof(bt_gatt_attr_t)));
+	  pr_info(LOG_MODULE_BLE, "_attr_base_-%p, size-%d, attr_counter-%d", _attr_base, sizeof(_attr_base), attr_counter);
+	}
     }
     
     if (BLE_STATUS_SUCCESS != err_code)
@@ -563,7 +565,7 @@ bool BLEProfileManager::discoverAttributes(BLEDevice* device)
     }
     // Block it 
     _start_discover = true;
-    while (_start_discover)
+    while (_start_discover)  // Sid. KW warning acknowldged
     {
         delay(10);
     }
@@ -759,12 +761,17 @@ void BLEProfileManager::serviceDiscoverComplete(const BLEDevice &bledevice)
         serviceCurImp = node->value;
         if (NULL != serviceCurImp)
         {
+	  if (servicePrevImp)  // KW issue: Chk for NULL.
             servicePrevImp->setEndHandle(serviceCurImp->startHandle() - 1);
         }
         
-    pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
-        servicePrevImp = serviceCurImp;   
-    pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
+        if (servicePrevImp)
+        {
+            pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
+        }
+        servicePrevImp = serviceCurImp;
+	if (servicePrevImp)  // KW issue: Chk for NULL.
+	  pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
         node = node->next;
     }
     return;

@@ -44,12 +44,15 @@ BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid,
 {
     _value_size = BLE_MAX_ATTR_DATA_LEN;// Set as MAX value. TODO: long read/write need to twist
     _value = (unsigned char*)malloc(_value_size);
-    if (_value_size > BLE_MAX_ATTR_DATA_LEN)
-    {
-        _value_buffer = (unsigned char*)malloc(_value_size);
-    }
-    
-    memset(_value, 0, _value_size);
+
+    // TODO: Enable when max value is not set.
+    //    if (_value_size > BLE_MAX_ATTR_DATA_LEN)
+    //    {
+    //        _value_buffer = (unsigned char*)malloc(_value_size);
+    //    }
+
+    if (_value)
+      memset(_value, 0, _value_size);
     
     memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
     memset(&_ccc_value, 0, sizeof(_ccc_value));
@@ -144,16 +147,8 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
         _sub_params.value |= BT_GATT_CCC_INDICATE;
     }
     _gatt_chrc.uuid = (bt_uuid_t*)this->bt_uuid();//&_characteristic_uuid;//this->uuid();
-    if (NULL != characteristic._event_handlers)
-    {
-        memcpy(_event_handlers, 
-               characteristic._event_handlers, 
-               sizeof(_event_handlers));
-    }
-    else
-    {
-        memset(_event_handlers, 0, sizeof(_event_handlers));
-    }
+
+    memcpy(_event_handlers, characteristic._event_handlers, sizeof(_event_handlers));
     
     _sub_params.notify = profile_notify_process;
     
@@ -174,12 +169,12 @@ BLECharacteristicImp::~BLECharacteristicImp()
     releaseDescriptors();
     if (_value) {
         free(_value);
-        _value = NULL;
+	_value = (unsigned char *)NULL;
     }
     if (_value_buffer)
     {
         free(_value_buffer);
-        _value_buffer = NULL;
+	_value_buffer = (unsigned char *)NULL;
     }
 }
 
@@ -203,10 +198,11 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length)
     {
         // Notify for peripheral.
         status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
-        if (0 == status)
-        {
+	// Sid.  KW found status is always 0
+	//        if (!status)
+	//        {
             retVal = true;
-        }
+	//        }
     }
     
     //Not schedule write request for central
@@ -229,10 +225,11 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length, int offset
     {
         // Notify for peripheral.
         status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
-        if (0 == status)
-        {
+	// Sid.  KW found status is always 0.
+	//        if (!status)
+	//        {
             retVal = true;
-        }
+	//        }
     }
     
     //Not schedule write request for central
@@ -612,7 +609,8 @@ void BLECharacteristicImp::setBuffer(const uint8_t value[],
                                       uint16_t length, 
                                       uint16_t offset)
 {
-    if (length + offset > _value_size) {
+  if ((length + offset > _value_size) ||
+      ((unsigned char *)NULL == _value_buffer)) {
         // Ignore the data
         return;
     }
@@ -627,6 +625,7 @@ void BLECharacteristicImp::syncupBuffer2Value()
 
 void BLECharacteristicImp::discardBuffer()
 {
+  if(_value_buffer)
     memcpy(_value_buffer, _value, _value_size);
 }
 

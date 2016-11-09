@@ -27,6 +27,6 @@ void __attribute__((weak)) _Fault(void)
            ARC_V2_ECR_CODE(ecr),
            ARC_V2_ECR_PARAMETER(ecr));
     pr_error(0, "Address 0x%x\n", exc_addr);
-    while (1);
+    while (1);  // Sid.  Acknowledge KW warning.
 }
 

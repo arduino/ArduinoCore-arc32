@@ -9,8 +9,11 @@ template<typename T> struct LinkNode {
 template<typename T> LinkNode<T>* link_node_create(T value)
 {
     LinkNode<T>* node = (LinkNode<T>*)malloc(sizeof(LinkNode<T>));
-    node->value = value;
-    node->next = NULL;
+
+    if (node) {
+      node->value = value;
+      node->next = NULL;
+    }
     return node;
 }
 

@@ -10,22 +10,23 @@
 
 BLECharacteristic::BLECharacteristic():
     _bledev(), _internal(NULL), _properties(0), 
-    _value_size(0), _value(NULL),_event_handlers(NULL)
+    _value_size(0), _value(NULL)
 {
     memset(_uuid_cstr, 0, sizeof(_uuid_cstr));
+    memset(_event_handlers, 0, sizeof(_event_handlers));
 }
 
 BLECharacteristic::BLECharacteristic(const char* uuid, 
                                      unsigned char properties, 
                                      unsigned short valueSize):
-    _bledev(), _internal(NULL), _properties(properties), _value(NULL),
-    _event_handlers(NULL)
+    _bledev(), _internal(NULL), _properties(properties), _value(NULL)
 {
     bt_uuid_128 bt_uuid_tmp;
     _value_size = valueSize > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : valueSize;
     BLEUtils::uuidString2BT(uuid, (bt_uuid_t *)&bt_uuid_tmp);
     BLEUtils::uuidBT2String((const bt_uuid_t *)&bt_uuid_tmp, _uuid_cstr);
     _bledev.setAddress(*BLEUtils::bleGetLoalAddress());
+    memset(_event_handlers, 0, sizeof(_event_handlers));
 }
 
 BLECharacteristic::BLECharacteristic(const char* uuid, 
@@ -39,11 +40,53 @@ BLECharacteristic::BLECharacteristic(const char* uuid,
 BLECharacteristic::BLECharacteristic(BLECharacteristicImp *characteristicImp,
                                      const BLEDevice *bleDev):
     _bledev(bleDev), _internal(characteristicImp), 
-    _value(NULL),_event_handlers(NULL)
+    _value(NULL)
 {
     BLEUtils::uuidBT2String(characteristicImp->bt_uuid(), _uuid_cstr);
     _properties = characteristicImp->properties();
     _value_size = characteristicImp->valueSize();
+    memset(_event_handlers, 0, sizeof(_event_handlers));
+}
+
+BLECharacteristic::BLECharacteristic(const BLECharacteristic& rhs)
+{
+    _value = (unsigned char*)malloc(rhs._value_size);  // Sid.  KW: _value should not make local here
+    if (_value) {
+        memcpy(_value, rhs._value, rhs._value_size);
+        _value_size = rhs._value_size;
+    } else {
+      _value_size = 0;
+    }
+    memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+    _properties = rhs._properties;
+    memcpy(_event_handlers, rhs._event_handlers, sizeof(_event_handlers));
+    _internal = rhs._internal;
+    _bledev = BLEDevice(&rhs._bledev);
+}
+
+BLECharacteristic& BLECharacteristic::operator= (const BLECharacteristic& rhs)
+{
+    if (this != &rhs)
+    {
+        if (_value)
+        {
+            free(_value);
+        }
+        _value = (unsigned char*)malloc(rhs._value_size);
+        if (_value)
+        {
+            memcpy(_value, rhs._value, rhs._value_size);
+            _value_size = rhs._value_size;
+	} else {
+	    _value_size = 0;
+	}
+	memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
+	_properties = rhs._properties;
+	memcpy(_event_handlers, rhs._event_handlers, sizeof(_event_handlers));
+	_internal = rhs._internal;
+	_bledev = BLEDevice(&rhs._bledev);
+    }
+    return *this;
 }
 
 BLECharacteristic::~BLECharacteristic()
@@ -51,13 +94,6 @@ BLECharacteristic::~BLECharacteristic()
     if (_value) 
     {
         free(_value);
-        _value = NULL;
-    }
-    
-    if (_event_handlers != NULL)
-    {
-        free(_event_handlers);
-        _event_handlers = NULL;
     }
 }
 
@@ -433,15 +469,7 @@ void BLECharacteristic::setEventHandler(BLECharacteristicEvent event,
     }
     else
     {
-        if (_event_handlers == NULL)
-        {
-            _event_handlers = (BLECharacteristicEventHandler*)malloc(sizeof(BLECharacteristicEventHandler) * BLECharacteristicEventLast);
-        }
-        
-        if (_event_handlers != NULL)
-        {
-            _event_handlers[event] = eventHandler;
-        }
+        _event_handlers[event] = eventHandler;
     }
 }
 

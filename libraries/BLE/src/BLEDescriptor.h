@@ -32,6 +32,8 @@ class BLEDescriptor
     BLEDescriptor(const char* uuid, const char* value); // create a descriptor the specified uuid and string value
 
     BLEDescriptor(BLEDescriptorImp* descriptorImp, const BLEDevice *bleDev);
+    BLEDescriptor(const BLEDescriptor&);
+    BLEDescriptor& operator=(const BLEDescriptor&);
 
     virtual ~BLEDescriptor();
 

@@ -84,6 +84,10 @@ public:
                       unsigned char properties, 
                       const char* value);
 
+    BLECharacteristic(const BLECharacteristic&);
+
+    BLECharacteristic& operator=(const BLECharacteristic&);
+
     virtual ~BLECharacteristic();
 
     /**
@@ -518,7 +522,7 @@ protected:
     unsigned short _value_size;       // The value size
     unsigned char* _value;          // The value. Will delete after create the _internal
     
-    BLECharacteristicEventHandler* _event_handlers;
+    BLECharacteristicEventHandler _event_handlers[BLECharacteristicEventLast];  // Sid. Define the arr as in BLECharacteristicImp.h
 };
 
 #endif

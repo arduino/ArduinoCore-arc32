@@ -395,7 +395,7 @@ private:
     
     // ADV data for peripheral
     uint8_t     _adv_type;
-    bt_data_t   _adv_data[4];
+    bt_data_t   _adv_data[5];  // KW: fount _advDataInit() can use 5 slots.
     size_t      _adv_data_idx;
     
     String      _local_name;
