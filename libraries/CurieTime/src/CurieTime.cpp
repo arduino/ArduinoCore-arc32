@@ -50,7 +50,7 @@ int year(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return (tm->tm_year + YEAR_OFFSET);
+    return (tm) ? (tm->tm_year + YEAR_OFFSET) : -1;
 }
 
 int month()
@@ -64,7 +64,7 @@ int month(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return (tm->tm_mon + MONTH_OFFSET);
+    return (tm) ? (tm->tm_mon + MONTH_OFFSET) : -1;
 }
 
 int day()
@@ -78,7 +78,7 @@ int day(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return tm->tm_mday;
+    return (tm) ? tm->tm_mday : -1;
 }
 
 int hour()
@@ -92,7 +92,7 @@ int hour(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return tm->tm_hour;
+    return (tm) ? tm->tm_hour : -1;
 }
 
 int minute()
@@ -106,7 +106,7 @@ int minute(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return tm->tm_min;
+    return (tm) ? tm->tm_min : -1;
 }
 
 int second()
@@ -120,7 +120,7 @@ int second(unsigned long t)
 {
     struct tm* tm = tTm(t);
 
-    return tm->tm_sec;
+    return (tm) ? tm->tm_sec : -1;
 }
 
 void setTime(unsigned long t)
