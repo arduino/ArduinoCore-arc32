@@ -329,7 +329,7 @@ private:
     bt_gatt_attr_t *_attr_cccd;
     
     // For central device to subscribe the Notification/Indication
-   bt_gatt_subscribe_params_t _sub_params;
+    bt_gatt_subscribe_params_t _sub_params;
     
     bool _reading;
     bt_gatt_read_params_t _read_params;

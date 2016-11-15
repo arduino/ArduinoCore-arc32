@@ -146,7 +146,7 @@ uint8_t profile_discover_process(bt_conn_t *conn,
     return peripheral->discover(attr);
 }
 
-// Only for central
+// Only for GATT Client
 uint8_t profile_read_rsp_process(bt_conn_t *conn, int err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
@@ -595,7 +595,7 @@ BLEAttribute *BLEProfile::attribute(const bt_uuid_t* uuid)
             continue;
         }
         chrc_tmp = (BLECharacteristic *)attr_tmp;
-        if (chrc_tmp->uuid() == uuid);
+        if (chrc_tmp->uuid() == uuid)
         {
             att_found = true;
             break;

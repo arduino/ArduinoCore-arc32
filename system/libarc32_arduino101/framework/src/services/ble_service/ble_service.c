@@ -113,9 +113,11 @@ static void handle_msg_id_ble_rpc_callin(struct message *msg, void *priv)
 {
 	struct ble_rpc_callin *rpc = container_of(msg, struct ble_rpc_callin, msg);
 	/* handle incoming message */
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 	rpc_deserialize(rpc->p_data, rpc->len);
 	bfree(rpc->p_data);
 	message_free(msg);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 }
 
 static void ble_set_bda_cb(int status, void *user_data)
@@ -192,7 +194,7 @@ static void handle_ble_disable(struct ble_enable_req *req, struct _ble_service_c
 	resp = (void *)cfw_alloc_rsp_msg(&req->header,
 				MSG_ID_BLE_ENABLE_RSP,
 				sizeof(*resp));
-	cfw_send_message(resp);
+	cfw_send_message(resp);  // Sid. KW warning ack.
 
 }
 
@@ -225,7 +227,7 @@ static void ble_service_message_handler(struct cfw_message *msg, void *param)
 				MSG_ID_BLE_ENABLE_RSP, sizeof(*resp));
 			resp->status = -EINPROGRESS;
 			resp->enable = 0;
-			cfw_send_message(resp);
+			cfw_send_message(resp);  // Sid. KW warning ack.
 		}
 	}
 		break;
