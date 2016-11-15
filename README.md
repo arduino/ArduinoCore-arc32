@@ -1,4 +1,8 @@
 # corelibs-arduino101
+For Intel Community Support, product questions, or help troubleshooting, visit
+ICS: [https://communities.intel.com/community/tech/intel-curie](https://communities.intel.com/community/tech/intel-curie)
+
+|
 
 The contents of this repo is distributed through releases in Arduino IDE.    
 `Tools > Board > Boards Manager > Intel Curie Boards by Intel`
