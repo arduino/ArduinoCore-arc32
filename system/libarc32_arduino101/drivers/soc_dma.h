@@ -133,6 +133,7 @@ struct soc_dma_info {
 	struct soc_dma_channel*   channel[SOC_DMA_NUM_CHANNELS];
 
 	uint32_t                  active;
+        uint32_t                  hw_configured;
 };
 
 

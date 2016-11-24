@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For CurieAudio
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+I2SController    KEYWORD1
+I2SOutputClass   KEYWORD1
+I2SInputClass    KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin           KEYWORD2
+end             KEYWORD2
+write           KEYWORD2
+read            KEYWORD2
+attachCallback  KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+I2SOutput	KEYWORD2
+I2SInput	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
