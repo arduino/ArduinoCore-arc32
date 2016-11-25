@@ -1040,6 +1040,7 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 		struct bt_gatt_attr *attr = NULL;
 
 		if (rsp->type == BT_GATT_DISCOVER_PRIMARY) {
+    //BT_DBG("%s-%d", __FUNCTION__, __LINE__);
 			const struct nble_gattc_primary *gattr =
 					(void *)&data[i * sizeof(*gattr)];
 			if ((gattr->range.start_handle < params->start_handle) &&
@@ -1052,7 +1053,7 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 				goto complete;
 			}
 			svc_value.end_handle = gattr->range.end_handle;
-			svc_value.uuid = params->uuid;
+			svc_value.uuid = (struct bt_uuid*)(&(gattr->uuid));//params->uuid;
 			attr = (&(struct bt_gatt_attr)BT_GATT_PRIMARY_SERVICE(&svc_value));
 			attr->handle = gattr->handle;
 			last_handle = svc_value.end_handle;

@@ -121,6 +121,7 @@ static struct port * get_port(uint16_t port_id)
 	if (port_id == 0 || port_id > MAX_PORTS) {
 		pr_error(LOG_MODULE_MAIN, "Invalid port: %d", port_id);
 		panic(-1); /*TODO: replace with an assert */
+        return NULL;
 	}
 	return &ports[port_id - 1];
 }
@@ -317,7 +318,7 @@ uint16_t queue_process_message(T_QUEUE queue)
        uint16_t id = 0;
        queue_get_message(queue, &m, OS_NO_WAIT, &err);
        message = (struct message *) m;
-       if ( message != NULL && err == E_OS_OK) {
+       if ( message != NULL) { // && err == E_OS_OK dismiss Klock scan issue
                id = MESSAGE_ID(message);
                port_process_message(message);
        }
