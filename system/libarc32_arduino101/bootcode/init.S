@@ -61,9 +61,10 @@ _do_reset:
 .balign 4
 _do_fault:
 _exit_halt:
-    /* Set halt flag */
-    flag 0x01
+    /* Set halt flag
+    flag 0x0 */
     nop
+    j @_Fault
     nop
     nop
     /* loop forever */
