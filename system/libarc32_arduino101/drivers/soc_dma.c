@@ -70,6 +70,7 @@ DRIVER_API_RC soc_dma_start_transfer(struct soc_dma_channel *channel);
 DRIVER_API_RC soc_dma_stop_transfer(struct soc_dma_channel *channel);
 DRIVER_API_RC soc_dma_alloc_list_item(struct soc_dma_xfer_item **ret, struct soc_dma_xfer_item *base);
 DRIVER_API_RC soc_dma_free_list(struct soc_dma_cfg *cfg);
+DRIVER_API_RC dma_update_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg);
 DRIVER_API_RC dma_init();
 
 DECLARE_INTERRUPT_HANDLER static void dma_ch0_interrupt_handler()
@@ -114,7 +115,8 @@ struct soc_dma_info g_dma_info = {
 		NULL
 	},
 	.err_mask = INT_DMA_ERROR_MASK,
-	.err_vector = SOC_DMA_ERR_INTERRUPT
+	.err_vector = SOC_DMA_ERR_INTERRUPT,
+	.hw_configured = 0
 };
 
 static struct soc_dma_info* dma_info = &g_dma_info;
@@ -279,6 +281,39 @@ static struct dma_lli *dma_find_ll_end(struct dma_lli *head)
 
 	return t;
 }
+
+DRIVER_API_RC dma_update_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg)
+{
+	struct dma_lli *lli;
+	struct soc_dma_xfer_item *xfer;
+	struct soc_dma_xfer_item *last_xfer;
+	uint8_t list_done;
+
+	if (channel->ll == NULL) 
+	{
+		return DRV_RC_FAIL;
+	}
+          
+	lli = (struct dma_lli *)(channel->ll);
+	xfer = &(cfg->xfer);
+	last_xfer = dma_find_list_end(xfer);
+    
+	list_done = 0;
+    
+	while (!list_done)
+	{
+		lli->sar = (uint32_t)(xfer->src.addr);
+		if ((xfer->next) == last_xfer)
+			list_done = 1;
+		else
+		{  
+			xfer = xfer->next;
+			lli =  (struct dma_lli *)lli->llp;
+		} 
+	} 
+    
+	return DRV_RC_OK;
+} 
 
 static DRIVER_API_RC dma_create_ll(struct soc_dma_channel *channel, struct soc_dma_cfg *cfg)
 {
@@ -543,6 +578,15 @@ DRIVER_API_RC soc_dma_config(struct soc_dma_channel *channel, struct soc_dma_cfg
 	SETV(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_U),
 		SOC_DMA_CFG_U_SRC_PER, SOC_DMA_CFG_U_SRC_PER_LEN, cfg->src_interface);
 
+	// Per I2S controller specification.
+	if ((cfg->src_interface == SOC_DMA_INTERFACE_I2S_RX) ||
+	    (cfg->dest_interface == SOC_DMA_INTERFACE_I2S_TX)) {
+	  SETV(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_L),
+	       SOC_DMA_CTL_L_SRC_MSIZE, SOC_DMA_CTL_L_SRC_MSIZE_LEN, 1);
+	  SETV(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_L),
+	       SOC_DMA_CTL_L_DEST_MSIZE, SOC_DMA_CTL_L_DEST_MSIZE_LEN, 1);
+	}
+
 	CLRB(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_U), SOC_DMA_CFG_U_SS_UPD_EN);
 	CLRB(MMIO_REG_VAL_FROM_BASE(SOC_DMA_BASE, dma_regs[id].CFG_U), SOC_DMA_CFG_U_DS_UPD_EN);
 
@@ -763,6 +807,9 @@ DRIVER_API_RC soc_dma_init()
 {
 	struct soc_dma_channel ch;
 
+	if (dma_info->hw_configured)
+	  return DRV_RC_OK;
+
 	dma_info->active = 0;
 
 	// Enable global clock
@@ -788,6 +835,7 @@ DRIVER_API_RC soc_dma_init()
 		dma_info->channel[i] = NULL;
 	}
 
+	dma_info->hw_configured = 1;
 	return DRV_RC_OK;
 }
 
