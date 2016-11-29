@@ -1778,20 +1778,10 @@ bool CurieIMUClass::stepsDetected()
 int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt,
                                           unsigned rx_cnt)
 {
-    int flags, status;
-
     if (rx_cnt) /* For read transfers, assume 1st byte contains register address */
         buf[0] |= (1 << BMI160_SPI_READ_BIT);
 
-    /* Lock interrupts here to
-     * - avoid concurrent access to the SPI bus
-     * - avoid delays in SPI transfer due to unrelated interrupts
-     */
-    flags = interrupt_lock();
-    status = ss_spi_xfer(SPI_SENSING_1, buf, tx_cnt, rx_cnt);
-    interrupt_unlock(flags);
-
-    return status;
+    return ss_spi_xfer(SPI_SENSING_1, buf, tx_cnt, rx_cnt);
 }
 
 /** Interrupt handler for interrupts from PIN1 on the BMI160
