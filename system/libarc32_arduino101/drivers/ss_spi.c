@@ -103,8 +103,8 @@ void ss_spi_set_data_mode(SPI_CONTROLLER controller_id, uint8_t dataMode)
 
     /* Set frame size, bus mode and transfer mode */
     ctrl = READ_ARC_REG(dev->reg_base + CTRL);
-    ctrl &= (SPI_SCPL_SET_MASK & SPI_SCPH_SET_MASK);
-    ctrl = (dataMode << 6);
+    ctrl |= (SPI_SCPL_SET_MASK | SPI_SCPH_SET_MASK);
+    ctrl |= (dataMode << 4) & ~SPI_FRF_SET_MASK;
     WRITE_ARC_REG(ctrl, dev->reg_base + CTRL);
 
     /* re-enable controller */
