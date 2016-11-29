@@ -146,6 +146,14 @@ extern "C"{
 #define ADC_RESOLUTION               12
 #define ADC_CLOCK_GATE             (1 << 31)
 
+/*
+ * Clocking
+ */
+ 
+#define SYS_CLK_CTL         (volatile int*)0xB0800038
+#define CCU_RTC_CLK_DIV_EN  2
+#define RTC_DIV_1HZ_MASK    0x00000078         
+
 #define digitalPinToBitMask(P)     (1 << g_APinDescription[P].ulGPIOId)
 
 //static uint8_t __unused_var_POR;
