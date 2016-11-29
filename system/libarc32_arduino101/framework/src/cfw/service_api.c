@@ -111,6 +111,11 @@ struct cfw_message * cfw_alloc_evt_msg(service_t *svc, int msg_id, int size) {
 
 struct cfw_message * cfw_alloc_internal_msg(int msg_id, int size, void * priv) {
     struct cfw_message * evt = (struct cfw_message *) cfw_alloc_message(size, NULL);
+    if (NULL == evt)
+    {
+        return NULL;
+    }
+    
     CFW_MESSAGE_TYPE(evt) = TYPE_INT;
     CFW_MESSAGE_ID(evt) = msg_id;
     CFW_MESSAGE_LEN(evt) = size;

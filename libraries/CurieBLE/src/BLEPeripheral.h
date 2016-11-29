@@ -92,7 +92,7 @@ public:
     /**
      * @brief   Set advertising interval
      *
-     * @param[in]   advertisingInterval    Advertising Interval (N * 0.625)
+     * @param[in]   advertisingInterval    Advertising Interval in ms
      *
      * @return  none
      *

@@ -26,6 +26,8 @@ BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit chara
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup() {
   Serial.begin(9600);    // initialize serial communication
   pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
@@ -53,9 +55,10 @@ void loop() {
 
   // if a central is connected to peripheral:
   if (central) {
-    Serial.print("Connected to central: ");
     // print the central's MAC address:
-    Serial.println(central.address());
+    central.address(addr_buf);
+    Serial.println("Connected to central: " + String(addr_buf));
+
     // turn on the LED to indicate the connection:
     digitalWrite(13, HIGH);
 
@@ -79,8 +82,7 @@ void loop() {
     }
     // when the central disconnects, turn off the LED:
     digitalWrite(13, LOW);
-    Serial.print("Disconnected from central: ");
-    Serial.println(central.address());
+    Serial.println("Disconnected from central: " + String(addr_buf));
   }
 }
 

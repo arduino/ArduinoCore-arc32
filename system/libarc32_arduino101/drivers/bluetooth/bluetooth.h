@@ -345,6 +345,7 @@ int bt_br_set_connectable(bool enable);
 #endif
 
 void bt_le_set_device_name(char *device_name, int len);
+void bt_le_set_mac_address(bt_addr_le_t bda);
 
 #ifdef __cplusplus
 }
