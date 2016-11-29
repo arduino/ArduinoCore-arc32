@@ -240,7 +240,12 @@ void initVariant( void )
     variantGpioInit();
     variantPwmInit();
     variantAdcInit();
-
+    
+    //set RTC clock divider to 32768(1 Hz)
+    *SYS_CLK_CTL |= RTC_DIV_1HZ_MASK;
+    *SYS_CLK_CTL &= ~(1 << CCU_RTC_CLK_DIV_EN);
+    *SYS_CLK_CTL |= 1 << CCU_RTC_CLK_DIV_EN;
+    
     cfw_platform_init();
     
     // Add for debug corelib
