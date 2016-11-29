@@ -32,6 +32,8 @@ bool adv_found(uint8_t type,
                uint8_t data_len,
                const bt_addr_le_t *addrPtr);
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup()
 {
     Serial.begin(9600);
@@ -80,9 +82,9 @@ void loop()
 void bleCentralConnectHandler(BLEHelper& peripheral)
 {
     // peripheral connected event handler
+    peripheral.address(addr_buf);
     blePeripheral1 = bleCentral.getPeerPeripheralBLE(peripheral);
-    Serial.print("Connected event, peripheral: ");
-    Serial.println(peripheral.address());
+    Serial.println("Connected event, peripheral: " + String(addr_buf));
     // Start discovery the profiles in peripheral device
     blePeripheral1->discover();
 }
@@ -90,18 +92,18 @@ void bleCentralConnectHandler(BLEHelper& peripheral)
 void bleCentralDisconnectHandler(BLEHelper& peripheral)
 {
     // peripheral disconnected event handler
+    peripheral.address(addr_buf);
     blePeripheral1 = NULL;
-    Serial.print("Disconnected event, peripheral: ");
-    Serial.println(peripheral.address());
+    Serial.println("Disconnected event, peripheral: " + String(addr_buf));
     bleCentral.startScan();
 }
 
 void bleCentralUpdateParam(BLEHelper& peripheral)
 {
     // peripheral update the connection interval event handler
-    Serial.print("UpdateParam event, peripheral: ");
+    peripheral.address(addr_buf);
+    Serial.println("UpdateParam event, peripheral: " + String(addr_buf));
     blePeripheral1 = bleCentral.getPeerPeripheralBLE(peripheral);;
-    Serial.println(peripheral.address());
     
     // Get connection interval that peer peripheral device wanted
     ble_conn_param_t m_conn_param;

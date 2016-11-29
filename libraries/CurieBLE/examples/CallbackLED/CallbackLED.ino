@@ -27,6 +27,8 @@ BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
 // create switch characteristic and allow remote device to read and write
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 void setup() {
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
@@ -71,8 +73,8 @@ void blePeripheralConnectHandler(BLEHelper& central) {
 
 void blePeripheralDisconnectHandler(BLEHelper& central) {
   // central disconnected event handler
-  Serial.print("Disconnected event, central: ");
-  Serial.println(central.address());
+  central.address(addr_buf);
+  Serial.println("Disconnected event, central: " + String(addr_buf));
 }
 
 // In addtion to the BLECentral& central parameter, we also have to have to BLECharacteristic& characteristic parameter

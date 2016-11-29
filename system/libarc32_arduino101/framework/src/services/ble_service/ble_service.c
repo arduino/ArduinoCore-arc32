@@ -113,9 +113,11 @@ static void handle_msg_id_ble_rpc_callin(struct message *msg, void *priv)
 {
 	struct ble_rpc_callin *rpc = container_of(msg, struct ble_rpc_callin, msg);
 	/* handle incoming message */
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 	rpc_deserialize(rpc->p_data, rpc->len);
 	bfree(rpc->p_data);
 	message_free(msg);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 }
 
 static void ble_set_bda_cb(int status, void *user_data)

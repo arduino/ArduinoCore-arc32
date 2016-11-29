@@ -28,6 +28,8 @@ BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service
                                                                // Long UUID denote custom user created UUID
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);// create switch characteristic and allow remote device to read and write
 
+char addr_buf[BT_ADDR_STR_LEN];
+
 // function prototype for function that determines if the advertising data is found
 bool adv_found(uint8_t type,
                const uint8_t *dataPtr,
@@ -91,9 +93,10 @@ void bleCentralConnectHandler(BLEHelper& peripheral)
 void bleCentralDisconnectHandler(BLEHelper& peripheral)
 {
     // peripheral disconnected event handler
+    peripheral.address(addr_buf);
     blePeripheral1 = NULL;
-    Serial.print("Disconnected event, peripheral: ");
-    Serial.println(peripheral.address());
+    Serial.print("Disconnected event, peripheral: " + String(addr_buf));
+    Serial.println(perip);
     bleCentral.startScan();
 }
 
