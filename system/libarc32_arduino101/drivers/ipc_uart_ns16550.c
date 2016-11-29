@@ -155,7 +155,7 @@ static void ipc_uart_push_frame(uint16_t len, uint8_t *p_data)
 	//	 "len %d, src %d, channel %d", ipc.rx_hdr.len, len,
 	//	 ipc.rx_hdr.src_cpu_id,
 	//	 ipc.rx_hdr.channel);
-    pr_debug(LOG_MODULE_IPC,"data[0 - 1]: %x-%x", p_data[0], p_data[1]);
+    //pr_debug(LOG_MODULE_IPC,"data[0 - 1]: %x-%x", p_data[0], p_data[1]);
 
 	if ((ipc.rx_hdr.channel < IPC_UART_MAX_CHANNEL) &&
 	    (ipc.channels[ipc.rx_hdr.channel].cb != NULL)) {
@@ -208,7 +208,7 @@ void ipc_uart_isr()
 
 				if (ipc.rx_size == 0) {
 					if (ipc.rx_state == STATUS_RX_HDR) {
-    pr_error(0, "%s-%d", __FUNCTION__, ipc.rx_hdr.len);
+    //pr_error(0, "%s-%d", __FUNCTION__, ipc.rx_hdr.len);
 						ipc.rx_ptr = balloc(
 							ipc.rx_hdr.len, NULL);
                         
@@ -368,7 +368,7 @@ int ipc_uart_ns16550_send_pdu(void *handle, int len, void *p_data)
 {
 	struct ipc_uart_channels *chan = (struct ipc_uart_channels *)handle;
 
-    pr_debug(LOG_MODULE_IPC, "%s: %d", __FUNCTION__, ipc.tx_state);
+    //pr_debug(LOG_MODULE_IPC, "%s: %d", __FUNCTION__, ipc.tx_state);
 
 	if (ipc.tx_state == STATUS_TX_BUSY) {
 		return IPC_UART_TX_BUSY;
