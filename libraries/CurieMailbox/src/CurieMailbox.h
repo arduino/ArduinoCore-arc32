@@ -5,6 +5,8 @@
 
 class CurieMailboxClass {
 public:
+    const int numChannels = 8;
+
     CurieMailboxClass (void);
     void begin (void);
     void begin (bool master);

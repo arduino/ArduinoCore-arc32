@@ -4,15 +4,15 @@
 #include "CurieMailbox.h"
 
 #define BUFSIZE                     33
-#define NUM_CHANNELS                8
 #define CHANNEL_STS_MASK            0x1
 #define CHANNEL_INT_MASK            0x2
 #define CTRL_WORD_MASK              0x7FFFFFFF
 #define CHALL_STATUS_MASK           0xFFFF
 #define CHANNEL_STS_BITS            (CHANNEL_STS_MASK | CHANNEL_INT_MASK)
 
-#define CAP_CHAN(chan)              chan = (chan >= NUM_CHANNELS) ? \
-                                    NUM_CHANNELS - 1 : ((chan < 0) ? 0 : chan)
+#define CAP_CHAN(chan)              chan = (chan >= CurieMailbox.numChannels) ?\
+                                    CurieMailbox.numChannels - 1 : ((chan < 0) \
+                                    ? 0 : chan)
 
 /* Mailbox channel status register */
 #define IO_REG_MAILBOX_CHALL_STS    (SCSS_REGISTER_BASE + 0xAC0)
@@ -122,7 +122,7 @@ static void mbox_isr (void)
 
     sts = get_chall_sts();
     /* Get channel number */
-    for (i = 0; i < NUM_CHANNELS; ++i) {
+    for (i = 0; i < CurieMailbox.numChannels; ++i) {
         if (sts & (1 << (i * 2 + 1))) {
             break;
         }
@@ -135,7 +135,7 @@ static void mbox_hardware_init (void)
 {
     int i;
 
-    for (i = 0; i < NUM_CHANNELS; ++i) {
+    for (i = 0; i < CurieMailbox.numChannels; ++i) {
         mbox[i].sts &= ~(CHANNEL_STS_BITS);
     }
 }
