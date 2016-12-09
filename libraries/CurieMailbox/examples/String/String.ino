@@ -15,23 +15,23 @@
 
 #include "CurieMailbox.h"
 
-int receiveChannel = 0;  /* Receiving messages on this channel */
-
 void setup (void) {
     Serial.begin(9600);
 
     /* Enable the mailbox */
     CurieMailbox.begin();
 
-    /* Enable channel for receiving messages */
-    CurieMailbox.enableReceive(receiveChannel);
+    /* Enable all channels for receiving messages */
+    for (int i = 0; i < CurieMailbox.numChannels; ++i) {
+        CurieMailbox.enableReceive(i);
+    }
 }
 
 void printMessageAsString (CurieMailboxMsg msg)
 {
     char *p = (char *)msg.data;
-    Serial.print("Received message '" + String(p) + "' from channel ");
-    Serial.println(msg.channel);
+    Serial.print("Received message from channel " + String(msg.channel) + ": ");
+    Serial.println(String(p));
 }
 
 void loop (void) {
