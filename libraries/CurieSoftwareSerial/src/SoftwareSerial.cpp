@@ -280,8 +280,8 @@ void SoftwareSerial::begin(long speed)
   {
     _isSOCGpio = true;
   }
-  //toggling a pin takes about 62 ticks
-  _tx_delay = _bit_delay - 62;
+  //toggling a pin takes about 68 ticks
+  _tx_delay = _bit_delay - 68;
   //reading a pin takes about 70 ticks
   _rx_delay_intrabit = _bit_delay - 70;
   //it takes about 272 ticks from when the start bit is received to when the ISR is called

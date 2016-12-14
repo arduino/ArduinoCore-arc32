@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include "pins_arduino.h"
+
 #include "binary.h"
 //#include "itoa.h"
 
@@ -96,6 +98,8 @@ typedef struct _PinDescription
 extern PinDescription g_APinDescription[] ;
 
 extern uint32_t pwmPeriod[4];
+
+extern uint8_t pinmuxMode[NUM_DIGITAL_PINS];
 
 #ifdef __cplusplus
 } // extern "C"

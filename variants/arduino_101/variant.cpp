@@ -99,6 +99,8 @@ PinDescription g_APinDescription[]=
 } ;
 
 uint32_t pwmPeriod[] = {PWM_PERIOD, PWM_PERIOD/2, PWM_PERIOD/2, PWM_PERIOD};
+
+uint8_t pinmuxMode[];
 #ifdef __cplusplus
 }
 #endif
@@ -173,6 +175,7 @@ void variantGpioInit(void)
     for (uint8_t pin = 0; pin < NUM_DIGITAL_PINS; pin++) {
         PinDescription *p = &g_APinDescription[pin];
         SET_PIN_MODE(p->ulSocPin, p->ulPinMode);
+        pinmuxMode[pin] = GPIO_MUX_MODE;
     }
 }
 
