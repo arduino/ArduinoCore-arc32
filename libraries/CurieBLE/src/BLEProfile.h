@@ -166,7 +166,7 @@ private:
      * @param[in]   BLEAttribute *      The BLEAttribute object
      *
      * @return  bt_gatt_attr_t*    NULL - Not found
-     *                                  Not NULL - The bt_gatt_attr in the stack
+     *                             Not NULL - The bt_gatt_attr in the stack
      *
      * @note  none
      */
@@ -206,7 +206,7 @@ private:
     BLEAttribute** _attributes;
     uint16_t _num_attributes;
     
-   bt_gatt_subscribe_params_t *_sub_param;
+    bt_gatt_subscribe_params_t *_sub_param;
     int _sub_param_idx;
     
     bt_gatt_discover_params_t _discover_params;

@@ -17,28 +17,36 @@
 
 BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're programming)
 BLEService batteryService("180F"); // BLE Battery Service
+
+// BLE Battery Level Characteristic with standard 16-bit characteristic UUID.
+// This characteristic has Read and Notify properties that allow remote clients
+// to get notifications when this characteristic changes
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);
+
 int count = 0;
-// BLE Battery Level Characteristic"
-BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID
-    BLERead | BLENotify);     // remote clients will be able to
-// get notifications if this characteristic changes
+bool change_discover = false;
 
 void setup() {
-  Serial.begin(9600);    // initialize serial communication
-  pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
-  while (!Serial) {
-    //wait for Serial to connect
-  }
+  // initialize serial communication
+  Serial.begin(9600);
+  // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
+  // remove or comment out the next line
+  while (!Serial) ;
+  // initialize the LED on pin 13. When the BLE device will switch to connectable mode
+  // the on-board LED will be turned on, otherwise turn the on-board LED off
+  pinMode(LED_BUILTIN, OUTPUT);
+
   /* Set a local name for the BLE device
      This name will appear in advertising packets
      and can be used by remote devices to identify this BLE device
-     The name can be changed but maybe be truncated based on space left in advertisement packet */
+     The name can be changed but maybe be truncated based on space left in advertising packets */
   blePeripheral.setLocalName("BatteryAdvChangeSketch");
   blePeripheral.setAdvertisedServiceUuid(batteryService.uuid());  // add the service UUID
   blePeripheral.addAttribute(batteryService);   // Add the BLE Battery service
   blePeripheral.addAttribute(batteryLevelChar); // add the battery level characteristic
 
-  /* Now activate the BLE device.  It will start continuously transmitting BLE
+  /* Now activate the BLE device. It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
      until it receives a new connection */
 
@@ -57,35 +65,33 @@ void loop() {
     Serial.println(count);
 
   }
-  delay (1000);
+  delay(1000);
   count++;
   // Switch from Connectable to Non Connectable and vice versa
-  if (count > 10 ) {
-    static bool change_discover = false;
-    Serial.println("Stop Adv and pausing for 10 seconds. Device should be invisible");
-    // Some central devices (phones included) may cache previous scan inofrmation
-    // restart your central and it should not see this peripheral once stopAdvertising() is called
+  if (count > 10) {
+    Serial.println("Stop Advertising and wait for 10 seconds. Device should be invisible");
+    // Some central devices (phones included) may cache previous scan informations.
+    // Restart your central device and it should not see this peripheral once stopAdvertising() is called
     blePeripheral.stopAdvertising();
     delay(10000);
 
-    if (change_discover)
-    {
-
-      // Using the function setConnectable we specify that it now NOT connectable
+    if (change_discover) {
+      // Using the method setConnectable() we specify that it is now in NON connectable mode
       // The loop is for 10 seconds. Your central device may timeout later than that
       // and may eventually connect when we set it back to connectable mode below
       blePeripheral.setConnectable(false);
       Serial.println("In Non Connectable mode");
-
+      // turn the on-board LED off
+      digitalWrite(LED_BUILTIN, LOW);
     }
-    else
-    {
-
-      //using the function setConnectable we specify that it now  connectable
+    else {
+      // Switch to connectable mode by calling the setConnectable() method
       blePeripheral.setConnectable(true);
       Serial.println("In Connectable mode");
+      // turn the on-board LED on
+      digitalWrite(LED_BUILTIN, HIGH);
     }
-    Serial.println("Start Adv");
+    Serial.println("Start Advertising...");
     blePeripheral.startAdvertising();
     if (change_discover) {
       Serial.println("Adding 5 second delay in Non Connect Mode");

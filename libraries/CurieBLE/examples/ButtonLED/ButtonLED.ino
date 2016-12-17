@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
+ *  Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *  See the bottom of this file for the license terms.
  */
 
 /*
@@ -11,29 +11,41 @@
   After the sketch starts connect to a BLE app on a phone and set notification to the Characteristic and you should see it update
   whenever the button is pressed. This sketch is not written to pair with any of the central examples.
 */
- 
+
 #include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to on-board LED
 const int buttonPin = 4; // set buttonPin to digital pin 4
 
-BLEPeripheral blePeripheral; // create peripheral instance
-BLEService ledService("19B10010-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
-                                                               // Long UUID denote custom user created UUID
+// create peripheral instance
+BLEPeripheral blePeripheral;
 
+// create a new service with a 128-bit UUID (32 characters exclusive of dashes).
+// Long UUID denote custom user created UUID
+BLEService ledService("19B10010-E8F2-537E-4F6C-D104768A1214");
 
-// create switch characteristic and allow remote device to read and write
+// create switch characteristic with Read and Write properties that allow remote clients
+// to read and write this characteristic value
 BLECharCharacteristic ledCharacteristic("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-// create button characteristic and allow remote device to get notifications
-BLECharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // allows remote device to get notifications
+
+// create button characteristic with Read and Notify properties that allow remote clients
+// to get notifications when this characteristic value changes
+BLECharCharacteristic buttonCharacteristic("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
 // Note use of Typed Characteristics. These previous 2  characeristics are of the type char
 
 void setup() {
+  // initialize serial communication
   Serial.begin(9600);
-  pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
-  pinMode(buttonPin, INPUT); // use button pin 4 as an input
+  // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
+  // remove or comment out the next line
+  while (!Serial) ;
+  pinMode(ledPin, OUTPUT);   // set the LED pin 13 as output
+  pinMode(buttonPin, INPUT); // set the button pin 4 as input
 
-  // set the local name peripheral advertises
+  // Set a local name for the BLE device.
+  // This name will appear in advertising packets
+  // and can be used by remote devices to identify this BLE device
   blePeripheral.setLocalName("ButtonLED");
   // set the UUID for the service this peripheral advertises:
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
@@ -47,7 +59,7 @@ void setup() {
   ledCharacteristic.setValue(0);
   buttonCharacteristic.setValue(0);
 
-  // advertise the service
+  // start advertising ledService
   blePeripheral.begin();
 
   Serial.println("Bluetooth device active, waiting for connections...");
@@ -60,24 +72,25 @@ void loop() {
   // read the current button pin state
   char buttonValue = digitalRead(buttonPin);
 
-  // has the value changed since the last read
+  // check if the value of buttonCharacteristic has changed since the last read
   boolean buttonChanged = (buttonCharacteristic.value() != buttonValue);
 
   if (buttonChanged) {
-    // button state changed, update characteristics
+    // if button state changed, update characteristics
     ledCharacteristic.setValue(buttonValue);
     buttonCharacteristic.setValue(buttonValue);
   }
 
   if (ledCharacteristic.written() || buttonChanged) {
-    // update LED, either central has written to characteristic or button state has changed
-	// if you are using a phone or a BLE  central device that is aware of this characteristic, writing a value of 0x40 for example
-	// Will be interpreted as written
+    // update LED, either central has written to characteristic or button state has changed.
+    // If you are using a phone or a BLE  central device that is aware of this characteristic,
+    // writing a value of 0x40 for example will be interpreted as written and the LED will be turned on
     if (ledCharacteristic.value()) {
       Serial.println("LED on");
       digitalWrite(ledPin, HIGH);
-    } else {
-	// If central writes a 0 value then it is interpreted as no value and turns off the LED
+    }
+    else {
+      // If central writes a 0 value (0x00) then it is interpreted as no value and turns the LED off
       Serial.println("LED off");
       digitalWrite(ledPin, LOW);
     }

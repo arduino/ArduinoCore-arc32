@@ -6,6 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+CurieBLE	KEYWORD1
 BLEAttribute	KEYWORD1
 BLECentral	KEYWORD1
 BLECharacteristic	KEYWORD1
@@ -16,6 +17,9 @@ BLETypedCharacteristic	KEYWORD1
 BLEHelper	KEYWORD1
 BLECentralHelper	KEYWORD1
 BLEPeripheralHelper	KEYWORD1
+BLERoleBase	KEYWORD1
+BLECentralRole	KEYWORD1
+BLEPeripheralRole	KEYWORD1
 
 BLECharCharacteristic	KEYWORD1
 BLEUnsignedCharCharacteristic	KEYWORD1
@@ -38,10 +42,15 @@ numAttributes	KEYWORD2
 connected	KEYWORD2
 address	KEYWORD2
 poll	KEYWORD2
+connect	KEYWORD2
 disconnect	KEYWORD2
 discover	KEYWORD2
 startScan	KEYWORD2
 stopScan	KEYWORD2
+
+setScanParam	KEYWORD2
+getScanParam	KEYWORD2
+setAdvertiseHandler	KEYWORD2
 
 getConnParams	KEYWORD2
 setConnectionInterval	KEYWORD2
@@ -54,8 +63,10 @@ setValue	KEYWORD2
 setEventHandler	KEYWORD2
 written	KEYWORD2
 subscribed	KEYWORD2
+numNotifyAttributes	KEYWORD2
 
 begin	KEYWORD2
+end	KEYWORD2
 
 stopAdvertising	KEYWORD2
 setConnectable	KEYWORD2
@@ -66,13 +77,19 @@ setLocalName	KEYWORD2
 setDeviceName	KEYWORD2
 setAppearance	KEYWORD2
 setConnectionInterval	KEYWORD2
+setConnectionParameters	KEYWORD2
 addAttribute	KEYWORD2
+attribute	KEYWORD2
 central	KEYWORD2
+peripheral	KEYWORD2
 
 setValueLE	KEYWORD2
 valueLE	KEYWORD2
 setValueBE	KEYWORD2
 valueBE	KEYWORD2
+valueHandle	KEYWORD2
+registerProfile	KEYWORD2
+cccdHandle	KEYWORD2
 
 getPeerPeripheralBLE	KEYWORD2
 getPeerCentralBLE	KEYWORD2

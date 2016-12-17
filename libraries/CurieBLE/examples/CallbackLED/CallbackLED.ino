@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2016 Intel Corporation.  All rights reserved.
- * See the bottom of this file for the license terms.
+ *  Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ *  See the bottom of this file for the license terms.
  */
- 
- /*
+
+/*
   This example can work with LEDCentral.
 
   You should see the LED blink on and off.
@@ -13,25 +13,35 @@
   Connect to BLE device named LEDCB and explore characteristic with UUID 19B10001-E8F2-537E-4F6C-D104768A1214.
   Writing a byte value such as 0x40 should turn on the LED.
   Writing a byte value of 0x00 should turn off the LED.
- */
+*/
 
 #include <CurieBLE.h>
 
 const int ledPin = 13; // set ledPin to use on-board LED
 BLEPeripheral blePeripheral; // create peripheral instance
-BLECentralHelper *bleCentral1 = NULL; // peer central device 
+BLECentralHelper *bleCentral1 = NULL; // peer central device
 
-BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create service with a 128-bit UUID (32 characters exclusive of dashes).
-                                                               // Long UUID denote custom user created UUID
+// create service with a 128-bit UUID (32 characters exclusive of dashes).
+// Long UUID denote custom user created UUID.
+BLEService ledService("19B10000-E8F2-537E-4F6C-D104768A1214");
 
-// create switch characteristic and allow remote device to read and write
+// create switch characteristic with a custom 128-bit UUID with Read and Write properties
+// to allow remote device to read and write this characteristic value
 BLECharCharacteristic switchChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
 
 void setup() {
+  // initialize serial communication
   Serial.begin(9600);
-  pinMode(ledPin, OUTPUT); // use the LED on pin 13 as an output
+  // wait for the serial port to connect. Open the Serial Monitor to continue executing the sketch
+  // If you don't care to see text messages sent to the Serial Monitor during board initialization,
+  // remove or comment out the next line
+  while (!Serial) ;
+  // set the pin 13 of the on-board LED as output
+  pinMode(ledPin, OUTPUT);
 
-  // set the local name peripheral advertises
+  // Set the local name for the BLE device.
+  // This name will appear in advertising packets
+  // and can be used by remote devices to identify this BLE device
   blePeripheral.setLocalName("LEDCB");
   // set the UUID for the service this peripheral advertises
   blePeripheral.setAdvertisedServiceUuid(ledService.uuid());
@@ -46,12 +56,12 @@ void setup() {
 
   // assign event handlers for characteristic
   switchChar.setEventHandler(BLEWritten, switchCharacteristicWritten);
-// set an initial value for the characteristic
+  // set the initial value of switchChar characteristic
   switchChar.setValue(0);
 
-  // advertise the service
+  // start advertising ledService
   blePeripheral.begin();
-  Serial.println(("Bluetooth device active, waiting for connections..."));
+  Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {
@@ -75,16 +85,17 @@ void blePeripheralDisconnectHandler(BLEHelper& central) {
   Serial.println(central.address());
 }
 
-// In addtion to the BLECentral& central parameter, we also have to have to BLECharacteristic& characteristic parameter
+// In addtion to the BLEHelper& central parameter, we also have to have to BLECharacteristic& characteristic parameter
 
 void switchCharacteristicWritten(BLEHelper& central, BLECharacteristic& characteristic) {
-  // central wrote new value to characteristic, update LED
+  // when central writes a new value to switchChar characteristic, update the LED state
   Serial.print("Characteristic event, written: ");
 
   if (switchChar.value()) {
     Serial.println("LED on");
     digitalWrite(ledPin, HIGH);
-  } else {
+  }
+  else {
     Serial.println("LED off");
     digitalWrite(ledPin, LOW);
   }
