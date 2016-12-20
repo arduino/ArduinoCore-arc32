@@ -1,30 +1,24 @@
 /*
-  Copyright (c) 2016 Arduino LLC. All right reserved.
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-*/
-#include <CurieBLE.h>
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
 
 /*
-  This sketch example works with IMUBleNotification.ino
+ * Sketch: IMUBleCentral.ino
+ *
+ * Description:
+ *   This sketch will receive the notifications and output the
+ *   received data in the serial monitor.  It also illustrates
+ *   using a non-typed characteristic.
+ *
+ * Notes:
+ *
+ *  - Expected Peripheral name: Imu
+ *  - Expected Peripheral Characteristic: F7580003-153E-D4F6-F26D-43D8D98EEB13
+ *  - Expected Peripheral sketch: IMUBleNotification.ino
+ */
 
-  IMUBleNotification.ino will send notification to this central sketch.
-  This sketch will receive the notifications and output the received data in the serial monitor.
-  It also illustrates using a non-typed characteristic.
-  Set the baud rate to 115200 on the serial monitor to accomodate the speed of constant data updates from IMU subsystem.
-*/
+#include <CurieBLE.h>
 
 #define LED_PIN   13
 #define MAX_IMU_RECORD 1
@@ -123,3 +117,24 @@ void controlImu(BLEDevice peripheral)
     Serial.print("Disconnected");
     Serial.println(peripheral.address());
 }
+
+
+/*
+  Copyright (c) 2016 Arduino LLC. All right reserved.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*/
+
+

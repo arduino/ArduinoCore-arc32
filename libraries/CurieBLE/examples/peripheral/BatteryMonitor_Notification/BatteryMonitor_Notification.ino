@@ -3,18 +3,24 @@
    See the bottom of this file for the license terms.
 */
 
-#include <CurieBLE.h>
-
 /*
-  This sketch can work with BatteryMonitor_Central.
+ * Sketch: BatteryMonitor_Notification.ino
+ *
+ * Description:
+ *     This sketch example partially implements the standard Bluetooth
+ *   Low-Energy Battery service and connection interval paramater update.
+ *
+ *   For more information:
+ *     https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
+ *
+ * Notes:
+ *
+ *   - Expected to work with BatteryMonitor_Central sketch.
+ *     You can also use an android or IOS app that supports notifications.
+ *
+ */
 
-  You can also use an android or IOS app that supports notifications.
-  This sketch example partially implements the standard Bluetooth Low-Energy Battery service
-  and connection interval paramater update.
-  For more information: https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
-*/
-
-
+#include <CurieBLE.h>
 
 BLEService batteryService("180F"); // BLE Battery Service
 

@@ -1,21 +1,20 @@
 /*
-  Firmata is a generic protocol for communicating with microcontrollers
-  from software on a host computer. It is intended to work with
-  any host computer software package.
-  To download a host software package, please click on the following link
-  to open the list of Firmata client libraries in your default browser.
-  https://github.com/firmata/arduino#firmata-client-libraries
-  Copyright (C) 2006-2008 Hans-Christoph Steiner.  All rights reserved.
-  Copyright (C) 2010-2011 Paul Stoffregen.  All rights reserved.
-  Copyright (C) 2009 Shigeru Kobayashi.  All rights reserved.
-  Copyright (C) 2009-2016 Jeff Hoefs.  All rights reserved.
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  See file LICENSE.txt for further informations on licensing terms.
-  Last updated October 16th, 2016
-*/
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
+
+/*
+ *  Sketch:  StandardFirmataBLE.ino.
+ *
+ *  Description:
+ *    Firmata is a generic protocol for communicating with microcontrollers
+ *  from software on a host computer. It is intended to work with
+ *  any host computer software package.
+ *
+ *  Notes:
+ *  - Please use the link stated at the end of this file to
+ *    download a host s/w package.
+ */
 
 #include <Servo.h>
 #include <Wire.h>
@@ -831,3 +830,24 @@ void loop()
   serialFeature.update();
 #endif
 }
+
+/*
+  Firmata is a generic protocol for communicating with microcontrollers
+  from software on a host computer. It is intended to work with
+  any host computer software package.
+  To download a host software package, please click on the following link
+  to open the list of Firmata client libraries in your default browser.
+  https://github.com/firmata/arduino#firmata-client-libraries
+  Copyright (C) 2006-2008 Hans-Christoph Steiner.  All rights reserved.
+  Copyright (C) 2010-2011 Paul Stoffregen.  All rights reserved.
+  Copyright (C) 2009 Shigeru Kobayashi.  All rights reserved.
+  Copyright (C) 2009-2016 Jeff Hoefs.  All rights reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  See file LICENSE.txt for further informations on licensing terms.
+  Last updated October 16th, 2016
+*/
+
+

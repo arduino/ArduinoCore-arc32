@@ -1062,11 +1062,12 @@ void BLEDeviceManager::handleConnectEvent(bt_conn_t *conn, uint8_t err)
     }
     else
     {
+        // Peripheral has established the connection with this Central device
         memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
         _connecting = false;
-        // Peripheral has established the connection with this Central device
-        BLEProfileManager::instance()->handleConnectedEvent(bt_conn_get_dst(conn));
     }
+    // The peripheral and central can work as GATT server. Reserve one buffer for peer device
+    BLEProfileManager::instance()->handleConnectedEvent(bt_conn_get_dst(conn));
     
     if (NULL != _device_events[BLEConnected])
     {

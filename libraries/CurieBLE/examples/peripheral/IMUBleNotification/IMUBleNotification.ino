@@ -1,29 +1,23 @@
 /*
-  Copyright (c) 2016 Arduino LLC. All right reserved.
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-*/
-#include <CurieBLE.h>
-#include <CurieIMU.h>
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
 
 /*
-    This sketch example works with IMUBleCentral.ino.
+ * Sketch: IMUBleNotification.ino
+ *
+ * Description:
+ *   This is a Peripheral sketch that reads IMU data from sensor and sends
+ *   via notifications to a connected Central.
+ *
+ * Notes:
+ *
+ *   - This sketch is inteneded to pair up with IMUBleCentral.ino.
+ *
+ */
 
-    This sketch will read IMU data from sensor and send notifications to IMUBleCentral.ino.
-    IMUBleCentral.ino will receive the notifications and output the received data.
-*/
+#include <CurieBLE.h>
+#include <CurieIMU.h>
 
 #define MAX_IMU_RECORD 1
 
@@ -124,4 +118,23 @@ void recordImuData(int index)
     imuBuf[index].slot[1] = (unsigned int)((az << 16) | (gx & 0x0FFFF));
     imuBuf[index].slot[2] = (unsigned int)((gy << 16) | (gz & 0x0FFFF));
 }
+
+
+/*
+  Copyright (c) 2016 Arduino LLC. All right reserved.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*/
 

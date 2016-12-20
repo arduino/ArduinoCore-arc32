@@ -1,13 +1,27 @@
-#include <CurieBLE.h>
+/*
+ * Copyright (c) 2016 Intel Corporation.  All rights reserved.
+ * See the bottom of this file for the license terms.
+ */
 
 /*
-  This sketch example works with BatteryMonitor_Notification.ino
+ * Sketch: BatteryMonitor_Central.ino
+ *
+ * Description:
+ *   This sketch will receive the notifications and output the received
+ *   data in the serial monitor.  It also illustrates using a non-typed
+ *   characteristic.
+ *
+ * Notes:
+ *
+ *  - Set the baud rate to 115200 on the serial monitor to accomodate
+ *    the speed of constant data updates
+ *  - Expected Peripheral name: BatteryMonitorSketch
+ *  - Expected Peripheral Characteristic: 2A19
+ *  - Expected Peripheral sketch: BatteryMonitor_Notification.ino
+ *
+ */
 
-  BatteryMonitor_Notification will send notification to this central sketch.
-  This sketch will receive the notifications and output the received data in the serial monitor.
-  It also illustrates using a non-typed characteristic.
-  Set the baud rate to 115200 on the serial monitor to accomodate the speed of constant data updates
-*/
+#include <CurieBLE.h>
 
 #define LED_PIN   13
 
@@ -123,3 +137,26 @@ void printData(const unsigned char data[], int length) {
     Serial.print(b);
   }
 }
+
+/*
+   Copyright (c) 2016 Intel Corporation.  All rights reserved.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+
+
+
+
