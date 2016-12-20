@@ -22,8 +22,8 @@
 **/
 #include <CurieI2SDMA.h>
 
-#define BUFF_SIZE 128
-#define OFFSET 2
+const int BUFF_SIZE=64;
+const int OFFSET=2;
 uint32_t dataBuff[BUFF_SIZE+OFFSET]; // extra 2 buffers are for the padding zero
 
 /** 

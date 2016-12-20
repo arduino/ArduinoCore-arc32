@@ -17,7 +17,9 @@
 **/
 #include <CurieI2S.h>
 
-uint32_t dataBuff[256];
+const int BUFF_SIZE=128;
+
+uint32_t dataBuff[BUFF_SIZE];
 volatile int count = 0;
 
 void setup() 
@@ -54,6 +56,6 @@ void rxDataReceived()
   while(CurieI2S.available())
   {
     dataBuff[count++] =  CurieI2S.requestdword();   
-    count %= 256; //prevent buffer overflow and just write data in front of the buffer.
+    count %= BUFF_SIZE; //prevent buffer overflow and just write data in front of the buffer.
   }
 }

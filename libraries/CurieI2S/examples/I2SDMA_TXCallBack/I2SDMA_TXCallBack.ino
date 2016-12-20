@@ -9,7 +9,7 @@
 
 #include <CurieI2SDMA.h>
 
-#define BUFF_SIZE 128
+const int BUFF_SIZE=64;
 boolean blinkState = true;          // state of the LED
 uint32_t dataBuff[BUFF_SIZE];
 uint32_t loop_count = 0;
