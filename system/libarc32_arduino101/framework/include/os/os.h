@@ -133,6 +133,15 @@ extern void queue_get_message (T_QUEUE queue, T_QUEUE_MESSAGE* message, int time
 extern void queue_send_message(T_QUEUE queue, T_QUEUE_MESSAGE message, OS_ERR_TYPE* err );
 
 /**
+ * \brief Initialize the resources used by the framework's memory allocation services
+ *
+ * IMPORTANT : This function must be called during the initialization
+ *             of the OS abstraction layer.
+ *             This function shall only be called once after reset.
+ */
+extern void os_abstraction_init_malloc(void);
+
+/**
  * \brief Reserves a block of memory
  *
  * Authorized execution levels:  task, fiber, ISR

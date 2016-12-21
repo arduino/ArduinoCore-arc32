@@ -9,6 +9,7 @@
 
 #include "os/os.h"
 #include "infra/log.h"
+#include "dccm_alloc.h"
 
 #ifdef CONFIG_MEMORY_POOLS_BALLOC_TRACK_OWNER
 #include "misc/printk.h"
@@ -59,7 +60,6 @@ typedef struct {
 
 #include "memory_pool_list.def"
 
-
 /** Pool descriptor definition */
 T_POOL_DESC mpool[] =
 {
@@ -100,11 +100,9 @@ T_POOL_DESC mpool[] =
 
 /** Allocate the memory blocks and tracking variables for each pool */
 #define DECLARE_MEMORY_POOL(index, size, count) \
-    uint8_t mblock_ ## index[count][size]; \
     uint32_t mblock_alloc_track_ ## index[count / BITS_PER_U32 + 1] = { 0 };
 
 #include "memory_pool_list.def"
-
 
 
 /** Pool descriptor definition */
@@ -113,8 +111,8 @@ T_POOL_DESC mpool [] =
 #define DECLARE_MEMORY_POOL(index, size, count) \
     { \
 /* T_POOL_DESC.track */ mblock_alloc_track_ ## index, \
-/* T_POOL_DESC.start */ (uint32_t)mblock_ ## index, \
-/* T_POOL_DESC.end */ (uint32_t)mblock_ ## index + count * size, \
+/* T_POOL_DESC.start */ 0, \
+/* T_POOL_DESC.end */ 0, \
 /* T_POOL_DESC.count */ count, \
 /* T_POOL_DESC.size */ size \
     },
@@ -333,6 +331,14 @@ static void print_pool(int method, void *ctx)
  */
 void os_abstraction_init_malloc(void)
 {
+  int indx;
+  uint32_t bufSize;
+
+  for (indx=0; indx < NB_MEMORY_POOLS; indx++) {
+    bufSize = mpool[indx].count * mpool[indx].size;
+    mpool[indx].start = (uint32_t)dccm_memalign((uint16_t)bufSize);
+    mpool[indx].end = mpool[indx].start + bufSize;
+  }
 }
 
 /**

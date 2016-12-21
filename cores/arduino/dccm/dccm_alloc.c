@@ -37,6 +37,15 @@ void* dccm_malloc(uint16_t size)
     return addr;
 }
 
+void *dccm_memalign(uint16_t size)
+{
+  if ((dccm_index +3) > DCCM_SIZE)
+    return 0;
+
+  dccm_index = (dccm_index + 3) & ~((uint16_t)0x3);  /* 4 byte addr alignment */
+  return dccm_malloc(size);
+}
+
 #ifdef __cplusplus
 }
 #endif
