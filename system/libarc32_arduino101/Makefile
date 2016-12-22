@@ -40,7 +40,7 @@ CFGFLAGS+=-DCONFIG_BLUETOOTH_MAX_CONN=2
 CFGFLAGS+=-DCONFIG_BT_GATT_BLE_MAX_SERVICES=10
 CFGFLAGS+=-DCONFIG_BLUETOOTH_GATT_CLIENT
 CFGFLAGS+=-DCONFIG_BLUETOOTH_CENTRAL -DCONFIG_BLUETOOTH_PERIPHERAL
-INCLUDES=-I. -Icommon -Idrivers -Ibootcode -Iframework/include -Iframework/include/services/ble -Iframework/src/services/ble_service -I../../cores/arduino/dccm
+INCLUDES=-I. -Icommon -Idrivers -Ibootcode -Iframework/include -Iframework/include/services/ble -Iframework/src/services/ble_service
 #-Iframework/src/services/ble -Iframework/include/services/ble
 INCLUDES+= -Idrivers/rpc -Iframework/src
 EXTRA_CFLAGS=-D__CPU_ARC__ -DCLOCK_SPEED=32 -std=c99 -fno-reorder-functions -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -fno-defer-pop -Wno-unused-but-set-variable -Wno-main -ffreestanding -fno-stack-protector -mno-sdata -ffunction-sections -fdata-sections

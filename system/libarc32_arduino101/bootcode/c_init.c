@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "interrupt.h"
 #include "arcv2_timer0.h"
-#include "os/os.h"
 
 /* Application main() function prototype */
 extern int main (void);
@@ -61,8 +60,6 @@ static void _exec_ctors (void)
     interrupt_unit_device_init();
     /* Start the system's virtual 64-bit Real Time Counter */
     timer0_driver_init();
-    /* Initialize the memory buffer for balloc() calls. */
-    os_abstraction_init_malloc();
     /* Jump to application main() */
     main ();
     /* Never reached */

@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void* dccm_malloc(uint16_t size);
 
-void *dccm_memalign(uint16_t size);
-
 #ifdef __cplusplus
 }
 #endif
