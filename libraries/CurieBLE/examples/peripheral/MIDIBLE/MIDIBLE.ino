@@ -96,7 +96,7 @@ void setup() {
 
   BLESetup();
     // advertise the service
-
+  BLE.advertise();
   Serial.println(("Bluetooth device active, waiting for connections..."));
 }
 
