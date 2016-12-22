@@ -19,13 +19,33 @@
 
 #include <CurieBLE.h>
 
+const int NUM_OF_SERVICE = 10;
+
+char *serviceUUIDArray[NUM_OF_SERVICE] =
+
+  // These are the various services that are included in the CC2650 Sensor Tag
+  // If you uncomment them you can see the various services
+{ //"f000aa00-0451-4000-b000-000000000000",
+  //    "f000aa20-0451-4000-b000-000000000000",
+  //    "f000aa40-0451-4000-b000-000000000000",
+  //    "f000aa70-0451-4000-b000-000000000000",
+  //    "f000aa80-0451-4000-b000-000000000000",
+  //    "f000aa64-0451-4000-b000-000000000000",
+  //    "f000ac00-0451-4000-b000-000000000000",
+  //    "f000ccc0-0451-4000-b000-000000000000",
+  //    "f000ffc0-0451-4000-b000-000000000000",
+  "0000ffe0-0000-1000-8000-00805f9b34fb"
+};
+
 void setup() {
   Serial.begin(9600);
+  while (!Serial);
 
   // initialize the BLE hardware
   BLE.begin();
 
   Serial.println("BLE Central - SensorTag button");
+  Serial.println("Make sure to turn on the device.");
 
   // start scanning for peripheral
   BLE.scan();
@@ -45,8 +65,26 @@ void loop() {
     Serial.print(peripheral.advertisedServiceUuid());
     Serial.println();
 
-    // see if peripheral is a SensorTag
-    if (peripheral.localName() == "SensorTag") {
+    /*see if peripheral is a SensorTag
+      The localName SensorTag is in the Scan Response data packet
+      In this release we do not have the feature that gets the scan response data and hence
+      the local name in the scan is blank
+      We have to explicitly find the BLE mac address
+      Please use another deviice like nrfConnect app to discover the Bluetooth Address
+    */
+    //if (peripheral.localName() == "SensorTag") {
+
+
+    /******************************************************
+    * ATTENTION:
+    * Change to the mac address according to your device!
+    * Use a central app that can display the BT MAC address
+    * ******************************************************
+    */
+    
+    if (peripheral.address() == "24:71:89:07:27:80")
+
+    {
       // stop scanning
       BLE.stopScan();
 
@@ -58,7 +96,11 @@ void loop() {
   }
 }
 
-void monitorSensorTagButtons(BLEDevice peripheral) {
+void monitorSensorTagButtons(BLEDevice peripheral)
+{
+  static bool getAllServices = true;
+  static int serviceIndx = 0;
+
   // connect to the peripheral
   Serial.println("Connecting ...");
   if (peripheral.connect()) {
@@ -68,18 +110,34 @@ void monitorSensorTagButtons(BLEDevice peripheral) {
     return;
   }
 
-  // discover peripheral attributes
-  Serial.println("Discovering attributes ...");
-  if (peripheral.discoverAttributes()) {
-    Serial.println("Attributes discovered");
+  if (getAllServices) {
+    // discover peripheral attributes
+    Serial.println("Discovering attributes ...");
+    if (peripheral.discoverAttributes()) {
+      Serial.println("Attributes discovered");
+    } else {
+      getAllServices = false;
+      Serial.println("Attribute discovery failed.");
+      peripheral.disconnect();
+      return;
+    }
   } else {
-    Serial.println("Attribute discovery failed!");
-    peripheral.disconnect();
-    return;
+    int tmp = serviceIndx;
+    Serial.print("Discovering Service: ");
+    Serial.println(serviceUUIDArray[tmp]);
+    if (++serviceIndx >= NUM_OF_SERVICE)
+      serviceIndx = 0;
+    if (peripheral.discoverAttributesByService(serviceUUIDArray[tmp]) == false) {
+      Serial.println("Can't find the Service.");
+      peripheral.disconnect();
+      return;
+    } else {
+      Serial.println("Service discovered.");
+    }
   }
 
   // retrieve the simple key characteristic
-  BLECharacteristic simpleKeyCharacteristic = peripheral.characteristic("ffe1");
+  BLECharacteristic simpleKeyCharacteristic = peripheral.characteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
 
   // subscribe to the simple key characteristic
   Serial.println("Subscribing to simple key characteristic ...");
@@ -97,6 +155,7 @@ void monitorSensorTagButtons(BLEDevice peripheral) {
     return;
   } else {
     Serial.println("Subscribed");
+    Serial.println("Press the right and left buttons on your Sensor Tag.");
   }
 
   while (peripheral.connected()) {
@@ -118,4 +177,5 @@ void monitorSensorTagButtons(BLEDevice peripheral) {
       }
     }
   }
+
 }
