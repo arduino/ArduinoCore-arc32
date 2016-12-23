@@ -30,9 +30,9 @@ class RingBuffer
 {
 public:
 	uint8_t *_aucBuffer;
-	int _iHead ;
-	int _iTail ;
-	bool _buffer_overflow ;
+	volatile int _iHead ;
+	volatile int _iTail ;
+	volatile bool _buffer_overflow ;
 
 	RingBuffer( void ) ;
 	void store_char( uint8_t c ) ;
