@@ -340,7 +340,7 @@ unsigned char uart_poll_out(
 	)
 {
 	/* wait for transmitter to ready to accept a character */
-	while ((INBYTE(LSR(which)) & LSR_TEMT) == 0)
+	while ((INBYTE(LSR(which)) & LSR_THRE) == 0)
 		;
 
 	OUTBYTE(THR(which), outChar);
@@ -352,6 +352,8 @@ unsigned char uart_poll_out(
 *
 * uart_fifo_fill - fill FIFO with data
 *
+* It is up to the caller to make sure that FIFO capcity is not exceeded
+*
 * RETURNS: number of bytes sent
 */
 
@@ -362,8 +364,9 @@ int uart_fifo_fill(int which, /* UART on which to send */
 {
 	int i;
 
-	for (i = 0; i < size && (INBYTE(LSR(which)) &
-			LSR_BOTH_EMPTY) != 0; i++) {
+	for (i = 0; i < size  && (INBYTE(LSR(which)) &
+			LSR_BOTH_EMPTY) != 0; i++) 
+	{
 		OUTBYTE(THR(which), txData[i]);
 	}
 	return i;
@@ -622,7 +625,6 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 		      )
 {
 	interrupt_connect((unsigned int)uart[which].irq, isr);
-    interrupt_priority_set ((int)uart[which].irq, uart[which].intPri);
 	interrupt_enable((unsigned int)uart[which].irq);
 	/* set the Host Processor Interrupt Routing Mask */
 	SOC_UNMASK_INTERRUPTS(INT_UART_0_MASK + (which * UART_REG_ADDR_INTERVAL));
@@ -639,6 +641,19 @@ void uart_int_connect(int which,	   /* UART to which to connect */
 uint8_t uart_tx_complete(int which)
 {
 	return INBYTE(LSR(which)) & LSR_TEMT;
+}
+
+/*******************************************************************************
+*
+* uart_tx_complete - check if tx holding register is empty
+*
+* RETURNS: zero if register is non-empty, 
+*          non-zero if register is empty (ready to receive new data)
+*/
+
+uint8_t uart_tx_ready(int which)
+{
+	return INBYTE(LSR(which)) & LSR_THRE;
 }
 
 /*******************************************************************************
