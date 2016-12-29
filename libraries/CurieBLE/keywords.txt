@@ -104,6 +104,8 @@ setTxPower	KEYWORD2
 setConnectable	KEYWORD2
 setDeviceName	KEYWORD2
 addService	KEYWORD2
+addCharacteristic	KEYWORD2
+addDescriptor	KEYWORD2
 advertise	KEYWORD2
 stopAdvertise	KEYWORD2
 central	KEYWORD2

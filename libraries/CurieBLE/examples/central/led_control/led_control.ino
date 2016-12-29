@@ -39,7 +39,7 @@ void setup() {
   Serial.println("BLE Central - LED control");
 
   // start scanning for peripherals
-  BLE.scan();
+  BLE.scanForUuid("19b10000-e8f2-537e-4f6c-d104768a1214");
 }
 
 void loop() {
@@ -56,16 +56,13 @@ void loop() {
     Serial.print(peripheral.advertisedServiceUuid());
     Serial.println();
 
-    // see if peripheral is advertising the LED service
-    if (peripheral.advertisedServiceUuid() == "19b10000-e8f2-537e-4f6c-d104768a1214") {
-      // stop scanning
-      BLE.stopScan();
+    // stop scanning
+    BLE.stopScan();
 
-      controlLed(peripheral);
+    controlLed(peripheral);
 
-      // peripheral disconnected, start scanning again
-      BLE.scan();
-    }
+    // peripheral disconnected, start scanning again
+    BLE.scanForUuid("19b10000-e8f2-537e-4f6c-d104768a1214");
   }
 }
 
@@ -126,6 +123,8 @@ void controlLed(BLEDevice peripheral) {
       }
     }
   }
+
+  Serial.println("Peripheral disconnected");
 }
 
 /*
