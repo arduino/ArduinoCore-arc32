@@ -19,24 +19,6 @@
 
 #include <CurieBLE.h>
 
-const int NUM_OF_SERVICE = 10;
-
-char *serviceUUIDArray[NUM_OF_SERVICE] =
-
-  // These are the various services that are included in the CC2650 Sensor Tag
-  // If you uncomment them you can see the various services
-{ //"f000aa00-0451-4000-b000-000000000000",
-  //    "f000aa20-0451-4000-b000-000000000000",
-  //    "f000aa40-0451-4000-b000-000000000000",
-  //    "f000aa70-0451-4000-b000-000000000000",
-  //    "f000aa80-0451-4000-b000-000000000000",
-  //    "f000aa64-0451-4000-b000-000000000000",
-  //    "f000ac00-0451-4000-b000-000000000000",
-  //    "f000ccc0-0451-4000-b000-000000000000",
-  //    "f000ffc0-0451-4000-b000-000000000000",
-  "0000ffe0-0000-1000-8000-00805f9b34fb"
-};
-
 void setup() {
   Serial.begin(9600);
   while (!Serial);
@@ -81,10 +63,7 @@ void loop() {
     * Use a central app that can display the BT MAC address
     * ******************************************************
     */
-    
-    if (peripheral.address() == "24:71:89:07:27:80")
-
-    {
+    if (peripheral.address() == "68:C9:0B:06:BC:81") {
       // stop scanning
       BLE.stopScan();
 
@@ -98,9 +77,6 @@ void loop() {
 
 void monitorSensorTagButtons(BLEDevice peripheral)
 {
-  static bool getAllServices = true;
-  static int serviceIndx = 0;
-
   // connect to the peripheral
   Serial.println("Connecting ...");
   if (peripheral.connect()) {
@@ -110,34 +86,18 @@ void monitorSensorTagButtons(BLEDevice peripheral)
     return;
   }
 
-  if (getAllServices) {
-    // discover peripheral attributes
-    Serial.println("Discovering attributes ...");
-    if (peripheral.discoverAttributes()) {
-      Serial.println("Attributes discovered");
-    } else {
-      getAllServices = false;
-      Serial.println("Attribute discovery failed.");
-      peripheral.disconnect();
-      return;
-    }
+  // discover peripheral attributes
+  Serial.println("Discovering attributes of service 0xffe0 ...");
+  if (peripheral.discoverAttributesByService("ffe0")) {
+    Serial.println("Attributes discovered");
   } else {
-    int tmp = serviceIndx;
-    Serial.print("Discovering Service: ");
-    Serial.println(serviceUUIDArray[tmp]);
-    if (++serviceIndx >= NUM_OF_SERVICE)
-      serviceIndx = 0;
-    if (peripheral.discoverAttributesByService(serviceUUIDArray[tmp]) == false) {
-      Serial.println("Can't find the Service.");
-      peripheral.disconnect();
-      return;
-    } else {
-      Serial.println("Service discovered.");
-    }
+    Serial.println("Attribute discovery failed.");
+    peripheral.disconnect();
+    return;
   }
 
   // retrieve the simple key characteristic
-  BLECharacteristic simpleKeyCharacteristic = peripheral.characteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+  BLECharacteristic simpleKeyCharacteristic = peripheral.characteristic("ffe1");
 
   // subscribe to the simple key characteristic
   Serial.println("Subscribing to simple key characteristic ...");
@@ -178,4 +138,5 @@ void monitorSensorTagButtons(BLEDevice peripheral)
     }
   }
 
+  Serial.println("SensorTag disconnected!");
 }
