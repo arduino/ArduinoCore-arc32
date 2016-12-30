@@ -17,6 +17,7 @@ C_SRC+=$(wildcard $(PWD)/framework/src/os/*.c)
 ARCH=ARC
 CC=arc-elf32-gcc
 AS=arc-elf32-as
+STRIP=arc-elf32-strip
 RM=rm -f
 INSTALL=install
 
@@ -55,6 +56,9 @@ lib: $(TARGET_LIB)
 $(TARGET_LIB): $(C_OBJ) $(ASM_OBJ)
 	@echo "Link $@"
 	@$(AR) rcs $@ $^
+
+strip: $(TARGET_LIB)
+	@$(STRIP) --strip-unneeded $^
 
 %.o: %.S
 	@echo "Assembling $<"
