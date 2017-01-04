@@ -140,6 +140,10 @@ class BLEDeviceManager
      */
     void setManufacturerData(const unsigned char manufacturerData[], 
                              unsigned char manufacturerDataLength);
+    bool getManufacturerData (const BLEDevice* device, 
+                              uint8_t* manu_data, 
+                              uint8_t&manu_data_len) const;
+    bool hasManufacturerData(const BLEDevice* device) const;
     
     /**
      * Set the local name that the BLE Peripheral Device advertises
@@ -350,6 +354,9 @@ class BLEDeviceManager
 protected:
     
 private:
+    BLE_STATUS_T setAdvertiseData (uint8_t type, 
+                                   const uint8_t* data, 
+                                   uint8_t length);
     BLE_STATUS_T _advDataInit(void);
     bool advertiseDataProc(uint8_t type, 
                            const uint8_t *dataPtr, 
@@ -357,13 +364,36 @@ private:
     bool setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
                             const uint8_t *ad, 
                             uint8_t data_len,
-                            int8_t rssi);
+                            int8_t rssi,
+                            bool connectable);
     void getDeviceAdvertiseBuffer(const bt_addr_le_t* addr, 
                                   const uint8_t* &adv_data,
                                   uint8_t &adv_len) const;
+    bool setScanRespBuffer(const bt_addr_le_t* bt_addr,
+                           const uint8_t *ad, 
+                           uint8_t data_len,
+                           int8_t rssi);
+    void getDeviceScanResponseBuffer(const bt_addr_le_t* addr, 
+                                     const uint8_t* &adv_data,
+                                     uint8_t &adv_len) const;
+    bool getDataFromAdvertiseByType(const BLEDevice* device,
+                                    const uint8_t eir_type, 
+                                    const uint8_t* &data,
+                                    uint8_t &data_len) const;
     bool disconnectSingle(const bt_addr_le_t *peer);
     void updateDuplicateFilter(const bt_addr_le_t* addr);    
     bool deviceInDuplicateFilterBuffer(const bt_addr_le_t* addr);
+    void advertiseAcceptHandler(const bt_addr_le_t *addr, 
+                                int8_t rssi, 
+                                uint8_t type,
+                                const uint8_t *ad, 
+                                uint8_t data_len);
+    void setTempAdvertiseBuffer(const bt_addr_le_t* bt_addr, 
+                                int8_t rssi, 
+                                const uint8_t *ad, 
+                                uint8_t data_len,
+                                bool connectable);
+    uint8_t getTempAdvertiseIndexFromBuffer(const bt_addr_le_t* bt_addr);
 
 private:
     uint16_t   _min_conn_interval;
@@ -377,7 +407,19 @@ private:
     uint64_t     _peer_adv_mill[BLE_MAX_ADV_BUFFER_CFG];     // The ADV found time stamp
     uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_scan_rsp_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
     int8_t     _peer_adv_rssi[BLE_MAX_ADV_BUFFER_CFG];
+    bool       _peer_adv_connectable[BLE_MAX_ADV_BUFFER_CFG];
+    
+    // The accept critical may include in scan response
+    bt_addr_le_t _peer_temp_adv_buffer[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_temp_dev_index;
+    uint8_t    _peer_temp_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_temp_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    bool       _peer_temp_adv_connectable[BLE_MAX_ADV_BUFFER_CFG];
+    
+    // The critical for central scan
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _adv_critical_service_uuid;
@@ -386,12 +428,17 @@ private:
     bt_addr_le_t _wait_for_connect_peripheral;
     uint8_t    _wait_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _wait_for_connect_peripheral_adv_data_len;
+    uint8_t    _wait_for_connect_peripheral_scan_rsp_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _wait_for_connect_peripheral_scan_rsp_data_len;
     int8_t     _wait_for_connect_peripheral_adv_rssi;
     
     bt_addr_le_t _available_for_connect_peripheral;
     uint8_t    _available_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _available_for_connect_peripheral_adv_data_len;
+    uint8_t    _available_for_connect_peripheral_scan_rsp_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _available_for_connect_peripheral_scan_rsp_data_len;
     int8_t     _available_for_connect_peripheral_adv_rssi;
+    bool       _available_for_connect_peripheral_connectable;
     volatile bool    _connecting;
     
     // For peripheral
@@ -412,6 +459,8 @@ private:
     uint8_t     _adv_type;
     bt_data_t   _adv_data[6];  // KW: fount _advDataInit() can use 6 slots.
     size_t      _adv_data_idx;
+    bt_data_t   _scan_rsp_data[6];
+    size_t      _scan_rsp_data_idx;
     
     String      _local_name;
     // Peripheral states
@@ -433,6 +482,8 @@ private:
     uint8_t      _peer_peripheral_index;
     uint8_t    _peer_peripheral_adv_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_peripheral_adv_data_len[BLE_MAX_CONN_CFG];
+    uint8_t    _peer_peripheral_scan_rsp_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_peripheral_scan_rsp_data_len[BLE_MAX_CONN_CFG];
     uint8_t    _peer_peripheral_adv_rssi[BLE_MAX_CONN_CFG];
     bt_addr_le_t _peer_duplicate_address_buffer[BLE_MAX_ADV_FILTER_SIZE_CFG];
     uint8_t     _duplicate_filter_header;

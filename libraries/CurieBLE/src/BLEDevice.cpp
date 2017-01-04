@@ -133,6 +133,17 @@ void BLEDevice::setManufacturerData(const unsigned char manufacturerData[],
     BLEDeviceManager::instance()->setManufacturerData(manufacturerData, manufacturerDataLength);
 }
 
+bool BLEDevice::getManufacturerData (unsigned char* manu_data, 
+                                     unsigned char& manu_data_len) const
+{
+    return BLEDeviceManager::instance()->getManufacturerData(this, manu_data, manu_data_len);
+}
+
+bool BLEDevice::hasManufacturerData() const
+{
+    return BLEDeviceManager::instance()->hasManufacturerData(this);
+}
+
 void BLEDevice::setLocalName(const char *localName)
 {
     BLEDeviceManager::instance()->setLocalName(localName);
