@@ -191,6 +191,11 @@ class BLEDevice
     void setManufacturerData(const unsigned char manufacturerData[], 
                              unsigned char manufacturerDataLength);
     
+    bool getManufacturerData (unsigned char* manu_data, 
+                              unsigned char& manu_data_len) const;
+    
+    bool hasManufacturerData() const;
+    
     /**
      * Set the local name that the BLE Peripheral Device advertises
      *
