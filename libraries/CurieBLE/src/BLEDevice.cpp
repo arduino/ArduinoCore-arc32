@@ -275,6 +275,12 @@ void BLEDevice::scanForUuid(String uuid, bool withDuplicates)
     startScan(withDuplicates);
 }
 
+void BLEDevice::scanForAddress(String macaddr, bool withDuplicates)
+{
+    BLEDeviceManager::instance()->setAdvertiseCritical(macaddr.c_str());
+    startScan(withDuplicates);
+}
+
 void BLEDevice::stopScan()
 {
     BLEDeviceManager::instance()->stopScanning();
