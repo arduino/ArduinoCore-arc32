@@ -305,6 +305,7 @@ class BLEDeviceManager
     void clearAdvertiseCritical();
     void setAdvertiseCritical(String name);
     void setAdvertiseCritical(BLEService& service);
+    void setAdvertiseCritical(const char* macaddress);
     bool startScanning(); // start scanning for peripherals
     bool startScanningWithDuplicates(); // start scanning for peripherals, and report all duplicates
     bool stopScanning(); // stop scanning for peripherals
@@ -378,6 +379,7 @@ private:
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _adv_critical_service_uuid;
+    bt_addr_le_t _adv_accept_device;
     
     bt_addr_le_t _wait_for_connect_peripheral;
     uint8_t    _wait_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
