@@ -420,8 +420,9 @@ class BLEDevice
      * @note   option to filter out duplicate addresses for Arduino.
      *          The current only support fileter duplicate mode.
      */
-    void scanForUuid(String uuid, bool withDuplicates); 
+    void scanForUuid(String uuid, bool withDuplicates);
     
+    void scanForAddress(String macaddr, bool withDuplicates = true);
     /**
      * @brief   Stop scanning for peripherals
      *

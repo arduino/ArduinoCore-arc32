@@ -77,6 +77,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(_peer_adv_mill, 0, sizeof(_peer_adv_mill));
     memset(&_adv_accept_critical, 0, sizeof(_adv_accept_critical));
     memset(&_adv_critical_service_uuid, 0, sizeof(_adv_critical_service_uuid));
+    memset(&_adv_accept_device, 0, sizeof(_adv_accept_device));
     
     memset(_peer_peripheral, 0, sizeof(_peer_peripheral));
     memset(_peer_peripheral_adv_data, 0, sizeof(_peer_peripheral_adv_data));
@@ -562,6 +563,7 @@ bool BLEDeviceManager::stopScanning()
 void BLEDeviceManager::clearAdvertiseCritical()
 {
     memset(&_adv_accept_critical, 0, sizeof(_adv_accept_critical));
+    memset(&_adv_accept_device, 0, sizeof(_adv_accept_device));
     //memset(&_adv_critical_service_uuid, 0, sizeof(_adv_critical_service_uuid));
 }
 
@@ -596,6 +598,11 @@ void BLEDeviceManager::setAdvertiseCritical(BLEService& service)
     _adv_accept_critical.type = type;
     _adv_accept_critical.data_len = length;
     _adv_accept_critical.data = data;
+}
+
+void BLEDeviceManager::setAdvertiseCritical(const char* macaddress)
+{
+    BLEUtils::macAddressString2BT(macaddress, _adv_accept_device);
 }
 
 bool BLEDeviceManager::hasLocalName(const BLEDevice* device) const
@@ -1248,6 +1255,13 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
     if (type == BT_LE_ADV_IND || type == BT_LE_ADV_DIRECT_IND)
     {
         //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+        // Filter address
+        if (BLEUtils::macAddressValid(_adv_accept_device) == true && 
+		   (memcmp(addr->val, _adv_accept_device.val, sizeof (addr->val)) != 0))
+        {
+            return;
+        }
+        
         while (data_len > 1)
         {
             uint8_t len = data[0];
