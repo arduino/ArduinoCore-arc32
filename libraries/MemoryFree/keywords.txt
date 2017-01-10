@@ -1,0 +1,11 @@
+#######################################
+# Syntax Coloring Map For MemoryFree
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+freeStack	KEYWORD2
+freeHeap	KEYWORD2
+freeMemory	KEYWORD2
