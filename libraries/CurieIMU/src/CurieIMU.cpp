@@ -47,7 +47,12 @@ bool CurieIMUClass::begin()
      * MakgetGyroRatee sure the device is connected and responds as expected.
      * @return True if connection is valid, false otherwise
      */
-    return (CURIE_IMU_CHIP_ID == getDeviceID());
+    if (CURIE_IMU_CHIP_ID != getDeviceID())
+        return false;
+
+    accel_range = (float) getAccelerometerRange();
+    gyro_range = (float) getGyroRange();
+    return true;
 }
 
 void CurieIMUClass::end()
