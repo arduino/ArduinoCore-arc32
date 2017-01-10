@@ -43,6 +43,7 @@
 
 #include "data_type.h"
 #include "gpio.h"
+#include "platform.h"
 
 // soc gpio 32 bit count
 #if defined(CONFIG_SOC_GPIO_32)
