@@ -34,6 +34,7 @@
 
 #include "soc_register.h"
 #include "portable.h"
+#include "platform.h"
 
 #define GPIO_CLKENA_POS         (31)
 #define GPIO_LS_SYNC_POS        (0)
@@ -429,6 +430,8 @@ static void soc_gpio_ISR_proc( uint32_t dev_id )
     uint32_t status = MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTSTATUS);
     // Mask the pending interrupts
     MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTMASK) |= status;
+    // Save a copy of the INTSTATUS register
+    shared_data->pm_int_status = status;
     // Clear interrupt flag (write 1 to clear)
     MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_PORTA_EOI) = status;
 

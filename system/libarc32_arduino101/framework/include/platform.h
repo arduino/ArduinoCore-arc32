@@ -146,6 +146,16 @@ struct platform_shared_block_ {
 
     struct shared_ring_buffer quark_to_ARC;
     struct shared_ring_buffer ARC_to_quark;
+    
+    uint32_t arc_cpu_context[33];
+    
+    uint32_t pm_status;
+    
+    void* arc_restore_addr;
+    
+    void* quark_restore_addr;
+    
+    uint32_t pm_int_status;
 };
 
 #define RAM_START           0xA8000000
