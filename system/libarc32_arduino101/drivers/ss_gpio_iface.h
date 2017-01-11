@@ -41,6 +41,7 @@
 
 #include "data_type.h"
 #include "gpio.h"
+#include "platform.h"
 
 #define SS_GPIO_8B0_BITS    (8)
 #define SS_GPIO_8B1_BITS    (8)

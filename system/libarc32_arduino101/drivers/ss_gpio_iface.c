@@ -37,6 +37,7 @@
 #include "io_config.h"
 #include "eiaextensions.h"
 #include "portable.h"
+#include "platform.h"
 
 /* EIA GPIO device registers  */
 #define     SWPORTA_DR      (0x00)  /* GPIO Port A Data Register*/
@@ -355,6 +356,8 @@ static void ss_gpio_ISR_proc( uint32_t dev_id )
     uint32_t status = REG_READ( INTSTATUS );
     /* Mask the pending IRQ in order to avoid a storm of interrupts */
     REG_WRITE(INTMASK, REG_READ(INTMASK) | status);
+    // Save a copy of the INTSTATUS register
+    shared_data->pm_int_status = status;
     // Clear interrupt flag (write 1 to clear)
     REG_WRITE( PORTA_EOI, status );
 
