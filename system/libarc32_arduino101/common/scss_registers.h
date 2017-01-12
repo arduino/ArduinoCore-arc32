@@ -38,6 +38,8 @@
 #define MMIO_REG_ADDR(addr) ((volatile uint32_t *)(addr))
 #define MMIO_REG_VAL_FROM_BASE(base, offset) \
     (*((volatile uint32_t *)((base)+(offset))))
+    
+#define REG_VAL(addr) (*(uint32_t *)(addr))
 
 #define CALC_PIN_MUX_SELECT_VAL(pin_offset, mode) (mode << pin_offset * 2)
 
