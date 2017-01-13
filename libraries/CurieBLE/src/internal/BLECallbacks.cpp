@@ -223,4 +223,9 @@ void ble_central_device_found(const bt_addr_le_t *addr,
                                                   ad, len);
 }
 
+void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
+                                         const void *data)
+{
+    BLECharacteristicImp::writeResponseReceived(conn, err, data);
+}
 
