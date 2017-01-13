@@ -27,6 +27,7 @@
 
 bt_uuid_16_t BLECharacteristicImp::_gatt_chrc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CHRC_VAL};
 bt_uuid_16_t BLECharacteristicImp::_gatt_ccc_uuid = {BT_UUID_TYPE_16, BT_UUID_GATT_CCC_VAL};
+volatile bool BLECharacteristicImp::_gattc_writing = false;
 
 BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid, 
                                            unsigned char properties,
@@ -637,13 +638,20 @@ bool BLECharacteristicImp::read()
     return _reading;
 }
 
+void BLECharacteristicImp::writeResponseReceived(struct bt_conn *conn, 
+                                                 uint8_t err,
+                                                 const void *data)
+{
+    _gattc_writing = false;
+}
+
 bool BLECharacteristicImp::write(const unsigned char value[], 
                                  uint16_t length)
 {
     int retval = 0;
     bt_conn_t* conn = NULL;
     
-    if (true == BLEUtils::isLocalBLE(_ble_device))
+    if (true == BLEUtils::isLocalBLE(_ble_device) || true == _gattc_writing)
     {
         // GATT server can't write
         return false;
@@ -655,12 +663,29 @@ bool BLECharacteristicImp::write(const unsigned char value[],
         return false;
     }
     
-    // Send read request
-    retval = bt_gatt_write_without_response(conn, 
-                                            _value_handle,
-                                            value, 
-                                            length, 
-                                            false);
+    // Send write request
+    if (_gatt_chrc.properties | BT_GATT_CHRC_WRITE_WITHOUT_RESP)
+    {
+        retval = bt_gatt_write_without_response(conn, 
+                                                _value_handle,
+                                                value, 
+                                                length, 
+                                                false);
+    }
+    else if (_gatt_chrc.properties | BT_GATT_CHRC_WRITE)
+    {
+        _gattc_writing = true;
+        retval = bt_gatt_write(conn, 
+                               _value_handle,
+                               0,
+                               value, 
+                               length, 
+                               ble_on_write_no_rsp_complete);
+        while (_gattc_writing)
+        {
+            delay(2);
+        }
+    }
     bt_conn_unref(conn);
     return (0 == retval);
 }

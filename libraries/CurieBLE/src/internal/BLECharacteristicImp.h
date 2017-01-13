@@ -168,6 +168,10 @@ public:
      */
     bool write(const unsigned char value[], 
                uint16_t length);
+    
+    static void writeResponseReceived(struct bt_conn *conn, 
+                                      uint8_t err,
+                                      const void *data);
 
     int descriptorCount() const;
     uint8_t discoverResponseProc(bt_conn_t *conn,
@@ -325,6 +329,7 @@ private:
     bool        _subscribed;
     
     bool _reading;
+    static volatile bool _gattc_writing;
     bt_gatt_read_params_t _read_params; // GATT read parameter
     
     typedef LinkNode<BLEDescriptorImp *>  BLEDescriptorLinkNodeHeader;
