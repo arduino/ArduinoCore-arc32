@@ -59,6 +59,16 @@ class BLEDevice
      */
     BLEDevice(const BLEDevice* bledevice);
     BLEDevice(const BLEDevice& bledevice);
+    /**
+     * @brief   The BLE device constructure
+     *
+     * @param[in]   bleaddress  BLE device address
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    BLEDevice(const bt_addr_le_t* bleaddress);
     virtual ~BLEDevice();
 
     
@@ -654,16 +664,6 @@ protected:
     void setAddress(const bt_addr_le_t& addr);
     
     void setAdvertiseData(const uint8_t* adv_data, uint8_t len);
-    /**
-     * @brief   The BLE device constructure
-     *
-     * @param[in]   bleaddress  BLE device address
-     *
-     * @return  none
-     *
-     * @note  none
-     */
-    BLEDevice(const bt_addr_le_t* bleaddress);
 private:
     void preCheckProfile();
     

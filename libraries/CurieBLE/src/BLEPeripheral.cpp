@@ -55,67 +55,37 @@ BLEPeripheral::~BLEPeripheral(void)
 
 void BLEPeripheral::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
 {
-    if (!_initCalled) {
-        init();
-    }
-
     BLE.setAdvertisedServiceUuid(advertisedServiceUuid);
 }
+
 void BLEPeripheral::setLocalName(const char* localName)
 {
-    if (!_initCalled) {
-        init();
-    }
-
     BLE.setLocalName(localName);
 }
 
-
 void BLEPeripheral::setDeviceName(const char *deviceName)
 {
-    if (!_initCalled) {
-        init();
-    }
-
     BLE.setDeviceName(deviceName);
 }
 
 void BLEPeripheral::setAppearance(const unsigned short appearance)
 {
-    if (!_initCalled) {
-        init();
-    }
-
     BLE.setAppearance(appearance);
 }
 
 void BLEPeripheral::setConnectionInterval(const unsigned short minConnInterval, const unsigned short maxConnInterval)
 {
-    if (!_initCalled) {
-        init();
-    }
-
     BLE.setConnectionInterval(minConnInterval, maxConnInterval);
 }
 
 void BLEPeripheral::addAttribute(BLEService& service)
 {
-    if (!_initCalled)
-    {
-        init();
-    }
-    
     BLE.addService(service);
     _lastService = &service;
 }
 
 void BLEPeripheral::addAttribute(BLECharacteristic& characteristic)
 {
-    if (!_initCalled)
-    {
-        init();
-    }
-
     if (_lastService)
     {
         _lastService->addCharacteristic(characteristic);
@@ -125,11 +95,6 @@ void BLEPeripheral::addAttribute(BLECharacteristic& characteristic)
 
 void BLEPeripheral::addAttribute(BLEDescriptor& descriptor)
 {
-    if (!_initCalled)
-    {
-        init();
-    }
-
     if (_lastCharacteristic)
     {
         _lastCharacteristic->addDescriptor(descriptor);

@@ -25,7 +25,7 @@
 #include "BLECallbacks.h"
 #include "BLEUtils.h"
 
-BLEDevice BLE;
+BLEDevice BLE(BLEUtils::bleGetLoalAddress());
 
 BLEProfileManager* BLEProfileManager::_instance = NULL;
 

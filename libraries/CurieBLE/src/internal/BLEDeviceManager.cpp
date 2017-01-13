@@ -98,11 +98,11 @@ BLEDeviceManager::~BLEDeviceManager()
 
 bool BLEDeviceManager::begin(BLEDevice *device)
 {
-    if (NULL == _local_ble && false == *device)
+    if (NULL == _local_ble)
     {
         _local_ble = device;
-        _local_ble->setAddress(_local_bda);
         bt_le_set_mac_address(_local_bda);
+        
         // Set device name    
         setDeviceName();
         _state = BLE_PERIPH_STATE_READY;
@@ -134,7 +134,8 @@ void BLEDeviceManager::poll()
 }
 
 void BLEDeviceManager::end()
-{}
+{
+}
 
 bool BLEDeviceManager::connected(const BLEDevice *device) const
 {
@@ -288,7 +289,10 @@ void BLEDeviceManager::setDeviceName(const char* deviceName)
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
         memcpy(_device_name, deviceName, len);
-        setDeviceName();
+        if (NULL != _local_ble)
+        {
+            setDeviceName();
+        }
     }
 }
 
