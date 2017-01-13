@@ -655,12 +655,25 @@ bool BLECharacteristicImp::write(const unsigned char value[],
         return false;
     }
     
-    // Send read request
-    retval = bt_gatt_write_without_response(conn, 
-                                            _value_handle,
-                                            value, 
-                                            length, 
-                                            false);
+    // Send write request
+    if (_gatt_chrc.properties | BT_GATT_CHRC_WRITE_WITHOUT_RESP)
+    {
+        retval = bt_gatt_write_without_response(conn, 
+                                                _value_handle,
+                                                value, 
+                                                length, 
+                                                false);
+    }
+    else if (_gatt_chrc.properties | BT_GATT_CHRC_WRITE)
+    {
+        retval = bt_gatt_write(conn, 
+                               _value_handle,
+                               0,
+                               value, 
+                               length, 
+                               ble_on_write_no_rsp_complete);
+        
+    }
     bt_conn_unref(conn);
     return (0 == retval);
 }

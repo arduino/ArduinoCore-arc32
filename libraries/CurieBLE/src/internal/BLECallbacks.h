@@ -74,5 +74,8 @@ uint8_t profile_service_read_rsp_process(bt_conn_t *conn,
                                  const void *data, 
                                  uint16_t length);
 
+void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
+                                         const void *data);
+
 #endif
 
