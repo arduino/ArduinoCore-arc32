@@ -145,7 +145,7 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
                                  const void *data, 
                                  uint16_t length)
 {
-    if (NULL == data)
+    if (NULL == data && 0 != length)
     {
         return BT_GATT_ITER_STOP;
     }

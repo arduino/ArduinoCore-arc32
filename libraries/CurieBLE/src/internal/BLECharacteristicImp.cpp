@@ -595,9 +595,10 @@ bt_uuid_t* BLECharacteristicImp::getClientCharacteristicConfigUuid(void)
     return (bt_uuid_t*) &_gatt_ccc_uuid;
 }
 
-bool BLECharacteristicImp::read()
+bool BLECharacteristicImp::read(bool blocked)
 {
     int retval = 0;
+    bool ret_bool = false;
     bt_conn_t* conn = NULL;
     
     if (true == BLEUtils::isLocalBLE(_ble_device))
@@ -631,12 +632,23 @@ bool BLECharacteristicImp::read()
     
     // Send read request
     retval = bt_gatt_read(conn, &_read_params);
-    bt_conn_unref(conn);
     if (0 == retval)
     {
         _reading = true;
+        ret_bool = true;
+        
+        // Block the call
+        if (blocked == true)
+        {
+            while (_reading == true && ret_bool)
+            {
+                delay(5);
+                ret_bool = _ble_device.connected();
+            }
+        }
     }
-    return _reading;
+    bt_conn_unref(conn);
+    return ret_bool;
 }
 
 void BLECharacteristicImp::writeResponseReceived(struct bt_conn *conn, 

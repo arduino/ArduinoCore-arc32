@@ -146,18 +146,18 @@ public:
     /**
      * @brief   Schedule the read request to read the characteristic in peripheral
      *
-     * @param[in]   none
+     * @param[in]   blocked    Flag the call is blocked or un-blocked
      *
      * @return  bool    Indicate the success or error
      *
-     * @note  Only for central device
+     * @note  Only for GATT client
+     *        Default it is block call as per Arduino request
      */
-    bool read();
+    bool read(bool blocked = true);
     
     /**
      * @brief   Schedule the write request to update the characteristic in peripheral
      *
-     * @param[in]   peripheral   The peripheral device that want to be updated
      * @param[in]   value       New value to set, as a byte array.  Data is stored in internal copy.
      * @param[in]   length      Length, in bytes, of valid data in the array to write.
      *                      Must not exceed maxLength set for this characteristic.
@@ -328,7 +328,7 @@ private:
     bt_gatt_subscribe_params_t _sub_params;
     bool        _subscribed;
     
-    bool _reading;
+    volatile bool _reading;
     static volatile bool _gattc_writing;
     bt_gatt_read_params_t _read_params; // GATT read parameter
     

@@ -320,8 +320,9 @@ public:
      * @return  bool    true - Success, false - Failed
      *
      * @note  Only for GATT client. Schedule read request to the GATT server
+     *        Arduino requests to have read, by default, be blocking.
      */
-    virtual bool read();
+    virtual bool read(bool blocked = true);
     
     /**
      * @brief   Write the charcteristic value
