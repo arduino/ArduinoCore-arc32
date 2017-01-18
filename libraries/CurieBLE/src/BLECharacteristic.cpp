@@ -367,14 +367,14 @@ bool BLECharacteristic::canUnsubscribe()
     return retVar;
 }
 
-bool BLECharacteristic::read()
+bool BLECharacteristic::read(bool blocked)
 {
     bool retVar = false;
     BLECharacteristicImp *characteristicImp = getImplementation();
     
     if (NULL != characteristicImp)
     {
-        retVar = characteristicImp->read();
+        retVar = characteristicImp->read(blocked);
     }
     return retVar;
 }
