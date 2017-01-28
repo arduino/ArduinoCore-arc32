@@ -267,6 +267,12 @@ THE SOFTWARE.
 
 #define BMI160_RA_CMD               0x7E
 
+/* Bit flags for selecting individual sensors */
+typedef enum {
+    GYRO = 0x1,
+    ACCEL = 0x2
+} CurieIMUSensor;
+
 /**
  * Interrupt Latch Mode options
  * @see setInterruptLatch()
@@ -471,9 +477,10 @@ typedef enum {
 
 class BMI160Class {
     public:
-        void initialize();
+        void initialize(unsigned int flags);
         bool testConnection();
 
+        bool isEnabled(unsigned int sensors);
         uint8_t getGyroRate();
         void setGyroRate(uint8_t rate);
 
@@ -487,9 +494,9 @@ class BMI160Class {
         void setAccelDLPFMode(uint8_t bandwidth);
 
         uint8_t getFullScaleGyroRange();
-        void setFullScaleGyroRange(uint8_t range);
+        void setFullScaleGyroRange(uint8_t range, float real);
         uint8_t getFullScaleAccelRange();
-        void setFullScaleAccelRange(uint8_t range);
+        void setFullScaleAccelRange(uint8_t range, float real);
 
         void autoCalibrateGyroOffset();
         bool getGyroOffsetEnabled();
@@ -640,6 +647,7 @@ class BMI160Class {
 
         uint8_t getDeviceID();
 
+        int isBitSet(uint8_t value, unsigned bit);
         uint8_t getRegister(uint8_t reg);
         void setRegister(uint8_t reg, uint8_t data);
 
@@ -653,8 +661,10 @@ class BMI160Class {
         void setInterruptLatch(uint8_t latch);
         void resetInterrupt();
 
-        bool gyroDataReady();
-        bool accelDataReady();
+        /* Use a bitmask to track which sensors are enabled */
+        unsigned sensors_enabled;
+        float accel_range;
+        float gyro_range;
 
     protected:
         virtual int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt) = 0;

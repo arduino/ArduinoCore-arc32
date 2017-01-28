@@ -32,7 +32,8 @@
  * on the Curie module, before calling BMI160::initialize() to activate the
  * BMI160 accelerometer and gyroscpoe with default settings.
  */
-bool CurieIMUClass::begin()
+
+bool CurieIMUClass::configure_imu(unsigned int sensors)
 {
     ss_spi_init(SPI_SENSING_1, 2000, SPI_BUSMODE_0, SPI_8_BIT, SPI_SE_1);
 
@@ -41,7 +42,7 @@ bool CurieIMUClass::begin()
     serial_buffer_transfer(&dummy_reg, 1, 1);
 
     /* The SPI interface is ready - now invoke the base class initialization */
-    BMI160Class::initialize();
+    initialize(sensors);
 
     /** Verify the SPI connection.
      * MakgetGyroRatee sure the device is connected and responds as expected.
@@ -50,14 +51,64 @@ bool CurieIMUClass::begin()
     if (CURIE_IMU_CHIP_ID != getDeviceID())
         return false;
 
-    accel_range = (float) getAccelerometerRange();
-    gyro_range = (float) getGyroRange();
     return true;
+}
+
+bool CurieIMUClass::begin()
+{
+    return configure_imu(GYRO | ACCEL);
+}
+
+bool CurieIMUClass::begin(unsigned int sensors)
+{
+    return configure_imu(sensors);
 }
 
 void CurieIMUClass::end()
 {
     ss_spi_disable(SPI_SENSING_1);
+}
+
+bool CurieIMUClass::dataReady()
+{
+    uint8_t stat;
+
+    /* If no sensors are enabled */
+    if (!isEnabled(0))
+        return false;
+
+    /* Read status register */
+    stat = getRegister(BMI160_RA_STATUS);
+
+    if (isEnabled(GYRO) && !isBitSet(stat, BMI160_STATUS_DRDY_GYR))
+        return false;
+
+    if (isEnabled(ACCEL) && !isBitSet(stat, BMI160_STATUS_DRDY_ACC))
+        return false;
+
+    return true;
+}
+
+bool CurieIMUClass::dataReady(unsigned int sensors)
+{
+    uint8_t stat;
+
+    /* If no sensors enabled, or no data requested */
+    if (sensors == 0 || !isEnabled(0))
+        return false;
+
+    /* Read status register */
+    stat = getRegister(BMI160_RA_STATUS);
+
+    if ((sensors & GYRO) && isEnabled(GYRO) &&
+        !isBitSet(stat, BMI160_STATUS_DRDY_GYR))
+        return false;
+
+    if ((sensors & ACCEL) && isEnabled(ACCEL) &&
+        !isBitSet(stat, BMI160_STATUS_DRDY_ACC))
+        return false;
+
+    return true;
 }
 
 int CurieIMUClass::getGyroRate()
@@ -227,25 +278,26 @@ int CurieIMUClass::getGyroRange()
 void CurieIMUClass::setGyroRange(int range)
 {
     BMI160GyroRange bmiRange;
+    float real;
 
     if (range >= 2000) {
         bmiRange = BMI160_GYRO_RANGE_2000;
-        gyro_range = 2000.0f;
+        real = 2000.0f;
     } else if (range >= 1000) {
         bmiRange = BMI160_GYRO_RANGE_1000;
-        gyro_range = 1000.0f;
+        real = 1000.0f;
     } else if (range >= 500) {
         bmiRange = BMI160_GYRO_RANGE_500;
-        gyro_range = 500.0f;
+        real = 500.0f;
     } else if (range >= 250) {
         bmiRange = BMI160_GYRO_RANGE_250;
-        gyro_range = 250.0f;
+        real = 250.0f;
     } else {
         bmiRange = BMI160_GYRO_RANGE_125;
-        gyro_range = 125.0f;
+        real = 125.0f;
     }
 
-    setFullScaleGyroRange(bmiRange);
+    setFullScaleGyroRange(bmiRange, real);
 }
 
 int CurieIMUClass::getAccelerometerRange()
@@ -277,22 +329,23 @@ int CurieIMUClass::getAccelerometerRange()
 void CurieIMUClass::setAccelerometerRange(int range)
 {
     BMI160AccelRange bmiRange;
+    float real;
 
     if (range <= 2) {
         bmiRange = BMI160_ACCEL_RANGE_2G;
-        accel_range = 2.0f;
+        real = 2.0f;
     } else if (range <= 4) {
         bmiRange = BMI160_ACCEL_RANGE_4G;
-        accel_range = 4.0f;
+        real = 4.0f;
     } else if (range <= 8) {
         bmiRange = BMI160_ACCEL_RANGE_8G;
-        accel_range = 8.0f;
+        real = 8.0f;
     } else {
         bmiRange = BMI160_ACCEL_RANGE_16G;
-        accel_range = 16.0f;
+        real = 16.0f;
     }
 
-    setFullScaleAccelRange(bmiRange);
+    setFullScaleAccelRange(bmiRange, real);
 }
 
 void CurieIMUClass::autoCalibrateGyroOffset()
