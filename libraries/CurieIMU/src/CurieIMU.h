@@ -94,8 +94,12 @@ class CurieIMUClass : public BMI160Class {
     friend void bmi160_pin1_isr(void);
 
     public:
+        bool begin(unsigned int sensors);
         bool begin(void);
         void end(void);
+
+        bool dataReady();
+        bool dataReady(unsigned int sensors);
 
         // supported values: 25, 50, 100, 200, 400, 800, 1600, 3200 (Hz)
         int getGyroRate();
@@ -207,10 +211,8 @@ class CurieIMUClass : public BMI160Class {
         void detachInterrupt(void);
 
     private:
+        bool configure_imu(unsigned int sensors);
         int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
-
-        float accel_range;
-        float gyro_range;
 
         float getFreefallDetectionThreshold();
         void setFreefallDetectionThreshold(float threshold);
