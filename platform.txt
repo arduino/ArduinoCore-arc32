@@ -103,7 +103,7 @@ tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 tools.arduino101load.upload.params.verbose=verbose
 tools.arduino101load.upload.params.quiet=quiet
 
-tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" {build.path}/{build.project_name}.bin {serial.port} "{upload.verbose}" {ble.fw.string} {ble.fw.position}
+tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" "{build.path}/{build.project_name}.bin" {serial.port} "{upload.verbose}" {ble.fw.string} {ble.fw.position}
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
