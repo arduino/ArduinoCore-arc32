@@ -1,0 +1,73 @@
+;************************************************************
+; Windows USB CDC ACM Setup File
+; Copyright (c) 2000 Microsoft Corporation
+
+
+[Version]
+Signature="$Windows NT$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%MFGNAME%
+DriverVer=10/13/2015,5.1.2600.0
+CatalogFile = intc_serial.cat
+
+[Manufacturer]
+%MFGNAME%=DeviceList, NTamd64
+
+[DestinationDirs]
+DefaultDestDir=12
+
+
+;------------------------------------------------------------------------------
+;  Vendor and Product ID Definitions
+;------------------------------------------------------------------------------
+; When developing your USB device, the VID and PID used in the PC side
+; application program and the firmware on the microcontroller must match.
+; Modify the below line to use your VID and PID.  Use the format as shown below.
+; Note: One INF file can be used for multiple devices with different VID and PIDs.
+; For each supported device, append ",USB\VID_xxxx&PID_yyyy" to the end of the line.
+;------------------------------------------------------------------------------
+
+[DeviceList]
+%DESCRIPTION%=DriverInstall, USB\VID_8087&PID_0AB6
+
+[DeviceList.NTamd64]
+%DESCRIPTION%=DriverInstall, USB\VID_8087&PID_0AB6
+
+
+
+;------------------------------------------------------------------------------
+;  String Definitions
+;------------------------------------------------------------------------------
+;Modify these strings to customize your device
+;------------------------------------------------------------------------------
+[Strings]
+MFGFILENAME="CDC_vista"
+DRIVERFILENAME ="usbser"
+MFGNAME="http://www.intel.com"
+INSTDISK="Arduino 101 Driver Installer"
+DESCRIPTION="Arduino 101 Serial Monitor"
+SERVICE="USB RS-232 Emulation Driver"
+
+
+[DriverInstall]
+include=mdmcpq.inf,usb.inf
+CopyFiles = FakeModemCopyFileSection
+AddReg=DriverAddReg
+
+[DriverAddReg]
+HKR,,DevLoader,,*ntkern 
+HKR,,NTMPDriver,,usbser.sys 
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[DriverInstall.Services]
+include=mdmcpq.inf
+AddService=usbser, 0x00000002, DriverService
+
+[DriverService]
+DisplayName=%ServiceName%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\usbser.sys
+LoadOrderGroup=Base
