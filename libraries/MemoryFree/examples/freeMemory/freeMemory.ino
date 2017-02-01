@@ -1,4 +1,8 @@
 /*
+ * freeMemory.ino: This sketch demonstrates the use of the freeMemory()
+ * function to measure the amount of free memory available in the system,
+ * before and after using 'malloc' to allocate some memory.
+ *
  * Copyright (c) 2016 Intel Corporation.  All rights reserved.
  * See the bottom of this file for the license terms.
  */
