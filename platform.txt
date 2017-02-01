@@ -95,21 +95,22 @@ recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 # -------------------
 tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
+tools.arduino101load.rtos.fw.string="ATP1LAK000-1541C5635Zc"
+tools.arduino101load.rtos.fw.position=0
 
 # Arc Uploader/Programmers tools
 # -------------------
-tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load/arduino101load
+tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 
-tools.arduino101load.upload.params.verbose=verbose
-tools.arduino101load.upload.params.quiet=quiet
+tools.arduino101load.upload.params.verbose=-v
+tools.arduino101load.upload.params.quiet=-q
 
-tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" "{build.path}/{build.project_name}.bin" {serial.port} "{upload.verbose}" {ble.fw.string} {ble.fw.position}
+tools.arduino101load.upload.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position}
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
 tools.arduino101load.erase.params.quiet=
 tools.arduino101load.erase.pattern=
-tools.arduino101load.bootloader.params.verbose=
-tools.arduino101load.bootloader.params.quiet=
-tools.arduino101load.bootloader.pattern={runtime.tools.flashpack.path}/flash_dfu.sh
-tools.arduino101load.bootloader.pattern.windows={runtime.tools.flashpack.path}/flash_dfu.bat
+tools.arduino101load.bootloader.params.verbose=-v
+tools.arduino101load.bootloader.params.quiet=-q
+tools.arduino101load.bootloader.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}/x86/bin" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -force
