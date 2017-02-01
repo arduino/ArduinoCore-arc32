@@ -113,4 +113,4 @@ tools.arduino101load.erase.params.quiet=
 tools.arduino101load.erase.pattern=
 tools.arduino101load.bootloader.params.verbose=-v
 tools.arduino101load.bootloader.params.quiet=-q
-tools.arduino101load.bootloader.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}/x86/bin" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -force
+tools.arduino101load.bootloader.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}/x86/bin" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -force
