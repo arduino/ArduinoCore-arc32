@@ -95,8 +95,8 @@ recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 # -------------------
 tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
-tools.arduino101load.rtos.fw.string="ATP1LAK000-1541C5635Zc"
-tools.arduino101load.rtos.fw.position=0
+tools.arduino101load.rtos.fw.string="CODK-M"
+tools.arduino101load.rtos.fw.position=39168
 
 # Arc Uploader/Programmers tools
 # -------------------
