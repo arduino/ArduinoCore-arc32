@@ -32,12 +32,21 @@
 #define DSP_MODE 0b101000101000
 
 //Sample Rate I2S_SRR Values
-#define I2S_48K     0x000A000A
-#define I2S_44K     0x000F000F
-#define I2S_24K     0x001C001C
-#define I2S_22K     0x001E001E
-#define I2S_12K     0x00530053
-#define I2S_8K      0x007D007D
+#define I2S_48K_32bit     0x000A000A
+#define I2S_44K_32bit     0x000B000B
+#define I2S_24K_32bit     0x00150015
+#define I2S_22K_32bit     0x00170017
+#define I2S_12K_32bit     0x002A002A
+
+#define I2S_48K_24bit     0x000A000A
+#define I2S_44K_24bit     0x000F000F
+#define I2S_24K_24bit     0x001C001C
+#define I2S_22K_24bit     0x001E001E
+
+#define I2S_44K_16bit     0x00170017
+#define I2S_22K_16bit     0x002D002D
+#define I2S_12K_16bit     0x00530053
+#define I2S_8K_16bit      0x007D007D
 
 //Resolution I2S_SRR Values
 #define I2S_32bit   0xF800F800
@@ -47,14 +56,14 @@
 //Registers
 #define I2S_CTRL        (uint32_t *)0xB0003800             //I2S Control Register
 #define I2S_STAT        (volatile uint32_t *)0xB0003804    //I2S Status Register
-#define I2S_SRR         (uint32_t *)0xB0003808             //I2S Channels Sample Rate & Resolution Configuration Register
+#define I2S_SRR         (volatile uint32_t *)0xB0003808    //I2S Channels Sample Rate & Resolution Configuration Register
 #define I2S_CID_CTRL    (uint32_t *)0xB000380C             //Clock, Interrupt and DMA Control Register
 #define I2S_TFIFO_STAT  (volatile uint32_t *)0xB0003810    //Transmit FIFO Status Register
 #define I2S_RFIFO_STAT  (volatile uint32_t *)0xB0003814    //Receive FIFO Status Register
 #define I2S_TFIFO_CTRL  (uint32_t *)0xB0003818             //Transmit FIFO Control Register
 #define I2S_RFIFO_CTRL  (uint32_t *)0xB000381C             //Receive FIFO Control Register
 #define I2S_DEV_CONF    (uint32_t *)0xB0003820             //Device Configuration Register
-#define I2S_DATA_REG    (volatile uint32_t *)0xB0003850    //Data Register
+#define I2S_DATA_REG    (volatile int32_t *)0xB0003850     //Data Register
 #define I2S_MASK_INT    (uint32_t *)0xB0800468             //Host Processor Interrupt Routing Mask 7 
 #define CLK_GATE_CTL    (uint32_t *)0xB0800018            //CLK_GATE_CTL register
 
@@ -86,7 +95,7 @@
 
 struct i2s_ring_buffer
 {
-    volatile uint32_t data[I2S_BUFFER_SIZE];
+    volatile int32_t data[I2S_BUFFER_SIZE];
     volatile int head = 0;
     volatile int tail= 0;
     volatile bool lock = false;
@@ -179,21 +188,21 @@ class Curie_I2S
         void end();
         
         // Pushes a dword into the TX buffer
-        int pushData(uint32_t data);
+        int pushData(int32_t data);
         
         // Pushes a dword into the TX FIFO
-        void fastPushData(uint32_t data);
+        void fastPushData(int32_t data);
         
         void write();
         
         // Pulls a dword directly from the RX FIFO
-        uint32_t pullData();
+        int32_t pullData();
         
         // Pulls a dword from the tail of the rx buffer
-        uint32_t read() {return requestdword(); };
+        int32_t read() {return requestdword(); };
         
         // Pulls a dword from the tail of the rx buffer
-        uint32_t requestdword();
+        int32_t requestdword();
         
         // Returns number of dword avaialable in the rx buffer
         uint16_t available();
