@@ -90,12 +90,14 @@ recipe.output.save_file={build.project_name}.{build.variant}.hex
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
 recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 
-# BLE firmware check
+# Firmware check
 # -------------------
 tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
 tools.arduino101load.rtos.fw.string="CODK-M"
 tools.arduino101load.rtos.fw.position=39168
+#not ideal - should be inherited by the platform
+tools.arduino101load.version=2.0.0
 
 # Arc Uploader/Programmers tools
 # -------------------
