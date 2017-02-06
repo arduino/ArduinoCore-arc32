@@ -260,6 +260,7 @@ bool
 BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
 {
     _setValue(value, length, 0);
+    _value_updated = true;
     if (BLEUtils::isLocalBLE(_ble_device) == true)
     {
         // GATT server
@@ -555,7 +556,6 @@ BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length, uint16_t
         }
     }
     
-    _value_updated = true;
     memcpy(_value + offset, value, length);
     _value_length = length;
 }
