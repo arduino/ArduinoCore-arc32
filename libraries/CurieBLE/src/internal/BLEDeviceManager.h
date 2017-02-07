@@ -360,7 +360,28 @@ private:
     void getDeviceAdvertiseBuffer(const bt_addr_le_t* addr, 
                                   const uint8_t* &adv_data,
                                   uint8_t &adv_len) const;
+    bool setScanRespBuffer(const bt_addr_le_t* bt_addr,
+                           const uint8_t *ad, 
+                           uint8_t data_len,
+                           int8_t rssi);
+    void getDeviceScanResponseBuffer(const bt_addr_le_t* addr, 
+                                     const uint8_t* &adv_data,
+                                     uint8_t &adv_len) const;
+    bool getDataFromAdvertiseByType(const BLEDevice* device,
+                                    const uint8_t eir_type, 
+                                    const uint8_t* &data,
+                                    uint8_t &data_len) const;
     bool disconnectSingle(const bt_addr_le_t *peer);
+    void advertiseAcceptHandler(const bt_addr_le_t *addr, 
+                                int8_t rssi, 
+                                uint8_t type,
+                                const uint8_t *ad, 
+                                uint8_t data_len);
+    void setTempAdvertiseBuffer(const bt_addr_le_t* bt_addr, 
+                                int8_t rssi, 
+                                const uint8_t *ad, 
+                                uint8_t data_len);
+    uint8_t getTempAdvertiseIndexFromBuffer(const bt_addr_le_t* bt_addr);
 
 private:
     uint16_t   _min_conn_interval;
@@ -374,7 +395,16 @@ private:
     uint64_t     _peer_adv_mill[BLE_MAX_ADV_BUFFER_CFG];     // The ADV found time stamp
     uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_scan_rsp_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
     int8_t     _peer_adv_rssi[BLE_MAX_ADV_BUFFER_CFG];
+    
+    // The accept critical may include in scan response
+    bt_addr_le_t _peer_temp_adv_buffer[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_temp_dev_index;
+    uint8_t    _peer_temp_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_temp_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    // The critical for central scan
     bt_data_t   _adv_accept_critical;   // The filters for central device
     String  _adv_critical_local_name;
     bt_uuid_128_t _adv_critical_service_uuid;
@@ -382,11 +412,15 @@ private:
     bt_addr_le_t _wait_for_connect_peripheral;
     uint8_t    _wait_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _wait_for_connect_peripheral_adv_data_len;
+    uint8_t    _wait_for_connect_peripheral_scan_rsp_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _wait_for_connect_peripheral_scan_rsp_data_len;
     int8_t     _wait_for_connect_peripheral_adv_rssi;
     
     bt_addr_le_t _available_for_connect_peripheral;
     uint8_t    _available_for_connect_peripheral_adv_data[BLE_MAX_ADV_SIZE];
     uint8_t    _available_for_connect_peripheral_adv_data_len;
+    uint8_t    _available_for_connect_peripheral_scan_rsp_data[BLE_MAX_ADV_SIZE];
+    uint8_t    _available_for_connect_peripheral_scan_rsp_data_len;
     int8_t     _available_for_connect_peripheral_adv_rssi;
     volatile bool    _connecting;
     
@@ -408,6 +442,8 @@ private:
     uint8_t     _adv_type;
     bt_data_t   _adv_data[6];  // KW: fount _advDataInit() can use 6 slots.
     size_t      _adv_data_idx;
+    bt_data_t   _scan_rsp_data[6];
+    size_t      _scan_rsp_data_idx;
     
     String      _local_name;
     // Peripheral states
@@ -429,6 +465,8 @@ private:
     uint8_t      _peer_peripheral_index;
     uint8_t    _peer_peripheral_adv_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_peripheral_adv_data_len[BLE_MAX_CONN_CFG];
+    uint8_t    _peer_peripheral_scan_rsp_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
+    uint8_t    _peer_peripheral_scan_rsp_data_len[BLE_MAX_CONN_CFG];
     uint8_t    _peer_peripheral_adv_rssi[BLE_MAX_CONN_CFG];
 
     BLEDeviceEventHandler _device_events[BLEDeviceLastEvent];
