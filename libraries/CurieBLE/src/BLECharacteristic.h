@@ -321,7 +321,7 @@ public:
      *
      * @note  Only for GATT client. Schedule read request to the GATT server
      */
-    virtual bool read();
+    virtual bool read(bool blocked = false);
     
     /**
      * @brief   Write the charcteristic value
