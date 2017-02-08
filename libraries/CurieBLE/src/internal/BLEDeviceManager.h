@@ -177,26 +177,9 @@ class BLEDeviceManager
      *
      * @note  none
      */
-    void setConnectionInterval(float minimumConnectionInterval, 
-                               float maximumConnectionInterval,
-                               uint16_t latency, 
-                               uint16_t timeout);
-    
-    /**
-     * @brief   Set the min and max connection interval and send connection 
-     *           update request in both BLE peripheral and central
-     *
-     * @param[in]   intervalmin     Minimum Connection Interval (ms)
-     *
-     * @param[in]   intervalmax     Maximum Connection Interval (ms)
-     *
-     * @return  none
-     *
-     * @note  none
-     */
-    void setConnectionInterval(float minimumConnectionInterval, 
-                               float maximumConnectionInterval);
-    
+    int setConnectionInterval (BLEDevice *device);
+    void getConnectionInterval(BLEDevice *device, 
+                               bt_le_conn_param* conn_param);
     /**
      * @brief   Set TX power of the radio in dBM
      *
