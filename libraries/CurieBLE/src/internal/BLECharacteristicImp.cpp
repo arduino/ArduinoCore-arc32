@@ -537,6 +537,26 @@ BLECharacteristicImp::valueHandle()
     return handle;
 }
 
+BLEDescriptorImp* BLECharacteristicImp::descriptor(uint16_t handle)
+{
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLEDescriptorNodePtr node = link_node_get_first(&_descriptors_header);
+    while (NULL != node)
+    {
+        descriptorImp = node->value;
+        if (handle == descriptorImp->valueHandle())
+        {
+            break;
+        }
+        node = node->next;
+    }
+    if (NULL == node)
+    {
+        descriptorImp = NULL;
+    }
+    return descriptorImp;
+}
+
 void
 BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length, uint16_t offset)
 {

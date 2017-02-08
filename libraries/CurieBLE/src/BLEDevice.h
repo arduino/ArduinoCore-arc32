@@ -644,6 +644,7 @@ class BLEDevice
     void setEventHandler(BLEDeviceEvent event, BLEDeviceEventHandler eventHandler); // set an event handler (callback)
     
 protected:
+    friend class BLEDescriptorImp;
     friend class BLECharacteristicImp;
     friend class BLEServiceImp;
     friend class BLEDeviceManager;
@@ -659,6 +660,11 @@ protected:
                                              bt_gatt_read_params_t *params,
                                              const void *data, 
                                              uint16_t length);
+    friend uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn, 
+                                            int err,
+                                            bt_gatt_read_params_t *params,
+                                            const void *data, 
+                                            uint16_t length);
     const bt_addr_le_t* bt_le_address() const;
     const bt_le_conn_param* bt_conn_param() const;
     void setAddress(const bt_addr_le_t& addr);

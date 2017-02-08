@@ -439,14 +439,19 @@ int BLECharacteristic::addDescriptor(BLEDescriptor& descriptor)
     else if (BLEUtils::isLocalBLE(_bledev) == true)
     {
         // Only support the GATT server that create the service in local device.
-        _chrc_local_imp = new BLECharacteristicImp(*this, _bledev);
+        //  Consider to add multi-descriptor
         if (NULL == _chrc_local_imp)
         {
-            retVar = BLE_STATUS_NO_MEMORY;
+            _chrc_local_imp = new BLECharacteristicImp(*this, _bledev);
+        }
+        
+        if (NULL != _chrc_local_imp)
+        {
+            retVar = _chrc_local_imp->addDescriptor(descriptor);
         }
         else
         {
-            retVar = _chrc_local_imp->addDescriptor(descriptor);
+            retVar = BLE_STATUS_NO_MEMORY;
         }
     }
     return retVar;
