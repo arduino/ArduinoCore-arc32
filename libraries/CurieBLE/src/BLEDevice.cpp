@@ -19,6 +19,8 @@
 #include "CurieBLE.h"
 #include "BLEDevice.h"
 
+#include "./internal/ble_client.h"
+
 #include "./internal/BLEUtils.h"
 
 #include "./internal/BLEProfileManager.h"
@@ -51,6 +53,7 @@ BLEDevice::BLEDevice(const bt_addr_le_t* bleaddress):
     BLEDevice()
 {
     memcpy(&_bt_addr, bleaddress, sizeof(_bt_addr));
+    BLEDeviceManager::instance()->getConnectionInterval(this, &_conn_param);
 }
 
 BLEDevice::BLEDevice(const BLEDevice* bledevice)
@@ -154,11 +157,54 @@ void BLEDevice::setAdvertisingInterval(float advertisingInterval)
     BLEDeviceManager::instance()->setAdvertisingInterval(advertisingInterval);
 }
 
+void BLEDevice::setConnectionInterval(int minInterval, 
+                                      int maxInterval,
+                                      uint16_t latency,
+                                      uint16_t timeout)
+{
+    uint16_t minVal = (uint16_t)MSEC_TO_UNITS(minInterval, UNIT_1_25_MS);
+    uint16_t maxVal = (uint16_t)MSEC_TO_UNITS(maxInterval, UNIT_1_25_MS);
+    uint16_t timeoutVal = MSEC_TO_UNITS(timeout, UNIT_10_MS);
+    _conn_param.interval_min = minVal;
+    _conn_param.interval_max = maxVal;
+    _conn_param.timeout = timeoutVal;
+    _conn_param.latency = latency;
+    BLEDeviceManager::instance()->setConnectionInterval(this);
+}
+
 void BLEDevice::setConnectionInterval(int minimumConnectionInterval, 
                                       int maximumConnectionInterval)
 {
-    // TODO: Update the connection interval need more discussion
+    uint16_t minVal = (uint16_t)MSEC_TO_UNITS(minimumConnectionInterval, UNIT_1_25_MS);
+    uint16_t maxVal = (uint16_t)MSEC_TO_UNITS(maximumConnectionInterval, UNIT_1_25_MS);
+    _conn_param.interval_min = minVal;
+    _conn_param.interval_max = maxVal;
+    
+    BLEDeviceManager::instance()->setConnectionInterval(this);
+}
 
+int BLEDevice::getConnectionInterval()
+{
+    bt_le_conn_param_t conn_param;
+    
+    BLEDeviceManager::instance()->getConnectionInterval(this, &conn_param);
+    return UNITS_TO_MSEC((int)conn_param.interval_max, UNIT_1_25_MS);
+}
+
+int BLEDevice::getConnectionTimeout()
+{
+    bt_le_conn_param_t conn_param;
+    
+    BLEDeviceManager::instance()->getConnectionInterval(this, &conn_param);
+    return UNITS_TO_MSEC(conn_param.timeout, UNIT_10_MS);;
+}
+
+int BLEDevice::getConnectionLatency()
+{
+    bt_le_conn_param_t conn_param;
+    
+    BLEDeviceManager::instance()->getConnectionInterval(this, &conn_param);
+    return conn_param.latency;
 }
 
 bool BLEDevice::setTxPower(int txPower)

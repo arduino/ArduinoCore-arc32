@@ -283,17 +283,31 @@ void BLEDeviceManager::setAdvertisingInterval(float advertisingInterval)
     _adv_param.interval_max = interval;
 }
 
-void BLEDeviceManager::setConnectionInterval(float minimumConnectionInterval, 
-                                      float maximumConnectionInterval,
-                                      uint16_t latency, 
-                                      uint16_t timeout)
+void BLEDeviceManager::getConnectionInterval(BLEDevice *device, 
+                                             bt_le_conn_param* conn_param)
 {
+    bt_conn_t* conn = bt_conn_lookup_addr_le(device->bt_le_address());
+    if (NULL != conn)
+    {
+        conn_param->interval_max = conn->le.interval;
+        conn_param->interval_min = conn->le.interval;
+        conn_param->latency = conn->le.latency;
+        conn_param->timeout = conn->le.timeout;
+        bt_conn_unref(conn);
+    }
 }
 
-void BLEDeviceManager::setConnectionInterval(float minimumConnectionInterval, 
-                                             float maximumConnectionInterval)
+int BLEDeviceManager::setConnectionInterval(BLEDevice *device)
 {
-    
+    bt_conn_t* conn = bt_conn_lookup_addr_le(device->bt_le_address());
+    int ret = 0;
+    if (NULL != conn)
+    {
+        ret = bt_conn_le_param_update(conn, device->bt_conn_param());
+        pr_debug(LOG_MODULE_BLE, "%s-ret:%d",__FUNCTION__, ret);
+        bt_conn_unref(conn);
+    }
+    return ret;
 }
 
 bool BLEDeviceManager::setTxPower(int txPower)
