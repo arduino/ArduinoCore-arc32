@@ -73,6 +73,7 @@ public:
     
     inline bool hasRegisterProfile(){return _profile_registered;}
     
+    BLEDescriptorImp* descriptor(const BLEDevice &bledevice, uint16_t handle);
     /**
      * @brief   Get the BLE's Characteristic implementation object by uuid and index
      *

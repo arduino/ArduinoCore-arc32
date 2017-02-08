@@ -177,6 +177,29 @@ void BLEServiceImp::releaseCharacteristic()
 }
 
 
+BLEDescriptorImp* BLEServiceImp::descriptor(uint16_t handle)
+{
+    BLEDescriptorImp* descriptorImp = NULL;
+    
+    BLECharacteristicImp* characteristicImp = NULL;
+    BLECharacteristicNodePtr node = link_node_get_first(&_characteristics_header);
+    while (NULL != node)
+    {
+        characteristicImp = node->value;
+        descriptorImp = characteristicImp->descriptor(handle);
+        if (descriptorImp != NULL)
+        {
+            break;
+        }
+        node = node->next;
+    }
+    if (NULL == node)
+    {
+        descriptorImp = NULL;
+    }
+    return descriptorImp;
+}
+
 BLECharacteristicImp* BLEServiceImp::characteristic(int index)
 {
     BLECharacteristicImp* characteristicImp = NULL;

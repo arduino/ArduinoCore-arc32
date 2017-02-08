@@ -161,6 +161,31 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
     return BT_GATT_ITER_STOP;
 }
 
+uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn, 
+                                            int err,
+                                            bt_gatt_read_params_t *params,
+                                            const void *data, 
+                                            uint16_t length)
+{
+    if (NULL == data)
+    {
+        return BT_GATT_ITER_STOP;
+    }
+    BLEDescriptorImp *descriptor = NULL;
+    BLEDevice bleDevice(bt_conn_get_dst(conn));
+    
+    // Get characteristic by handle params->single.handle
+    descriptor = BLEProfileManager::instance()->descriptor(bleDevice, params->single.handle);
+    
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    if (descriptor)
+    {
+        descriptor->writeValue((const unsigned char *)data, length, params->single.offset);
+    }
+    //pr_debug(LOG_MODULE_BLE, "%s-%d: desc len-%d", __FUNCTION__, __LINE__, descriptor->valueLength());
+    return BT_GATT_ITER_STOP;
+}
+
 uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
                                  int err,
                                  bt_gatt_read_params_t *params,
