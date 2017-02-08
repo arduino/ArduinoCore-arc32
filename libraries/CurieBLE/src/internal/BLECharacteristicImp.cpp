@@ -171,6 +171,7 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
     if (NULL != characteristic._value)
     {
         memcpy(_value, characteristic._value, _value_size);
+        _value_length = _value_size;
     }
         
     // Update BLE device object
