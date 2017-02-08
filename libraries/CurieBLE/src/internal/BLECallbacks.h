@@ -28,6 +28,13 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn, int err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length);
+
+uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn, 
+                                            int err,
+                                            bt_gatt_read_params_t *params,
+                                            const void *data, 
+                                            uint16_t length);
+
 int profile_longflush_process(struct bt_conn *conn,
                               const struct bt_gatt_attr *attr, 
                               uint8_t flags);

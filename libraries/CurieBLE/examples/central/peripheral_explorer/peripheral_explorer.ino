@@ -132,10 +132,30 @@ void exploreCharacteristic(BLECharacteristic characteristic) {
       Serial.print(", value 0x");
       printData(characteristic.value(), characteristic.valueLength());
     }
-  }
 
   Serial.println();
 
+  // loop the descriptors of the characteristic and explore each
+  for (int i = 0; i < characteristic.descriptorCount(); i++) {
+    BLEDescriptor descriptor = characteristic.descriptor(i);
+
+    exploreDescriptor(descriptor);
+  }
+}
+
+void exploreDescriptor(BLEDescriptor descriptor) {
+  // print the UUID of the descriptor
+  Serial.print("\t\tDescriptor ");
+  Serial.print(descriptor.uuid());
+
+  // read the descriptor value
+  descriptor.read();
+
+  // print out the value of the descriptor
+  Serial.print(", value 0x");
+  printData(descriptor.value(), descriptor.valueLength());
+
+  Serial.println();
 }
 
 void printData(const unsigned char data[], int length) {

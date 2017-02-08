@@ -57,6 +57,8 @@ public:
                           uint16_t handle, 
                           unsigned char properties);
     int getCharacteristicCount();
+    
+    BLEDescriptorImp* descriptor(uint16_t handle);
 
     BLECharacteristicImp* characteristic(const bt_uuid_t* uuid);
     BLECharacteristicImp* characteristic(const char* uuid);
