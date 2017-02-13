@@ -294,8 +294,8 @@ bool BLECharacteristic::broadcast()
     if (BLEDeviceManager::instance()->advertising())
     {
         BLEDeviceManager::instance()->stopAdvertising();
-        BLEDeviceManager::instance()->startAdvertising();
     }
+    BLEDeviceManager::instance()->startAdvertising();
     return _broadcast;
 }
 
