@@ -113,6 +113,7 @@ SECTIONS
 	__data_ram_start = .;
 	*(.data)
 	*(".data.*")
+	. = ALIGN(4);
 	} > SRAM
 
     __data_ram_end = .;
