@@ -172,6 +172,23 @@ uint8_t profile_service_read_rsp_process(bt_conn_t *conn,
     return ret;
 }
 
+uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn, 
+                                                 int err,
+                                                 bt_gatt_read_params_t *params,
+                                                 const void *data, 
+                                                 uint16_t length)
+{
+    BLEDevice bleDevice(bt_conn_get_dst(conn));
+    BLEServiceImp* service_imp = BLEProfileManager::instance()->getServiceBySubHandle(bleDevice, params->single.handle);
+    
+    uint8_t ret = service_imp->characteristicReadRspProc(conn, 
+                                                         err,
+                                                         params,
+                                                         data,
+                                                         length);
+    pr_debug(LOG_MODULE_BLE, "%s-%d:ret-%d", __FUNCTION__, __LINE__, ret);
+    return ret;
+}
 
 
 void bleConnectEventHandler(bt_conn_t *conn, 
