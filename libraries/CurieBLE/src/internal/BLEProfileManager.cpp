@@ -507,6 +507,40 @@ BLEServiceImp* BLEProfileManager::service(const BLEDevice &bledevice, int index)
     return serviceImp;
 }
 
+BLEServiceImp* BLEProfileManager::getServiceBySubHandle(const BLEDevice &bledevice, uint16_t handle) const
+{
+    BLEServiceImp* serviceImp = NULL;
+    uint16_t start_handle;
+    uint16_t end_handle;
+    #if 1
+    const BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(bledevice);
+    if (NULL == serviceHeader)
+    {
+        // Doesn't find the service
+        return NULL;
+    }
+    BLEServiceNodePtr node = serviceHeader->next;
+    
+    while (node != NULL)
+    {
+        serviceImp = node->value;
+        start_handle = serviceImp->startHandle();
+        end_handle = serviceImp->endHandle();
+        if (handle >= start_handle && handle <= end_handle)
+        {
+            break;
+        }
+        node = node->next;
+    }
+    
+    if (NULL == node)
+    {
+        serviceImp = NULL;
+    }
+    #endif
+    return serviceImp;
+}
+
 void BLEProfileManager::handleConnectedEvent(const bt_addr_le_t* deviceAddr)
 {
     int index = getUnusedIndex();

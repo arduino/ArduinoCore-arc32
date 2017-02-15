@@ -71,6 +71,12 @@ public:
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
+    
+    uint8_t characteristicReadRspProc(bt_conn_t *conn, 
+                                      int err,
+                                      bt_gatt_read_params_t *params,
+                                      const void *data, 
+                                      uint16_t length);
     bool discovering();
     
     static bt_uuid_t *getPrimayUuid(void);
@@ -81,6 +87,13 @@ protected:
     
     
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
+    
+private:
+    void discoverNextCharacteristic(BLEDevice &bledevice);
+    bool readCharacteristic(const BLEDevice &bledevice, uint16_t handle);
+    bool discoverAttributes(BLEDevice* device, 
+                            uint16_t start_handle, 
+                            uint16_t end_handle);
 private:
     typedef LinkNode<BLECharacteristicImp *>  BLECharacteristicLinkNodeHeader;
     typedef LinkNode<BLECharacteristicImp *>* BLECharacteristicNodePtr;
@@ -88,6 +101,9 @@ private:
     
     uint16_t _start_handle;
     uint16_t _end_handle;
+    
+    static bt_gatt_read_params_t _read_params;
+    bool _reading;
     
     void releaseCharacteristic();
     BLECharacteristicImp *_cur_discover_chrc;
