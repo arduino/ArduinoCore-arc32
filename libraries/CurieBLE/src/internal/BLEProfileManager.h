@@ -98,6 +98,7 @@ public:
     BLEServiceImp* service(const BLEDevice &bledevice, const char * uuid) const;
     BLEServiceImp* service(const BLEDevice &bledevice, int index) const;
     BLEServiceImp* service(const BLEDevice &bledevice, const bt_uuid_t* uuid) const;
+    BLEServiceImp* getServiceBySubHandle(const BLEDevice &bledevice, uint16_t handle) const;
     int serviceCount(const BLEDevice &bledevice) const;
     int characteristicCount(const BLEDevice &bledevice) const;
     
