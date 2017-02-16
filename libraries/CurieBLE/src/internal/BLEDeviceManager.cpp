@@ -742,8 +742,13 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
             return service_cnt;
         }
 
+	/* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
+	   BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
+	   Practically, these types are same as ALL. */
         if (type == BT_DATA_UUID16_ALL ||
-            type == BT_DATA_UUID128_ALL)
+            type == BT_DATA_UUID128_ALL ||
+	    type == BT_DATA_UUID16_SOME ||
+	    type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
@@ -791,7 +796,10 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
             return temp;
         }
 
-        if (type == BT_DATA_NAME_COMPLETE)
+	/* Sid, 2/15/2017.  Support both forms of data name.
+	 */
+        if (type == BT_DATA_NAME_COMPLETE ||
+	    type == BT_DATA_NAME_SHORTENED)
         {
             if (len >= BLE_MAX_ADV_SIZE)
             {
@@ -862,14 +870,17 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         }
 
         if (type == BT_DATA_UUID16_ALL ||
-            type == BT_DATA_UUID128_ALL)
+            type == BT_DATA_UUID128_ALL ||
+	    type == BT_DATA_UUID16_SOME ||
+	    type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
         
         if (index < service_cnt)
         {
-            if (type == BT_DATA_UUID16_ALL)
+            if (type == BT_DATA_UUID16_ALL ||
+		type == BT_DATA_UUID16_SOME)
             {
                 service_uuid.uuid.type = BT_UUID_TYPE_16;
                 memcpy(&BT_UUID_16(&service_uuid.uuid)->val, &adv_data[2], 2);
