@@ -743,7 +743,9 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
         }
 
         if (type == BT_DATA_UUID16_ALL ||
-            type == BT_DATA_UUID128_ALL)
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_ALL ||
+            type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
@@ -791,7 +793,8 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
             return temp;
         }
 
-        if (type == BT_DATA_NAME_COMPLETE)
+        if (type == BT_DATA_NAME_COMPLETE ||
+            type == BT_DATA_NAME_SHORTENED)
         {
             if (len >= BLE_MAX_ADV_SIZE)
             {
@@ -862,6 +865,8 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         }
 
         if (type == BT_DATA_UUID16_ALL ||
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_ALL ||
             type == BT_DATA_UUID128_ALL)
         {
             service_cnt++;
@@ -869,7 +874,8 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         
         if (index < service_cnt)
         {
-            if (type == BT_DATA_UUID16_ALL)
+            if (type == BT_DATA_UUID16_ALL || 
+                type == BT_DATA_UUID16_SOME)
             {
                 service_uuid.uuid.type = BT_UUID_TYPE_16;
                 memcpy(&BT_UUID_16(&service_uuid.uuid)->val, &adv_data[2], 2);
