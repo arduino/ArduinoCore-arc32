@@ -155,7 +155,6 @@ void BLEPeripheral::init()
     if (!_initCalled)
     {
         BLE.begin();
-        memset(m_eventHandlers, 0, sizeof(m_eventHandlers));
         _initCalled = true;
     }
 }
