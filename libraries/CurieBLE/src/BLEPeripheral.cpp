@@ -146,7 +146,8 @@ BLECentral BLEPeripheral::central(void)
 
 bool BLEPeripheral::connected(void)
 {
-    return BLE.connected();
+    BLEDevice centralBle = BLE.central();
+    return centralBle.connected();
 }
 
 void BLEPeripheral::init()
