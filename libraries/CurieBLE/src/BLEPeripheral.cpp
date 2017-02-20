@@ -21,7 +21,7 @@
 
 #include "BLEPeripheral.h"
 
-static BLEPeripheralEventHandler m_eventHandlers[BLEDeviceLastEvent];
+static BLEPeripheralEventHandler m_eventHandlers[BLEDeviceLastEvent] = {NULL, NULL, NULL, NULL};
 
 void bleBackCompatiblePeripheralConnectHandler(BLEDevice central) 
 {
@@ -154,7 +154,6 @@ void BLEPeripheral::init()
     if (!_initCalled)
     {
         BLE.begin();
-        memset(m_eventHandlers, 0, sizeof(m_eventHandlers));
         _initCalled = true;
     }
 }
