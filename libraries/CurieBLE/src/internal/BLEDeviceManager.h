@@ -362,6 +362,8 @@ private:
                                   const uint8_t* &adv_data,
                                   uint8_t &adv_len) const;
     bool disconnectSingle(const bt_addr_le_t *peer);
+    void updateDuplicateFilter(const bt_addr_le_t* addr);    
+    bool deviceInDuplicateFilterBuffer(const bt_addr_le_t* addr);
 
 private:
     uint16_t   _min_conn_interval;
@@ -432,6 +434,10 @@ private:
     uint8_t    _peer_peripheral_adv_data[BLE_MAX_CONN_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_peripheral_adv_data_len[BLE_MAX_CONN_CFG];
     uint8_t    _peer_peripheral_adv_rssi[BLE_MAX_CONN_CFG];
+    bt_addr_le_t _peer_duplicate_address_buffer[BLE_MAX_ADV_FILTER_SIZE_CFG];
+    uint8_t     _duplicate_filter_header;
+    uint8_t     _duplicate_filter_tail;
+    bool        _adv_duplicate_filter_enabled;
 
     BLEDeviceEventHandler _device_events[BLEDeviceLastEvent];
 };
