@@ -47,7 +47,10 @@ BLEDeviceManager::BLEDeviceManager():
     _local_name(""),
     _state(BLE_PERIPH_STATE_NOT_READY),
     _local_ble(NULL),
-    _peer_peripheral_index(0)
+    _peer_peripheral_index(0),
+    _duplicate_filter_header(0),
+    _duplicate_filter_tail(0),
+    _adv_duplicate_filter_enabled(false)
 {
     memset(&_local_bda, 0, sizeof(_local_bda));
     memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
@@ -530,7 +533,8 @@ BLEDevice BLEDeviceManager::peripheral()
 
 bool BLEDeviceManager::startScanning()
 {
-    _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;//BT_HCI_LE_SCAN_FILTER_DUP_DISABLE;
+    _adv_duplicate_filter_enabled = false;
+    _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
     if (err)
     {
@@ -542,6 +546,10 @@ bool BLEDeviceManager::startScanning()
 
 bool BLEDeviceManager::startScanningWithDuplicates()
 {
+    _adv_duplicate_filter_enabled = true;
+    memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
+    _duplicate_filter_header = _duplicate_filter_tail = 0;
+    
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
     if (err)
@@ -549,7 +557,7 @@ bool BLEDeviceManager::startScanningWithDuplicates()
         pr_info(LOG_MODULE_BLE, "Scanning failed to start (err %d)\n", err);
         return false;
     }
-    return false;
+    return true;
 }
 
 bool BLEDeviceManager::stopScanning()
@@ -1164,6 +1172,38 @@ bool BLEDeviceManager::advertiseDataProc(uint8_t type,
     return false;
 }
 
+bool BLEDeviceManager::deviceInDuplicateFilterBuffer(const bt_addr_le_t* addr)
+{
+    bool retVal = false;
+    for (uint8_t i = 0; 
+         i < (sizeof(_peer_duplicate_address_buffer) / sizeof(bt_addr_le_t)); 
+         i++)
+    {
+        if (0 == bt_addr_le_cmp(addr, &_peer_duplicate_address_buffer[i]))
+        {
+            retVal = true;
+            break;
+        }
+    }
+    return retVal;
+}
+
+void BLEDeviceManager::updateDuplicateFilter(const bt_addr_le_t* addr)
+{
+    uint8_t i = (_duplicate_filter_header + 1) % (ARRAY_SIZE(_peer_duplicate_address_buffer));
+    if (deviceInDuplicateFilterBuffer(addr))
+    {
+        return;
+    }
+    bt_addr_le_copy(&_peer_duplicate_address_buffer[_duplicate_filter_header],
+                 addr);
+    if (i == _duplicate_filter_tail)
+    {
+        _duplicate_filter_tail = (_duplicate_filter_tail + 1) % (ARRAY_SIZE(_peer_duplicate_address_buffer));
+    }
+    _duplicate_filter_header = i;
+}
+
 BLEDevice BLEDeviceManager::available()
 {
     BLEDevice tempdevice;
@@ -1179,6 +1219,13 @@ BLEDevice BLEDeviceManager::available()
         temp = &_peer_adv_buffer[i];
         if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta))
         {
+            // Eable the duplicate filter
+            if (_adv_duplicate_filter_enabled && 
+                true == deviceInDuplicateFilterBuffer(temp))
+            {
+                _peer_adv_mill[i] -= 2000; // Invalid the item
+                continue;
+            }
             max_delta = timestamp_delta;
             index = i;
         }
@@ -1198,6 +1245,10 @@ BLEDevice BLEDeviceManager::available()
             
             pr_debug(LOG_MODULE_BLE, "%s-%d:Con addr-%s", __FUNCTION__, __LINE__, BLEUtils::macAddressBT2String(*temp).c_str());
             _peer_adv_mill[index] -= 2000; // Set it as expired
+            if (_adv_duplicate_filter_enabled)
+            {
+                updateDuplicateFilter(temp);
+            }
         }
     }
     return tempdevice;
