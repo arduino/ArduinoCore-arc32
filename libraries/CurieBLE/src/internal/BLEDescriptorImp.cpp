@@ -172,6 +172,7 @@ bool BLEDescriptorImp::read()
 {
     int retval = 0;
     bt_conn_t* conn = NULL;
+    bool ret_bool = true;
     
     if (true == BLEUtils::isLocalBLE(_bledev))
     {
@@ -209,6 +210,13 @@ bool BLEDescriptorImp::read()
     {
         _reading = true;
     }
+    
+    // Block the read
+    while (_reading == true && ret_bool)
+    {
+        delay(5);
+        ret_bool = _bledev.connected();
+    }
     return _reading;
 }
 
@@ -219,6 +227,12 @@ bool BLEDescriptorImp::writeValue(const byte value[],
     bool ret = true;
     int total_length = length + offset;
     int write_len = length;
+    
+    if (_reading)
+    {
+        _reading = false;
+    }
+    
     if (total_length > BLE_MAX_ATTR_DATA_LEN)
     {
         return false;
