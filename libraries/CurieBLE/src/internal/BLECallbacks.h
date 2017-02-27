@@ -76,6 +76,11 @@ uint8_t profile_service_read_rsp_process(bt_conn_t *conn,
 
 void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
                                          const void *data);
+uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn, 
+                                                 int err,
+                                                 bt_gatt_read_params_t *params,
+                                                 const void *data, 
+                                                 uint16_t length);
 
 #endif
 
