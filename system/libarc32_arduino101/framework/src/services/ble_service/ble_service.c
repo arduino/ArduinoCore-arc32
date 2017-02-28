@@ -51,6 +51,7 @@
 #include "rpc.h"
 
 #include "util/misc.h"
+#include "infra/time.h"
 
 struct _ble_service_cb _ble_cb = { 0 };
 volatile uint8_t ble_inited = false;
@@ -269,6 +270,7 @@ void ble_bt_rdy(int err)
 
 void ble_cfw_service_init(int service_id, T_QUEUE queue)
 {
+    uint32_t time_stamp_last = 0;
 	_ble_cb.queue = queue;
 	_ble_cb.ble_state = BLE_ST_NOT_READY;
 
@@ -277,9 +279,20 @@ void ble_cfw_service_init(int service_id, T_QUEUE queue)
 #endif
 
     ble_inited = false;
-
+    time_stamp_last = get_uptime_ms();
+    
     bt_enable(ble_bt_rdy);
-    do{}
+    do{
+        
+        uint32_t time_stamp_current = get_uptime_ms();
+        if (time_stamp_current - time_stamp_last > 3000)
+        {
+            nble_driver_hw_reset();
+            //pr_warning(LOG_MODULE_BLE, "time_stamp_current %d", time_stamp_current);
+            
+            time_stamp_last = time_stamp_current;
+        }
+    }
     while (ble_inited == false);
 }
 
