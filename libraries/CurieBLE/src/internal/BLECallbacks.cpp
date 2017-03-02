@@ -77,7 +77,13 @@ ssize_t profile_longwrite_process(struct bt_conn *conn,
                                      const void *buf, uint16_t len,
                                      uint16_t offset)
 {
-    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp*)attr->user_data;
+    BLEAttribute *bleattr = (BLEAttribute *)attr->user_data;
+    BLEAttributeType type = bleattr->type();
+    if (BLETypeCharacteristic != type)
+    {
+        return 0;
+    }
+    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp*)bleattr;
     
     blecharacteritic->setBuffer((const uint8_t *) buf, len, offset);
     
@@ -88,7 +94,13 @@ int profile_longflush_process(struct bt_conn *conn,
                               const struct bt_gatt_attr *attr, 
                               uint8_t flags)
 {
-    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp*)attr->user_data;
+    BLEAttribute *bleattr = (BLEAttribute *)attr->user_data;
+    BLEAttributeType type = bleattr->type();
+    if (BLETypeCharacteristic != type)
+    {
+        return 0;
+    }
+    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp*)bleattr;
 
     switch (flags)
     {
