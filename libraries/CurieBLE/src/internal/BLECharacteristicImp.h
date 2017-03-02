@@ -188,6 +188,8 @@ protected:
     friend class BLEProfileManager;
     friend class BLEServiceImp;
     friend class BLECharacteristic;
+    
+    BLEDescriptorImp* descriptor(uint16_t handle);
     /**
      * Constructor for BLE Characteristic
      *

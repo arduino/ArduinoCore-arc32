@@ -337,6 +337,30 @@ void BLEProfileManager::clearProfile(BLEServiceLinkNodeHeader* serviceHeader)
     }
 }
 
+BLEDescriptorImp* BLEProfileManager::descriptor(const BLEDevice &bledevice, uint16_t handle)
+{
+    BLEDescriptorImp* descriptorImp = NULL;
+    BLEServiceLinkNodeHeader* serviceHeader = getServiceHeader(bledevice);
+    if (NULL == serviceHeader)
+    {
+        // Doesn't find the service
+        return NULL;
+    }
+    
+    BLEServiceNodePtr node = serviceHeader->next;
+    while (node != NULL)
+    {
+        BLEServiceImp *service = node->value;
+        descriptorImp = service->descriptor(handle);
+        if (NULL != descriptorImp)
+        {
+            break;
+        }
+        node = node->next;
+    }
+    return descriptorImp;
+}
+
 BLECharacteristicImp* BLEProfileManager::characteristic(const BLEDevice &bledevice, int index)
 {
     BLECharacteristicImp* characteristicImp = NULL;

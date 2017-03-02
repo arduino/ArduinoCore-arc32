@@ -59,12 +59,80 @@ public:
      * @return unsigned short size of Descriptor value in bytes
      */
     unsigned short valueLength(void) const;
-    
+
+    /**
+     * @brief   Fill the attribute for profile register structure
+     *
+     * @param   bt_gatt_attr_t *  The start pointer of the profile register structure array
+     *
+     * @param   int&                The current index in the profile structure array
+     *
+     * @return  int       Filled structure counter
+     *
+     * @note  none
+     */
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
 
     unsigned char operator[] (int offset) const;
+
+    /**
+     * @brief   Get the property mask of the descriptor
+     *
+     * @param   none
+     *
+     * @return  unsigned char       The property mask of the descriptor
+     *
+     * @note  none
+     */
     unsigned char properties() const;
+    
+    /**
+     * @brief   Get the maximum size of the value
+     *
+     * @param   none
+     *
+     * @return  int     The maximum size of the value
+     *
+     * @note  none
+     */
     int valueSize() const;
+    
+    /**
+     * @brief   Get the descriptor value handle
+     *
+     * @param   none
+     *
+     * @return  none
+     *
+     * @note  none
+     */
+    uint16_t valueHandle() const;
+    
+    /**
+     * @brief   Write the value of the descriptor
+     *
+     * @param   value   The value buffer that want to write to descriptor
+     *
+     * @param   length  The value buffer's length
+     *
+     * @param   offset  The offset in the descriptor's data
+     *
+     * @return  bool    true - Success, false - Failed
+     *
+     * @note  none
+     */
+    bool writeValue(const byte value[], int length, int offset);
+    
+    /**
+     * @brief   Read the descriptor value
+     *
+     * @param   none
+     *
+     * @return  bool    true - Success, false - Failed
+     *
+     * @note  Only for GATT client. Schedule read request to the GATT server
+     */
+    bool read();
 
 protected:
 
@@ -75,9 +143,12 @@ private:
     unsigned char* _value;
     unsigned char _properties;      // The characteristic property
     
-    bt_uuid_128 _descriptor_uuid;
-    
     BLEDevice _bledev; 
+    
+    bool _reading;
+    bt_gatt_read_params_t _read_params; // GATT read parameter
+    
+    bt_gatt_attr_t *_attr_desc_value;   // GATT server only
 };
 
 #endif // _BLE_DESCRIPTOR_H_INCLUDED

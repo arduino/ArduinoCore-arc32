@@ -37,14 +37,82 @@ class BLEDescriptor
 
     virtual ~BLEDescriptor();
 
+    /**
+     * @brief   Get the descriptor's UUID string
+     *
+     * @param   none
+     *
+     * @return  const char*     The UUID string
+     *
+     * @note  none
+     */
     const char* uuid() const;
 
-    virtual const byte* value() const; // returns the value buffer
-    virtual int valueLength() const; // returns the current length of the value
     
-    virtual operator bool() const;  // is the descriptor valid (discovered from peripheral)
+    /**
+     * @brief   Get the value of descriptor
+     *
+     * @param   none
+     *
+     * @return  const byte*     The value buffer
+     *
+     * @note  none
+     */
+    virtual const byte* value() const;
+    
+    /**
+     * @brief   Get the current length of the value
+     *
+     * @param   none
+     *
+     * @return  int     The current length of the value string
+     *
+     * @note  none
+     */
+    virtual int valueLength() const;
+    
+    /**
+     * @brief   Is the descriptor valid
+     *
+     * @param   none
+     *
+     * @return  bool    true/false
+     *
+     * @note  none
+     */
+    virtual operator bool() const;
+    
+    /**
+     * @brief   Read the descriptor value
+     *
+     * @param   none
+     *
+     * @return  bool    true - Success, false - Failed
+     *
+     * @note  Only for GATT client. Schedule read request to the GATT server
+     */
+    bool read();
 
+    /**
+     * @brief   Get the property mask of the descriptor
+     *
+     * @param   none
+     *
+     * @return  unsigned char       The property mask of the descriptor
+     *
+     * @note  none
+     */
     unsigned char properties() const;
+    
+    /**
+     * @brief   Get the maximum size of the value
+     *
+     * @param   none
+     *
+     * @return  int     The maximum size of the value
+     *
+     * @note  none
+     */
     int valueSize() const;
 private:
     char    _uuid_cstr[37];  // The characteristic UUID
@@ -52,58 +120,9 @@ private:
     
     unsigned char _properties;      // The characteristic property
     
-    unsigned short _value_size;       // The value size
+    unsigned short _value_size;     // The value size
     unsigned char* _value;          // The value. Will delete after create the _internal
-
-
-    // The API reserved for feature release
-    // move here for temp
-    
-    /**
-     * @brief   Write the value of the descriptor
-     *
-     * @param   value   The value buffer that want to write to descriptor
-     *
-     * @param   length  The value buffer's length
-     *
-     * @return  bool    true - Success, false - Failed
-     *
-     * @note  none
-     */
-    //virtual bool writeValue(const byte value[], int length);
-    
-    /**
-     * @brief   Write the value of the descriptor
-     *
-     * @param   value   The value buffer that want to write to descriptor
-     *
-     * @param   length  The value buffer's length
-     *
-     * @param   offset  The offset in the descriptor's data
-     *
-     * @return  bool    true - Success, false - Failed
-     *
-     * @note  none
-     */
-    //bool writeValue(const byte value[], int length, int offset);
-    
-    /**
-     * @brief   Write the value of the descriptor
-     *
-     * @param   value   The value string that want to write to descriptor
-     *
-     * @return  bool    true - Success, false - Failed
-     *
-     * @note  none
-     */
-    //bool writeValue(const char* value);
-    //virtual byte operator[] (int offset) const; // returns a byte of the value at the specified offset
-
-    // GATT client Write the value of the descriptor
-    //virtual bool write(const byte value[], int length);
-    //bool write(const byte value[], int length, int offset);
-    //bool write(const char* value);
-    //bool read();
+    BLEDescriptorImp *_internal;    // The real implementation of Descriptor
 };
 
 #endif

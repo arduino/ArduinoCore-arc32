@@ -35,28 +35,19 @@ BLEDescriptor::BLEDescriptor(BLEDescriptorImp* descriptorImp,
                              const BLEDevice *bleDev):
     _bledev(bleDev),
     _value_size(0),
-    _value(NULL)
+    _value(NULL),
+    _internal(descriptorImp)
 {
     _properties = descriptorImp->properties();
     memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
     BLEUtils::uuidBT2String(descriptorImp->bt_uuid(), _uuid_cstr);
-    
-    _value_size = descriptorImp->valueSize();
-    _value = (unsigned char*)malloc(_value_size);
-    if (NULL == _value)
-    {
-        memcpy(_value, descriptorImp->value(), _value_size);
-    }
-    else
-    {
-        errno = ENOMEM;
-    }
 }
 
 BLEDescriptor::BLEDescriptor(const char* uuid, 
                              const unsigned char value[], 
                              unsigned short valueLength):
-    _bledev()
+    _bledev(),
+    _internal(NULL)
 {
     bt_uuid_128_t uuid_tmp;
     memset(_uuid_cstr, 0, sizeof (_uuid_cstr));
@@ -65,15 +56,16 @@ BLEDescriptor::BLEDescriptor(const char* uuid,
     
     _bledev.setAddress(*BLEUtils::bleGetLoalAddress());
     
-    _value_size = valueLength > BLE_MAX_ATTR_LONGDATA_LEN ? BLE_MAX_ATTR_LONGDATA_LEN : valueLength;
+    _value_size = (valueLength > BLE_MAX_ATTR_LONGDATA_LEN) ? BLE_MAX_ATTR_LONGDATA_LEN : valueLength;
     _value = (unsigned char*)malloc(_value_size);
-    if (NULL == _value)
+    if (NULL != _value)
     {
         memcpy(_value, value, _value_size);
     }
     else
     {
         errno = ENOMEM;
+        _value_size = 0;
     }
 }
 
@@ -82,22 +74,27 @@ BLEDescriptor::BLEDescriptor(const char* uuid,
      BLEDescriptor(uuid, (const unsigned char*)value, strlen(value))
 {}
 
-BLEDescriptor::BLEDescriptor(const BLEDescriptor& rhs)
+BLEDescriptor::BLEDescriptor(const BLEDescriptor& rhs):
+    _bledev(&rhs._bledev),
+    _properties(rhs._properties),
+    _value_size(0),
+    _value(NULL),
+    _internal(rhs._internal)
 {
-    _value = (unsigned char*)malloc(rhs._value_size);  // Sid. KW: allocate memory for _value, not local
-    if (_value) 
-    {
-        memcpy(_value, rhs._value, rhs._value_size);
-        _value_size = rhs._value_size;
-    }
-    else
-    {
-        _value_size = 0;
-        errno = ENOMEM;
-    }
     memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
-    _properties = rhs._properties;
-    _bledev = BLEDevice(&rhs._bledev);
+    if (NULL == _internal && rhs._value_size > 0)
+    {
+        _value = (unsigned char*)malloc(rhs._value_size);  // Sid. KW: allocate memory for _value, not local
+        if (_value) 
+        {
+            memcpy(_value, rhs._value, rhs._value_size);
+            _value_size = rhs._value_size;
+        }
+        else
+        {
+            errno = ENOMEM;
+        }
+    }
 }
 
 BLEDescriptor& BLEDescriptor::operator= (const BLEDescriptor& rhs)
@@ -107,23 +104,27 @@ BLEDescriptor& BLEDescriptor::operator= (const BLEDescriptor& rhs)
         memcpy(_uuid_cstr, rhs._uuid_cstr, sizeof(_uuid_cstr));
         _properties = rhs._properties;
         _bledev = BLEDevice(&rhs._bledev);
-        if (_value_size < rhs._value_size)
+        _internal = rhs._internal;
+        if (NULL == _internal && rhs._value_size > 0)
         {
-            _value_size = rhs._value_size;
+            if (_value_size < rhs._value_size)
+            {
+                _value_size = rhs._value_size;
+                
+                if (NULL != _value)
+                    free(_value);
+                _value = (unsigned char*)malloc(_value_size);
+            }
             
             if (NULL != _value)
-                free(_value);
-            _value = (unsigned char*)malloc(_value_size);
-        }
-        
-        if (NULL != _value)
-        {
-            memcpy(_value, rhs._value, rhs._value_size);
-        }
-        else
-        {
-            _value_size = 0;
-            errno = ENOMEM;
+            {
+                memcpy(_value, rhs._value, rhs._value_size);
+            }
+            else
+            {
+                _value_size = 0;
+                errno = ENOMEM;
+            }
         }
     }
     return *this;
@@ -145,12 +146,22 @@ const char* BLEDescriptor::uuid() const
 
 const byte* BLEDescriptor::value() const
 {
-    return _value;
+    const byte* ret = _value;
+    if (NULL != _internal)
+    {
+        ret = _internal->value();
+    }
+    return ret;
 }
 
 int BLEDescriptor::valueLength() const
 {
-    return _value_size;
+    int ret = _value_size;
+    if (NULL != _internal)
+    {
+        ret = _internal->valueLength();
+    }
+    return ret;
 }
 
 BLEDescriptor::operator bool() const
@@ -166,6 +177,22 @@ unsigned char BLEDescriptor::properties() const
 
 int BLEDescriptor::valueSize() const
 {
-    return _value_size;
+    int ret = _value_size;
+    if (NULL != _internal)
+    {
+        ret = _internal->valueSize();
+    }
+    return ret;
+}
+
+bool BLEDescriptor::read()
+{
+    bool retVar = false;
+    
+    if (NULL != _internal)
+    {
+        retVar = _internal->read();
+    }
+    return retVar;
 }
 
