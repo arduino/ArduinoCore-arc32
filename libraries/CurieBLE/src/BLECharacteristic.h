@@ -181,6 +181,15 @@ public:
     bool setValue(const unsigned char value[], unsigned short length);
 
     /**
+     * Set the current value of the Characteristic with a String
+     *
+     * @param value New string value to set, strings exceeding maxLength will be truncated
+     *
+     * @return bool true set value success, false on error
+     */
+     bool setValue(const char* value);
+
+    /**
      * @brief   Write the value of the characteristic
      *
      * @param   value   The value buffer that want to write to characteristic

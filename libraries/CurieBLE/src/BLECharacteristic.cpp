@@ -248,6 +248,11 @@ bool BLECharacteristic::setValue(const unsigned char value[], unsigned short len
     return writeValue(value, (int)length);
 }
 
+bool BLECharacteristic::setValue(const char* value)
+{
+    return this->setValue((const unsigned char *)value, strlen(value));
+}
+
 bool BLECharacteristic::writeValue(const byte value[], int length)
 {
     return writeValue(value, length, 0);
