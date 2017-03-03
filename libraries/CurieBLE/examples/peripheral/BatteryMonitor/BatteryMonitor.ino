@@ -4,7 +4,7 @@
 */
 
 /*
- * Sketch: BatteryMonitor_Notification.ino
+ * Sketch: BatteryMonitor.ino
  *
  * Description:
  *     This sketch example partially implements the standard Bluetooth
@@ -13,11 +13,6 @@
  *   For more information:
  *     https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
  *
- * Notes:
- *
- *   - Expected to work with BatteryMonitor_Central sketch.
- *     You can also use an android or IOS app that supports notifications.
- *
  */
 
 #include <CurieBLE.h>
@@ -25,16 +20,19 @@
 BLEService batteryService("180F"); // BLE Battery Service
 
 // BLE Battery Level Characteristic"
-BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);   // standard 16-bit characteristic UUID  defined in the URL above
-                                                                               // remote clients will be able to get notifications if this characteristic changes
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19",  // standard 16-bit characteristic UUID
+    BLERead | BLENotify);     // remote clients will be able to
+// get notifications if this characteristic changes
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
 
 void setup() {
-  BLE.begin();
   Serial.begin(9600);    // initialize serial communication
   pinMode(13, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
+
+  // begin initialization
+  BLE.begin();
 
   /* Set a local name for the BLE device
      This name will appear in advertising packets
@@ -42,18 +40,19 @@ void setup() {
      The name can be changed but maybe be truncated based on space left in advertisement packet
      If you want to make this work with the BatteryMonitor_Central sketch, do not modufy the name.
   */
-  BLE.setLocalName("BatteryMonitorSketch");
-  BLE.setAdvertisedServiceUuid(batteryService.uuid());  // add the service UUID
-  BLE.addService(batteryService);   // Add the BLE Battery service
+  BLE.setLocalName("BatteryMonitor");
+  BLE.setAdvertisedService(batteryService);  // add the service UUID
   batteryService.addCharacteristic(batteryLevelChar); // add the battery level characteristic
+  BLE.addService(batteryService);   // Add the BLE Battery service
   batteryLevelChar.setValue(oldBatteryLevel);   // initial value for this characteristic
 
-  /* Now activate the BLE device.  It will start continuously transmitting BLE
+  /* Start advertising BLE.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
-     until it receives a new connection
-  */
+     until it receives a new connection */
 
+  // start advertising
   BLE.advertise();
+
   Serial.println("Bluetooth device active, waiting for connections...");
 }
 
@@ -77,14 +76,6 @@ void loop() {
       if (currentMillis - previousMillis >= 200) {
         previousMillis = currentMillis;
         updateBatteryLevel();
-
-        static unsigned short count = 0;
-        count++;
-        // update the connection interval
-        if (count % 5 == 0) {
-          delay(1000);
-          updateIntervalParams(central);
-        }
       }
     }
     // when the central disconnects, turn off the LED:
@@ -104,36 +95,11 @@ void updateBatteryLevel() {
   if (batteryLevel != oldBatteryLevel) {      // if the battery level has changed
     Serial.print("Battery Level % is now: "); // print it
     Serial.println(batteryLevel);
-    batteryLevelChar.writeUnsignedChar(batteryLevel);  // and update the battery level characteristic
+    batteryLevelChar.setValue(batteryLevel);  // and update the battery level characteristic
     oldBatteryLevel = batteryLevel;           // save the level for next comparison
   }
 }
 
-void updateIntervalParams(BLEDevice central) {
-  // read and update the connection interval that peer central device
-  static unsigned short interval = 0x60;
-  ble_conn_param_t m_conn_param;
-  // Get connection interval that peer central device wanted
-  //central.getConnParams(m_conn_param);
-  Serial.print("min interval = " );
-  Serial.println(m_conn_param.interval_min );
-  Serial.print("max interval = " );
-  Serial.println(m_conn_param.interval_max );
-  Serial.print("latency = " );
-  Serial.println(m_conn_param.latency );
-  Serial.print("timeout = " );
-  Serial.println(m_conn_param.timeout );
-
-  //Update connection interval
-  Serial.println("set Connection Interval");
-  central.setConnectionInterval(interval, interval);
-
-  interval++;
-  if (interval < 0x06)
-    interval = 0x06;
-  if (interval > 0x100)
-    interval = 0x06;
-}
 /*
    Copyright (c) 2016 Intel Corporation.  All rights reserved.
 
