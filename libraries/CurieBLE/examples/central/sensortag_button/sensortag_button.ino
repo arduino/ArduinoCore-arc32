@@ -43,23 +43,12 @@ void loop() {
     Serial.print(peripheral.advertisedServiceUuid());
     Serial.println();
 
-    /*see if peripheral is a SensorTag
-      The localName SensorTag is in the Scan Response data packet
-      In this release we do not have the feature that gets the scan response data and hence
-      the local name in the scan is blank
-      We have to explicitly find the BLE mac address
-      Please use another deviice like nrfConnect app to discover the Bluetooth Address
-    */
-    //if (peripheral.localName() == "SensorTag") {
-
-
-    /******************************************************
-    * ATTENTION:
-    * Change to the mac address according to your device!
-    * Use a central app that can display the BT MAC address
-    * ******************************************************
-    */
-    if (peripheral.address() == "68:C9:0B:06:BC:81") {
+    /* see if peripheral is a SensorTag
+     * The localName, CC2650 SensorTag, is in the Scan Response Data packet.
+     * If this is not the expected name, please change the following
+     * if-statement accordingly.
+     */
+    if (peripheral.localName() == "CC2650 SensorTag") {
       // stop scanning
       BLE.stopScan();
 
