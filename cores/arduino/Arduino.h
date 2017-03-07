@@ -110,6 +110,7 @@ extern uint8_t pinmuxMode[NUM_DIGITAL_PINS];
 #include "WMath.h"
 #include "HardwareSerial.h"
 #include "wiring_pulse.h"
+#include "error.h"
 
 #endif // __cplusplus
 
