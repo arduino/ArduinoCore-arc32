@@ -1,4 +1,5 @@
-// This example depens on http://librarymanager/all#SerialFlash&SPI (clickme!)
+// This example depends on Paul Stoffregen's SerialFlash library
+// Download at https://github.com/PaulStoffregen/SerialFlash
 
 #include <CurieSerialFlash.h>
 #include <SPI.h>
