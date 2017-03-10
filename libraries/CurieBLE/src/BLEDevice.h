@@ -232,10 +232,10 @@ class BLEDevice
      *
      * @note  none
      */
-    //void setConnectionInterval(int minimumConnectionInterval, 
-    //                           int maximumConnectionInterval,
-    //                           uint16_t latency, 
-    //                           uint16_t timeout);
+     void setConnectionInterval(int minimumConnectionInterval, 
+                                int maximumConnectionInterval,
+                                uint16_t latency, 
+                                uint16_t timeout);
     
     /**
      * @brief   Set the min and max connection interval and send connection 
@@ -251,6 +251,10 @@ class BLEDevice
      */
     void setConnectionInterval(int minimumConnectionInterval, 
                                int maximumConnectionInterval);
+    
+    int getConnectionInterval();
+    int getConnectionTimeout();
+    int getConnectionLatency();
     
     /**
      * @brief   Set TX power of the radio in dBM
@@ -694,7 +698,7 @@ private:
 private:
     bt_addr_le_t _bt_addr;
     
-    bt_le_conn_param _conn_param;
+    bt_le_conn_param_t _conn_param;
 };
 
 #endif
