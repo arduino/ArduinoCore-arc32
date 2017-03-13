@@ -101,8 +101,6 @@ BLEDeviceManager::BLEDeviceManager():
     
     memset(&_available_for_connect_peripheral_adv_data, 0, sizeof(_available_for_connect_peripheral_adv_data));
     memset(&_available_for_connect_peripheral_scan_rsp_data, 0, sizeof(_available_for_connect_peripheral_scan_rsp_data));
-
-    memset(&_wait_for_connect_peripheral, 0, sizeof(_wait_for_connect_peripheral));
     
     memset(&_service_uuid, 0, sizeof(_service_uuid));
     memset(&_service_solicit_uuid, 0, sizeof(_service_solicit_uuid));
@@ -576,10 +574,32 @@ BLEDevice BLEDeviceManager::peripheral()
     return temp;
 }
 
+void BLEDeviceManager::_clearAdvertiseBuffer()
+{
+    
+    // Clear the previous found ADV
+    memset(_peer_temp_adv_buffer, 0, sizeof(_peer_temp_adv_buffer));
+    memset(_peer_temp_adv_data, 0, sizeof(_peer_temp_adv_data));
+    memset(_peer_temp_adv_data_len, 0, sizeof(_peer_temp_adv_data_len));
+    memset(_peer_temp_adv_connectable, 0, sizeof(_peer_adv_connectable));
+    
+    memset(_peer_adv_buffer, 0, sizeof(_peer_adv_buffer));
+    memset(_peer_adv_mill, 0, sizeof(_peer_adv_mill));
+    memset(_peer_adv_data, 0, sizeof(_peer_adv_data));
+    memset(_peer_adv_data_len, 0, sizeof(_peer_adv_data_len));
+    memset(_peer_scan_rsp_data, 0, sizeof(_peer_scan_rsp_data));
+    memset(_peer_scan_rsp_data_len, 0, sizeof(_peer_scan_rsp_data_len));
+    memset(_peer_adv_rssi, 0, sizeof(_peer_adv_rssi));
+    
+}
+
 bool BLEDeviceManager::startScanning()
 {
     _adv_duplicate_filter_enabled = false;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
+
+    _clearAdvertiseBuffer();
+    
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
     if (err)
     {
@@ -594,6 +614,8 @@ bool BLEDeviceManager::startScanningWithDuplicates()
     _adv_duplicate_filter_enabled = true;
     memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
+
+    _clearAdvertiseBuffer();
     
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
@@ -896,11 +918,6 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
             return service_cnt;
         }
 
-        if ((len + 1) > adv_data_len) {    // Sid. KW, can't be (adv_data_len < 2)
-            pr_info(LOG_MODULE_BLE, "AD malformed\n");
-            return service_cnt;
-        }
-
 	/* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
 	   BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
 	   Practically, these types are same as ALL. */
@@ -1067,6 +1084,11 @@ bool BLEDeviceManager::connect(BLEDevice &device)
     uint64_t timestamp = millis();
     uint64_t timestampcur = timestamp;
     bool ret = true;
+    if (_available_for_connect_peripheral_connectable == false)
+    {
+        return false;
+    }
+    
     bt_addr_le_copy(&_wait_for_connect_peripheral, device.bt_le_address());
     // Buffer the ADV data
     memcpy(_wait_for_connect_peripheral_adv_data, _available_for_connect_peripheral_adv_data, BLE_MAX_ADV_SIZE);
@@ -1247,6 +1269,8 @@ void BLEDeviceManager::handleDisconnectEvent(bt_conn_t *conn, uint8_t reason)
                 memset(_peer_peripheral_adv_data[i], 0, BLE_MAX_ADV_SIZE);
                 _peer_peripheral_adv_data_len[i] = 0;
                 _peer_peripheral_adv_rssi[i] = 0;
+                memset(_peer_peripheral_scan_rsp_data[i], 0, BLE_MAX_ADV_SIZE);
+                _peer_peripheral_scan_rsp_data_len[i] = 0;
                 break;
             }
         }
@@ -1406,7 +1430,10 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
         {
             max_delta = timestamp_delta;
             if (max_delta > 2000) // expired
+            {
                 index = i;
+                _peer_scan_rsp_data_len[index] = 0; // Invalid the scan response
+            }
         }
         
         if (bt_addr_le_cmp(temp, bt_addr) == 0)

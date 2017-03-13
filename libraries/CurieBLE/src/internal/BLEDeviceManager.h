@@ -358,6 +358,7 @@ private:
                                    const uint8_t* data, 
                                    uint8_t length);
     BLE_STATUS_T _advDataInit(void);
+    void _clearAdvertiseBuffer();
     bool advertiseDataProc(uint8_t type, 
                            const uint8_t *dataPtr, 
                            uint8_t data_len);
