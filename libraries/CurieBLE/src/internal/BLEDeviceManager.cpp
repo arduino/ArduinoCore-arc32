@@ -578,7 +578,7 @@ BLEDevice BLEDeviceManager::peripheral()
 
 bool BLEDeviceManager::startScanning()
 {
-    _adv_duplicate_filter_enabled = false;
+    _adv_duplicate_filter_enabled = true;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
     if (err)
@@ -591,7 +591,7 @@ bool BLEDeviceManager::startScanning()
 
 bool BLEDeviceManager::startScanningWithDuplicates()
 {
-    _adv_duplicate_filter_enabled = true;
+    _adv_duplicate_filter_enabled = false;
     memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
     
