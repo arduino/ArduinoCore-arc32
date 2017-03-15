@@ -94,8 +94,9 @@ recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 # -------------------
 tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
-tools.arduino101load.rtos.fw.string="CODK-M"
-tools.arduino101load.rtos.fw.position=39168
+# Dummy RTOS walues - don't update RTOS if not strictly needed
+tools.arduino101load.rtos.fw.string=""
+tools.arduino101load.rtos.fw.position=0
 #not ideal - should be inherited by the platform
 tools.arduino101load.version=2.0.0
 
