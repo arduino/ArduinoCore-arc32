@@ -180,6 +180,8 @@ void variantGpioInit(void)
         SET_PIN_MODE(p->ulSocPin, p->ulPinMode);
         pinmuxMode[pin] = GPIO_MUX_MODE;
     }
+    //make sure the led is not lit on sketch start
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
 void variantPwmInit(void)
