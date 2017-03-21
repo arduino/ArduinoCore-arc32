@@ -283,6 +283,10 @@ bool BLECharacteristic::writeValue(const byte value[], int length, int offset)
                                                                    characteristicImp->valueLength());
             BLEDeviceManager::instance()->startAdvertising();
         }
+    } else {
+        // not associated with a service yet
+        _setValue(value, length);
+        retVar = true;
     }
     return retVar;
 }
