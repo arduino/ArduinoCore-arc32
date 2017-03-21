@@ -595,7 +595,7 @@ void BLEDeviceManager::_clearAdvertiseBuffer()
 
 bool BLEDeviceManager::startScanning()
 {
-    _adv_duplicate_filter_enabled = false;
+    _adv_duplicate_filter_enabled = true;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
 
     _clearAdvertiseBuffer();
@@ -611,7 +611,7 @@ bool BLEDeviceManager::startScanning()
 
 bool BLEDeviceManager::startScanningWithDuplicates()
 {
-    _adv_duplicate_filter_enabled = true;
+    _adv_duplicate_filter_enabled = false;
     memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
 
