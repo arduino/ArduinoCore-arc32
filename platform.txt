@@ -71,8 +71,7 @@ recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compil
 recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lnsim -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
 ## Save output with debug symbols (.debug.elf file). Uncomment if you wish to use OpenOCD to debug.
-recipe.hooks.objcopy.preobjcopy.1.pattern=cp -f "{build.path}/{build.project_name}.elf" "{build.path}/../arduino101_sketch.debug.elf"
-recipe.hooks.objcopy.preobjcopy.1.pattern.windows={runtime.tools.arduino101load.path}/arduino101load/arduino101copy.exe "{build.path}\{build.project_name}.elf" "{build.path}\..\arduino101_sketch.debug.elf"
+recipe.hooks.objcopy.preobjcopy.1.pattern={runtime.tools.arduino101load.path}/arduino101load -c -from="{build.path}/{build.project_name}.elf" -to="{build.path}/../arduino101_sketch.debug.elf"
 
 ## Create output (.bin file)
 recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
@@ -91,25 +90,29 @@ recipe.output.save_file={build.project_name}.{build.variant}.hex
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
 recipe.size.regex=^(?:text|ctors|rodata|datas)\s+([0-9]+).*
 
-# BLE firmware check
+# Firmware check
 # -------------------
 tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
+# Dummy RTOS walues - don't update RTOS if not strictly needed
+tools.arduino101load.rtos.fw.string=""
+tools.arduino101load.rtos.fw.position=0
+#not ideal - should be inherited by the platform
+tools.arduino101load.version=2.0.0
 
 # Arc Uploader/Programmers tools
 # -------------------
-tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load/arduino101load
+tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 
-tools.arduino101load.upload.params.verbose=verbose
-tools.arduino101load.upload.params.quiet=quiet
+tools.arduino101load.upload.params.verbose=-v
+tools.arduino101load.upload.params.quiet=-q
 
-tools.arduino101load.upload.pattern="{cmd.path}" "{runtime.tools.arduino101load.path}/x86/bin" "{build.path}/{build.project_name}.bin" {serial.port} "{upload.verbose}" {ble.fw.string} {ble.fw.position}
+tools.arduino101load.upload.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position} -core={version}
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
 tools.arduino101load.erase.params.quiet=
 tools.arduino101load.erase.pattern=
-tools.arduino101load.bootloader.params.verbose=
-tools.arduino101load.bootloader.params.quiet=
-tools.arduino101load.bootloader.pattern={runtime.tools.flashpack.path}/flash_dfu.sh
-tools.arduino101load.bootloader.pattern.windows={runtime.tools.flashpack.path}/flash_dfu.bat
+tools.arduino101load.bootloader.params.verbose=-v
+tools.arduino101load.bootloader.params.quiet=-q
+tools.arduino101load.bootloader.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}/x86/bin"  -port={serial.port} "{bootloader.verbose}" -force -core={version}
