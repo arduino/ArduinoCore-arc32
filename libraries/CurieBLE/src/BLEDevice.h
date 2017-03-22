@@ -365,14 +365,16 @@ class BLEDevice
      *          Peripherals or just the newly detected.
      *
      * @param[in] withDuplicates        true - return all detectable Peripherals.
-     *                                  false- return only new Peripherals.
+     *                                  false- return a detected Peripheral only once.
      *
      * @return  none
      *
-     * @note  When, withDuplicates = true (default), accept all detectable Peripherals.
+     * @note  When, withDuplicates = true, accept all detectable Peripherals.
      *        No Peripheral filtering process applied to the scan result.
+     *        By default, withDuplicates = false, a detected Peripheral is
+     *        reported once.
      */
-    void scan(bool withDuplicates = true);
+    void scan(bool withDuplicates = false);
     
     /**
      * @brief   Start scanning for peripherals and filter by device name in ADV and
@@ -382,14 +384,16 @@ class BLEDevice
      * @param[in]   name    The device's local name.
      *
      * @param[in]   withDuplicates      true - return all detectable Peripherals.
-     *                                  false- return only new Peripherals.
+     *                                  false- return a detected Peripheral only once.
      *
      * @return  none
      *
-     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
+     * @note  When, withDuplicates = true, accept all detectable Peripherals.
      *        No Peripheral filtering process applied to the scan result.
+     *        By default, withDuplicates = false, a detected Peripheral is
+     *        reported once.
      */
-    void scanForName(String name, bool withDuplicates = true);
+    void scanForName(String name, bool withDuplicates = false);
     
     /**
      * @brief   Start scanning for peripherals and filter by service in ADV and
@@ -399,14 +403,16 @@ class BLEDevice
      * @param[in]   service    The service
      *
      * @param[in]   withDuplicates      true - return all detectable Peripherals.
-     *                                  false- return only new Peripherals.
+     *                                  false- return a detected Peripheral only once.
      *
      * @return  none
      *
-     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
-     *        No Peripheral filtering process applied to the scan result.
+     * @note   When, withDuplicates = true, accept all detectable Peripherals.
+     *         No Peripheral filtering process applied to the scan result.
+     *         By default, withDuplicates = false, a detected Peripheral is
+     *         reported once.
      */
-    void scanForUuid(String uuid, bool withDuplicates = true);
+    void scanForUuid(String uuid, bool withDuplicates = false);
     
     /**
      * @brief   Start scanning for peripherals and filter by MAC address and
@@ -416,14 +422,16 @@ class BLEDevice
      * @param[in]   macaddr     The Peripheral MAC address
      *
      * @param[in]   withDuplicates      true - return all detectable Peripherals.
-     *                                  false- return only new Peripherals.
+     *                                  false- return a detected Peripheral only once.
      *
      * @return  none
      *
-     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
-     *        No Peripheral filtering process applied to the scan result.
+     * @note   When, withDuplicates = true, accept all detectable Peripherals.
+     *         No Peripheral filtering process applied to the scan result.
+     *         By default, withDuplicates = false, a detected Peripheral is
+     *         reported once.
      */
-    void scanForAddress(String macaddr, bool withDuplicates = true);
+    void scanForAddress(String macaddr, bool withDuplicates = false);
 
     /**
      * @brief   Stop scanning for peripherals
@@ -669,12 +677,12 @@ private:
      * @brief   Start scanning for peripherals with the option of accepting all
      *          detectable Peripherals or just the newly detected.
      *
-     * @param[in] withDuplicates        true - with duplicate filter
-     *                                  false- without duplicate filter
+     * @param[in] withDuplicates        true - return all detectable Peripherals.
+     *                                  false- return a detected Peripheral only once.
      *
      * @return  none
      *
-     * @note  When, withDuplicates = true (default), accept all detectable Peripherals.
+     * @note  When, withDuplicates = true, accept all detectable Peripherals.
      */
     bool startScan(bool withDuplicates);
     
