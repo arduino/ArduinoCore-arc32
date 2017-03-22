@@ -576,10 +576,13 @@ BLEDevice BLEDeviceManager::peripheral()
     return temp;
 }
 
-bool BLEDeviceManager::startScanning()
+bool BLEDeviceManager::startScanningWithDuplicates()
 {
     _adv_duplicate_filter_enabled = false;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
+
+    _clearAdvertiseBuffer();
+    
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
     if (err)
     {
@@ -589,11 +592,13 @@ bool BLEDeviceManager::startScanning()
     return true;
 }
 
-bool BLEDeviceManager::startScanningWithDuplicates()
+bool BLEDeviceManager::startScanningNewPeripherals()
 {
     _adv_duplicate_filter_enabled = true;
     memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
+
+    _clearAdvertiseBuffer();
     
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
@@ -1074,8 +1079,8 @@ bool BLEDeviceManager::connect(BLEDevice &device)
     _wait_for_connect_peripheral_adv_data_len = _available_for_connect_peripheral_adv_data_len;
     _wait_for_connect_peripheral_scan_rsp_data_len = _available_for_connect_peripheral_scan_rsp_data_len;
     _wait_for_connect_peripheral_adv_rssi = _available_for_connect_peripheral_adv_rssi;
-            
-    startScanning();
+
+    startScanningWithDuplicates();
     
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     // Wait for the connection

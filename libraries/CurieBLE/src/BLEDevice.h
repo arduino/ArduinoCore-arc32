@@ -361,83 +361,70 @@ class BLEDevice
     //void scanForAddress(String address); // Not include in baseline. Add here as feature for feature release.
     
     /**
-     * @brief   Start scanning for peripherals without filter
+     * @brief   Start scanning for peripherals with the option of accepting all detectable
+     *          Peripherals or just the newly detected.
      *
-     * @param   none
-     *
-     * @return  none
-     *
-     * @note  none
-     */
-    void scan();
-    
-    /**
-     * @brief   Start scanning for peripherals with filter
-     *
-     * @param[in] withDuplicates        true - with duplicate filter
-     *                                  false- without duplicate filter
+     * @param[in] withDuplicates        true - return all detectable Peripherals.
+     *                                  false- return only new Peripherals.
      *
      * @return  none
      *
-     * @note  option to filter out duplicate addresses for Arduino.
-     *          The current only support fileter duplicate mode.
+     * @note  When, withDuplicates = true (default), accept all detectable Peripherals.
+     *        No Peripheral filtering process applied to the scan result.
      */
-    void scan(bool withDuplicates);
+    void scan(bool withDuplicates = true);
     
     /**
-     * @brief   Start scanning for peripherals and filter by device name in ADV
-     *
-     * @param   name    The device's local name.
-     *
-     * @return  none
-     *
-     * @note   option to filter out duplicate addresses for Arduino.
-     *          The current only support fileter duplicate mode.
-     */
-    void scanForName(String name);
-    
-    /**
-     * @brief   Start scanning for peripherals and filter by device name in ADV
+     * @brief   Start scanning for peripherals and filter by device name in ADV and
+     *          the option of accepting all detectable Peripherals or just the
+     *          newly detected.
      *
      * @param[in]   name    The device's local name.
      *
-     * @param[in]   withDuplicates      true - with duplicate filter
-     *                                  false- without duplicate filter
+     * @param[in]   withDuplicates      true - return all detectable Peripherals.
+     *                                  false- return only new Peripherals.
      *
      * @return  none
      *
-     * @note   option to filter out duplicate addresses for Arduino.
-     *          The current only support fileter duplicate mode.
+     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
+     *        No Peripheral filtering process applied to the scan result.
      */
-    void scanForName(String name, bool withDuplicates);
+    void scanForName(String name, bool withDuplicates = true);
     
     /**
-     * @brief   Start scanning for peripherals and filter by service in ADV
-     *
-     * @param   service    The service
-     *
-     * @return  none
-     *
-     * @note  none
-     */
-    void scanForUuid(String uuid);
-    
-    /**
-     * @brief   Start scanning for peripherals and filter by service in ADV
+     * @brief   Start scanning for peripherals and filter by service in ADV and
+     *          the option of accepting all detectable Peripherals or just the
+     *          newly detected.
      *
      * @param[in]   service    The service
      *
-     * @param[in]   withDuplicates      true - with duplicate filter
-     *                                  false- without duplicate filter
+     * @param[in]   withDuplicates      true - return all detectable Peripherals.
+     *                                  false- return only new Peripherals.
      *
      * @return  none
      *
-     * @note   option to filter out duplicate addresses for Arduino.
-     *          The current only support fileter duplicate mode.
+     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
+     *        No Peripheral filtering process applied to the scan result.
      */
-    void scanForUuid(String uuid, bool withDuplicates);
+    void scanForUuid(String uuid, bool withDuplicates = true);
     
+    /**
+     * @brief   Start scanning for peripherals and filter by MAC address and
+     *          the option of accepting all detectable Peripherals or just the
+     *          newly detected.
+     *
+     * @param[in]   macaddr     The Peripheral MAC address
+     *
+     * @param[in]   withDuplicates      true - return all detectable Peripherals.
+     *                                  false- return only new Peripherals.
+     *
+     * @return  none
+     *
+     * @note   When, withDuplicates = true (default), accept all detectable Peripherals.
+     *        No Peripheral filtering process applied to the scan result.
+     */
     void scanForAddress(String macaddr, bool withDuplicates = true);
+
     /**
      * @brief   Stop scanning for peripherals
      *
@@ -679,15 +666,15 @@ private:
     void preCheckProfile();
     
     /**
-     * @brief   Start scanning for peripherals with/without duplicate filter
+     * @brief   Start scanning for peripherals with the option of accepting all
+     *          detectable Peripherals or just the newly detected.
      *
      * @param[in] withDuplicates        true - with duplicate filter
      *                                  false- without duplicate filter
      *
      * @return  none
      *
-     * @note  option to filter out duplicate addresses for Arduino.
-     *          The current only support fileter duplicate mode.
+     * @note  When, withDuplicates = true (default), accept all detectable Peripherals.
      */
     bool startScan(bool withDuplicates);
     
