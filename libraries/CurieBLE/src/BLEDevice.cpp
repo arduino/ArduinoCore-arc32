@@ -247,14 +247,8 @@ bool BLEDevice::startScan(bool withDuplicates)
     }
     else
     {
-        return BLEDeviceManager::instance()->startScanning();
+        return BLEDeviceManager::instance()->startScanningNewPeripherals();
     }
-}
-
-
-void BLEDevice::scan()
-{
-    scan(false);
 }
 
 void BLEDevice::scan(bool withDuplicates)
@@ -263,20 +257,10 @@ void BLEDevice::scan(bool withDuplicates)
     startScan(withDuplicates);
 }
 
-void BLEDevice::scanForName(String name)
-{
-    scanForName(name, false);
-}
-
 void BLEDevice::scanForName(String name, bool withDuplicates)
 {
     BLEDeviceManager::instance()->setAdvertiseCritical(name);
     startScan(withDuplicates);
-}
-
-void BLEDevice::scanForUuid(String uuid)
-{
-    scanForUuid(uuid, false);
 }
 
 void BLEDevice::scanForUuid(String uuid, bool withDuplicates)

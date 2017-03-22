@@ -310,7 +310,7 @@ class BLEDeviceManager
     void setAdvertiseCritical(String name);
     void setAdvertiseCritical(BLEService& service);
     void setAdvertiseCritical(const char* macaddress);
-    bool startScanning(); // start scanning for peripherals
+    bool startScanningNewPeripherals(); // start scanning for new peripherals, don't report the detected ones
     bool startScanningWithDuplicates(); // start scanning for peripherals, and report all duplicates
     bool stopScanning(); // stop scanning for peripherals
     
