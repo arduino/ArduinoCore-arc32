@@ -26,6 +26,8 @@
 #include "BLEUtils.h"
 
 BLEDevice BLE(BLEUtils::bleGetLoalAddress());
+static BLEService gapService("1800");
+static BLEUnsignedShortCharacteristic appearenceChrc("2a01", BLERead);
 
 BLEProfileManager* BLEProfileManager::_instance = NULL;
 
@@ -67,6 +69,8 @@ BLEProfileManager::BLEProfileManager ():
         _service_header_array[i].value = NULL;
     }
     
+    addService(BLE, gapService);
+    gapService.addCharacteristic(appearenceChrc);
     pr_debug(LOG_MODULE_BLE, "%s-%d: Construct", __FUNCTION__, __LINE__);
 }
 
@@ -1130,5 +1134,16 @@ uint8_t BLEProfileManager::serviceReadRspProc(bt_conn_t *conn,
     return BT_GATT_ITER_STOP;
 }
 
+void BLEProfileManager::setAppearance(unsigned short appearance)
+{
+    if (false == hasRegisterProfile())
+    {
+        appearenceChrc.setValue(appearance);
+    }
+}
 
+unsigned short BLEProfileManager::getAppearance()
+{
+    return appearenceChrc.value();
+}
 
