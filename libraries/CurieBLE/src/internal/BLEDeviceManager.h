@@ -448,7 +448,6 @@ private:
     bt_uuid_128_t _service_uuid;
     bool _has_service_solicit_uuid;
     bt_uuid_128_t _service_solicit_uuid;
-    uint16_t   _appearance;
     uint8_t    _manufacturer_data[BLE_MAX_ADV_SIZE];
     uint8_t    _manufacturer_data_length;
     bt_uuid_128_t _service_data_uuid;

@@ -45,7 +45,6 @@ BLEDeviceManager::BLEDeviceManager():
     _connecting(false),
     _has_service_uuid(false),
     _has_service_solicit_uuid(false),
-    _appearance(0),
     _manufacturer_data_length(0),
     _service_data_length(0),
     _adv_type(0),
@@ -337,7 +336,7 @@ BLEDeviceManager::setDeviceName()
 
 void BLEDeviceManager::setAppearance(unsigned short appearance)
 {
-    _appearance = appearance;
+    BLEProfileManager::instance()->setAppearance(appearance);
 }
 
 BLE_STATUS_T
@@ -1028,7 +1027,7 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         if (index < service_cnt)
         {
             if (type == BT_DATA_UUID16_ALL ||
-		type == BT_DATA_UUID16_SOME)
+                type == BT_DATA_UUID16_SOME)
             {
                 service_uuid.uuid.type = BT_UUID_TYPE_16;
                 memcpy(&BT_UUID_16(&service_uuid.uuid)->val, &adv_data[2], 2);
@@ -1200,7 +1199,7 @@ String BLEDeviceManager::deviceName(const BLEDevice* device)
 
 int BLEDeviceManager::appearance()
 {
-    return _appearance;
+    return BLEProfileManager::instance()->getAppearance();
 }
 
 BLEDeviceManager* BLEDeviceManager::instance()
@@ -1301,12 +1300,6 @@ bool BLEDeviceManager::advertiseDataProc(uint8_t type,
                                          const uint8_t *dataPtr, 
                                          uint8_t data_len)
 {
-    //Serial1.print("[AD]:");
-    //Serial1.print(type);
-    //Serial1.print(" data_len ");
-    //Serial1.println(data_len);
-    
-    //const bt_data_t zero = {0, 0,0};
     if (_adv_accept_critical.type == 0 && 
         _adv_accept_critical.data_len == 0 &&
         _adv_accept_critical.data == NULL)
@@ -1314,6 +1307,7 @@ bool BLEDeviceManager::advertiseDataProc(uint8_t type,
         // Not set the critical. Accept all.
         return true;
     }
+    
     if (type == _adv_accept_critical.type &&
         data_len == _adv_accept_critical.data_len &&
         0 == memcmp(dataPtr, _adv_accept_critical.data, data_len))
