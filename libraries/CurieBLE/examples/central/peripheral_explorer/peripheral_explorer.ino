@@ -125,7 +125,7 @@ void exploreCharacteristic(BLECharacteristic characteristic) {
   if (characteristic.canRead()) {
     // read the characteristic value
     characteristic.read();
-    delay(1000);
+
     if (characteristic.valueLength() > 0)
     {
       // print out the value of the characteristic
@@ -150,7 +150,6 @@ void exploreDescriptor(BLEDescriptor descriptor) {
 
   // read the descriptor value
   descriptor.read();
-  delay(1000);
 
   // print out the value of the descriptor
   Serial.print(", value 0x");
