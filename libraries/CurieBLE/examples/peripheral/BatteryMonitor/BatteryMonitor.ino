@@ -38,7 +38,6 @@ void setup() {
      This name will appear in advertising packets
      and can be used by remote devices to identify this BLE device
      The name can be changed but maybe be truncated based on space left in advertisement packet
-     If you want to make this work with the BatteryMonitor_Central sketch, do not modufy the name.
   */
   BLE.setLocalName("BatteryMonitor");
   BLE.setAdvertisedService(batteryService);  // add the service UUID
