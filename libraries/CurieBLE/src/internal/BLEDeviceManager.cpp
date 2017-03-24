@@ -81,7 +81,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(_peer_adv_data, 0, sizeof(_peer_adv_data));
     memset(_peer_adv_data_len, 0, sizeof(_peer_adv_data_len));
     memset(_peer_scan_rsp_data, 0, sizeof(_peer_scan_rsp_data));
-    memset(_peer_scan_rsp_data_len, 0, sizeof(_peer_scan_rsp_data_len));
+    memset(_peer_scan_rsp_data_len, -1, sizeof(_peer_scan_rsp_data_len));
     memset(_peer_adv_rssi, 0, sizeof(_peer_adv_rssi));
     
     memset(_peer_adv_connectable, 0, sizeof(_peer_adv_connectable));
@@ -1384,7 +1384,7 @@ BLEDevice BLEDeviceManager::available()
     {
         uint64_t timestamp_delta = timestamp - _peer_adv_mill[i];
         temp = &_peer_adv_buffer[i];
-        if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta))
+        if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta) && (_peer_scan_rsp_data_len[i] >= 0 || !_peer_adv_connectable[i]))
         {
             // Eable the duplicate filter
             if (_adv_duplicate_filter_enabled && 
@@ -1446,7 +1446,7 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
             if (max_delta > 2000) // expired
             {
                 index = i;
-                _peer_scan_rsp_data_len[index] = 0; // Invalid the scan response
+                _peer_scan_rsp_data_len[index] = -1; // Invalid the scan response
             }
         }
         
