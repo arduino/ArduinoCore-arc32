@@ -167,6 +167,10 @@ void BLEDeviceManager::poll()
 
 void BLEDeviceManager::end()
 {
+    stopScanning();
+    stopAdvertising();
+    // Disconnect the connections
+    disconnect(&BLE);
 }
 
 bool BLEDeviceManager::connected(const BLEDevice *device) const

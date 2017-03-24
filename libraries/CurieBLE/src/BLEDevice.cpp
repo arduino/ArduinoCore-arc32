@@ -82,7 +82,12 @@ void BLEDevice::poll()
 }
 
 void BLEDevice::end()
-{}
+{
+    if (BLEUtils::isLocalBLE(*this))
+    {
+        BLEDeviceManager::instance()->end();
+    }
+}
 
 bool BLEDevice::connected() const
 {
