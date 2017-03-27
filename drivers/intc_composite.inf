@@ -1,0 +1,46 @@
+;*********************************************************************************************
+; Windows USB Composite Setup File for Arduino 101
+;
+; Copyright (c) 2015 Intel Corporation
+;
+; For use only on Windows operating systems.
+;*********************************************************************************************
+[Version]
+Signature 			= "$WINDOWS NT$"
+Class 				= USB
+ClassGUID 			= {4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider 			= %ProviderName%
+DriverVer			= 10/13/2015,1.1.0.0
+CatalogFile = intc_composite.cat
+
+[Manufacturer]
+%ProviderName% 	=	Generic,NTx86,NTamd64
+
+[Generic.NTx86]
+; Arduino 101
+%USBCompositeDevice% = Composite.Device,USB\VID_8087&PID_0AB6 ; ACM+ACM
+
+[Generic.NTamd64]
+; Arduino 101
+%USBCompositeDevice% = Composite.Device,USB\VID_8087&PID_0AB6 ; ACM+ACM
+
+[ControlFlags]
+ExcludeFromSelect=*
+
+; Common Class Generic Parent for root ID
+[Composite.Device]
+Include=usb.inf
+Needs=Composite.Dev.NT
+
+[Composite.Device.Services]
+Include=usb.inf
+Needs=Composite.Dev.NT.Services
+
+[SourceDisksNames]
+1=%SourceDisk%,,1
+
+[Strings]
+ProviderName 		= "Intel Corporation"
+ServiceDisplayName	= "Arduino 101 USB Composite Device Driver"
+USBCompositeDevice	= "Arduino 101 USB Composite Device"
+SourceDisk 		= "Arduino 101 USB Composite Device Install Disk"
