@@ -1341,15 +1341,32 @@ bool BLEDeviceManager::deviceInDuplicateFilterBuffer(const bt_addr_le_t* addr)
     return retVal;
 }
 
-void BLEDeviceManager::updateDuplicateFilter(const bt_addr_le_t* addr)
+void BLEDeviceManager::updateDuplicateFilter(const bt_addr_le_t* addr, uint8_t scanRespLength)
 {
     uint8_t i = (_duplicate_filter_header + 1) % (ARRAY_SIZE(_peer_duplicate_address_buffer));
     if (deviceInDuplicateFilterBuffer(addr))
     {
+        uint8_t j = 0;
+        for (j = 0; 
+             j < (sizeof(_peer_duplicate_address_buffer) / sizeof(bt_addr_le_t)); 
+             j++)
+        {
+            if (0 == bt_addr_le_cmp(addr, &_peer_duplicate_address_buffer[j]))
+            {
+                if (_peer_duplicate_device_scanresp_len[j] != scanRespLength)
+                {
+                    // Clear the filter
+                    memset(&_peer_duplicate_address_buffer[j], 0, sizeof (_peer_duplicate_address_buffer[j]));
+                    _peer_duplicate_device_scanresp_len[j] = 0;
+                }
+                break;
+            }
+        }
         return;
     }
     bt_addr_le_copy(&_peer_duplicate_address_buffer[_duplicate_filter_header],
                  addr);
+    _peer_duplicate_device_scanresp_len[_duplicate_filter_header] = scanRespLength;
     if (i == _duplicate_filter_tail)
     {
         _duplicate_filter_tail = (_duplicate_filter_tail + 1) % (ARRAY_SIZE(_peer_duplicate_address_buffer));
@@ -1402,7 +1419,7 @@ BLEDevice BLEDeviceManager::available()
             _peer_adv_mill[index] -= 2000; // Set it as expired
             if (_adv_duplicate_filter_enabled)
             {
-                updateDuplicateFilter(temp);
+                updateDuplicateFilter(temp, _available_for_connect_peripheral_scan_rsp_data_len);
             }
         }
     }
@@ -1504,6 +1521,10 @@ bool BLEDeviceManager::setScanRespBuffer(const bt_addr_le_t* bt_addr,
         //_peer_adv_rssi[index] = rssi;
         // Update the timestamp
         _peer_adv_mill[index] = timestamp;
+        if (_adv_duplicate_filter_enabled && deviceInDuplicateFilterBuffer(temp))
+        {
+            updateDuplicateFilter(temp, data_len);
+        }
         retval = true;
     }
     
