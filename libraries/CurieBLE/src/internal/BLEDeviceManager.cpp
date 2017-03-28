@@ -1370,7 +1370,9 @@ BLEDevice BLEDeviceManager::available()
     {
         uint64_t timestamp_delta = timestamp - _peer_adv_mill[i];
         temp = &_peer_adv_buffer[i];
-        if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta))
+        if ((timestamp_delta >= 800) && // Wait scan response coming  || _peer_scan_rsp_data_len[i] >= 0
+            (timestamp_delta <= 2000) && // Check timeout
+            (max_delta < timestamp_delta))
         {
             // Eable the duplicate filter
             if (_adv_duplicate_filter_enabled && 
@@ -1461,7 +1463,8 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
         _peer_adv_data_len[index] = data_len;
         _peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
         _peer_adv_connectable[index] = connectable;
         retval = true;
     }
@@ -1503,7 +1506,9 @@ bool BLEDeviceManager::setScanRespBuffer(const bt_addr_le_t* bt_addr,
         _peer_scan_rsp_data_len[index] = data_len;
         //_peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
+        //_peer_adv_mill[index] = timestamp;
         retval = true;
     }
     
