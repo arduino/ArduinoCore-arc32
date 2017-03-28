@@ -365,7 +365,7 @@ private:
                                     const uint8_t* &data,
                                     uint8_t &data_len) const;
     bool disconnectSingle(const bt_addr_le_t *peer);
-    void updateDuplicateFilter(const bt_addr_le_t* addr);    
+    void updateDuplicateFilter(const bt_addr_le_t* addr, uint8_t scanRespLength);    
     bool deviceInDuplicateFilterBuffer(const bt_addr_le_t* addr);
     void advertiseAcceptHandler(const bt_addr_le_t *addr, 
                                 int8_t rssi, 
@@ -470,6 +470,7 @@ private:
     uint8_t    _peer_peripheral_scan_rsp_data_len[BLE_MAX_CONN_CFG];
     uint8_t    _peer_peripheral_adv_rssi[BLE_MAX_CONN_CFG];
     bt_addr_le_t _peer_duplicate_address_buffer[BLE_MAX_ADV_FILTER_SIZE_CFG];
+    uint8_t     _peer_duplicate_device_scanresp_len[BLE_MAX_ADV_FILTER_SIZE_CFG];
     uint8_t     _duplicate_filter_header;
     uint8_t     _duplicate_filter_tail;
     bool        _adv_duplicate_filter_enabled;
