@@ -120,6 +120,7 @@ int BLEServiceImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
     int base_index = index;
     int offset = 0;
     int counter = 0;
+    int ret = 0;
     start->uuid = BLEServiceImp::getPrimayUuid();
     start->perm = BT_GATT_PERM_READ;
     start->read = bt_gatt_attr_read_service;
@@ -139,7 +140,10 @@ int BLEServiceImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
         counter += offset;
         node = node->next;
     }
-    return counter;
+    ret = bt_gatt_register(attr_start,
+                           counter);
+    
+    return errorno_to_ble_status(ret);
 }
 
 int BLEServiceImp::getAttributeCount()
