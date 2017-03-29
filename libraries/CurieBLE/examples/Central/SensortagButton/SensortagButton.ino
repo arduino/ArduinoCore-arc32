@@ -4,7 +4,7 @@
  */
 
 /*
- * Sketch: sensortag_button.ino
+ * Sketch: SensortagButton.ino
  *
  * Description:
  *   This Central sketch scan for a Peripheral called the SensorTag.
