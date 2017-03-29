@@ -5,7 +5,7 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-
+CurieBLE    KEYWORD1
 BLEAttributeWithValue	KEYWORD1
 BLEBoolCharacteristic	KEYWORD1
 BLEByteCharacteristic	KEYWORD1
