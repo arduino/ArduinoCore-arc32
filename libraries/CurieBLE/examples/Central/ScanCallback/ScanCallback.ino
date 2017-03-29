@@ -4,7 +4,7 @@
  */
 
 /*
- * Sketch: scan_callback.ino
+ * Sketch: ScanCallback.ino
  *
  * Description:
  *   This is a Central Sketch that scan for Peripherals without

@@ -4,7 +4,7 @@
  */
 
 /*
- * Sketch: peripheral_explorer.ino
+ * Sketch:PeripheralExplorer.ino
  *
  * Description:
  *   This is a Central sketch demonstrating the discovery process

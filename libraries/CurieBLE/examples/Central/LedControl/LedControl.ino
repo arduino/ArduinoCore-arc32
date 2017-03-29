@@ -4,7 +4,7 @@
  */
 
 /*
- * Sketch: led_control.ino
+ * Sketch: LedControl.ino
  *
  * Description:
  *   This is a Central sketch that looks for a particular Sevice with a
