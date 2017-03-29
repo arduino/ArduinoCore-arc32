@@ -4,7 +4,7 @@
  */
 
 /*
- * Sketch: scan.ino
+ * Sketch: Scan.ino
  *
  * Description:
  *   This is a Central sketch that performs scanning of Peripherals
