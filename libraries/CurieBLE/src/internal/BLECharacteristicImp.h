@@ -331,7 +331,10 @@ private:
     bool        _subscribed;
     
     volatile bool _reading;
+    volatile bool _gattc_read_result;
+    
     static volatile bool _gattc_writing;
+    static volatile bool _gattc_write_result;
     bt_gatt_read_params_t _read_params; // GATT read parameter
     
     typedef LinkNode<BLEDescriptorImp *>  BLEDescriptorLinkNodeHeader;
