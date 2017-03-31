@@ -1,0 +1,7 @@
+01/05/2016 v1.0
+
+-Initial commit for CurieEEPROM library
+-Implements EEPROM functionality using an available area of the ROM
+-supports both BYTE and DWORD reading/writing
+-EEPROM[] currently only supports reading
+-an empty DWORD cell has a value of 0xFFFFFFFF
