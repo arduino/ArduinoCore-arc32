@@ -71,7 +71,7 @@ recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compil
 recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lnsim -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
 ## Save output with debug symbols (.debug.elf file). Uncomment if you wish to use OpenOCD to debug.
-recipe.hooks.objcopy.preobjcopy.1.pattern={runtime.tools.arduino101load.path}/arduino101load -c -from="{build.path}/{build.project_name}.elf" -to="{build.path}/../arduino101_sketch.debug.elf"
+recipe.hooks.objcopy.preobjcopy.1.pattern="{runtime.tools.arduino101load.path}/arduino101load" -c -from="{build.path}/{build.project_name}.elf" -to="{build.path}/../arduino101_sketch.debug.elf"
 
 ## Create output (.bin file)
 recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
@@ -107,7 +107,7 @@ tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 tools.arduino101load.upload.params.verbose=-v
 tools.arduino101load.upload.params.quiet=-q
 
-tools.arduino101load.upload.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}" -bin="{build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position} -core={version}
+tools.arduino101load.upload.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}" "-bin={build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position} -core={version}
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
@@ -115,4 +115,4 @@ tools.arduino101load.erase.params.quiet=
 tools.arduino101load.erase.pattern=
 tools.arduino101load.bootloader.params.verbose=-v
 tools.arduino101load.bootloader.params.quiet=-q
-tools.arduino101load.bootloader.pattern="{cmd.path}" -dfu="{runtime.tools.dfu-util.path}"  -port={serial.port} "{bootloader.verbose}" -f -core={version}
+tools.arduino101load.bootloader.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}"  -port={serial.port} "{bootloader.verbose}" -f -core={version}
