@@ -40,7 +40,7 @@ OUTPUT_FORMAT("elf32-littlearc", "elf32-bigarc", "elf32-littlearc")
 MEMORY
     {
     FLASH                 (rx) : ORIGIN = 0x40034000, LENGTH = 152K
-    SRAM                  (wx) : ORIGIN = 0xa800e000, LENGTH = 24K
+    SRAM                  (wx) : ORIGIN = 0xa800a000, LENGTH = 40K
     DCCM                  (wx) : ORIGIN = 0x80000000, LENGTH = 8K
     }
 
@@ -52,7 +52,7 @@ __firq_stack_size = 1024;
 
 /* Minimum heap size to allocate
  * Actual heap size might be bigger due to page size alignment */
-__HEAP_SIZE_MIN = 8192;
+__HEAP_SIZE_MIN = 16384;
 /* This should be set to the page size used by the malloc implementation */
 __PAGE_SIZE = 4096;
 
