@@ -40,8 +40,8 @@ OUTPUT_FORMAT("elf32-littlearc", "elf32-bigarc", "elf32-littlearc")
 MEMORY
     {
     FLASH                 (rx) : ORIGIN = 0x40034000, LENGTH = 152K
-    SRAM                  (wx) : ORIGIN = 0xa800e000, LENGTH = 24K
-    DCCM                  (wx) : ORIGIN = 0x80000000, LENGTH = 8K
+    SRAM                  (rwx) : ORIGIN = 0xa800e000, LENGTH = 24K
+    DCCM                  (rw) : ORIGIN = 0x80000000, LENGTH = 8K
     }
 
 /* Define default stack size and FIRQ stack size.
@@ -181,6 +181,14 @@ SECTIONS
 
 	/* Data Closely Coupled Memory (DCCM) */
 /* DCCM Start */
+    .kernelmempool (NOLOAD) :
+    {
+	. = ALIGN(4);
+	__dccm_start = .;
+	*(.kernelmempool)
+	*(".kernelmempool.*")
+	__dccm_end = ALIGN(4);
+    } > DCCM
 /* DCCM End */
 
     }
