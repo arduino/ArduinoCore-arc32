@@ -54,7 +54,7 @@ void CurieRestoreMemory(uint32_t* buffer, uint32_t size)
     rom_wr_ctrl |= 0x00000001; //set (WR_REQ) bit
     *(uint32_t*)(ROM_WR_CTRL) = rom_wr_ctrl;
 
-    delay(3); //give it enough time to finish writing
+    delay(5); //give it enough time to finish writing
   }
 }
 
@@ -121,5 +121,5 @@ void CurieWrite8(uint32_t address, uint8_t data)
   rom_wr_ctrl |= 0x00000001; //set (WR_REQ) bit
   *(uint32_t*)(ROM_WR_CTRL) = rom_wr_ctrl;
 
-  delay(3); //give it enough time to finish writing
+  delay(5); //give it enough time to finish writing
 }
