@@ -171,18 +171,43 @@ void BLEDeviceManager::end()
 
 bool BLEDeviceManager::connected(const BLEDevice *device) const
 {
-    bt_conn_t* conn = bt_conn_lookup_addr_le(device->bt_le_address());
     bool retval = false;
-    //pr_debug(LOG_MODULE_BLE, "%s-%d: add-%s", __FUNCTION__, __LINE__, device->address().c_str());
-    if (NULL != conn)
+
+    if (BLEUtils::isLocalBLE(*device))
     {
-        //pr_debug(LOG_MODULE_BLE, "%s-%d: state-%d", __FUNCTION__, __LINE__,conn->state);
-        if (conn->state == BT_CONN_CONNECTED)
+        // first check if in peripheral mode and a central is connected
+        if (BLEUtils::macAddressValid(_peer_central))
         {
             retval = true;
         }
-        bt_conn_unref(conn);
+        else // next check if in central mode and connected to any peripherals
+        {
+            for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
+            {
+                if (BLEUtils::macAddressValid(_peer_peripheral[i]))
+                {
+                    retval = true;
+                    break;
+                }
+            }
+        }
     }
+    else
+    {
+        bt_conn_t* conn = bt_conn_lookup_addr_le(device->bt_le_address());
+
+        //pr_debug(LOG_MODULE_BLE, "%s-%d: add-%s", __FUNCTION__, __LINE__, device->address().c_str());
+        if (NULL != conn)
+        {
+            //pr_debug(LOG_MODULE_BLE, "%s-%d: state-%d", __FUNCTION__, __LINE__,conn->state);
+            if (conn->state == BT_CONN_CONNECTED)
+            {
+                retval = true;
+            }
+            bt_conn_unref(conn);
+        }
+    }
+
     return retval;
 }
 
