@@ -856,7 +856,7 @@ int BLECharacteristicImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
         start->uuid = this->getClientCharacteristicConfigUuid();
         start->perm = BT_GATT_PERM_READ | BT_GATT_PERM_WRITE;
         start->read = bt_gatt_attr_read_ccc;
-        start->write = bt_gatt_attr_write_ccc;
+        start->write = profile_gatt_attr_write_ccc;
         start->user_data = this->getCccCfg();
         
         pr_info(LOG_MODULE_BLE, "cccd-%p", start);
@@ -1124,4 +1124,26 @@ uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
     return retVal;
 }
 
+void BLECharacteristicImp::cccdValueChanged()
+{
+    
+    enum BLECharacteristicEvent event = BLEUnsubscribed;
+    if (subscribed())
+    {
+        event = BLESubscribed;
+    }
+
+    if (_event_handlers[event]) 
+    {
+        BLECharacteristic chrcTmp(this, &_ble_device);
+        _event_handlers[event](_ble_device, chrcTmp);
+    }
+
+    if (_oldevent_handlers[event]) 
+    {
+        BLECharacteristic chrcTmp(this, &_ble_device);
+        BLECentral central(_ble_device);
+        _oldevent_handlers[event](central, chrcTmp);
+    }
+}
 
