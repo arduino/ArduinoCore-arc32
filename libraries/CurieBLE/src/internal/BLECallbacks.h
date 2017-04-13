@@ -89,5 +89,7 @@ uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn,
                                                  const void *data, 
                                                  uint16_t length);
 
+void prfile_cccd_cfg_changed(void *user_data, uint16_t value);
+
 #endif
 
