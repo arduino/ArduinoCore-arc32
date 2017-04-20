@@ -25,22 +25,23 @@
 #include "gatt_internal.h"
 #include "hci_core.h"
 #include "conn_internal.h"
+#include "gap_internal.h"
 
 /* #define BT_GATT_DEBUG 1 */
-
-extern void on_nble_curie_log(char *fmt, ...);
+#include "os/os.h"
 extern void __assert_fail(void);
+#define TICKS_NONE 0
 #ifdef BT_GATT_DEBUG
-#define BT_DBG(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_DBG(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #else
 #define BT_DBG(fmt, ...) do {} while (0)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #endif
 
@@ -51,11 +52,15 @@ struct ble_gatt_service {
 	uint16_t attr_count; /* Number of attributes in the array */
 };
 
-struct ble_gatts_flush_all {
-	struct bt_conn *conn;
-	int status;
-	uint8_t flag;
+struct prep_data {
+	void *nano_fifo_data;
+	const struct bt_gatt_attr *attr;
+	uint16_t offset;
+	uint8_t len;
+	uint8_t *buf;
 };
+
+static struct os_fifo prep_queue;
 
 static struct ble_gatt_service db[CONFIG_BT_GATT_BLE_MAX_SERVICES];
 
@@ -83,9 +88,8 @@ static uint8_t bt_gatt_uuid_memcpy(uint8_t *buf,
 	/* Store the UUID data */
 	if (uuid->type == BT_UUID_TYPE_16) {
 		uint16_t le16;
-        
-        memcpy(&le16, &BT_UUID_16(uuid)->val, sizeof(le16));
-		le16 = sys_cpu_to_le16(le16);
+
+		le16 = sys_cpu_to_le16(BT_UUID_16(uuid)->val);
 		memcpy(ptr, &le16, sizeof(le16));
 		ptr += sizeof(le16);
 	} else {
@@ -142,7 +146,7 @@ static int attr_read(struct bt_gatt_attr *attr, uint8_t *data, size_t len)
 int bt_gatt_register(struct bt_gatt_attr *attrs, size_t count)
 {
 	size_t attr_table_size, i;
-	struct nble_gatt_register_req param;
+	struct nble_gatts_register_req param;
 	/* TODO: Replace the following with net_buf */
 	uint8_t attr_table[N_BLE_BUF_SIZE];
 
@@ -161,7 +165,7 @@ int bt_gatt_register(struct bt_gatt_attr *attrs, size_t count)
 
 	for (i = 0; i < count; i++) {
 		struct bt_gatt_attr *attr = &attrs[i];
-		struct ble_gatt_attr *att;
+		struct nble_gatts_attr *att;
 		int data_size;
 
 		if (attr_table_size + sizeof(*att) > sizeof(attr_table)) {
@@ -169,6 +173,7 @@ int bt_gatt_register(struct bt_gatt_attr *attrs, size_t count)
 		}
 
 		att = (void *)&attr_table[attr_table_size];
+		att->attr = attr;
 		att->perm = attr->perm;
 
 		/* Read attribute data */
@@ -189,11 +194,11 @@ int bt_gatt_register(struct bt_gatt_attr *attrs, size_t count)
 		attr_table_size += (sizeof(*att) + att->data_size + 3) & ~3;
 	}
 
-	nble_gatt_register_req(&param, attr_table, attr_table_size);
+	nble_gatts_register_req(&param, attr_table, attr_table_size);
 	return 0;
 }
 
-void on_nble_gatt_register_rsp(const struct nble_gatt_register_rsp *rsp,
+void on_nble_gatts_register_rsp(const struct nble_gatts_register_rsp *rsp,
 		const struct nble_gatt_attr_handles *handles, uint8_t len)
 {
 
@@ -209,12 +214,10 @@ void on_nble_gatt_register_rsp(const struct nble_gatt_register_rsp *rsp,
 
 		for (i = 0; i < rsp->attr_count; i++) {
 			if (handles[i].handle != 0) {
-                uint16_t le16;
-                memcpy(&le16, &BT_UUID_16(rsp->attr_base[i].uuid)->val, sizeof(le16));
 				BT_DBG("gatt: i %d, h %d, type %d, u16 0x%x",
 				       i, handles[i].handle,
 				       rsp->attr_base[i].uuid->type,
-				       le16);
+				       BT_UUID_16(rsp->attr_base[i].uuid)->val);
 			}
 		}
 	}
@@ -248,10 +251,7 @@ ssize_t bt_gatt_attr_read_service(struct bt_conn *conn,
 	struct bt_uuid *uuid = attr->user_data;
 
 	if (uuid->type == BT_UUID_TYPE_16) {
-		uint16_t uuid16;
-
-        memcpy(&uuid16, &BT_UUID_16(uuid)->val, sizeof(uuid16));
-        uuid16 = sys_cpu_to_le16(uuid16);
+		uint16_t uuid16 = sys_cpu_to_le16(BT_UUID_16(uuid)->val);
 
 		return bt_gatt_attr_read(conn, attr, buf, len, offset,
 					 &uuid16, 2);
@@ -261,36 +261,20 @@ ssize_t bt_gatt_attr_read_service(struct bt_conn *conn,
 				 BT_UUID_128(uuid)->val, 16);
 }
 
-struct gatt_incl {
-	uint16_t start_handle;
-	uint16_t end_handle;
-	uint16_t uuid16;
-} __packed;
-
 ssize_t bt_gatt_attr_read_included(struct bt_conn *conn,
 				   const struct bt_gatt_attr *attr,
 				   void *buf, uint16_t len, uint16_t offset)
 {
-	struct bt_gatt_include *incl = attr->user_data;
-	struct gatt_incl pdu;
-	uint8_t value_len;
+	struct bt_gatt_attr *incl = attr->user_data;
 
-	pdu.start_handle = sys_cpu_to_le16(incl->start_handle);
-	pdu.end_handle = sys_cpu_to_le16(incl->end_handle);
-	value_len = sizeof(pdu.start_handle) + sizeof(pdu.end_handle);
-
-	/*
-	 * Core 4.2, Vol 3, Part G, 3.2,
-	 * The Service UUID shall only be present when the UUID is a 16-bit
-	 * Bluetooth UUID.
-	 */
-	if (incl->uuid->type == BT_UUID_TYPE_16) {
-        memcpy(&pdu.uuid16, &BT_UUID_16(incl->uuid)->val, sizeof(pdu.uuid16));
-		pdu.uuid16 = sys_cpu_to_le16(pdu.uuid16);
-		value_len += sizeof(pdu.uuid16);
+	/* nble gatt register case reading user_data. */
+	if (!conn) {
+		return bt_gatt_attr_read(conn, attr, buf, len, offset, &incl,
+				sizeof(incl));
 	}
 
-	return bt_gatt_attr_read(conn, attr, buf, len, offset, &pdu, value_len);
+	/* nble handles gattc reads internally */
+	return -EINVAL;
 }
 
 struct gatt_chrc {
@@ -332,8 +316,7 @@ ssize_t bt_gatt_attr_read_chrc(struct bt_conn *conn,
 	value_len = sizeof(pdu.properties) + sizeof(pdu.value_handle);
 
 	if (chrc->uuid->type == BT_UUID_TYPE_16) {
-        memcpy(&pdu.uuid16, &BT_UUID_16(chrc->uuid)->val, sizeof(pdu.uuid16));
-		pdu.uuid16 = sys_cpu_to_le16(pdu.uuid16);
+		pdu.uuid16 = sys_cpu_to_le16(BT_UUID_16(chrc->uuid)->val);
 		value_len += 2;
 	} else {
 		memcpy(pdu.uuid, BT_UUID_128(chrc->uuid)->val, 16);
@@ -464,25 +447,19 @@ static bool is_bonded(const bt_addr_le_t *addr)
 
 ssize_t bt_gatt_attr_write_ccc(struct bt_conn *conn,
 			       const struct bt_gatt_attr *attr, const void *buf,
-			       uint16_t len, uint16_t offset)
+			       uint16_t len, uint16_t offset, uint8_t flags)
 {
 	struct _bt_gatt_ccc *ccc = attr->user_data;
 	const uint16_t *data = buf;
 	size_t i;
 
-	//BT_DBG("%s", __FUNCTION__);
-
 	if (offset > sizeof(*data)) {
 		return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
 	}
 
-	//BT_DBG("%s1", __FUNCTION__);
-
 	if (offset + len > sizeof(*data)) {
 		return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
 	}
-
-	//BT_DBG("%s2", __FUNCTION__);
 
 	for (i = 0; i < ccc->cfg_len; i++) {
 		/* Check for existing configuration */
@@ -490,8 +467,6 @@ ssize_t bt_gatt_attr_write_ccc(struct bt_conn *conn,
 			break;
 		}
 	}
-
-	//BT_DBG("%s3", __FUNCTION__);
 
 	if (i == ccc->cfg_len) {
 		for (i = 0; i < ccc->cfg_len; i++) {
@@ -512,12 +487,9 @@ ssize_t bt_gatt_attr_write_ccc(struct bt_conn *conn,
 		}
 	}
 
-	//BT_DBG("%s len-%p", __FUNCTION__, ccc);
-    
 	ccc->cfg[i].value = sys_le16_to_cpu(*data);
-	//BT_DBG("%s 5len-%d", __FUNCTION__, len);
 
-	//BT_DBG("handle 0x%04x value %u", attr->handle, *data);
+	BT_DBG("handle 0x%04x value %u", attr->handle, *data);
 
 	/* Update cfg if don't match */
 	if (ccc->value != *data) {
@@ -571,33 +543,33 @@ static int att_notify(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 		      const void *data, size_t len,
 		      bt_gatt_notify_sent_func_t cb)
 {
-	struct nble_gatt_send_notif_params notif;
+	struct nble_gatts_notify_req req;
 
-	notif.conn_handle = conn->handle;
-	notif.params.attr = attr;
-	notif.params.offset = 0;
-	notif.cback = cb;
+	req.params.conn_handle = conn->handle;
+	req.params.attr = attr;
+	req.params.offset = 0;
+	req.cback = cb;
 
-	nble_gatt_send_notif_req(&notif, data, len);
+	nble_gatts_notify_req(&req, data, len);
 
 	return 0;
 }
 
-void on_nble_gatts_send_notif_rsp(const struct nble_gatt_notif_rsp *rsp)
+void on_nble_gatts_notify_tx_evt(const struct nble_gatts_notify_tx_evt *evt)
 {
 	struct bt_conn *conn;
 
-	conn = bt_conn_lookup_handle(rsp->conn_handle);
+	conn = bt_conn_lookup_handle(evt->conn_handle);
 
 	if (conn) {
-		if (rsp->cback) {
-			rsp->cback(conn, rsp->attr, rsp->status);
+		if (evt->cback) {
+			evt->cback(conn, evt->attr, (uint8_t)evt->status);
 		}
 		bt_conn_unref(conn);
 	}
 }
 
-void on_nble_gatts_send_ind_rsp(const struct nble_gatt_ind_rsp *rsp)
+void on_nble_gatts_indicate_rsp(const struct nble_gatts_indicate_rsp *rsp)
 {
 	struct bt_conn *conn;
 
@@ -614,14 +586,14 @@ void on_nble_gatts_send_ind_rsp(const struct nble_gatt_ind_rsp *rsp)
 static int att_indicate(struct bt_conn *conn,
 			struct bt_gatt_indicate_params *params)
 {
-	struct nble_gatt_send_ind_params ind;
+	struct nble_gatts_indicate_req req;
 
-	ind.conn_handle = conn->handle;
-	ind.cback = params->func;
-	ind.params.attr = params->attr;
-	ind.params.offset = 0;
+	req.params.conn_handle = conn->handle;
+	req.params.attr = params->attr;
+	req.params.offset = 0;
+	req.cback = params->func;
 
-	nble_gatt_send_ind_req(&ind, params->data, params->len);
+	nble_gatts_indicate_req(&req, params->data, params->len);
 
 	return 0;
 }
@@ -664,7 +636,12 @@ static uint8_t notify_cb(const struct bt_gatt_attr *attr, void *user_data)
 		}
 
 		conn = bt_conn_lookup_addr_le(&ccc->cfg[i].peer);
-		if (!conn || conn->state != BT_CONN_CONNECTED) {//Bug here
+		if (!conn) {
+			continue;
+		}
+
+		if (conn->state != BT_CONN_CONNECTED) {
+			bt_conn_unref(conn);
 			continue;
 		}
 
@@ -804,6 +781,11 @@ static uint8_t disconnected_cb(const struct bt_gatt_attr *attr, void *user_data)
 
 				bt_conn_unref(tmp);
 			}
+		} else {
+			/* Clear value if not paired */
+			if (!ccc->cfg[i].valid)
+				memset(&ccc->cfg[i].value, 0,
+				       sizeof(ccc->cfg[i].value));
 		}
 	}
 
@@ -819,98 +801,126 @@ static uint8_t disconnected_cb(const struct bt_gatt_attr *attr, void *user_data)
 	return BT_GATT_ITER_CONTINUE;
 }
 
-void on_nble_gatts_write_evt(const struct nble_gatt_wr_evt *evt,
+static ssize_t on_prep_write(const struct nble_gatts_write_evt *evt,
+			     const uint8_t *buf, uint8_t buflen)
+{
+	const struct bt_gatt_attr *attr = evt->attr;
+	struct bt_conn *conn = bt_conn_lookup_handle(evt->conn_handle);
+	ssize_t status;
+
+	struct prep_data *data;
+	data =  nble_curie_alloc_hook(sizeof (struct prep_data));
+
+	/* Assert if memory allocation failed */
+	BT_ASSERT(data);
+
+	data->attr = attr;
+	data->offset = evt->offset;
+	data->len = buflen;
+
+	data->buf = nble_curie_alloc_hook(buflen);
+
+	/* Assert if memory allocation failed */
+	BT_ASSERT(data->buf);
+
+	memcpy(data->buf, buf, buflen);
+
+	if (!(attr->perm & BT_GATT_PERM_PREPARE_WRITE)) {
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
+	}
+
+	/* Write attribute value to check if device is authorized */
+	status = attr->write(conn, attr, buf, buflen, evt->offset,
+			     BT_GATT_WRITE_FLAG_PREPARE);
+
+	/* Store data in the queue */
+	fifo_put(&prep_queue, data);
+
+	if (conn)
+		bt_conn_unref(conn);
+
+	return status;
+}
+
+void on_nble_gatts_write_evt(const struct nble_gatts_write_evt *evt,
 			    const uint8_t *buf, uint8_t buflen)
 {
 	const struct bt_gatt_attr *attr = evt->attr;
 	struct bt_conn *conn = bt_conn_lookup_handle(evt->conn_handle);
-	struct nble_gatts_wr_reply_params reply_data;
+	struct nble_gatts_write_reply_req req;
 
-	//BT_DBG("write_evt %p", attr);
+	BT_DBG("write_evt %p", attr);
 
-	/* Check for write support and flush support in case of prepare */
-	if (!attr->write ||
-	    ((evt->flag & NBLE_GATT_WR_FLAG_PREP) && !attr->flush)) {
-		reply_data.status = BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
-
-		goto reply;
-	}
-	//BT_DBG("%s", __FUNCTION__);
-
-	reply_data.status = attr->write(conn, attr, buf, buflen, evt->offset);
-	if (reply_data.status < 0) {
-        
-        //BT_DBG("%s1-1", __FUNCTION__);
+	/* Check for write support */
+	if (!attr->write) {
+		req.status = BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
 
 		goto reply;
 	}
 
-	//BT_DBG("%s1", __FUNCTION__);
+	/* Check for prepare writes */
+	if (evt->flag & NBLE_GATT_WR_FLAG_PREP) {
+		req.status = on_prep_write(evt, buf, buflen);
+
+		goto reply;
+	}
+
+	req.status = attr->write(conn, attr, buf, buflen, evt->offset, 0);
+	if (req.status < 0) {
+		goto reply;
+	}
 
 	/* Return an error if not all data has been written */
-	if (reply_data.status != buflen) {
-		reply_data.status = BT_GATT_ERR(BT_ATT_ERR_UNLIKELY);
+	if (req.status != buflen) {
+		req.status = BT_GATT_ERR(BT_ATT_ERR_UNLIKELY);
 
 		goto reply;
 	}
 
-	//BT_DBG("%s2", __FUNCTION__);
-
-	if (attr->flush && !(evt->flag & NBLE_GATT_WR_FLAG_PREP))
-		reply_data.status = attr->flush(conn, attr, BT_GATT_FLUSH_SYNC);
-
-	//BT_DBG("%s3", __FUNCTION__);
-
 reply:
-	//BT_DBG("%s4", __FUNCTION__);
 	if (evt->flag & NBLE_GATT_WR_FLAG_REPLY) {
-		reply_data.conn_handle = evt->conn_handle;
+		req.conn_handle = evt->conn_handle;
+		req.offset = evt->offset;
 
-		nble_gatts_wr_reply_req(&reply_data);
+		nble_gatts_write_reply_req(&req, buf, buflen);
 	}
 
 	if (conn)
 		bt_conn_unref(conn);
 }
 
-static uint8_t flush_all(const struct bt_gatt_attr *attr, void *user_data)
+void on_nble_gatts_write_exec_evt(const struct nble_gatts_write_exec_evt *evt)
 {
-	struct ble_gatts_flush_all *flush_data = user_data;
+	struct bt_conn *conn = bt_conn_lookup_handle(evt->conn_handle);
+	const struct bt_gatt_attr *attr;
+	struct nble_gatts_write_reply_req req;
+	struct prep_data *data;
 
-	if (attr->flush) {
-		int status = attr->flush(flush_data->conn, attr, flush_data->flag);
+	req.conn_handle = evt->conn_handle;
+	req.status = 0;
 
-		if (status < 0 && flush_data->status == 0)
-			flush_data->status = status;
-	}
-
-	return BT_GATT_ITER_CONTINUE;
-}
-
-void on_nble_gatts_write_exec_evt(const struct nble_gatt_wr_exec_evt *evt)
-{
 	BT_DBG("write_exec_evt");
 
-	struct ble_gatts_flush_all flush_data = {
-		.conn = bt_conn_lookup_handle(evt->conn_handle),
-		.flag = evt->flag,
-		.status = 0,
-	};
+	while ((data = fifo_get(&prep_queue, TICKS_NONE))) {
+		attr = data->attr;
 
-	bt_gatt_foreach_attr(0x0001, 0xFFFF, flush_all, &flush_data);
+		/* If an error occurred just discard the data */
+		if (req.status >= 0)
+			req.status = attr->write(conn, attr, data->buf, data->len,
+						 data->offset, 0);
 
-	struct nble_gatts_wr_reply_params reply_data = {
-		.conn_handle = evt->conn_handle,
-		.status = flush_data.status,
-	};
-	nble_gatts_wr_reply_req(&reply_data);
+		nble_curie_free_hook(data->buf);
+		nble_curie_free_hook(data);
+	}
 
-	bt_conn_unref(flush_data.conn);
+	nble_gatts_write_reply_req(&req, NULL, 0);
+
+	bt_conn_unref(conn);
 }
 
-void on_nble_gatts_read_evt(const struct nble_gatt_rd_evt *evt)
+void on_nble_gatts_read_evt(const struct nble_gatts_read_evt *evt)
 {
-	struct nble_gatts_rd_reply_params reply_data;
+	struct nble_gatts_read_reply_req req;
 	const struct bt_gatt_attr *attr;
 	/* The length of the value sent back in the response is unknown because
 	 * of NRF API limitation, so we use the max possible one: ATT_MTU-1 */
@@ -921,7 +931,7 @@ void on_nble_gatts_read_evt(const struct nble_gatt_rd_evt *evt)
 
 	BT_DBG("read_evt %p", attr);
 
-	memset(&reply_data, 0, sizeof(reply_data));
+	memset(&req, 0, sizeof(req));
 
 	if (attr->read) {
 		struct bt_conn *conn = bt_conn_lookup_handle(evt->conn_handle);
@@ -936,30 +946,28 @@ void on_nble_gatts_read_evt(const struct nble_gatt_rd_evt *evt)
 	}
 
 	/* status >= 0 is considered as success by nble */
-	reply_data.status = len;
+	req.status = len;
 
 	if (len < 0) {
 		len = 0;
 	}
 
-	reply_data.conn_handle = evt->conn_handle;
+	req.conn_handle = evt->conn_handle;
 
 	/* offset is needed by nble even in error case */
-	reply_data.offset = evt->offset;
+	req.offset = evt->offset;
 
-	nble_gatts_rd_reply_req(&reply_data, data, len);
+	nble_gatts_read_reply_req(&req, data, len);
 }
 
 #if defined(CONFIG_BLUETOOTH_GATT_CLIENT)
-void on_nble_gattc_value_evt(const struct ble_gattc_value_evt *evt,
-		uint8_t *data, uint8_t length)
+void on_nble_gattc_value_evt(const struct nble_gattc_value_evt *evt,
+			     uint8_t *data, uint8_t len)
 {
 	struct bt_gatt_subscribe_params *params;
 	struct bt_conn *conn;
 
 	conn = bt_conn_lookup_handle(evt->conn_handle);
-
-	//BT_DBG("FUNC %s", __FUNCTION__);
 
 	if (conn) {
 		for (params = subscriptions; params; params = params->_next) {
@@ -967,7 +975,7 @@ void on_nble_gattc_value_evt(const struct ble_gattc_value_evt *evt,
 				continue;
 			}
 
-			if (params->notify(conn, params, data, length) ==
+			if (params->notify(conn, params, data, len) ==
 			    BT_GATT_ITER_STOP) {
 				bt_gatt_unsubscribe(conn, params);
 			}
@@ -1048,7 +1056,6 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 		struct bt_gatt_attr *attr = NULL;
 
 		if (rsp->type == BT_GATT_DISCOVER_PRIMARY) {
-    //BT_DBG("%s-%d", __FUNCTION__, __LINE__);
 			const struct nble_gattc_primary *gattr =
 					(void *)&data[i * sizeof(*gattr)];
 			if ((gattr->range.start_handle < params->start_handle) &&
@@ -1083,8 +1090,9 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 				/* Data is not available at this point */
 				break;
 			}
-			attr = (&(struct bt_gatt_attr)
-					BT_GATT_INCLUDE_SERVICE(&inc_value));
+			attr = (&(struct bt_gatt_attr) {
+				.uuid = BT_UUID_GATT_INCLUDE,
+				.user_data = &inc_value, });
 			attr->handle = gattr->handle;
 			last_handle = gattr->handle;
 		} else if (rsp->type == BT_GATT_DISCOVER_CHARACTERISTIC) {
@@ -1095,10 +1103,6 @@ void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
 				gattr->prop));
 			attr->handle = gattr->handle;
 			last_handle = gattr->handle;
-			/* Skip if UUID is set but doesn't match */
-			if (params->uuid && bt_uuid_cmp(&gattr->uuid.uuid, params->uuid)) {
-				continue;
-			}
 		} else if (rsp->type == BT_GATT_DISCOVER_DESCRIPTOR) {
 			const struct nble_gattc_descriptor *gattr =
 					(void *)&data[i * sizeof(*gattr)];
@@ -1141,7 +1145,7 @@ not_done:
 int bt_gatt_discover(struct bt_conn *conn,
 		     struct bt_gatt_discover_params *params)
 {
-	struct nble_discover_params discover_params;
+	struct nble_gattc_discover_req req;
 
 	if (!conn || !params || !params->func || !params->start_handle ||
 	    !params->end_handle || params->start_handle > params->end_handle) {
@@ -1154,15 +1158,15 @@ int bt_gatt_discover(struct bt_conn *conn,
 
 	BT_DBG("disc: %d", params->start_handle);
 
-	memset(&discover_params, 0, sizeof(discover_params));
+	memset(&req, 0, sizeof(req));
 
 	switch (params->type) {
 	case BT_GATT_DISCOVER_PRIMARY:
 	case BT_GATT_DISCOVER_CHARACTERISTIC:
 		if (params->uuid) {
 			/* Always copy a full 128 bit UUID */
-			discover_params.uuid = *BT_UUID_128(params->uuid);
-			discover_params.flags = DISCOVER_FLAGS_UUID_PRESENT;
+			req.uuid = *BT_UUID_128(params->uuid);
+			req.flags = DISCOVER_FLAGS_UUID_PRESENT;
 		}
 		break;
 
@@ -1173,20 +1177,20 @@ int bt_gatt_discover(struct bt_conn *conn,
 		return -EINVAL;
 	}
 
-	discover_params.conn_handle = conn->handle;
-	discover_params.type = params->type;
-	discover_params.handle_range.start_handle = params->start_handle;
-	discover_params.handle_range.end_handle = params->end_handle;
+	req.conn_handle = conn->handle;
+	req.type = params->type;
+	req.handle_range.start_handle = params->start_handle;
+	req.handle_range.end_handle = params->end_handle;
 
-	discover_params.user_data = params;
+	req.user_data = params;
 
-	nble_gattc_discover_req(&discover_params);
+	nble_gattc_discover_req(&req);
 
 	return 0;
 }
 
-void on_nble_gattc_read_multiple_rsp(const struct ble_gattc_read_rsp *rsp,
-		uint8_t *pdu, uint8_t length)
+void on_nble_gattc_read_multi_rsp(const struct nble_gattc_read_rsp *rsp,
+				  uint8_t *data, uint8_t len)
 {
 	struct bt_gatt_read_params *params;
 	struct bt_conn *conn = bt_conn_lookup_handle(rsp->conn_handle);
@@ -1203,7 +1207,7 @@ void on_nble_gattc_read_multiple_rsp(const struct ble_gattc_read_rsp *rsp,
 		return;
 	}
 
-	params->func(conn, 0, params, pdu, length);
+	params->func(conn, 0, params, data, len);
 
 	/* mark read as complete since read multiple is single response */
 	params->func(conn, 0, params, NULL, 0);
@@ -1211,8 +1215,8 @@ void on_nble_gattc_read_multiple_rsp(const struct ble_gattc_read_rsp *rsp,
 	bt_conn_unref(conn);
 }
 
-void on_nble_gattc_read_rsp(const struct ble_gattc_read_rsp *rsp,
-		uint8_t *pdu, uint8_t length)
+void on_nble_gattc_read_rsp(const struct nble_gattc_read_rsp *rsp,
+		uint8_t *data, uint8_t len)
 {
 	struct bt_gatt_read_params *params;
 	struct bt_conn *conn = bt_conn_lookup_handle(rsp->conn_handle);
@@ -1227,7 +1231,7 @@ void on_nble_gattc_read_rsp(const struct ble_gattc_read_rsp *rsp,
 		return;
 	}
 
-	if (params->func(conn, 0, params, pdu, length) == BT_GATT_ITER_STOP) {
+	if (params->func(conn, 0, params, data, len) == BT_GATT_ITER_STOP) {
 		bt_conn_unref(conn);
 		return;
 	}
@@ -1238,13 +1242,13 @@ void on_nble_gattc_read_rsp(const struct ble_gattc_read_rsp *rsp,
 	 * in length, the Read Long Characteristic Value procedure may be used
 	 * if the rest of the Characteristic Value is required.
 	 */
-	if (length < BLE_GATT_MTU_SIZE - 1) {
+	if (len < BLE_GATT_MTU_SIZE - 1) {
 		params->func(conn, 0, params, NULL, 0);
 		bt_conn_unref(conn);
 		return;
 	}
 
-	params->single.offset += length;
+	params->single.offset += len;
 
 	/* Continue reading the attribute */
 	if (bt_gatt_read(conn, params)) {
@@ -1256,27 +1260,28 @@ void on_nble_gattc_read_rsp(const struct ble_gattc_read_rsp *rsp,
 int bt_gatt_read(struct bt_conn *conn, struct bt_gatt_read_params *params)
 {
 
-	struct ble_gattc_read_params single_req;
-	struct ble_gattc_read_multiple_params mutiple_req;
+	struct nble_gattc_read_req sreq;
+	struct nble_gattc_read_multi_req mreq;
 
 	if (!conn || conn->state != BT_CONN_CONNECTED || !params ||
 	    params->handle_count == 0 || !params->func) {
 		return -EINVAL;
 	}
 
-	single_req.conn_handle = conn->handle;
+	sreq.conn_handle = conn->handle;
 
 	if (1 == params->handle_count) {
-		single_req.handle = params->single.handle;
-		single_req.offset = params->single.offset;
-		single_req.user_data = params;
+		sreq.handle = params->single.handle;
+		sreq.offset = params->single.offset;
+		sreq.user_data = params;
 
-		nble_gattc_read_req(&single_req);
+		nble_gattc_read_req(&sreq);
 	} else {
-		mutiple_req.conn_handle = conn->handle;
-		mutiple_req.user_data = params;
+		mreq.conn_handle = conn->handle;
+		mreq.user_data = params;
 
-		nble_gattc_read_multiple_req(&mutiple_req, params->handles, 2 * params->handle_count);
+		nble_gattc_read_multi_req(&mreq, params->handles,
+					  2 * params->handle_count);
 	}
 	return 0;
 }
@@ -1287,9 +1292,9 @@ static void on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
 }
 
 static void on_write_complete(struct bt_conn *conn, uint8_t err,
-			      const struct bt_gatt_write_params *wr_params)
+			      const struct nble_gattc_write_param *wr_params)
 {
-	bt_gatt_write_rsp_func_t func = wr_params->user_data[0];
+	bt_gatt_rsp_func_t func = wr_params->user_data[0];
 	const void *data = wr_params->user_data[1];
 
 	BT_ASSERT(func);
@@ -1298,9 +1303,9 @@ static void on_write_complete(struct bt_conn *conn, uint8_t err,
 
 static int _bt_gatt_write(struct bt_conn *conn, uint16_t handle, bool with_resp,
 			  uint16_t offset, const void *data, uint16_t length,
-			  struct bt_gatt_write_params *wr_params)
+			  struct nble_gattc_write_param *wr_params)
 {
-	struct ble_gattc_write_params req;
+	struct nble_gattc_write_req req;
 
 	req.conn_handle = conn->handle;
 	req.handle = handle;
@@ -1313,7 +1318,7 @@ static int _bt_gatt_write(struct bt_conn *conn, uint16_t handle, bool with_resp,
 	return 0;
 }
 
-void on_nble_gattc_write_rsp(const struct ble_gattc_write_rsp *rsp)
+void on_nble_gattc_write_rsp(const struct nble_gattc_write_rsp *rsp)
 {
 
 	struct bt_conn *conn = bt_conn_lookup_handle(rsp->conn_handle);
@@ -1327,32 +1332,35 @@ void on_nble_gattc_write_rsp(const struct ble_gattc_write_rsp *rsp)
 	bt_conn_unref(conn);
 }
 
-
 int bt_gatt_write_without_response(struct bt_conn *conn, uint16_t handle,
 				   const void *data, uint16_t length, bool sign)
 {
-	return bt_gatt_write(conn, handle, 0, data, length,
-			     on_write_no_rsp_complete);
+	struct bt_gatt_write_params p;
+	p.func = on_write_no_rsp_complete;
+	p.handle = handle;
+	p.offset = 0;
+	p.data = data;
+	p.length = length;
+	return bt_gatt_write(conn, &p);
 }
 
-int bt_gatt_write(struct bt_conn *conn, uint16_t handle, uint16_t offset,
-		  const void *data, uint16_t length,
-		  bt_gatt_write_rsp_func_t func)
+int bt_gatt_write(struct bt_conn *conn, struct bt_gatt_write_params *params)
 {
-	struct bt_gatt_write_params wr_params;
+	struct nble_gattc_write_param wr_params;
 
-	if (!conn || conn->state != BT_CONN_CONNECTED  || !handle || !func) {
+	if (!conn || conn->state != BT_CONN_CONNECTED  || !params->handle ||
+	    !params->func) {
 		return -EINVAL;
 	}
 
 	wr_params.func = on_write_complete;
-	wr_params.user_data[0] = func;
-	wr_params.user_data[1] = (void *)data;
+	wr_params.user_data[0] = params->func;
+	wr_params.user_data[1] = (void *)params->data;
 
-	return _bt_gatt_write(conn, handle,
-			      (func == on_write_no_rsp_complete)
+	return _bt_gatt_write(conn, params->handle,
+			      (params->func == on_write_no_rsp_complete)
 			      ? false : true,
-			      offset, data, length, &wr_params);
+			      params->offset, params->data, params->length, &wr_params);
 }
 
 static void gatt_subscription_add(struct bt_conn *conn,
@@ -1366,7 +1374,7 @@ static void gatt_subscription_add(struct bt_conn *conn,
 }
 
 static void att_write_ccc_rsp(struct bt_conn *conn, uint8_t err,
-			      const struct bt_gatt_write_params *wr_params)
+			      const struct nble_gattc_write_param *wr_params)
 {
 	struct bt_gatt_subscribe_params *params = wr_params->user_data[0];
 
@@ -1389,7 +1397,7 @@ static int gatt_write_ccc(struct bt_conn *conn, uint16_t handle, uint16_t value,
 			  bt_att_func_t func,
 			  struct bt_gatt_subscribe_params *params)
 {
-	struct bt_gatt_write_params wr_params;
+	struct nble_gattc_write_param wr_params;
 
 	wr_params.func = func;
 	wr_params.user_data[0] = params;
@@ -1520,26 +1528,26 @@ static void add_subscriptions(struct bt_conn *conn)
 #else
 
 void on_nble_gattc_discover_rsp(const struct nble_gattc_discover_rsp *rsp,
-		const uint8_t *data, uint8_t data_len)
+				const uint8_t *data, uint8_t data_len)
 {
 
 }
-void on_nble_gattc_write_rsp(const struct ble_gattc_write_rsp *rsp)
+void on_nble_gattc_write_rsp(const struct nble_gattc_write_rsp *rsp)
 {
 }
 
-void on_nble_gattc_value_evt(const struct ble_gattc_value_evt *evt,
-		uint8_t *buf, uint8_t buflen)
+void on_nble_gattc_value_evt(const struct nble_gattc_value_evt *evt,
+				    uint8_t *buf, uint8_t buflen)
 {
 }
 
-void on_nble_gattc_read_rsp(const struct ble_gattc_read_rsp *rsp,
-		uint8_t *data, uint8_t data_len)
+void on_nble_gattc_read_rsp(const struct nble_gattc_read_rsp *rsp,
+			    uint8_t *data, uint8_t data_len)
 {
 }
 
-void on_nble_gattc_read_multiple_rsp(const struct ble_gattc_read_rsp *rsp,
-		uint8_t *data, uint8_t data_len)
+void on_nble_gattc_read_multi_rsp(const struct nble_gattc_read_rsp *rsp,
+				  uint8_t *data, uint8_t data_len)
 {
 }
 
@@ -1549,6 +1557,8 @@ void bt_gatt_connected(struct bt_conn *conn)
 {
 	BT_DBG("conn %p", conn);
 	bt_gatt_foreach_attr(0x0001, 0xffff, connected_cb, conn);
+	fifo_init(&prep_queue);
+
 #if defined(CONFIG_BLUETOOTH_GATT_CLIENT)
 	add_subscriptions(conn);
 #endif /* CONFIG_BLUETOOTH_GATT_CLIENT */
@@ -1556,9 +1566,17 @@ void bt_gatt_connected(struct bt_conn *conn)
 
 void bt_gatt_disconnected(struct bt_conn *conn)
 {
-	BT_DBG("conn %p", conn);
-	bt_gatt_foreach_attr(0x0001, 0xffff, disconnected_cb, conn);
+	struct prep_data *data;
 
+	BT_DBG("conn %p", conn);
+
+	/* Discard queued buffers */
+	while ((data = fifo_get(&prep_queue, TICKS_NONE))) {
+		nble_curie_free_hook(data->buf);
+		nble_curie_free_hook(data);
+	}
+
+	bt_gatt_foreach_attr(0x0001, 0xffff, disconnected_cb, conn);
 #if defined(CONFIG_BLUETOOTH_GATT_CLIENT)
 	/* If bonded don't remove subscriptions */
 	if (is_bonded(&conn->le.dst)) {

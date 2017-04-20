@@ -392,7 +392,7 @@ private:
     uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
     uint8_t    _peer_scan_rsp_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
-    int8_t     _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
     int8_t     _peer_adv_rssi[BLE_MAX_ADV_BUFFER_CFG];
     bool       _peer_adv_connectable[BLE_MAX_ADV_BUFFER_CFG];
     

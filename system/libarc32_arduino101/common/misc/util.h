@@ -101,6 +101,7 @@ static inline int _IsPowerOfTwo(unsigned int x)
 #define MHZ(x) (KHZ(x) * 1000)
 
 #define _BV(bit) (1U << (bit))
+#define BIT(n)  (1UL << (n))
 
 #ifdef __cplusplus
 }

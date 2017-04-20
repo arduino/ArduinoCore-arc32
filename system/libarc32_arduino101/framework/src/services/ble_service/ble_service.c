@@ -51,6 +51,10 @@
 #include "rpc.h"
 
 #include "util/misc.h"
+#include "infra/time.h"
+
+extern void __assert_fail(void);
+#define BT_SERVICE_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 
 struct _ble_service_cb _ble_cb = { 0 };
 volatile uint8_t ble_inited = false;
@@ -84,19 +88,19 @@ static void ble_is_not_enabled_rsp(struct cfw_message *msg, int status)
 #ifdef CONFIG_TCMD_BLE_DEBUG
 static void handle_msg_id_ble_dbg(struct cfw_message *msg)
 {
-	struct nble_debug_params params;
+	struct nble_dbg_req params;
 	struct ble_dbg_req_rsp *resp = (void *)
 		cfw_alloc_rsp_msg(msg, MSG_ID_BLE_DBG_RSP, sizeof(*resp));
 	struct ble_dbg_req_rsp *req = (struct ble_dbg_req_rsp *) msg;
 
 	params.u0 = req->u0;
 	params.u1 = req->u1;
-
-	nble_gap_dbg_req(&params, resp);
+    params.user_data = (void *)resp;
+	nble_dbg_req(&params);
 }
 #endif /* CONFIG_TCMD_BLE_DEBUG */
 
-void on_nble_gap_dbg_rsp(const struct nble_debug_resp *params)
+void on_nble_dbg_rsp(const struct nble_dbg_rsp *params)
 {
 #ifdef CONFIG_TCMD_BLE_DEBUG
 	struct ble_dbg_req_rsp *resp = params->user_data;
@@ -120,7 +124,9 @@ static void handle_msg_id_ble_rpc_callin(struct message *msg, void *priv)
     //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 }
 
-static void ble_set_bda_cb(int status, void *user_data)
+static void ble_set_bda_cb(int status, 
+                           void *user_data, 
+                           const bt_addr_le_t *bda)
 {
 	struct ble_enable_req *req = user_data;
 
@@ -128,13 +134,14 @@ static void ble_set_bda_cb(int status, void *user_data)
 		return;
 
 	struct ble_enable_rsp *resp = (void *)cfw_alloc_rsp_msg(&req->header,
-			    MSG_ID_BLE_ENABLE_RSP, sizeof(*resp));
+                                                            MSG_ID_BLE_ENABLE_RSP, 
+                                                            sizeof(*resp));
 	resp->status = status;
 
 	if (status == 0) {
 		resp->enable = 1;
 
-		nble_gap_read_bda_req(resp);
+		//nble_read_bda_req(resp);
 	} else {
 		/* error case */
 		resp->enable = 0;
@@ -143,27 +150,15 @@ static void ble_set_bda_cb(int status, void *user_data)
 	bfree(req);
 }
 
-
-void on_nble_gap_read_bda_rsp(const struct nble_service_read_bda_response *params)
-{
-	struct cfw_message *rsp = params->user_data;
-
-	if (rsp) {
-		struct ble_enable_rsp *r = container_of(rsp, struct ble_enable_rsp, header);
-		r->bd_addr = params->bd;
-		cfw_send_message(rsp);
-	}
-}
-
 static void handle_ble_enable(struct ble_enable_req *req,
-		struct _ble_service_cb *p_cb)
+                              struct _ble_service_cb *p_cb)
 {
 	pr_info(LOG_MODULE_BLE, "ble_enable: state %d", p_cb->ble_state);
 
 	p_cb->ble_state = BLE_ST_ENABLED;
 
 	if (req->bda_present) {
-		struct nble_set_bda_params params;
+		struct nble_set_bda_req params;
 
 		params.cb = ble_set_bda_cb;
 		params.user_data = req;
@@ -171,14 +166,7 @@ static void handle_ble_enable(struct ble_enable_req *req,
 
 		nble_set_bda_req(&params);
 	} else {
-		ble_set_bda_cb(0, req);
-	}
-}
-
-void on_nble_set_bda_rsp(const struct nble_set_bda_rsp *params)
-{
-	if (params->cb) {
-		params->cb(params->status, params->user_data);
+		ble_set_bda_cb(0, req, NULL);
 	}
 }
 
@@ -257,18 +245,22 @@ static void ble_client_disconnected(conn_handle_t *instance)
 
 void ble_bt_rdy(int err)
 {
+    BT_SERVICE_ASSERT(err == 0);
 	_ble_cb.ble_state = BLE_ST_DISABLED;
     ble_inited = true;
 
 	/* register BLE service */
-	if (cfw_register_service(_ble_cb.queue, &ble_service,
-			ble_service_message_handler, &_ble_cb) == -1) {
+	if (cfw_register_service(_ble_cb.queue, 
+                             &ble_service,
+                             ble_service_message_handler, 
+                             &_ble_cb) == -1) {
 		panic(0xb1eb1e);
 	}
 }
 
 void ble_cfw_service_init(int service_id, T_QUEUE queue)
 {
+    uint32_t time_stamp_last = 0;
 	_ble_cb.queue = queue;
 	_ble_cb.ble_state = BLE_ST_NOT_READY;
 
@@ -277,23 +269,29 @@ void ble_cfw_service_init(int service_id, T_QUEUE queue)
 #endif
 
     ble_inited = false;
-
+    time_stamp_last = get_uptime_ms();
+    
     bt_enable(ble_bt_rdy);
-    do{}
+    do{
+        
+        uint32_t time_stamp_current = get_uptime_ms();
+        if (time_stamp_current - time_stamp_last > 3000)
+        {
+            nble_driver_hw_reset();
+            //pr_warning(LOG_MODULE_BLE, "time_stamp_current %d", time_stamp_current);
+            
+            time_stamp_last = time_stamp_current;
+        }
+    }
     while (ble_inited == false);
 }
 
 void nble_log(const struct nble_log_s *param, char *buf, uint8_t buflen)
 {
-	pr_info(LOG_MODULE_BLE, buf, param->param0, param->param1, param->param2, param->param3);
+    pr_info(LOG_MODULE_BLE, 
+            buf, 
+            param->param0, 
+            param->param1, 
+            param->param2);
 }
 
-void on_nble_common_rsp(const struct nble_response *params)
-{
-	struct ble_rsp *resp = params->user_data;
-
-	if (!resp)
-		return;
-	resp->status = params->status;
-	cfw_send_message(resp);
-}

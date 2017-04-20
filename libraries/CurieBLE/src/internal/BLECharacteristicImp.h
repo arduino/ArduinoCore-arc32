@@ -83,6 +83,9 @@ public:
      * @return bool true set value success, false on error
      */
     bool setValue(const unsigned char value[], unsigned short length);
+    bool setValue (const unsigned char value[], 
+                   uint16_t length, 
+                   uint16_t offset);
 
     /**
      * Get the property mask of the Characteristic
@@ -208,7 +211,8 @@ protected:
     friend ssize_t profile_longwrite_process(struct bt_conn *conn,
                                      const struct bt_gatt_attr *attr,
                                      const void *buf, uint16_t len,
-                                     uint16_t offset);
+                                     uint16_t offset,
+                                     uint8_t flags);
     
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
     
@@ -216,11 +220,13 @@ protected:
     
     bool longCharacteristic();
     
+#ifdef TD_V3
     void setBuffer(const uint8_t value[], 
                    uint16_t length, 
                    uint16_t offset);
     void discardBuffer();
     void syncupBuffer2Value();
+#endif
     
     /**
      * @brief   Get the characteristic value handle
@@ -303,7 +309,8 @@ private:
     void setHandle(uint16_t handle);
     void _setValue(const uint8_t value[], uint16_t length, uint16_t offset);
     bool isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid);
-
+    void triggerValueUpdatedEvent();
+    
 private:
     // Those 2 UUIDs are used for define the characteristic.
     static bt_uuid_16_t _gatt_chrc_uuid;    // Characteristic UUID
@@ -312,7 +319,9 @@ private:
     unsigned short _value_size;
     unsigned short _value_length;
     unsigned char* _value;
+#ifdef TD_V3
     unsigned char* _value_buffer;
+#endif
     bool _value_updated;
 
     uint16_t            _value_handle; // GATT client only

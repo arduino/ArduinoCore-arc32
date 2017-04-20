@@ -34,12 +34,12 @@ typedef struct {
 } bt_addr_t;
 
 typedef struct {
-	uint8_t  type;
-	uint8_t  val[6];
+	uint8_t   type;
+	bt_addr_t a;
 } bt_addr_le_t;
 
 #define BT_ADDR_ANY    (&(bt_addr_t) {{0, 0, 0, 0, 0, 0} })
-#define BT_ADDR_LE_ANY (&(bt_addr_le_t) { 0, {0, 0, 0, 0, 0, 0} })
+#define BT_ADDR_LE_ANY (&(bt_addr_le_t) { 0, { {0, 0, 0, 0, 0, 0} } })
 
 static inline int bt_addr_cmp(const bt_addr_t *a, const bt_addr_t *b)
 {
@@ -65,6 +65,7 @@ static inline void bt_addr_le_copy(bt_addr_le_t *dst, const bt_addr_le_t *src)
 #define BT_HCI_ERR_UNKNOWN_CONN_ID		0x02
 #define BT_HCI_ERR_AUTHENTICATION_FAIL		0x05
 #define BT_HCI_ERR_INSUFFICIENT_RESOURCES	0x0d
+#define BT_HCI_ERR_UNSUPP_FEATURE_PARAMS_VAL	0x11
 #define BT_HCI_ERR_REMOTE_USER_TERM_CONN	0x13
 #define BT_HCI_ERR_PAIRING_NOT_ALLOWED		0x18
 #define BT_HCI_ERR_UNSUPP_REMOTE_FEATURE	0x1a
@@ -138,6 +139,12 @@ struct bt_hci_cmd_hdr {
 #define BT_HCI_GENERAL_BONDING			0x04
 #define BT_HCI_GENERAL_BONDING_MITM		0x05
 
+/*
+ * MITM protection is enabled in SSP authentication requirements octet when
+ * LSB bit is set.
+ */
+#define BT_MITM					0x01
+
 /* I/O capabilities */
 #define BT_IO_DISPLAY_ONLY			0x00
 #define BT_IO_DISPLAY_YESNO			0x01
@@ -174,10 +181,38 @@ struct bt_hci_cmd_hdr {
 /* Construct OpCode from OGF and OCF */
 #define BT_OP(ogf, ocf)				((ocf) | ((ogf) << 10))
 
+#define BT_HCI_OP_INQUIRY			BT_OP(BT_OGF_LINK_CTRL, 0x0001)
+struct bt_hci_op_inquiry {
+	uint8_t lap[3];
+	uint8_t length;
+	uint8_t num_rsp;
+} __packed;
+
+#define BT_HCI_OP_INQUIRY_CANCEL		BT_OP(BT_OGF_LINK_CTRL, 0x0002)
+
+#define BT_HCI_OP_CONNECT			BT_OP(BT_OGF_LINK_CTRL, 0x0005)
+struct bt_hci_cp_connect {
+	bt_addr_t bdaddr;
+	uint16_t  packet_type;
+	uint8_t   pscan_rep_mode;
+	uint8_t   reserved;
+	uint16_t  clock_offset;
+	uint8_t   allow_role_switch;
+} __packed;
+
 #define BT_HCI_OP_DISCONNECT			BT_OP(BT_OGF_LINK_CTRL, 0x0006)
 struct bt_hci_cp_disconnect {
 	uint16_t handle;
 	uint8_t  reason;
+} __packed;
+
+#define BT_HCI_OP_CONNECT_CANCEL		BT_OP(BT_OGF_LINK_CTRL, 0x0008)
+struct bt_hci_cp_connect_cancel {
+	bt_addr_t bdaddr;
+} __packed;
+struct bt_hci_rp_connect_cancel {
+	uint8_t   status;
+	bt_addr_t bdaddr;
 } __packed;
 
 #define BT_HCI_OP_ACCEPT_CONN_REQ		BT_OP(BT_OGF_LINK_CTRL, 0x0009)
@@ -223,12 +258,61 @@ struct bt_hci_rp_pin_code_neg_reply {
 	bt_addr_t bdaddr;
 } __packed;
 
+#define BT_HCI_OP_AUTH_REQUESTED		BT_OP(BT_OGF_LINK_CTRL, 0x0011)
+struct bt_hci_cp_auth_requested {
+	uint16_t handle;
+} __packed;
+
+#define BT_HCI_OP_SET_CONN_ENCRYPT		BT_OP(BT_OGF_LINK_CTRL, 0x0013)
+struct bt_hci_cp_set_conn_encrypt {
+	uint16_t handle;
+	uint8_t  encrypt;
+} __packed;
+
+#define BT_HCI_OP_REMOTE_NAME_REQUEST		BT_OP(BT_OGF_LINK_CTRL, 0x0019)
+struct bt_hci_cp_remote_name_request {
+	bt_addr_t bdaddr;
+	uint8_t   pscan_rep_mode;
+	uint8_t   reserved;
+	uint16_t  clock_offset;
+} __packed;
+
+#define BT_HCI_OP_REMOTE_NAME_CANCEL		BT_OP(BT_OGF_LINK_CTRL, 0x001a)
+struct bt_hci_cp_remote_name_cancel {
+	bt_addr_t bdaddr;
+} __packed;
+struct bt_hci_rp_remote_name_cancel {
+	uint8_t status;
+	bt_addr_t bdaddr;
+} __packed;
+
 #define BT_HCI_OP_IO_CAPABILITY_REPLY		BT_OP(BT_OGF_LINK_CTRL, 0x002b)
 struct bt_hci_cp_io_capability_reply {
 	bt_addr_t bdaddr;
 	uint8_t   capability;
 	uint8_t   oob_data;
 	uint8_t   authentication;
+} __packed;
+
+#define BT_HCI_OP_USER_CONFIRM_REPLY		BT_OP(BT_OGF_LINK_CTRL, 0x002c)
+#define BT_HCI_OP_USER_CONFIRM_NEG_REPLY	BT_OP(BT_OGF_LINK_CTRL, 0x002d)
+struct bt_hci_cp_user_confirm_reply {
+	bt_addr_t bdaddr;
+} __packed;
+struct bt_hci_rp_user_confirm_reply {
+	uint8_t   status;
+	bt_addr_t bdaddr;
+} __packed;
+
+#define BT_HCI_OP_USER_PASSKEY_REPLY		BT_OP(BT_OGF_LINK_CTRL, 0x002e)
+struct bt_hci_cp_user_passkey_reply {
+	bt_addr_t bdaddr;
+	uint32_t  passkey;
+} __packed;
+
+#define BT_HCI_OP_USER_PASSKEY_NEG_REPLY	BT_OP(BT_OGF_LINK_CTRL, 0x002f)
+struct bt_hci_cp_user_passkey_neg_reply {
+	bt_addr_t bdaddr;
 } __packed;
 
 #define BT_HCI_OP_IO_CAPABILITY_NEG_REPLY	BT_OP(BT_OGF_LINK_CTRL, 0x0034)
@@ -269,6 +353,11 @@ struct bt_hci_handle_count {
 struct bt_hci_cp_host_num_completed_packets {
 	uint8_t  num_handles;
 	struct bt_hci_handle_count h[0];
+} __packed;
+
+#define BT_HCI_OP_WRITE_INQUIRY_MODE		BT_OP(BT_OGF_BASEBAND, 0x0045)
+struct bt_hci_cp_write_inquiry_mode {
+	uint8_t  mode;
 } __packed;
 
 #define BT_HCI_OP_WRITE_SSP_MODE		BT_OP(BT_OGF_BASEBAND, 0x0056)
@@ -351,8 +440,8 @@ struct bt_hci_rp_le_read_local_features {
 /* Needed in advertising reports when getting info about */
 #define BT_LE_ADV_SCAN_RSP			0x04
 
-#define BT_HCI_OP_LE_SET_ADV_PARAMETERS		BT_OP(BT_OGF_LE, 0x0006)
-struct bt_hci_cp_le_set_adv_parameters {
+#define BT_HCI_OP_LE_SET_ADV_PARAM		BT_OP(BT_OGF_LE, 0x0006)
+struct bt_hci_cp_le_set_adv_param {
 	uint16_t     min_interval;
 	uint16_t     max_interval;
 	uint8_t      type;
@@ -502,6 +591,13 @@ struct bt_hci_cp_le_generate_dhkey {
 
 /* Event definitions */
 
+#define BT_HCI_EVT_VENDOR			0xff
+
+#define BT_HCI_EVT_INQUIRY_COMPLETE		0x01
+struct bt_hci_evt_inquiry_complete {
+	uint8_t status;
+} __packed;
+
 #define BT_HCI_EVT_CONN_COMPLETE		0x03
 struct bt_hci_evt_conn_complete {
 	uint8_t   status;
@@ -523,6 +619,19 @@ struct bt_hci_evt_disconn_complete {
 	uint8_t  status;
 	uint16_t handle;
 	uint8_t  reason;
+} __packed;
+
+#define BT_HCI_EVT_AUTH_COMPLETE		0x06
+struct bt_hci_evt_auth_complete {
+	uint8_t  status;
+	uint16_t handle;
+} __packed;
+
+#define BT_HCI_EVT_REMOTE_NAME_REQ_COMPLETE	0x07
+struct bt_hci_evt_remote_name_req_complete {
+	uint8_t status;
+	bt_addr_t bdaddr;
+	uint8_t name[248];
 } __packed;
 
 #define BT_HCI_EVT_ENCRYPT_CHANGE		0x08
@@ -579,6 +688,28 @@ struct bt_hci_ev_link_key_notify {
 	uint8_t   key_type;
 } __packed;
 
+#define BT_HCI_EVT_INQUIRY_RESULT_WITH_RSSI	0x22
+struct bt_hci_evt_inquiry_result_with_rssi {
+	bt_addr_t addr;
+	uint8_t   pscan_rep_mode;
+	uint8_t   reserved;
+	uint8_t   cod[3];
+	uint16_t  clock_offset;
+	int8_t    rssi;
+} __packed;
+
+#define BT_HCI_EVT_EXTENDED_INQUIRY_RESULT	0x2f
+struct bt_hci_evt_extended_inquiry_result {
+	uint8_t   num_reports;
+	bt_addr_t addr;
+	uint8_t   pscan_rep_mode;
+	uint8_t   reserved;
+	uint8_t   cod[3];
+	uint16_t  clock_offset;
+	int8_t    rssi;
+	uint8_t   eir[240];
+} __packed;
+
 #define BT_HCI_EVT_ENCRYPT_KEY_REFRESH_COMPLETE	0x30
 struct bt_hci_evt_encrypt_key_refresh_complete {
 	uint8_t  status;
@@ -598,10 +729,27 @@ struct bt_hci_evt_io_capa_resp {
 	uint8_t   authentication;
 } __packed;
 
+#define BT_HCI_EVT_USER_CONFIRM_REQ		0x33
+struct bt_hci_evt_user_confirm_req {
+	bt_addr_t bdaddr;
+	uint32_t  passkey;
+} __packed;
+
+#define BT_HCI_EVT_USER_PASSKEY_REQ		0x34
+struct bt_hci_evt_user_passkey_req {
+	bt_addr_t bdaddr;
+} __packed;
+
 #define BT_HCI_EVT_SSP_COMPLETE			0x36
 struct bt_hci_evt_ssp_complete {
 	uint8_t   status;
 	bt_addr_t bdaddr;
+} __packed;
+
+#define BT_HCI_EVT_USER_PASSKEY_NOTIFY		0x3b
+struct bt_hci_evt_user_passkey_notify {
+	bt_addr_t bdaddr;
+	uint32_t  passkey;
 } __packed;
 
 #define BT_HCI_EVT_LE_META_EVENT		0x3e

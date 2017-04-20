@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <misc/util.h>
 #include <bluetooth/hci.h>
 
 #ifdef __cplusplus
@@ -88,25 +89,18 @@ struct bt_data {
 	BT_DATA(_type, ((uint8_t []) { _bytes }), \
 		sizeof((uint8_t []) { _bytes }))
 
-/** Local advertising address type */
+/** Advertising options */
 enum {
-	/** Use local identity address for advertising. Unless a static
-	  * random address has been configured this will be the public
-	  * address.
-	  */
-	BT_LE_ADV_ADDR_IDENTITY,
-
-	/** Use local Non-resolvable Private Address (NRPA) for advertising */
-	BT_LE_ADV_ADDR_NRPA,
+	/** Advertise as connectable. Type of advertising is determined by
+	 * providing SCAN_RSP data and/or enabling local privacy support.
+	 */
+	BT_LE_ADV_OPT_CONNECTABLE = BIT(0),
 };
 
 /** LE Advertising Parameters. */
 struct bt_le_adv_param {
-	/** Advertising type */
-	uint8_t  type;
-
-	/** Which type of own address to use for advertising */
-	uint8_t  addr_type;
+	/** Bit-field of advertising options */
+	uint8_t  options;
 
 	/** Minimum Advertising Interval (N * 0.625) */
 	uint16_t interval_min;
@@ -117,22 +111,23 @@ struct bt_le_adv_param {
 
 /** Helper to declare advertising parameters inline
   *
-  * @param _type      Advertising Type
-  * @param _addr_type Local address type to use for advertising
+  * @param _options   Advertising Options
   * @param _int_min   Minimum advertising interval
   * @param _int_max   Maximum advertising interval
   */
-#define BT_LE_ADV_PARAM(_type, _addr_type, _int_min, _int_max) \
+#define BT_LE_ADV_PARAM(_options, _int_min, _int_max) \
 		(&(struct bt_le_adv_param) { \
-			.type = (_type), \
-			.addr_type = (_addr_type), \
+			.options = (_options), \
 			.interval_min = (_int_min), \
 			.interval_max = (_int_max), \
 		 })
 
-#define BT_LE_ADV(t) BT_LE_ADV_PARAM(t, BT_LE_ADV_ADDR_IDENTITY, \
-				     BT_GAP_ADV_FAST_INT_MIN_2, \
-				     BT_GAP_ADV_FAST_INT_MAX_2)
+#define BT_LE_ADV_CONN BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE, \
+				       BT_GAP_ADV_FAST_INT_MIN_2, \
+				       BT_GAP_ADV_FAST_INT_MAX_2)
+
+#define BT_LE_ADV_NCONN BT_LE_ADV_PARAM(0, BT_GAP_ADV_FAST_INT_MIN_2, \
+					BT_GAP_ADV_FAST_INT_MAX_2)
 
 /** @brief Start advertising
  *
@@ -247,6 +242,92 @@ int bt_le_scan_start(const struct bt_le_scan_param *param, bt_le_scan_cb_t cb);
  */
 int bt_le_scan_stop(void);
 
+struct bt_le_oob {
+	/** LE address. If local privacy is enabled this is Resolvable Private
+	 *  Address.
+	 */
+	bt_addr_le_t addr;
+};
+
+/**
+ * @brief Get LE local Out Of Band information
+ *
+ * This function allows to get local information that are useful for Out Of Band
+ * pairing or connection creation process.
+ *
+ * If privacy is enabled this will result in generating new Resolvable Private
+ * Address that is valid for CONFIG_BLUETOOTH_RPA_TIMEOUT seconds. This address
+ * will be used for advertising, active scanning and connection creation.
+ *
+ * @param oob LE related information
+ */
+int bt_le_oob_get_local(struct bt_le_oob *oob);
+
+/** @brief BR/EDR discovery result structure */
+struct bt_br_discovery_result {
+	/** private */
+    
+    uint8_t private_b[4];
+
+	/** Remote device address */
+	bt_addr_t addr;
+
+	/** RSSI from inquiry */
+	int8_t rssi;
+
+	/** Class of Device */
+	uint8_t cod[3];
+
+	/** Extended Inquiry Response */
+	uint8_t eir[240];
+};
+
+/** @brief Define a type allowing user to implement a function that can
+ *  be used to get back BR/EDR discovery (inquiry) results.
+ *
+ *  A function of this type will be called back when user application
+ *  triggers BR/EDR discovery and discovery process completes.
+ *
+ *  @param results Storage used for discovery results
+ *  @param count Number of valid discovery results.
+ */
+typedef void bt_br_discovery_cb_t(struct bt_br_discovery_result *results,
+				  size_t count);
+
+/** BR/EDR discovery parameters */
+struct bt_br_discovery_param {
+	/** True if limited discovery procedure is to be used. */
+	bool limited_discovery;
+};
+
+/** @brief Start BR/EDR discovery
+ *
+ *  Start BR/EDR discovery (inquiry) and provide results through the specified
+ *  callback. When bt_br_discovery_cb_t is called it indicates that discovery
+ *  has completed.
+ *
+ *  @param param Discovery parameters.
+ *  @param results Storage for discovery results.
+ *  @param count Number of results in storage
+ *  @param cb Callback to notify discovery results.
+ *
+ *  @return Zero on success or error code otherwise, positive in case
+ *  of protocol error or negative (POSIX) in case of stack internal error
+ */
+int bt_br_discovery_start(const struct bt_br_discovery_param *param,
+			  struct bt_br_discovery_result *results, size_t count,
+			  bt_br_discovery_cb_t cb);
+
+/** @brief Stop BR/EDR discovery.
+ *
+ *  Stops ongoing BR/EDR discovery. If discovery was stopped by this call
+ *  results won't be reported
+ *
+ *  @return Zero on success or error code otherwise, positive in case
+ *  of protocol error or negative (POSIX) in case of stack internal error
+ */
+int bt_br_discovery_stop(void);
+
 /** @def BT_ADDR_STR_LEN
  *
  *  @brief Recommended length of user string buffer for Bluetooth address
@@ -312,8 +393,8 @@ static inline int bt_addr_le_to_str(const bt_addr_le_t *addr, char *str,
 	}
 
 	return snprintf(str, len, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X (%s)",
-			addr->val[5], addr->val[4], addr->val[3],
-			addr->val[2], addr->val[1], addr->val[0], type);
+			addr->a.val[5], addr->a.val[4], addr->a.val[3],
+			addr->a.val[2], addr->a.val[1], addr->a.val[0], type);
 }
 
 #if defined(CONFIG_BLUETOOTH_BREDR)

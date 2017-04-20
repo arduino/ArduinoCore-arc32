@@ -107,7 +107,7 @@ public:
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
     
-    bool discoverAttributes(BLEDevice* device);
+    bool discoverAllAttributes(BLEDevice* device);
     bool discoverAttributesByService(BLEDevice* device, const bt_uuid_t* svc_uuid);
     void handleConnectedEvent(const bt_addr_le_t* deviceAddr);
     void handleDisconnectedEvent(const bt_addr_le_t* deviceAddr);
@@ -205,7 +205,17 @@ private:
     bool discovering();
     void setDiscovering(bool discover);
     void checkReadService();
+    bool discoverNextService(BLEDevice &device);
+    void discoverCompleteProc();
+    uint8_t primaryServiceResponseProc(BLEDevice &device,
+                                       const bt_gatt_attr_t *attr,
+                                       bt_gatt_discover_params_t *params);
+    void singleServiceDiscoverResponseProc(BLEDevice &device, 
+                                           BLEServiceImp* service);
     
+    bool discoverAttributes(BLEDevice* device, 
+                            const bt_uuid_t* svc_uuid);
+
 private:
     // The last header is for local BLE
     BLEServiceLinkNodeHeader _service_header_array[BLE_MAX_CONN_CFG + 1]; // The connected devices' service and self service

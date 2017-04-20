@@ -33,38 +33,25 @@ BLEDevice::BLEDevice()
     _conn_param.interval_max = BT_GAP_INIT_CONN_INT_MAX;
     _conn_param.interval_min = BT_GAP_INIT_CONN_INT_MIN;
     _conn_param.latency = 0;
-    _conn_param.timeout = 400;
+    _conn_param.timeout = 500;
 }
-
-/*
-BLEDevice::BLEDevice(String bleaddress)
-{
-    BLEUtils::macAddressString2BT(bleaddress.c_str(), _bt_addr);
-}
-
-BLEDevice::BLEDevice(const char* bleaddress)
-{
-    BLEUtils::macAddressString2BT(bleaddress, _bt_addr);
-}
-
-*/
 
 BLEDevice::BLEDevice(const bt_addr_le_t* bleaddress):
     BLEDevice()
 {
-    memcpy(&_bt_addr, bleaddress, sizeof(_bt_addr));
+    bt_addr_le_copy(&_bt_addr, bleaddress);
     BLEDeviceManager::instance()->getConnectionInterval(this, &_conn_param);
 }
 
 BLEDevice::BLEDevice(const BLEDevice* bledevice)
 {
-    memcpy(&_bt_addr, bledevice->bt_le_address(), sizeof(_bt_addr));
+    bt_addr_le_copy(&_bt_addr, bledevice->bt_le_address());
     memcpy(&_conn_param, &bledevice->_conn_param, sizeof (_conn_param));
 }
 
 BLEDevice::BLEDevice(const BLEDevice& bledevice)
 {
-    memcpy(&_bt_addr, bledevice.bt_le_address(), sizeof(_bt_addr));
+    bt_addr_le_copy(&_bt_addr, bledevice.bt_le_address());
     memcpy(&_conn_param, &bledevice._conn_param, sizeof (_conn_param));
 }
 
@@ -117,7 +104,7 @@ String BLEDevice::address() const
 
 void BLEDevice::setAddress(const bt_addr_le_t& addr)
 {
-    memcpy(&_bt_addr, &addr, sizeof(_bt_addr));
+    bt_addr_le_copy(&_bt_addr, &addr);
 }
 
 void BLEDevice::setAdvertisedServiceUuid(const char* advertisedServiceUuid)
@@ -284,12 +271,14 @@ BLEDevice& BLEDevice::operator=(const BLEDevice& device)
 
 bool BLEDevice::operator==(const BLEDevice& device) const
 {
-    return (memcmp(this->_bt_addr.val, device._bt_addr.val, 6) == 0);
+    return (bt_addr_le_cmp(&this->_bt_addr, &device._bt_addr) == 0);
+    //return (memcmp(this->_bt_addr.a.val, device._bt_addr.a.val, 6) == 0);
 }
 
 bool BLEDevice::operator!=(const BLEDevice& device) const
 {
-    return (memcmp(this->_bt_addr.val, device._bt_addr.val, 6) != 0);
+    return (bt_addr_le_cmp(&this->_bt_addr, &device._bt_addr) != 0);
+    //return (memcmp(this->_bt_addr.a.val, device._bt_addr.a.val, 6) != 0);
 }
 
 
@@ -389,7 +378,7 @@ bool BLEDevice::connect()
 
 bool BLEDevice::discoverAttributes()
 {
-    return BLEProfileManager::instance()->discoverAttributes(this);
+    return BLEProfileManager::instance()->discoverAllAttributes(this);
 }
 
 bool BLEDevice::discoverAttributesByService(const char* svc_uuid)

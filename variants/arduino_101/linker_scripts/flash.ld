@@ -52,7 +52,7 @@ __firq_stack_size = 1024;
 
 /* Minimum heap size to allocate
  * Actual heap size might be bigger due to page size alignment */
-__HEAP_SIZE_MIN = 16384;
+__HEAP_SIZE_MIN = 20480;
 /* This should be set to the page size used by the malloc implementation */
 __PAGE_SIZE = 4096;
 

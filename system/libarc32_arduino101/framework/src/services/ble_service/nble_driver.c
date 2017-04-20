@@ -66,13 +66,23 @@
 static uint16_t rpc_port_id;
 static list_head_t m_rpc_tx_q;
 
-extern void on_nble_curie_log(char *fmt, ...)
+void nble_curie_log_hook(char *fmt, ...)
 {
 	va_list args;
 
 	va_start(args, fmt);
 	log_vprintk(LOG_LEVEL_INFO, LOG_MODULE_BLE, fmt, args);
 	va_end(args);
+}
+
+void *nble_curie_alloc_hook(uint32_t size)
+{
+    return balloc(size, NULL);
+}
+
+void nble_curie_free_hook(void *buffer)
+{
+    bfree(buffer);
 }
 
 /*
@@ -280,8 +290,13 @@ uint8_t *rpc_alloc_cb(uint16_t length)
 	return p_elt->data;
 }
 
+void rpc_free_cb(const uint8_t *buf)
+{
+    // Stub
+}
+
 /* called under NON-interrupt context */
-void rpc_transmit_cb(uint8_t *p_buf, uint16_t length)
+void rpc_transmit_cb(uint8_t *p_buf)
 {
 	struct rpc_tx_elt *p_elt;
 
@@ -297,32 +312,27 @@ void rpc_transmit_cb(uint8_t *p_buf, uint16_t length)
  * other constraints: therefore, this reset might not work everytime, especially after
  * flashing or debugging.
  */
-void nble_driver_init(void)
+void nble_driver_hw_reset(void)
 {
     uint32_t delay_until;
-    
-    nble_interface_init();
-    /* Setup UART0 for BLE communication, HW flow control required  */
-    SET_PIN_MODE(18, QRK_PMUX_SEL_MODEA); /* UART0_RXD        */
-    SET_PIN_MODE(19, QRK_PMUX_SEL_MODEA); /* UART0_TXD        */
-    SET_PIN_MODE(40, QRK_PMUX_SEL_MODEB); /* UART0_CTS_B      */
-    SET_PIN_MODE(41, QRK_PMUX_SEL_MODEB); /* UART0_RTS_B      */
-    
-	ipc_uart_init(0);
-	
-    //while (1)
-    //{}
+
 	/* RESET_PIN depends on the board and the local configuration: check top of file */
 	gpio_cfg_data_t pin_cfg = { .gpio_type = GPIO_OUTPUT };
+    
+	delay_until = get_uptime_32k() + 32768 * 2; // 2ms wait for Nordic chip boot
+	while (get_uptime_32k() < delay_until);
+	
+	ipc_uart_init(0);
     
 	soc_gpio_set_config(SOC_GPIO_32, RESET_PIN, &pin_cfg);
     //soc_gpio_set_config(SOC_GPIO_32_ID, BLE_SW_CLK_PIN, &pin_cfg);
 	/* Reset hold time is 0.2us (normal) or 100us (SWD debug) */
 	soc_gpio_write(SOC_GPIO_32, RESET_PIN, 0);
 	/* Wait for ~1ms */
-	delay_until = get_uptime_32k() + 32768;
+	delay_until = get_uptime_32k() + 327;//68;
 	
 	/* Open the UART channel for RPC while Nordic is in reset */
+    //if (NULL == m_rpc_channel)
 	m_rpc_channel = ipc_uart_channel_open(RPC_CHANNEL, uart_ipc_rpc_cback);
 	
 	while (get_uptime_32k() < delay_until);
@@ -334,6 +344,19 @@ void nble_driver_init(void)
 	/* Set back GPIO to input to avoid interfering with external debugger */
 	pin_cfg.gpio_type = GPIO_INPUT;
 	soc_gpio_set_config(SOC_GPIO_32, RESET_PIN, &pin_cfg);
+}
+
+void nble_driver_init(void)
+{
+    
+    nble_interface_init();
+    /* Setup UART0 for BLE communication, HW flow control required  */
+    SET_PIN_MODE(18, QRK_PMUX_SEL_MODEA); /* UART0_RXD        */
+    SET_PIN_MODE(19, QRK_PMUX_SEL_MODEA); /* UART0_TXD        */
+    SET_PIN_MODE(40, QRK_PMUX_SEL_MODEB); /* UART0_CTS_B      */
+    SET_PIN_MODE(41, QRK_PMUX_SEL_MODEB); /* UART0_RTS_B      */
+    
+    nble_driver_hw_reset();
 }
 
 

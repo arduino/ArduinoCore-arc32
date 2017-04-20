@@ -24,13 +24,14 @@
 uint8_t profile_notify_process (bt_conn_t *conn,
                                 bt_gatt_subscribe_params_t *params,
                                 const void *data, uint16_t length);
-uint8_t profile_read_rsp_process(bt_conn_t *conn, int err,
+uint8_t profile_read_rsp_process(bt_conn_t *conn, 
+                                 uint8_t err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length);
 
 uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn, 
-                                            int err,
+                                            uint8_t err,
                                             bt_gatt_read_params_t *params,
                                             const void *data, 
                                             uint16_t length);
@@ -41,11 +42,13 @@ int profile_longflush_process(struct bt_conn *conn,
 ssize_t profile_longwrite_process(struct bt_conn *conn,
                                      const struct bt_gatt_attr *attr,
                                      const void *buf, uint16_t len,
-                                     uint16_t offset);
+                                     uint16_t offset,
+                                     uint8_t flags);
 ssize_t profile_write_process(bt_conn_t *conn,
                               const bt_gatt_attr_t *attr,
                               const void *buf, uint16_t len,
-                              uint16_t offset);
+                              uint16_t offset,
+                              uint8_t flags);
 ssize_t profile_read_process(bt_conn_t *conn,
                              const bt_gatt_attr_t *attr,
                              void *buf, uint16_t len,
@@ -76,7 +79,7 @@ void ble_central_device_found(const bt_addr_le_t *addr,
                               uint8_t len);
 
 uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
-                                 int err,
+                                 uint8_t err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length);
@@ -84,7 +87,7 @@ uint8_t profile_service_read_rsp_process(bt_conn_t *conn,
 void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
                                          const void *data);
 uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn, 
-                                                 int err,
+                                                 uint8_t err,
                                                  bt_gatt_read_params_t *params,
                                                  const void *data, 
                                                  uint16_t length);
@@ -93,7 +96,8 @@ ssize_t profile_gatt_attr_write_ccc(struct bt_conn *conn,
                                     const struct bt_gatt_attr *attr, 
                                     const void *buf,
                                     uint16_t len, 
-                                    uint16_t offset);
+                                    uint16_t offset, 
+                                    uint8_t flags);
 
 #endif
 

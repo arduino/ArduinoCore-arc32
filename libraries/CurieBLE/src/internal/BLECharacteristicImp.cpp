@@ -38,7 +38,9 @@ BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid,
     _value_size(0),
     _value_length(0),
     _value(NULL),
+#ifdef TD_V3
     _value_buffer(NULL),
+#endif
     _value_updated(false),
     _value_handle(handle),
     _cccd_handle(0),
@@ -101,7 +103,9 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
                                            const BLEDevice& bledevice):
     BLEAttribute(characteristic.uuid(), BLETypeCharacteristic),
     _value_length(0),
+#ifdef TD_V3
     _value_buffer(NULL),
+#endif
     _value_updated(false),
     _value_handle(0),
     _cccd_handle(0),
@@ -123,6 +127,7 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
     {
         memset(_value, 0, _value_size);
     }
+#ifdef TD_V3
     if (_value_size > BLE_MAX_ATTR_DATA_LEN)
     {
         _value_buffer = (unsigned char*)malloc(_value_size);
@@ -136,6 +141,7 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
             memset(_value_buffer, 0, _value_size);
         }
     }
+#endif
     
     memset(&_ccc_cfg, 0, sizeof(_ccc_cfg));
     memset(&_ccc_value, 0, sizeof(_ccc_value));
@@ -196,11 +202,13 @@ BLECharacteristicImp::~BLECharacteristicImp()
         _value = (unsigned char *)NULL;
     }
     
+#ifdef TD_V3
     if (_value_buffer)
     {
         free(_value_buffer);
         _value_buffer = (unsigned char *)NULL;
     }
+#endif
 }
 
 unsigned char
@@ -211,34 +219,11 @@ BLECharacteristicImp::properties() const
 
 bool BLECharacteristicImp::writeValue(const byte value[], int length)
 {
-    int status;
-    bool retVal = false;
-    
-    _setValue(value, length, 0);
-    
-    // Address same is GATT server. Send notification if CCCD enabled
-    // Different is GATT client. Send write request
-    if (true == BLEUtils::isLocalBLE(_ble_device) &&
-        NULL != _attr_chrc_value)
-    {
-        // Notify for peripheral.
-        status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
-    // Sid.  KW found status is always 0
-    //        if (!status)
-    //        {
-            retVal = true;
-    //        }
-    }
-    
-    //Not schedule write request for central
-    // The write request may failed. 
-    // If user want to get latest set value. Call read and get the real value
-    return retVal;
+    return writeValue(value, length, 0);
 }
 
 bool BLECharacteristicImp::writeValue(const byte value[], int length, int offset)
 {
-    int status;
     bool retVal = false;
     
     _setValue(value, length, offset);
@@ -249,12 +234,8 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length, int offset
         NULL != _attr_chrc_value)
     {
         // Notify for peripheral.
-        status = bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
-	// Sid.  KW found status is always 0.
-	//        if (!status)
-	//        {
-            retVal = true;
-	//        }
+        bt_gatt_notify(NULL, _attr_chrc_value, value, length, NULL);
+        retVal = true;
     }
     
     //Not schedule write request for central
@@ -263,19 +244,8 @@ bool BLECharacteristicImp::writeValue(const byte value[], int length, int offset
     return retVal;
 }
 
-bool
-BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
+void BLECharacteristicImp::triggerValueUpdatedEvent()
 {
-    bool read_process_result = true;
-    if (NULL != value && length != 0)
-    {
-        _setValue(value, length, 0);
-        _value_updated = true;
-    }
-    else
-    {
-        read_process_result = false;
-    }
     if (BLEUtils::isLocalBLE(_ble_device) == true)
     {
         // GATT server
@@ -298,16 +268,6 @@ BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
     }
     else
     {
-        // GATT client
-        // Discovered attribute
-        // Read response/Notification/Indication for GATT client
-        if (_reading)
-        {
-            // Read response received. Not block the other reading.
-            _reading = false;
-            _gattc_read_result = read_process_result;
-        }
-        
         if (_value_updated)
         {
             if (_event_handlers[BLEValueUpdated]) 
@@ -324,7 +284,46 @@ BLECharacteristicImp::setValue(const unsigned char value[], uint16_t length)
             }
         }
     }
+}
+
+bool
+BLECharacteristicImp::setValue (const unsigned char value[], 
+                                uint16_t length)
+{
+    return setValue(value, length, 0);
+}
+
+bool
+BLECharacteristicImp::setValue (const unsigned char value[], 
+                                uint16_t length, 
+                                uint16_t offset)
+{
+    bool read_process_result = true;
+    pr_info(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    pr_info(LOG_MODULE_BLE, "Length-%p, %d", value, length);
+    if (NULL != value && length != 0)
+    {
+        _setValue(value, length, offset);
+        _value_updated = true;
+    }
+    else
+    {
+        read_process_result = false;
+    }
     
+    if (BLEUtils::isLocalBLE(_ble_device) == false)
+    {
+        // GATT client
+        // Discovered attribute
+        if (_reading)
+        {
+            // Read response received. Not block the other reading.
+            _reading = false;
+            _gattc_read_result = read_process_result;
+        }
+    }
+    
+    triggerValueUpdatedEvent();
     return true;
 }
 
@@ -748,14 +747,17 @@ bool BLECharacteristicImp::write(const unsigned char value[],
     // Send write request
     if (_gatt_chrc.properties & BT_GATT_CHRC_WRITE)
     {
+        struct bt_gatt_write_params params;
+        params.data = value;
+        params.length = length;
+        params.func = ble_on_write_no_rsp_complete;
+        params.handle = _value_handle;
+        params.offset = 0;
+        
         _gattc_writing = true;
         _gattc_write_result = false;
-        retval = bt_gatt_write(conn, 
-                               _value_handle,
-                               0,
-                               value, 
-                               length, 
-                               ble_on_write_no_rsp_complete);
+        
+        retval = bt_gatt_write(conn, &params);
         if (0 == retval)
         {
             while (_gattc_writing)
@@ -764,7 +766,8 @@ bool BLECharacteristicImp::write(const unsigned char value[],
             }
             write_process_result = _gattc_write_result;
         }
-    } else if (_gatt_chrc.properties & BT_GATT_CHRC_WRITE_WITHOUT_RESP)
+    }
+    else if (_gatt_chrc.properties & BT_GATT_CHRC_WRITE_WITHOUT_RESP)
     {
         retval = bt_gatt_write_without_response(conn, 
                                                 _value_handle,
@@ -776,6 +779,7 @@ bool BLECharacteristicImp::write(const unsigned char value[],
     return (0 == retval) && write_process_result;
 }
 
+#ifdef TD_V3
 void BLECharacteristicImp::setBuffer(const uint8_t value[], 
                                       uint16_t length, 
                                       uint16_t offset)
@@ -799,6 +803,7 @@ void BLECharacteristicImp::discardBuffer()
   if(_value_buffer)
     memcpy(_value_buffer, _value, _value_size);
 }
+#endif
 
 bool BLECharacteristicImp::longCharacteristic()
 {
@@ -838,9 +843,13 @@ int BLECharacteristicImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
     }
     else
     {
+#ifdef TD_V3
         // Long characteristic. MAX. 512
         start->write = profile_longwrite_process;
         start->flush = profile_longflush_process;
+#else
+        start->write = profile_write_process;
+#endif
     }
     _attr_chrc_value = start;
     pr_debug(LOG_MODULE_BLE, "chrcdescripor-%p, chimp-%p type-%d", start, this, this->type());
@@ -875,7 +884,7 @@ int BLECharacteristicImp::updateProfile(bt_gatt_attr_t *attr_start, int& index)
         counter += offset;
         node = node->next;
     }
-    pr_debug(LOG_MODULE_BLE, "%s:type-%d", __FUNCTION__, this->type());
+    //pr_debug(LOG_MODULE_BLE, "%s:type-%d", __FUNCTION__, this->type());
     return counter;
 }
 
@@ -888,13 +897,13 @@ int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
     }
     
     descriptorImp = new BLEDescriptorImp(_ble_device, descriptor);
-    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d- length %d",__FUNCTION__, __LINE__, descriptor.valueLength());
     if (NULL == descriptorImp)
     {
         return BLE_STATUS_NO_MEMORY;
     }
     
-    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     BLEDescriptorNodePtr node = link_node_create(descriptorImp);
     if (NULL == node)
     {
@@ -902,7 +911,7 @@ int BLECharacteristicImp::addDescriptor(BLEDescriptor& descriptor)
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_descriptors_header, node);
-    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     return BLE_STATUS_SUCCESS;
 }
 
@@ -917,7 +926,7 @@ int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid,
     }
     
     descriptorImp = new BLEDescriptorImp(uuid, property, handle, _ble_device);
-    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     if (NULL == descriptorImp)
     {
         return BLE_STATUS_NO_MEMORY;
@@ -930,7 +939,7 @@ int BLECharacteristicImp::addDescriptor(const bt_uuid_t* uuid,
         return BLE_STATUS_NO_MEMORY;
     }
     link_node_insert_last(&_descriptors_header, node);
-    pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d",__FUNCTION__, __LINE__);
     return BLE_STATUS_SUCCESS;
 }
 

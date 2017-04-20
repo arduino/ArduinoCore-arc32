@@ -96,6 +96,7 @@ private:
     bool discoverAttributes(BLEDevice* device, 
                             uint16_t start_handle, 
                             uint16_t end_handle);
+    void setDiscovering(bool enable);
 private:
     typedef LinkNode<BLECharacteristicImp *>  BLECharacteristicLinkNodeHeader;
     typedef LinkNode<BLECharacteristicImp *>* BLECharacteristicNodePtr;
@@ -114,6 +115,7 @@ private:
     bt_gatt_discover_params_t _discover_params;
     
     BLECharacteristicLinkNodeHeader _characteristics_header; // The characteristic link list
+    bool _discovering;
 };
 
 #endif // _BLE_SERVICE_H_INCLUDED

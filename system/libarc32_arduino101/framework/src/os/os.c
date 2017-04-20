@@ -30,52 +30,11 @@
 
 #include "cfw/cfw.h"
 #include "os/os.h"
+#include "infra/log.h"
+#include "misc/util.h"
 
 /*************************    MEMORY   *************************/
-
-
-#if 0
-
-#ifdef TRACK_ALLOCS
-#include "infra/log.h"
-int alloc_count = 0;
-#endif
-
-void * cfw_alloc(int size, OS_ERR_TYPE * err) {
-    void * ptr;
-    unsigned int flags = interrupt_lock();
-    ptr = malloc(size+sizeof(void*));
-    if (ptr != NULL) {
-        (*(int*) ptr) = size;
-#ifdef TRACK_ALLOCS
-        alloc_count++;
-        pr_info(0, "alloc_count - %d", alloc_count);
-#endif
-        interrupt_unlock(flags);
-        return ptr;
-    } else
-        return 0;
-}
-
-void cfw_free(void * ptr, OS_ERR_TYPE * err) {
-    int flags = interrupt_lock();
-#ifdef TRACK_ALLOCS
-    alloc_count--;
-    pr_info(0, "alloc_countf - %d", alloc_count);
-#endif
-    free(ptr);
-    interrupt_unlock(flags);
-}
-
-void * balloc(uint32_t size, OS_ERR_TYPE *err) {
-	return cfw_alloc(size, err);
-}
-
-OS_ERR_TYPE bfree(void *ptr) {
-	cfw_free(ptr, NULL);
-	return E_OS_OK;
-}
-#endif
+// See the balloc.c
 
 /*************************    QUEUES   *************************/
 
@@ -85,7 +44,7 @@ typedef struct queue_ {
     int used;
 } q_t;
 
-q_t q_pool[10];
+static q_t q_pool[10];
 
 void queue_put(void *queue, void *msg) {
     q_t * q = (q_t*) queue;
@@ -116,15 +75,24 @@ void queue_send_message (T_QUEUE queue, T_QUEUE_MESSAGE message, OS_ERR_TYPE* er
 
 T_QUEUE queue_create(uint32_t  max_size, OS_ERR_TYPE*err) {
     int i, found=0;
-    q_t * q;
-    for (i=0;i<10; i++) {
+    q_t * q = NULL;
+    
+    for (i = 0; i < ARRAY_SIZE(q_pool); i++)
+    {
         q = &q_pool[i];
-        if (q->used == 0) {
+        if (q->used == 0) 
+        {
             q->used = 1;
             found = 1;
+            break;
         }
     }
-    if (!found) return (T_QUEUE)NULL;
+    
+    if (!found) 
+    {
+        return (T_QUEUE)NULL;
+    }
+    
     list_init(&q->lh);
     q->count = 0;
     return (T_QUEUE) q;
@@ -161,3 +129,23 @@ OS_ERR_TYPE mutex_lock(T_MUTEX mutex, int timeout)
 {
     return E_OS_OK;
 }
+
+// FIFO
+void fifo_init(struct os_fifo *fifo)
+{
+    if (fifo->queue == NULL)
+    {
+        fifo->queue = queue_create (10, NULL);
+    }
+}
+
+void *fifo_get(struct os_fifo *fifo, int32_t timeout)
+{
+    return queue_wait(fifo->queue);
+}
+
+void fifo_put(struct os_fifo *fifo, void *data)
+{
+    queue_put(fifo->queue, data);
+}
+

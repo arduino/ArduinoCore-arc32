@@ -65,8 +65,7 @@ BLEDeviceManager::BLEDeviceManager():
     
     ble_client_get_factory_config(&_local_bda, _device_name);
     
-    _adv_param.type = BT_LE_ADV_IND;
-    _adv_param.addr_type = _local_bda.type;
+    setConnectable(true);
     _adv_param.interval_min = 0xA0;
     _adv_param.interval_max = 0xF0;
     
@@ -80,7 +79,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(_peer_adv_data, 0, sizeof(_peer_adv_data));
     memset(_peer_adv_data_len, 0, sizeof(_peer_adv_data_len));
     memset(_peer_scan_rsp_data, 0, sizeof(_peer_scan_rsp_data));
-    memset(_peer_scan_rsp_data_len, -1, sizeof(_peer_scan_rsp_data_len));
+    memset(_peer_scan_rsp_data_len, 0, sizeof(_peer_scan_rsp_data_len));
     memset(_peer_adv_rssi, 0, sizeof(_peer_adv_rssi));
     
     memset(_peer_adv_connectable, 0, sizeof(_peer_adv_connectable));
@@ -321,12 +320,14 @@ bool BLEDeviceManager::setTxPower(int txPower)
 
 void BLEDeviceManager::setConnectable(bool connectable)
 {
-    uint8_t type = BT_LE_ADV_IND;
     if (connectable == false)
     {
-        type = BT_LE_ADV_NONCONN_IND;
+        _adv_param.options = 0;
     }
-    _adv_param.type = type;
+    else
+    {
+        _adv_param.options = BT_LE_ADV_OPT_CONNECTABLE;
+    }
 }
 
 void BLEDeviceManager::setDeviceName(const char* deviceName)
@@ -1154,7 +1155,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
     bool link_existed = false;
     bool retval = false;
     
-    pr_debug(LOG_MODULE_BLE, "%s-%d-1", __FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d-1", __FUNCTION__, __LINE__);
     
     // Find free peripheral Items
     for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
@@ -1188,7 +1189,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
             }
         }
     }
-    pr_debug(LOG_MODULE_BLE, "%s-%d:link_existed-%d unused-%p", __FUNCTION__, __LINE__, link_existed, unused);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d:link_existed-%d unused-%p", __FUNCTION__, __LINE__, link_existed, unused);
     
     if (!link_existed && NULL != unused)
     {
@@ -1382,7 +1383,9 @@ BLEDevice BLEDeviceManager::available()
     {
         uint64_t timestamp_delta = timestamp - _peer_adv_mill[i];
         temp = &_peer_adv_buffer[i];
-        if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta) && (_peer_scan_rsp_data_len[i] >= 0 || !_peer_adv_connectable[i]))
+        if ((timestamp_delta >= 800) && // Wait scan response coming
+            (timestamp_delta <= 2000) && // Check timeout
+            (max_delta < timestamp_delta))
         {
             // Eable the duplicate filter
             if (_adv_duplicate_filter_enabled && 
@@ -1444,7 +1447,7 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
             if (max_delta > 2000) // expired
             {
                 index = i;
-                _peer_scan_rsp_data_len[index] = -1; // Invalid the scan response
+                _peer_scan_rsp_data_len[index] = 0; // Invalid the scan response
             }
         }
         
@@ -1473,7 +1476,8 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
         _peer_adv_data_len[index] = data_len;
         _peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
         _peer_adv_connectable[index] = connectable;
         retval = true;
     }
@@ -1515,7 +1519,8 @@ bool BLEDeviceManager::setScanRespBuffer(const bt_addr_le_t* bt_addr,
         _peer_scan_rsp_data_len[index] = data_len;
         //_peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
         retval = true;
     }
     
@@ -1644,7 +1649,7 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
     //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     // Filter address
     if (BLEUtils::macAddressValid(_adv_accept_device) == true && 
-       (memcmp(addr->val, _adv_accept_device.val, sizeof (addr->val)) != 0))
+       (memcmp(addr->a.val, _adv_accept_device.a.val, sizeof (addr->a.val)) != 0))
     {
         pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
         return;

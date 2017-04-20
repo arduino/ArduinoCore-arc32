@@ -61,26 +61,27 @@ ssize_t profile_read_process(bt_conn_t *conn,
 ssize_t profile_write_process(bt_conn_t *conn,
                               const bt_gatt_attr_t *attr,
                               const void *buf, uint16_t len,
-                              uint16_t offset)
+                              uint16_t offset, uint8_t flags)
 {
     pr_info(LOG_MODULE_BLE, "%s1", __FUNCTION__);
     BLEAttribute *bleattr = (BLEAttribute *)attr->user_data;
     BLECharacteristicImp* blecharacteritic;
     BLEAttributeType type = bleattr->type();
-    if ((BLETypeCharacteristic != type) || 0 != offset)
+    if (BLETypeCharacteristic != type)
     {
         return 0;
     }
     
     blecharacteritic = (BLECharacteristicImp*)bleattr;
-    blecharacteritic->setValue((const uint8_t *) buf, len);
+    blecharacteritic->setValue((const uint8_t *) buf, len, offset);
     return len;
 }
 
+#ifdef TD_V3
 ssize_t profile_longwrite_process(struct bt_conn *conn,
                                      const struct bt_gatt_attr *attr,
                                      const void *buf, uint16_t len,
-                                     uint16_t offset)
+                                     uint16_t offset, uint8_t flags)
 {
     BLEAttribute *bleattr = (BLEAttribute *)attr->user_data;
     BLEAttributeType type = bleattr->type();
@@ -121,7 +122,7 @@ int profile_longflush_process(struct bt_conn *conn,
 
     return -EINVAL;
 }
-
+#endif
 
 // GATT client only
 uint8_t profile_notify_process (bt_conn_t *conn,
@@ -157,7 +158,7 @@ uint8_t profile_discover_process(bt_conn_t *conn,
 
 // GATT Client only
 uint8_t profile_read_rsp_process(bt_conn_t *conn, 
-                                 int err,
+                                 uint8_t err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length)
@@ -175,7 +176,7 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
 }
 
 uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn, 
-                                            int err,
+                                            uint8_t err,
                                             bt_gatt_read_params_t *params,
                                             const void *data, 
                                             uint16_t length)
@@ -200,7 +201,7 @@ uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn,
 }
 
 uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
-                                 int err,
+                                 uint8_t err,
                                  bt_gatt_read_params_t *params,
                                  const void *data, 
                                  uint16_t length)
@@ -211,7 +212,7 @@ uint8_t profile_service_read_rsp_process(bt_conn_t *conn,
 }
 
 uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn, 
-                                                 int err,
+                                                 uint8_t err,
                                                  bt_gatt_read_params_t *params,
                                                  const void *data, 
                                                  uint16_t length)
@@ -277,6 +278,11 @@ static uint8_t ble_gatt_disconnected_cb(const struct bt_gatt_attr *attr, void *u
 
                 bt_conn_unref(tmp);
             }
+        } else {
+            /* Clear value if not paired */
+            if (!ccc->cfg[i].valid)
+                memset(&ccc->cfg[i].value, 0,
+                       sizeof(ccc->cfg[i].value));
         }
     }
 
@@ -340,15 +346,16 @@ void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
 }
 
 ssize_t profile_gatt_attr_write_ccc(struct bt_conn *conn,
-                                    const struct bt_gatt_attr *attr, 
-                                    const void *buf,
-                                    uint16_t len, 
-                                    uint16_t offset)
+                               const struct bt_gatt_attr *attr, 
+                               const void *buf,
+                               uint16_t len, 
+                               uint16_t offset, 
+                               uint8_t flags)
 {
     struct _bt_gatt_ccc *ccc = (struct _bt_gatt_ccc *)attr->user_data;
     const uint16_t *data = (const uint16_t *)buf;
     bool cccdChanged = (ccc->value != *data);
-    ssize_t retValue = bt_gatt_attr_write_ccc(conn, attr, buf, len, offset);
+    ssize_t retValue = bt_gatt_attr_write_ccc(conn, attr, buf, len, offset, flags);
     if (cccdChanged)
     {
         // Find characteristic and do notification
