@@ -417,7 +417,7 @@ static void gatt_ccc_changed(struct _bt_gatt_ccc *ccc)
 	if (value != ccc->value) {
 		ccc->value = value;
 		if (ccc->cfg_changed)
-			ccc->cfg_changed(value);
+			ccc->cfg_changed(ccc->user_data, value);
 	}
 }
 
@@ -793,7 +793,7 @@ static uint8_t disconnected_cb(const struct bt_gatt_attr *attr, void *user_data)
 	memset(&ccc->value, 0, sizeof(ccc->value));
 
 	if (ccc->cfg_changed) {
-		ccc->cfg_changed(ccc->value);
+		ccc->cfg_changed(ccc->user_data, ccc->value);
 	}
 
 	BT_DBG("ccc %p reseted", ccc);

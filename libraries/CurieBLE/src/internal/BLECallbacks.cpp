@@ -152,7 +152,7 @@ uint8_t profile_discover_process(bt_conn_t *conn,
     uint8_t ret = BT_GATT_ITER_STOP;
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     ret = BLEProfileManager::instance()->discoverResponseProc(conn, attr, params);
-    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     return ret;
 }
 
@@ -239,66 +239,6 @@ void bleConnectEventHandler(bt_conn_t *conn,
     p->handleConnectEvent(conn, err);
 }
 
-static uint8_t ble_gatt_disconnected_cb(const struct bt_gatt_attr *attr, void *user_data)
-{
-    struct bt_conn *conn = (struct bt_conn *)user_data;
-    struct _bt_gatt_ccc *ccc;
-    size_t i;
-    
-    /* Check attribute user_data must be of type struct _bt_gatt_ccc */
-    if (attr->write != profile_gatt_attr_write_ccc) {
-        return BT_GATT_ITER_CONTINUE;
-    }
-    
-    ccc = (struct _bt_gatt_ccc *)attr->user_data;
-    /* If already disabled skip */
-    if (!ccc->value) {
-        return BT_GATT_ITER_CONTINUE;
-    }
-
-    for (i = 0; i < ccc->cfg_len; i++)
-    {
-        /* Ignore configurations with disabled value */
-        if (!ccc->cfg[i].value)
-        {
-            continue;
-        }
-
-        if (bt_addr_le_cmp(&conn->le.dst, &ccc->cfg[i].peer))
-        {
-            struct bt_conn *tmp;
-
-            /* Skip if there is another peer connected */
-            tmp = bt_conn_lookup_addr_le(&ccc->cfg[i].peer);
-            if (tmp) {
-                if (tmp->state == BT_CONN_CONNECTED) {
-                    bt_conn_unref(tmp);
-                    return BT_GATT_ITER_CONTINUE;
-                }
-
-                bt_conn_unref(tmp);
-            }
-        } else {
-            /* Clear value if not paired */
-            if (!ccc->cfg[i].valid)
-                memset(&ccc->cfg[i].value, 0,
-                       sizeof(ccc->cfg[i].value));
-        }
-    }
-
-    /* Reset value while disconnected */
-    memset(&ccc->value, 0, sizeof(ccc->value));
-
-    if (ccc->cfg_changed) {
-        ccc->cfg_changed(ccc->value);
-    }
-
-    pr_debug(LOG_MODULE_BLE, "ccc %p reseted", ccc);
-
-    return BT_GATT_ITER_CONTINUE;
-}
-
-
 void bleDisconnectEventHandler(bt_conn_t *conn, 
                                 uint8_t reason, 
                                 void *param)
@@ -306,7 +246,6 @@ void bleDisconnectEventHandler(bt_conn_t *conn,
     BLEDeviceManager* p = (BLEDeviceManager*)param;
     
     pr_info(LOG_MODULE_BLE, "Connect lost. Reason: %d", reason);
-    bt_gatt_foreach_attr(0x0001, 0xffff, ble_gatt_disconnected_cb, conn);
 
     p->handleDisconnectEvent(conn, reason);
 }
@@ -345,30 +284,13 @@ void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
     BLECharacteristicImp::writeResponseReceived(conn, err, data);
 }
 
-ssize_t profile_gatt_attr_write_ccc(struct bt_conn *conn,
-                               const struct bt_gatt_attr *attr, 
-                               const void *buf,
-                               uint16_t len, 
-                               uint16_t offset, 
-                               uint8_t flags)
+void prfile_cccd_cfg_changed(void *user_data, uint16_t value)
 {
-    struct _bt_gatt_ccc *ccc = (struct _bt_gatt_ccc *)attr->user_data;
-    const uint16_t *data = (const uint16_t *)buf;
-    bool cccdChanged = (ccc->value != *data);
-    ssize_t retValue = bt_gatt_attr_write_ccc(conn, attr, buf, len, offset, flags);
-    if (cccdChanged)
-    {
-        // Find characteristic and do notification
-        const struct bt_gatt_attr *attrChrc = attr - 1;
-        BLEAttribute *bleattr = (BLEAttribute *)attrChrc->user_data;
-        BLEAttributeType type = bleattr->type();
-        pr_debug(LOG_MODULE_BLE, "The Attribute type:%d", type);
-        if (BLETypeCharacteristic == type)
-        {
-            BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp*)bleattr;
-            blecharacteritic->cccdValueChanged();
-        }
-    }
-    return retValue;
+    if (NULL == user_data)
+        return;
+    pr_info(LOG_MODULE_BLE, "%s-%d: ccc userdata %p", __FUNCTION__, __LINE__, user_data);
+    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp *)user_data;
+    blecharacteritic->cccdValueChanged();
 }
+
 

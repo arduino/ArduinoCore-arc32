@@ -20,11 +20,6 @@
 #ifndef _BLE_CHARACTERISTICIMP_H_INCLUDED
 #define _BLE_CHARACTERISTICIMP_H_INCLUDED
 
-//#include "BLECommon.h"
-
-//#include "BLEDevice.h"
-//#include "BLEDescriptor.h"
-
 #include "CurieBLE.h"
 #include "BLEDescriptorImp.h"
 
@@ -304,6 +299,11 @@ protected:
    bt_gatt_subscribe_params_t* getSubscribeParams();
 
 private:
+    
+    void resetEventHanler();
+    void resetDescriptorList();
+    void initProfileParameter(unsigned char properties);
+    void initVauleFromCharacteristic(const BLECharacteristic& characteristic);
     
     void setCCCDHandle(uint16_t handle);
     void setHandle(uint16_t handle);

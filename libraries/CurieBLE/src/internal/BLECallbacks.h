@@ -92,12 +92,7 @@ uint8_t profile_characteristic_read_rsp_process(bt_conn_t *conn,
                                                  const void *data, 
                                                  uint16_t length);
 
-ssize_t profile_gatt_attr_write_ccc(struct bt_conn *conn,
-                                    const struct bt_gatt_attr *attr, 
-                                    const void *buf,
-                                    uint16_t len, 
-                                    uint16_t offset, 
-                                    uint8_t flags);
+void prfile_cccd_cfg_changed(void *user_data, uint16_t value);
 
 #endif
 

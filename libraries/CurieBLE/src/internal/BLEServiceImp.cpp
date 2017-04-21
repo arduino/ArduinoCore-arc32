@@ -171,7 +171,7 @@ int BLEServiceImp::getCharacteristicCount()
 void BLEServiceImp::releaseCharacteristic()
 {
     BLECharacteristicNodePtr node = link_node_get_first(&_characteristics_header);
-    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     while (NULL != node)
     {
         BLECharacteristicImp* characteristicImp = node->value;
@@ -179,7 +179,7 @@ void BLEServiceImp::releaseCharacteristic()
         link_node_remove_first(&_characteristics_header);
         node = link_node_get_first(&_characteristics_header);
     }
-    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
 }
 
 
