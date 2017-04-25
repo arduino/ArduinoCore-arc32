@@ -407,19 +407,10 @@ BLEDeviceManager::setAdvertiseData(uint8_t type, const uint8_t* data, uint8_t le
 }
 
 BLE_STATUS_T
-BLEDeviceManager::_advDataInit(void)
+BLEDeviceManager::setAdvertiseSolicitService()
 {
     BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
-    // Clear the indexs
-    _adv_data_idx = 0;
-    _scan_rsp_data_idx = 0;
-    
-    /* Add flags */
-    _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
-    ret = setAdvertiseData (BT_DATA_FLAGS, &_adv_type, sizeof(_adv_type));
-    
-    if (_has_service_solicit_uuid && 
-        (BLE_STATUS_SUCCESS == ret)) 
+    if (_has_service_solicit_uuid)
     {
         uint8_t type;
         uint8_t length;
@@ -441,9 +432,14 @@ BLEDeviceManager::_advDataInit(void)
         
         ret = setAdvertiseData(type, data, length);
     }
-    
-    if (_has_service_uuid && 
-        (BLE_STATUS_SUCCESS == ret)) 
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseService()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_has_service_uuid) 
     {
         uint8_t type;
         uint8_t length;
@@ -464,17 +460,28 @@ BLEDeviceManager::_advDataInit(void)
         }
         ret = setAdvertiseData(type, data, length);
     }
-    
-    if (_manufacturer_data_length > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseManufacturerData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+
+    if (_manufacturer_data_length > 0)
     {
         ret = setAdvertiseData (BT_DATA_MANUFACTURER_DATA, 
                                 _manufacturer_data, 
                                 _manufacturer_data_length);
     }
+    return ret;
+}
 
-    if (_local_name.length() > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseLocalName()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_local_name.length() > 0)
     {
         uint8_t length = _local_name.length();
         ret = setAdvertiseData (BT_DATA_NAME_COMPLETE, 
@@ -482,8 +489,14 @@ BLEDeviceManager::_advDataInit(void)
                                 length);
     }
     
-    if (_service_data_length > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseServiceData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_service_data_length > 0)
     {
         /* Add Service Data (if it will fit) */
 
@@ -511,7 +524,67 @@ BLEDeviceManager::_advDataInit(void)
         adv_tmp += 2;
         memcpy(adv_tmp, _service_data, _service_data_length);
     }
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseFlagData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    /* Add flags */
+    _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
+    ret = setAdvertiseData (BT_DATA_FLAGS, &_adv_type, sizeof(_adv_type));
+    return ret;
+}
+
+void BLEDeviceManager::clearPeripheralAdvertiseData()
+{
+    // Clear the indexs
+    _adv_data_idx = 0;
+    _scan_rsp_data_idx = 0;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::_advDataInit(void)
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
     
+    clearPeripheralAdvertiseData();
+    
+    ret = setAdvertiseFlagData();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseSolicitService();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseService();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseManufacturerData();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseLocalName();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseServiceData();
+    
+    pr_debug(LOG_MODULE_BLE, "%s-ad_len:%d, scanrsp_len:%d", 
+             __FUNCTION__, _adv_data_idx, _scan_rsp_data_idx);
     return ret;
 }
 
@@ -519,19 +592,25 @@ BLE_STATUS_T BLEDeviceManager::startAdvertising()
 {
     int ret;
     BLE_STATUS_T status;
+    bt_data_t* scan_rsp_data = NULL;
     status = _advDataInit();
     if (BLE_STATUS_SUCCESS != status)
     {
         return status;
     }
 
-    pr_info(LOG_MODULE_BLE, "%s-ad_len%d", __FUNCTION__, _adv_data_idx);
     if (_state != BLE_PERIPH_STATE_READY)
         return BLE_STATUS_WRONG_STATE;
     
+    // The V4.2 stack used the pointer to set the ADV type
+    if (_scan_rsp_data_idx > 0)
+    {
+        scan_rsp_data = _scan_rsp_data;
+    }
+    
     ret = bt_le_adv_start(&_adv_param, 
                           _adv_data, _adv_data_idx, 
-                          _scan_rsp_data, _scan_rsp_data_idx);
+                          scan_rsp_data, _scan_rsp_data_idx);
     if (0 != ret)
     {
         pr_error(LOG_MODULE_APP, "[ADV] Start failed. Error: %d", ret);
@@ -611,11 +690,9 @@ void BLEDeviceManager::_clearAdvertiseBuffer()
     
 }
 
-bool BLEDeviceManager::startScanningWithDuplicates()
+bool BLEDeviceManager::startScaning()
 {
-    _adv_duplicate_filter_enabled = false;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
-
     _clearAdvertiseBuffer();
     
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
@@ -627,29 +704,27 @@ bool BLEDeviceManager::startScanningWithDuplicates()
     return true;
 }
 
+bool BLEDeviceManager::startScanningWithDuplicates()
+{
+    _adv_duplicate_filter_enabled = false;
+    return startScaning();
+}
+
 bool BLEDeviceManager::startScanningNewPeripherals()
 {
+    // Clear the filter old buffer
     _adv_duplicate_filter_enabled = true;
-    memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
+    memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
 
-    _clearAdvertiseBuffer();
-    
-    _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
-    int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
-    if (err)
-    {
-        pr_info(LOG_MODULE_BLE, "Scanning failed to start (err %d)\n", err);
-        return false;
-    }
-    return true;
+    return startScaning();
 }
 
 bool BLEDeviceManager::stopScanning()
 {
     int err = bt_le_scan_stop();
 
-    if (err)  // Sid. TODO: KW detected bt_le_scan_stop return only 0.
+    if (err)
     {
         pr_info(LOG_MODULE_BLE, "Stop LE scan failed (err %d)\n", err);
         return false;
@@ -765,17 +840,21 @@ bool BLEDeviceManager::hasLocalName(const BLEDevice* device) const
     
     const uint8_t* local_name = NULL;
     uint8_t local_name_len = 0;
+    
+    // Get local name
     bool retval = getDataFromAdvertiseByType(device, 
                                              BT_DATA_NAME_COMPLETE,
                                              local_name, 
                                              local_name_len);
-    if (false == retval)
+    if (true == retval)
     {
-        retval = getDataFromAdvertiseByType(device, 
-                                            BT_DATA_NAME_SHORTENED,
-                                            local_name, 
-                                            local_name_len);
+        return true;
     }
+    // Get shorten name
+    retval = getDataFromAdvertiseByType(device, 
+                                        BT_DATA_NAME_SHORTENED,
+                                        local_name, 
+                                        local_name_len);
     return retval;
 }
 
@@ -936,13 +1015,13 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
             return service_cnt;
         }
 
-	/* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
-	   BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
-	   Practically, these types are same as ALL. */
+    /* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
+       BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
+       Practically, these types are same as ALL. */
         if (type == BT_DATA_UUID16_ALL ||
             type == BT_DATA_UUID128_ALL ||
-	    type == BT_DATA_UUID16_SOME ||
-	    type == BT_DATA_UUID128_SOME)
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
@@ -959,7 +1038,7 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
     {
         return _local_name;
     }
-
+    
     const uint8_t* local_name = NULL;
     uint8_t local_name_len = 0;
     String temp("");
@@ -1037,8 +1116,8 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
 
         if (type == BT_DATA_UUID16_ALL ||
             type == BT_DATA_UUID128_ALL ||
-	    type == BT_DATA_UUID16_SOME ||
-	    type == BT_DATA_UUID128_SOME)
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }

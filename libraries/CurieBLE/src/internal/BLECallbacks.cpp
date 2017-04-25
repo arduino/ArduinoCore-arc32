@@ -129,14 +129,11 @@ uint8_t profile_notify_process (bt_conn_t *conn,
                                 bt_gatt_subscribe_params_t *params,
                                 const void *data, uint16_t length)
 {
-    //BLEPeripheralHelper* peripheral = BLECentralRole::instance()->peripheral(conn);// Find peripheral by bt_conn
-    //BLEAttribute* notifyatt = peripheral->attribute(params); // Find attribute by params
     BLECharacteristicImp* chrc = NULL;
     BLEDevice bleDevice(bt_conn_get_dst(conn));
     chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->value_handle);
     
-    //assert(notifyatt->type() == BLETypeCharacteristic);
-    pr_debug(LOG_MODULE_APP, "%s1", __FUNCTION__);
+    pr_debug(LOG_MODULE_APP, "%s-%d", __FUNCTION__, __LINE__);
     if (NULL != chrc)
     {
         chrc->setValue((const unsigned char *)data, length);
@@ -152,7 +149,6 @@ uint8_t profile_discover_process(bt_conn_t *conn,
     uint8_t ret = BT_GATT_ITER_STOP;
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     ret = BLEProfileManager::instance()->discoverResponseProc(conn, attr, params);
-    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     return ret;
 }
 
@@ -166,6 +162,7 @@ uint8_t profile_read_rsp_process(bt_conn_t *conn,
     BLECharacteristicImp *chrc = NULL;
     BLEDevice bleDevice(bt_conn_get_dst(conn));
     
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     // Get characteristic by handle params->single.handle
     chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->single.handle);
     
@@ -188,15 +185,14 @@ uint8_t profile_descriptor_read_rsp_process(bt_conn_t *conn,
     BLEDescriptorImp *descriptor = NULL;
     BLEDevice bleDevice(bt_conn_get_dst(conn));
     
+    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     // Get characteristic by handle params->single.handle
     descriptor = BLEProfileManager::instance()->descriptor(bleDevice, params->single.handle);
     
-    //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     if (descriptor)
     {
         descriptor->writeValue((const unsigned char *)data, length, params->single.offset);
     }
-    //pr_debug(LOG_MODULE_BLE, "%s-%d: desc len-%d", __FUNCTION__, __LINE__, descriptor->valueLength());
     return BT_GATT_ITER_STOP;
 }
 
@@ -269,13 +265,14 @@ void ble_central_device_found(const bt_addr_le_t *addr,
                               uint8_t len)
 {
     //char dev[BT_ADDR_LE_STR_LEN];
-
     //bt_addr_le_to_str(addr, dev, sizeof(dev));
     //pr_debug(LOG_MODULE_BLE, "[DEVICE]: %s, AD evt type %u, AD data len %u, RSSI %i\n",
     //       dev, type, len, rssi);
+    //pr_debug(LOG_MODULE_BLE, " AD evt type %u, AD data len %u, RSSI %i\n",
+    //       type, len, rssi);
 
     BLEDeviceManager::instance()->handleDeviceFound(addr, rssi, type,
-                                                  ad, len);
+                                                    ad, len);
 }
 
 void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
@@ -288,7 +285,8 @@ void prfile_cccd_cfg_changed(void *user_data, uint16_t value)
 {
     if (NULL == user_data)
         return;
-    pr_info(LOG_MODULE_BLE, "%s-%d: ccc userdata %p", __FUNCTION__, __LINE__, user_data);
+    pr_debug(LOG_MODULE_BLE, "%s-%d: ccc userdata %p", __FUNCTION__, __LINE__, user_data);
+
     BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp *)user_data;
     blecharacteritic->cccdValueChanged();
 }
