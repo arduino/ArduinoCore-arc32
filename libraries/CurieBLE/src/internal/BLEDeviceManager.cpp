@@ -130,6 +130,11 @@ bool BLEDeviceManager::begin(BLEDevice *device)
 {
     if (NULL == _local_ble)
     {
+        // TODO: Olny allow call one time
+        ble_client_init (bleConnectEventHandler, this,
+                         bleDisconnectEventHandler, this,
+                         bleParamUpdatedEventHandler, this);
+        
         _local_ble = device;
         bt_le_set_mac_address(_local_bda);
         
@@ -137,10 +142,6 @@ bool BLEDeviceManager::begin(BLEDevice *device)
         setDeviceName();
         _state = BLE_PERIPH_STATE_READY;
         delay(4);
-        // TODO: Olny allow call one time
-        ble_client_init (bleConnectEventHandler, this,
-                         bleDisconnectEventHandler, this,
-                         bleParamUpdatedEventHandler, this);
         return true;
     }
     else

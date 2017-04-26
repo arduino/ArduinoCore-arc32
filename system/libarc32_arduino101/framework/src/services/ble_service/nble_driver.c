@@ -235,10 +235,11 @@ static int uart_ipc_rpc_cback(int channel, int request, int len, void *p_data)
 		/* if BLE service is available, handle it in BLE service context */
 		struct ble_rpc_callin *rpc = (void *) message_alloc(
 				sizeof(*rpc), NULL);
-if (NULL == rpc)
-{
-    panic(-1);
-}
+        if (NULL == rpc)
+        {
+            panic(-1);
+        }
+        
 		MESSAGE_ID(&rpc->msg) = 0;
 		MESSAGE_LEN(&rpc->msg) = sizeof(*rpc);
 		MESSAGE_SRC(&rpc->msg) = rpc_port_id;
@@ -369,7 +370,7 @@ void nble_driver_configure(T_QUEUE queue, void (*handler)(struct message*, void*
 }
 
 
-void on_nble_curie_init(void)
+void nble_curie_unreset_hook(void)
 {
 	nble_driver_init();
 }

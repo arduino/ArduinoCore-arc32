@@ -42,6 +42,7 @@
 #include "infra/version.h"
 #include "curie_factory_data.h"
 #include "portable.h"
+#include "services/ble/ble_service.h"
 
 #include "uart.h"
 #include "ipc_uart_ns16550.h"
@@ -193,7 +194,9 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
                      ble_client_disconnect_event_cb_t disconnect_cb, void* disconnect_param,
                      ble_client_update_param_event_cb_t update_param_cb, void* update_param_param)
 {
-    //uint32_t delay_until;
+    // Enable the HW
+    ble_enable();
+    
     pr_info(LOG_MODULE_BLE, "%s", __FUNCTION__);
     ble_client_connect_event_cb = connect_cb;
     ble_client_connect_event_param = connect_param;
