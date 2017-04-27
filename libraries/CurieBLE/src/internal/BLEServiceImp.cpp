@@ -284,14 +284,19 @@ void BLEServiceImp::setDiscovering(bool enable)
     _discovering = enable;
 }
 
-bool BLEServiceImp::discoverAttributes(BLEDevice* device)
+bool BLEServiceImp::discoverAttributes(BLEDevice* device,
+                                       bool discoverGapGatt)
 {
-    return discoverAttributes(device, _start_handle, _end_handle);
+    return discoverAttributes(device, 
+                              _start_handle, 
+                              _end_handle, 
+                              discoverGapGatt);
 }
 
 bool BLEServiceImp::discoverAttributes(BLEDevice* device, 
                                        uint16_t start_handle, 
-                                       uint16_t end_handle)
+                                       uint16_t end_handle,
+                                       bool discoverGapGatt)
 {
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     int err;
@@ -300,9 +305,10 @@ bool BLEServiceImp::discoverAttributes(BLEDevice* device,
     const bt_uuid_t* service_uuid = bt_uuid();
     
     // Filt out GAP/GATT service
-    if (service_uuid->type == BT_UUID_TYPE_16)
+    if (discoverGapGatt == false && // Don't discover GAP and GATT service
+        service_uuid->type == BT_UUID_TYPE_16)
     {
-        uint16_t uuid_tmp;// = ((bt_uuid_16_t*)service_uuid)->val;
+        uint16_t uuid_tmp;
         
         memcpy(&uuid_tmp, &((bt_uuid_16_t*)service_uuid)->val, sizeof(uuid_tmp));
         if (BT_UUID_GAP_VAL == uuid_tmp ||
@@ -319,6 +325,7 @@ bool BLEServiceImp::discoverAttributes(BLEDevice* device,
         pr_debug(LOG_MODULE_BLE, "Can't find connection\n");
         return false;
     }
+    
     temp = &_discover_params;
     temp->start_handle = start_handle;
     temp->end_handle = end_handle;
@@ -533,7 +540,10 @@ uint8_t BLEServiceImp::characteristicReadRspProc(bt_conn_t *conn,
         {
             if (false == discovering())
             {
-                if (false == discoverAttributes(&bleDevice, chrc_handle + 1, _end_handle))
+                if (false == discoverAttributes(&bleDevice, 
+                                                chrc_handle + 1, 
+                                                _end_handle,
+                                                true))
                 {
                     discoverNextCharacteristic(bleDevice);
                 }

@@ -107,7 +107,9 @@ public:
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
     
-    bool discoverAllAttributes(BLEDevice* device);
+    // Default not discover the GAP/GATT service
+    bool discoverAllAttributes(BLEDevice* device,
+                               bool discoverGapGatt = false);
     bool discoverAttributesByService(BLEDevice* device, const bt_uuid_t* svc_uuid);
     void handleConnectedEvent(const bt_addr_le_t* deviceAddr);
     void handleDisconnectedEvent(const bt_addr_le_t* deviceAddr);
@@ -131,6 +133,8 @@ public:
      */
     void setAppearance(unsigned short appearance);
     unsigned short getAppearance();
+
+    String getDeviceName(const BLEDevice* device);
 protected:
     friend ssize_t profile_write_process(bt_conn_t *conn,
                                      const bt_gatt_attr_t *attr,
@@ -223,6 +227,7 @@ private:
     bt_addr_le_t  _discovering_ble_addresses;
     
     bool _start_discover;
+    bool _discover_gap_gatt;
 
     bool _discovering;
     uint64_t _discover_rsp_timestamp;

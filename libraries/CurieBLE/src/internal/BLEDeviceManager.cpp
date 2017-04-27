@@ -1293,7 +1293,7 @@ String BLEDeviceManager::deviceName(const BLEDevice* device)
     {
         return _device_name;
     }
-    return String("");
+    return BLEProfileManager::instance()->getDeviceName(device);
 }
 
 int BLEDeviceManager::appearance()

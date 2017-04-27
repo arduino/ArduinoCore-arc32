@@ -376,9 +376,10 @@ bool BLEDevice::connect()
     return BLEDeviceManager::instance()->connect(*this);
 }
 
-bool BLEDevice::discoverAttributes()
+bool BLEDevice::discoverAttributes(bool discoverGapGatt)
 {
-    return BLEProfileManager::instance()->discoverAllAttributes(this);
+    return BLEProfileManager::instance()->discoverAllAttributes(this, 
+                                                                discoverGapGatt);
 }
 
 bool BLEDevice::discoverAttributesByService(const char* svc_uuid)

@@ -481,7 +481,7 @@ class BLEDevice
     int rssi() const; // returns the RSSI of the peripheral at discovery
 
     bool connect(); // connect to the peripheral
-    bool discoverAttributes(); // discover the peripheral's attributes
+    bool discoverAttributes(bool discoverGapGatt = false); // discover the peripheral's attributes
     bool discoverAttributesByService(const char* svc_uuid);
 
     String deviceName(); // read the device name attribute of the peripheral, and return String value

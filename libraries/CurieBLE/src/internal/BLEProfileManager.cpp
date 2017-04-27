@@ -593,8 +593,10 @@ void BLEProfileManager::handleDisconnectedPutOffEvent()
     }
 }
 
-bool BLEProfileManager::discoverAllAttributes(BLEDevice* device)
+bool BLEProfileManager::discoverAllAttributes(BLEDevice* device,
+                                              bool discoverGapGatt)
 {
+    _discover_gap_gatt = discoverGapGatt;
     return discoverAttributes(device, NULL);
 }
 
@@ -692,7 +694,7 @@ void BLEProfileManager::setDiscovering(bool discover)
 void BLEProfileManager::singleServiceDiscoverResponseProc(BLEDevice &device, 
                                                           BLEServiceImp* service)
 {
-    bool result = service->discoverAttributes(&device);
+    bool result = service->discoverAttributes(&device, true);
     if (result == true)
     {
         // Record the current discovering service
@@ -786,7 +788,8 @@ bool BLEProfileManager::discoverNextService(BLEDevice &device)
         
         if (NULL == _cur_discover_service)
         {
-            bool result = serviceCurImp->discoverAttributes(&device);
+            bool result = serviceCurImp->discoverAttributes(&device, 
+                                                            _discover_gap_gatt);
             if (result == true)
             {
                 // Record the current discovering service
@@ -890,17 +893,19 @@ void BLEProfileManager::serviceDiscoverComplete(const BLEDevice &bledevice)
         serviceCurImp = node->value;
         if (NULL != serviceCurImp)
         {
-            if (servicePrevImp)  // KW issue: Chk for NULL.
+            if (servicePrevImp)
+            {
                 servicePrevImp->setEndHandle(serviceCurImp->startHandle() - 1);
+                pr_debug(LOG_MODULE_BLE, "Pre: start-%d, end-%d", 
+                         servicePrevImp->startHandle(), 
+                         servicePrevImp->endHandle());
+                pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", 
+                         serviceCurImp->startHandle(), 
+                         serviceCurImp->endHandle());
+            }
         }
         
-        if (servicePrevImp)
-        {
-            pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
-        }
         servicePrevImp = serviceCurImp;
-        if (servicePrevImp)  // KW issue: Chk for NULL.
-            pr_debug(LOG_MODULE_BLE, "Curr: start-%d, end-%d", servicePrevImp->startHandle(), servicePrevImp->endHandle());
         node = node->next;
     }
     return;
@@ -1057,5 +1062,35 @@ void BLEProfileManager::setAppearance(unsigned short appearance)
 unsigned short BLEProfileManager::getAppearance()
 {
     return appearenceChrc.value();
+}
+
+String BLEProfileManager::getDeviceName(const BLEDevice* device)
+{
+    String temp("");
+    char device_name_buff[BLE_MAX_DEVICE_NAME];
+    unsigned short device_name_len;
+    
+    BLEServiceImp* gap_service = service(*device, "1800");
+    if (NULL == gap_service)
+    {
+        return temp;
+    }
+    BLECharacteristicImp* devicename_chrc = gap_service->characteristic("2a00");
+    if (NULL == devicename_chrc)
+    {
+        return temp;
+    }
+    
+    // Read device name
+    if (false == devicename_chrc->read(true))
+    {
+        return temp;
+    }
+    device_name_len = devicename_chrc->valueLength();
+    memcpy(device_name_buff, devicename_chrc->value(), device_name_len);
+    device_name_buff[device_name_len] = '\0';
+    temp = device_name_buff;
+    
+    return temp;
 }
 
