@@ -805,10 +805,16 @@ static ssize_t on_prep_write(const struct nble_gatts_write_evt *evt,
 			     const uint8_t *buf, uint8_t buflen)
 {
 	const struct bt_gatt_attr *attr = evt->attr;
-	struct bt_conn *conn = bt_conn_lookup_handle(evt->conn_handle);
+	struct bt_conn *conn = NULL;
 	ssize_t status;
 
 	struct prep_data *data;
+
+    // Check permision first
+	if (!(attr->perm & BT_GATT_PERM_PREPARE_WRITE)) {
+		return BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
+	}
+    
 	data =  nble_curie_alloc_hook(sizeof (struct prep_data));
 
 	/* Assert if memory allocation failed */
@@ -824,11 +830,7 @@ static ssize_t on_prep_write(const struct nble_gatts_write_evt *evt,
 	BT_ASSERT(data->buf);
 
 	memcpy(data->buf, buf, buflen);
-
-	if (!(attr->perm & BT_GATT_PERM_PREPARE_WRITE)) {
-		return BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
-	}
-
+    conn = bt_conn_lookup_handle(evt->conn_handle);
 	/* Write attribute value to check if device is authorized */
 	status = attr->write(conn, attr, buf, buflen, evt->offset,
 			     BT_GATT_WRITE_FLAG_PREPARE);
