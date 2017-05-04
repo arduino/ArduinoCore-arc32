@@ -385,6 +385,8 @@ static int hci_le_create_conn(struct bt_conn *conn)
 {
 	struct nble_gap_connect_req conn_params;
 
+    memset(&conn_params, 0, sizeof(conn_params));
+    
 	conn_params.bda = conn->le.dst;
 	conn_params.conn_params.interval_min = conn->le.interval_min;
 	conn_params.conn_params.interval_max = conn->le.interval_max;

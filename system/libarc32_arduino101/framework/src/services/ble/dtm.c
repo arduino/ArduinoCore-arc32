@@ -15,6 +15,7 @@
  */
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include <bluetooth/dtm.h>
@@ -40,6 +41,7 @@ int ble_dtm_cmd(struct dtm_cmd_params *params) {
 		return -EINVAL;
 	}
 
+    memset(&req, 0, sizeof(req));
 	switch(params->cmd_type) {
 	case DTM_START_RX:
 		req.tx_rx_freq = params->rx.freq;

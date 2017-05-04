@@ -900,6 +900,7 @@ void on_nble_gatts_write_exec_evt(const struct nble_gatts_write_exec_evt *evt)
 
 	req.conn_handle = evt->conn_handle;
 	req.status = 0;
+    req.offset = 0;
 
 	BT_DBG("write_exec_evt");
 

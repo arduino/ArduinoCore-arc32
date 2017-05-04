@@ -336,8 +336,6 @@ static void deserialize_control(uint8_t fn_index, const uint8_t *buf,
 			rpc_init_cb(struct_data.version, true);
 		}
 		break;
-	break;
-		panic(-1);
 	}
 }
 

@@ -44,6 +44,7 @@ BLEProfileManager* BLEProfileManager::instance()
 
 BLEProfileManager::BLEProfileManager ():
     _start_discover(false),
+    _discover_gap_gatt(false),
     _discovering(false),
     _discover_rsp_timestamp(0),
     _cur_discover_service(NULL),
