@@ -410,26 +410,20 @@ static void check_pending_conn(const bt_addr_le_t *id_addr,
 	if (atomic_test_bit(bt_dev.flags, BT_DEV_EXPLICIT_SCAN)) {
 		return;
 	}
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
 
 	/* Return if event is not connectable */
 	if (evtype != BT_LE_ADV_IND && evtype != BT_LE_ADV_DIRECT_IND) {
 		return;
 	}
 
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
-
 	conn = bt_conn_lookup_state_le(id_addr, BT_CONN_CONNECT_SCAN);
 	if (!conn) {
 		return;
 	}
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
 
 	if (bt_hci_stop_scanning()) {
 		goto failed;
 	}
-
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
 
 #if defined(CONFIG_BLUETOOTH_PRIVACY)
 	if (le_set_rpa()) {
@@ -442,12 +436,9 @@ static void check_pending_conn(const bt_addr_le_t *id_addr,
 
 	bt_addr_le_copy(&conn->le.resp_addr, addr);
 
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
-
 	if (hci_le_create_conn(conn)) {
 		goto failed;
 	}
-	BT_DBG("%s %d", __FUNCTION__, __LINE__);
 
 	bt_conn_set_state(conn, BT_CONN_CONNECT);
 	bt_conn_unref(conn);

@@ -1463,7 +1463,7 @@ BLEDevice BLEDeviceManager::available()
     {
         uint64_t timestamp_delta = timestamp - _peer_adv_mill[i];
         temp = &_peer_adv_buffer[i];
-        if ((timestamp_delta >= 800) && // Wait scan response coming
+        if ((timestamp_delta >= 800 || _peer_scan_rsp_data_len[i] >= 0) && // Wait scan response coming 
             (timestamp_delta <= 2000) && // Check timeout
             (max_delta < timestamp_delta))
         {
