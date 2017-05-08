@@ -30,7 +30,7 @@
 #include "wiring_digital.h"
 #include "variant.h"
 
-#define CDCACM_FIXED_DELAY     120
+#define CDCACM_FIXED_DELAY     64
 
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
