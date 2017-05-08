@@ -199,6 +199,12 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
         return s;
     }
 
+    // rounding up to the precision
+    rounding = 0.5;
+    for (i = 0; i < prec; ++i)
+        rounding /= 10.0;
+    number += rounding;
+
     out = s;
     before = digitsBe4Decimal(number);
 
@@ -214,12 +220,6 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
       *out = '-';
       number = -number;
     }
-
-    // rounding up to the precision
-    rounding = 0.5;
-    for (i = 0; i < prec; ++i)
-        rounding /= 10.0;
-    number += rounding;
 
     // seperate integral and fractional parts
     integer = (unsigned long long) number;
