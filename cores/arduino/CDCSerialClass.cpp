@@ -30,7 +30,6 @@
 #include "wiring_digital.h"
 #include "variant.h"
 
-#define CDCACM_FIXED_DELAY     64
 
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
@@ -133,7 +132,7 @@ void CDCSerialClass::flush( void )
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
-    uint32_t retries = 2;
+    uint32_t retries = 1;
 
     if (!_shared_data->device_open || !_shared_data->host_open)
         return(0);
@@ -148,8 +147,9 @@ size_t CDCSerialClass::write( const uint8_t uc_data )
             _tx_buffer->data[_tx_buffer->head] = uc_data;
             _tx_buffer->head = i;
 
-	    // Just use a fixed delay to make it compatible with the CODK-M based firmware
-	    delayMicroseconds(CDCACM_FIXED_DELAY);
+	    // Mimick the throughput of a typical UART by throttling the data
+	    // flow according to the configured baud rate
+	    delayMicroseconds(_writeDelayUsec);
             break;
         }
     } while (retries--);
