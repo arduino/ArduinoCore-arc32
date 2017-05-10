@@ -203,7 +203,11 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
     rounding = 0.5;
     for (i = 0; i < prec; ++i)
         rounding /= 10.0;
-    number += rounding;
+
+    if (number < 0.0)
+        number -= rounding;
+    else
+        number += rounding;
 
     out = s;
     before = digitsBe4Decimal(number);
@@ -235,17 +239,17 @@ char *dtostrf(double number, signed char width, unsigned char prec, char *s)
 
     out[i - 1] = ASCII_ZERO + integer;
     out += before;
-    if (!prec) goto end;
 
-    // generate chars for each digit of the fractional part
-    *out++ = '.';
-    for (i = 0; i < prec; ++i) {
-        fraction *= 10.0;
-        digit = ((unsigned long long) fraction) % 10;
-        *out++ = (char) (ASCII_ZERO + digit);
+    if (prec) {
+        // generate chars for each digit of the fractional part
+        *out++ = '.';
+        for (i = 0; i < prec; ++i) {
+            fraction *= 10.0;
+            digit = ((unsigned long long) fraction) % 10;
+            *out++ = (char) (ASCII_ZERO + digit);
+        }
     }
 
-end:
     // check if padding is required
     if (width > 0) {
         delta = width - (before + prec + 1);
