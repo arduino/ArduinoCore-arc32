@@ -144,12 +144,12 @@ size_t CDCSerialClass::write( const uint8_t uc_data )
         // current location of the tail), we're about to overflow the buffer
         // and so we don't write the character or advance the head.
         if (i != _tx_buffer->tail) {
+            _tx_buffer->lock = 1;
             _tx_buffer->data[_tx_buffer->head] = uc_data;
             _tx_buffer->head = i;
-
-	    // Mimick the throughput of a typical UART by throttling the data
-	    // flow according to the configured baud rate
-	    delayMicroseconds(_writeDelayUsec);
+            _tx_buffer->lock = 0;
+            // Just use a fixed delay to make it compatible with the CODK-M based firmware
+            delayMicroseconds(_writeDelayUsec);
             break;
         }
     } while (retries--);
