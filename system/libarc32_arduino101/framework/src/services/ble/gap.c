@@ -465,7 +465,7 @@ void on_nble_gap_adv_report_evt(const struct nble_gap_adv_report_evt *evt,
 	check_pending_conn(&evt->addr, &evt->addr, evt->adv_type);
 #endif /* CONFIG_BLUETOOTH_CENTRAL */
 }
-
+#if 0
 static int set_random_address(const bt_addr_t *addr)
 {
 	struct nble_set_bda_req req = {0};
@@ -486,6 +486,7 @@ static int le_set_nrpa(void)
 
 	return set_random_address(&nrpa);
 }
+#endif
 
 #if defined(CONFIG_BLUETOOTH_PRIVACY)
 int le_set_rpa(void)
@@ -504,6 +505,7 @@ static int start_le_scan(uint8_t scan_type, uint16_t interval, uint16_t window,
 			 uint8_t filter_dup)
 {
 	struct nble_gap_start_scan_req params;
+#if 0
 	int err;
 
 #if defined(CONFIG_BLUETOOTH_PRIVACY)
@@ -522,7 +524,7 @@ static int start_le_scan(uint8_t scan_type, uint16_t interval, uint16_t window,
 		}
 	}
 #endif
-
+#endif
 	params.scan_params.interval  = interval;
 	params.scan_params.window    = window;
 	params.scan_params.scan_type = scan_type;
@@ -594,6 +596,7 @@ static void nble_get_bda_cb_init(const bt_addr_le_t *bda, void *user_data)
 
 static int common_init(void)
 {
+#if 0
 	struct nble_get_bda_req req;
 
 	req.cb = nble_get_bda_cb_init;
@@ -601,6 +604,7 @@ static int common_init(void)
 
 	/* read nble identity address */
 	nble_get_bda_req(&req);
+#endif
 	return 0;
 }
 
@@ -1179,6 +1183,7 @@ void bt_le_set_mac_address(bt_addr_le_t bda)
     params.bda = bda;
 
     nble_set_bda_req(&params);
+    nble_get_bda_cb_init(&bda, NULL);
 }
 
 void on_nble_common_rsp(const struct nble_common_rsp *rsp)
