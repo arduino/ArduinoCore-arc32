@@ -21,6 +21,7 @@
 
 #include "cfw_platform.h"
 #include "platform.h"
+#include "mailbox.h"
 
 // Add for debug corelib
 #ifdef CONFIGURE_DEBUG_CORELIB_ENABLED
@@ -254,6 +255,9 @@ void initVariant( void )
     *SYS_CLK_CTL |= 1 << CCU_RTC_CLK_DIV_EN;
     
     cfw_platform_init();
+
+    /* Ready the mailbox for use (but don't initialise HW; x86 does that) */
+    mailbox_init(false);
     
     // Add for debug corelib
     #ifdef CONFIGURE_DEBUG_CORELIB_ENABLED
