@@ -33,6 +33,7 @@ void setup() {
   file = SerialFlash.open(filename);
   file.write(contents, strlen(contents) + 1);
   Serial.println("String \"" + String(contents) + "\" written to file " + String(filename));
+  file.close();
 }
 
 bool create_if_not_exists (const char *filename) {
