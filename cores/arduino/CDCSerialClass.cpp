@@ -30,11 +30,34 @@
 #include "wiring_digital.h"
 #include "variant.h"
 
-#define CDCACM_FIXED_DELAY     120
+#define CDC_MAILBOX_TX_CHANNEL  7
+#define CDC_MAILBOX_RX_CHANNEL  6
 
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
 extern void serialEvent1(void) __attribute__((weak));
+
+static void cdc_mbox_isr(CurieMailboxMsg msg)
+{
+    char *rxbuffptr = (char*)msg.data;
+    int new_head;
+    for(int i = 0; i < MBOX_BYTES; i++)
+    {
+        if((uint8_t)(*(rxbuffptr+i)) != '\0')
+        {
+            new_head = (Serial._rx_buffer->head +1) % CDCACM_BUFFER_SIZE;
+            if(new_head != Serial._rx_buffer->tail)
+            {
+                Serial._rx_buffer->data[Serial._rx_buffer->head] = *(rxbuffptr+i);
+                Serial._rx_buffer->head = new_head;
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+}
 
 // Constructors ////////////////////////////////////////////////////////////////
 
@@ -47,9 +70,9 @@ CDCSerialClass::CDCSerialClass(uart_init_info *info)
 
 void CDCSerialClass::setSharedData(struct cdc_acm_shared_data *cdc_acm_shared_data)
 {
-    this->_shared_data = cdc_acm_shared_data;
-    this->_rx_buffer = cdc_acm_shared_data->rx_buffer;
-    this->_tx_buffer = cdc_acm_shared_data->tx_buffer;
+    _shared_data = cdc_acm_shared_data;
+    _rx_buffer = cdc_acm_shared_data->rx_buffer;
+    _tx_buffer = cdc_acm_shared_data->tx_buffer;
 }
 
 void CDCSerialClass::begin(const uint32_t dwBaudRate)
@@ -73,7 +96,9 @@ void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
      * Empty the Rx buffer but don't touch Tx buffer: it is drained by the
      * LMT one way or another */
     _rx_buffer->tail = _rx_buffer->head;
-
+    
+    mailbox_register(CDC_MAILBOX_RX_CHANNEL, cdc_mbox_isr);
+    mailbox_enable_receive(CDC_MAILBOX_RX_CHANNEL);
     _shared_data->device_open = true;
 }
 
@@ -84,12 +109,10 @@ void CDCSerialClass::end( void )
 
 int CDCSerialClass::available( void )
 {
-#define SBS	CDCACM_BUFFER_SIZE
-
   if (!_shared_data->device_open)
     return (0);
   else
-    return (int)(SBS + _rx_buffer->head - _rx_buffer->tail) % SBS;
+    return (int)(CDCACM_BUFFER_SIZE + _rx_buffer->head - _rx_buffer->tail) % CDCACM_BUFFER_SIZE;
 }
 
 int CDCSerialClass::availableForWrite(void)
@@ -131,28 +154,61 @@ void CDCSerialClass::flush( void )
     }
 }
 
-size_t CDCSerialClass::write( const uint8_t uc_data )
+size_t CDCSerialClass::write(uint8_t uc_data )
 {
-    uint32_t retries = 2;
+    CurieMailboxMsg cdcacm_msg;
 
     if (!_shared_data->device_open || !_shared_data->host_open)
         return(0);
 
-    do {
-        int i = (uint32_t)(_tx_buffer->head + 1) % CDCACM_BUFFER_SIZE;
-        // if we should be storing the received character into the location
-        // just before the tail (meaning that the head would advance to the
-        // current location of the tail), we're about to overflow the buffer
-        // and so we don't write the character or advance the head.
-        if (i != _tx_buffer->tail) {
-            _tx_buffer->data[_tx_buffer->head] = uc_data;
-            _tx_buffer->head = i;
-
-	    // Just use a fixed delay to make it compatible with the CODK-M based firmware
-	    delayMicroseconds(CDCACM_FIXED_DELAY);
-            break;
-        }
-    } while (retries--);
-
+    cdcacm_msg.channel = CDC_MAILBOX_TX_CHANNEL;
+    cdcacm_msg.data[0] = uc_data;
+    mailbox_write(cdcacm_msg);
+    delayMicroseconds(_writeDelayUsec);
     return 1;
+}
+
+size_t CDCSerialClass::write(const uint8_t *buffer, size_t size)
+{
+    CurieMailboxMsg cdcacm_msg;
+     cdcacm_msg.channel = CDC_MAILBOX_TX_CHANNEL;
+    if (!_shared_data->device_open || !_shared_data->host_open)
+        return(0);
+    
+    int msg_len = size;
+    
+    for(int i = 0;msg_len > 0; msg_len -= MBOX_BYTES, i += MBOX_BYTES)
+    {
+        /* Copy data into mailbox message */
+        memset(cdcacm_msg.data, 0, MBOX_BYTES);
+        if(msg_len >= MBOX_BYTES)
+        {
+            memcpy(cdcacm_msg.data, buffer+i, MBOX_BYTES);
+        }
+        else
+        {
+            memcpy(cdcacm_msg.data, buffer+i, msg_len);
+        }
+        /* Write to mailbox*/
+        mailbox_write(cdcacm_msg);
+    }
+
+    // Mimick the throughput of a typical UART by throttling the data
+    // flow according to the configured baud rate  
+    delayMicroseconds(_writeDelayUsec * size);
+    
+    return size;
+}
+
+size_t CDCSerialClass::write(const char *str)
+{
+    if (str == NULL) return 0;
+    CurieMailboxMsg cdcacm_msg;
+     cdcacm_msg.channel = CDC_MAILBOX_TX_CHANNEL;
+    if (!_shared_data->device_open || !_shared_data->host_open)
+        return(0);
+    
+    int msg_len = strlen(str);
+
+    return write((const uint8_t *)str, msg_len);
 }
