@@ -26,6 +26,7 @@
 #include "HardwareSerial.h"
 #include "platform.h"
 #include "wiring.h"
+#include "mailbox.h"
 
 #include <board.h>
 #include <uart.h>
@@ -36,6 +37,10 @@ class CDCSerialClass : public HardwareSerial
     CDCSerialClass(uart_init_info *info);
 
     void setSharedData(struct cdc_acm_shared_data *cdc_acm_shared_data);
+    
+    struct cdc_acm_shared_data *_shared_data;
+    struct cdc_ring_buffer *_rx_buffer;
+    struct cdc_ring_buffer *_tx_buffer;
 
     void begin(const uint32_t dwBaudRate);
     void begin(const uint32_t dwBaudRate, const uint8_t config);
@@ -46,6 +51,8 @@ class CDCSerialClass : public HardwareSerial
     int read(void);
     void flush(void);
     size_t write(const uint8_t c);
+    size_t write(const char *str);
+    size_t write(const uint8_t *buffer, size_t size);
     using Print::write; // pull in write(str) and write(buf, size) from Print
 
     operator bool() {
@@ -57,10 +64,6 @@ class CDCSerialClass : public HardwareSerial
 
   protected:
     void init(const uint32_t dwBaudRate, const uint8_t config);
-
-    struct cdc_acm_shared_data *_shared_data;
-    struct cdc_ring_buffer *_rx_buffer;
-    struct cdc_ring_buffer *_tx_buffer;
 
     uart_init_info *info;
     uint32_t _writeDelayUsec;

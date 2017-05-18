@@ -3,6 +3,7 @@
 
 #define NUM_MAILBOX_CHANNELS 8
 #define CHANNEL_DATA_WORDS   4
+#define MBOX_BYTES           16
 
 class CurieMailboxMsg {
 public:
