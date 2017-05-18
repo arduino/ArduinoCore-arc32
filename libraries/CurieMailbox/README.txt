@@ -34,27 +34,13 @@ can fill. Here's how you might populate a CurieMailboxMsg;
 API reference:
 
 
-void CurieMailbox::begin (bool master)
+void CurieMailbox::begin ()
 
-  Enable interrupts for the mailbox, and optionally initialise the
-  mailbox hardware.
-
-Params:
-
-  bool master: flag indicating whether mailbox hardware should be initialised.
-  The first processor to access the mailbox should do this; if in doubt, set
-  to false (default is false, no initialisation).
-
-
-
-void CurieMailbox::begin (void)
-
-  Enable interrupts for the mailbox, and do not initialise the hardware.
+  Enable interrupts for the mailbox, and set up the mailbox hardware for use
 
 Params:
 
-  None.
-
+  None
 
 
 void CurieMailbox::enableReceive (unsigned int channel)
@@ -77,9 +63,9 @@ void CurieMailbox::disableReceive (unsigned int channel)
 
 Params:
 
-  int channel:  integer value (0-7) representing the channel to be enabled.
-  If the passed value does not represent a valid channel, then the highest
-  channel will be used instead.
+  int channel:  integer value between 0 and CurieMailbox.numChannels,
+  representing the channel to be enabled. If the passed value does not
+  represent a valid channel, then the highest channel will be used instead.
 
 
 int CurieMailbox::available (void)
