@@ -46,7 +46,6 @@
 
 /* FIXME: Service manager API */
 extern void _cfw_init(void *);
-extern void ble_cfw_service_init(int service_id, T_QUEUE queue);
 
 extern void *services;
 
@@ -115,7 +114,7 @@ void cfw_platform_init(void)
                     shared_data->services, shared_data->service_mgr_port_id);
 #else
     _cfw_init(service_mgr_queue);
-    ble_cfw_service_init(BLE_SERVICE_ID, service_mgr_queue);
+    //ble_cfw_service_init(BLE_SERVICE_ID, service_mgr_queue);
 
     /* Initialized shared structure. */
     shared_data->ports = port_get_port_table();

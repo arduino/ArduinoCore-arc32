@@ -132,6 +132,7 @@ bool BLEDeviceManager::begin(BLEDevice *device)
 {
     if (NULL == _local_ble)
     {
+        ble_cfw_init();
         _local_ble = device;
         bt_le_set_mac_address(_local_bda);
         
