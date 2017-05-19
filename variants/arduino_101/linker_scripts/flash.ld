@@ -158,6 +158,9 @@ SECTIONS
     {
         . = ALIGN(4);
         __start_heap = .;
+        end = __start_heap;
+        _end = end;
+        __end = end;
         . = . + __HEAP_SIZE_MIN;
         __end_heap = ALIGN(__PAGE_SIZE);
     } > SRAM
