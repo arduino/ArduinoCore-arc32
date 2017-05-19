@@ -45,11 +45,12 @@
 struct cdc_ring_buffer
 {
     /** Ring buffer data */
-    uint8_t data[CDCACM_BUFFER_SIZE];
+    volatile uint8_t data[CDCACM_BUFFER_SIZE];
     /** Ring buffer head pointer, modified by producer */
-    int head;
+    volatile int head;
     /** Ring buffer head pointer, modified by consumer */
-    int tail;
+    volatile int tail;
+    volatile uint8_t lock;
 };
 
 struct cdc_acm_shared_data {

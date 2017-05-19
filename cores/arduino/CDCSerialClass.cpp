@@ -30,7 +30,6 @@
 #include "wiring_digital.h"
 #include "variant.h"
 
-#define CDCACM_FIXED_DELAY     120
 
 extern void CDCSerial_Handler(void);
 extern void serialEventRun1(void) __attribute__((weak));
@@ -133,7 +132,7 @@ void CDCSerialClass::flush( void )
 
 size_t CDCSerialClass::write( const uint8_t uc_data )
 {
-    uint32_t retries = 2;
+    uint32_t retries = 1;
 
     if (!_shared_data->device_open || !_shared_data->host_open)
         return(0);
@@ -145,11 +144,12 @@ size_t CDCSerialClass::write( const uint8_t uc_data )
         // current location of the tail), we're about to overflow the buffer
         // and so we don't write the character or advance the head.
         if (i != _tx_buffer->tail) {
+            _tx_buffer->lock = 1;
             _tx_buffer->data[_tx_buffer->head] = uc_data;
             _tx_buffer->head = i;
-
-	    // Just use a fixed delay to make it compatible with the CODK-M based firmware
-	    delayMicroseconds(CDCACM_FIXED_DELAY);
+            _tx_buffer->lock = 0;
+            // Just use a fixed delay to make it compatible with the CODK-M based firmware
+            delayMicroseconds(_writeDelayUsec);
             break;
         }
     } while (retries--);
