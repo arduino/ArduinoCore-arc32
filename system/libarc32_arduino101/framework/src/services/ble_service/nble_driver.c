@@ -297,30 +297,24 @@ void rpc_transmit_cb(uint8_t *p_buf, uint16_t length)
  * other constraints: therefore, this reset might not work everytime, especially after
  * flashing or debugging.
  */
-void nble_driver_init(void)
+void nble_driver_hw_reset(void)
 {
     uint32_t delay_until;
-    
-    nble_interface_init();
-    /* Setup UART0 for BLE communication, HW flow control required  */
-    SET_PIN_MODE(18, QRK_PMUX_SEL_MODEA); /* UART0_RXD        */
-    SET_PIN_MODE(19, QRK_PMUX_SEL_MODEA); /* UART0_TXD        */
-    SET_PIN_MODE(40, QRK_PMUX_SEL_MODEB); /* UART0_CTS_B      */
-    SET_PIN_MODE(41, QRK_PMUX_SEL_MODEB); /* UART0_RTS_B      */
-    
-	ipc_uart_init(0);
-	
-    //while (1)
-    //{}
+
 	/* RESET_PIN depends on the board and the local configuration: check top of file */
 	gpio_cfg_data_t pin_cfg = { .gpio_type = GPIO_OUTPUT };
+    
+	delay_until = get_uptime_32k() + 32768 * 2; // 2ms wait for Nordic chip boot
+	while (get_uptime_32k() < delay_until);
+	
+	ipc_uart_init(0);
     
 	soc_gpio_set_config(SOC_GPIO_32, RESET_PIN, &pin_cfg);
     //soc_gpio_set_config(SOC_GPIO_32_ID, BLE_SW_CLK_PIN, &pin_cfg);
 	/* Reset hold time is 0.2us (normal) or 100us (SWD debug) */
 	soc_gpio_write(SOC_GPIO_32, RESET_PIN, 0);
 	/* Wait for ~1ms */
-	delay_until = get_uptime_32k() + 32768;
+	delay_until = get_uptime_32k() + 327;//68;
 	
 	/* Open the UART channel for RPC while Nordic is in reset */
 	m_rpc_channel = ipc_uart_channel_open(RPC_CHANNEL, uart_ipc_rpc_cback);
@@ -334,6 +328,22 @@ void nble_driver_init(void)
 	/* Set back GPIO to input to avoid interfering with external debugger */
 	pin_cfg.gpio_type = GPIO_INPUT;
 	soc_gpio_set_config(SOC_GPIO_32, RESET_PIN, &pin_cfg);
+}
+
+void nble_driver_init(void)
+{
+    
+    nble_interface_init();
+    /* Setup UART0 for BLE communication, HW flow control required  */
+    SET_PIN_MODE(18, QRK_PMUX_SEL_MODEA); /* UART0_RXD        */
+    SET_PIN_MODE(19, QRK_PMUX_SEL_MODEA); /* UART0_TXD        */
+    SET_PIN_MODE(40, QRK_PMUX_SEL_MODEB); /* UART0_CTS_B      */
+    SET_PIN_MODE(41, QRK_PMUX_SEL_MODEB); /* UART0_RTS_B      */
+    
+	
+    //while (1)
+    //{}
+    nble_driver_hw_reset();
 }
 
 

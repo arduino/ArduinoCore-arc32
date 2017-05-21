@@ -47,6 +47,7 @@ struct ble_rpc_callin {
  * mechanism is up and running.
  */
 void nble_driver_init(void);
+void nble_driver_hw_reset(void);
 
 void nble_driver_configure(T_QUEUE queue, void (*handler)(struct message*, void*));
 
