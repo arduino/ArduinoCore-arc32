@@ -750,10 +750,12 @@ bool BLECharacteristicImp::write(const unsigned char value[],
         retval = bt_gatt_write(conn, &params);
         if (0 == retval)
         {
+            bool connected = true;
             // Wait for write response
-            while (_gattc_writing)
+            while (_gattc_writing && connected)
             {
                 delay(2);
+                connected = _ble_device.connected();
             }
             write_process_result = _gattc_write_result;
         }
