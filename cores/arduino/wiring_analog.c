@@ -121,8 +121,13 @@ uint32_t analogRead(uint32_t pin)
     SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST);
     /* Update sequence table */
     WRITE_ARC_REG(p->ulAdcChan, ADC_SEQ);
-    /* Reset sequence pointer & start sequencer */
-    SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST | ADC_SEQ_START | ADC_ENABLE);
+    /* Reset sequence pointer & enable the ADC */
+    SET_ARC_MASK(ADC_CTRL, ADC_SEQ_PTR_RST | ADC_ENABLE);
+    /* Insert some delay to allow the channel to fully settle */
+    /* Here, the delay is 1 ms, but 10 us should suffice for <10 kohm source impedance */
+    delay(1);
+    /* Initiate the ADC conversion */
+     SET_ARC_MASK(ADC_CTRL, ADC_SEQ_START);
     /* Poll for ADC data ready status (DATA_A) */
     while((READ_ARC_REG(ADC_INTSTAT) & ADC_INT_DATA_A) == 0);
     /* Pop the data sample from FIFO to sample register */
