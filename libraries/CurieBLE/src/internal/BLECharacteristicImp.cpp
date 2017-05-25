@@ -103,13 +103,13 @@ void BLECharacteristicImp::initVauleFromCharacteristic(const BLECharacteristic& 
                 __FUNCTION__, __LINE__, _value_buffer, _value_size);
     }
 #endif
-    
+    // GL. KW warning acknowldged
     memcpy(_event_handlers, characteristic._event_handlers, sizeof(_event_handlers));
     memcpy(_oldevent_handlers, characteristic._oldevent_handlers, sizeof(_oldevent_handlers));
     
     if (NULL != characteristic._value && NULL != _value)
     {
-        memcpy(_value, characteristic._value, _value_size);
+        memcpy(_value, characteristic._value, _value_size);// GL. KW warning acknowldged
         _value_length = _value_size;
     }
 }
@@ -598,7 +598,7 @@ BLECharacteristicImp::_setValue(const uint8_t value[], uint16_t length, uint16_t
         }
     }
     
-    memcpy(_value + offset, value, length);
+    memcpy(_value + offset, value, length);// GL. KW warning acknowldged
     _value_length = length + offset;
 }
 
@@ -783,7 +783,7 @@ void BLECharacteristicImp::setBuffer(const uint8_t value[],
         return;
     }
 
-    memcpy(_value_buffer + offset, value, length);
+    memcpy(_value_buffer + offset, value, length); // GL. KW warning acknowldged
 }
 
 void BLECharacteristicImp::syncupBuffer2Value()
@@ -794,7 +794,7 @@ void BLECharacteristicImp::syncupBuffer2Value()
 void BLECharacteristicImp::discardBuffer()
 {
   if(_value_buffer)
-    memcpy(_value_buffer, _value, _value_size);
+    memcpy(_value_buffer, _value, _value_size); // GL. KW warning acknowldged
 }
 #endif
 

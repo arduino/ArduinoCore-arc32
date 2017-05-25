@@ -117,7 +117,7 @@ static void ble_fill_le_address_from_oem(bt_addr_le_t *bda,
                                          const struct curie_oem_data *oem)
 {
     bda->type = oem->bt_mac_address_type;
-    memcpy(&bda->a, oem->bt_address, sizeof(bda->a));
+    memcpy(&bda->a, oem->bt_address, sizeof(bda->a)); // GL. KW warning acknowldged
 }
 
 void ble_client_get_mac_address(bt_addr_le_t *bda)

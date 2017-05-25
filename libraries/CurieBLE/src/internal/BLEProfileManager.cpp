@@ -631,6 +631,7 @@ bool BLEProfileManager::discoverAttributes(BLEDevice* device,
     }
     
     // Block it 
+    // GL. KW warning acknowldged
     memcpy(&_discovering_ble_addresses, device->bt_le_address(), sizeof(_discovering_ble_addresses));
     _discover_rsp_timestamp = millis();
     _start_discover = true;
@@ -722,7 +723,7 @@ uint8_t BLEProfileManager::primaryServiceResponseProc(BLEDevice &device,
     // Get response data
     svc_value = (struct bt_gatt_service *)attr->user_data;
     svc_uuid = svc_value->uuid;
-    memcpy(&le16, &BT_UUID_16(svc_uuid)->val, sizeof(le16));
+    memcpy(&le16, &BT_UUID_16(svc_uuid)->val, sizeof(le16));// GL. KW warning acknowldged
     
     setDiscovering(false);
     
@@ -1011,7 +1012,7 @@ bool BLEProfileManager::discoverService(BLEDevice* device, const bt_uuid_t* svc_
     temp->uuid = NULL;
     if (NULL != svc_uuid)
     {
-        memcpy(&_discover_uuid[i], svc_uuid, sizeof(bt_uuid_128_t));
+        memcpy(&_discover_uuid[i], svc_uuid, sizeof(bt_uuid_128_t));// GL. KW warning acknowldged
         temp->uuid = (bt_uuid_t*) &_discover_uuid[i];
     }
     
@@ -1044,7 +1045,7 @@ uint8_t BLEProfileManager::serviceReadRspProc(bt_conn_t *conn,
     {
         bt_uuid_128_t uuid_tmp;
         uuid_tmp.uuid.type = BT_UUID_TYPE_128;
-        memcpy(uuid_tmp.val, data, UUID_SIZE_128);
+        memcpy(uuid_tmp.val, data, UUID_SIZE_128);// GL. KW warning acknowldged
         BLEProfileManager::instance()->discoverService(&bleDevice, (const bt_uuid_t *)&uuid_tmp);
     }
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
@@ -1088,7 +1089,7 @@ String BLEProfileManager::getDeviceName(const BLEDevice* device)
         return temp;
     }
     device_name_len = devicename_chrc->valueLength();
-    memcpy(device_name_buff, devicename_chrc->value(), device_name_len);
+    memcpy(device_name_buff, devicename_chrc->value(), device_name_len);// GL. KW warning acknowldged
     device_name_buff[device_name_len] = '\0';
     temp = device_name_buff;
     
