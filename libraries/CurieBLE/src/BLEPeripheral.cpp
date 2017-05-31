@@ -21,7 +21,7 @@
 
 #include "BLEPeripheral.h"
 
-static BLEPeripheralEventHandler m_eventHandlers[BLEDeviceLastEvent];
+static BLEPeripheralEventHandler m_eventHandlers[BLEDeviceLastEvent] = {NULL, NULL, NULL, NULL};
 
 void bleBackCompatiblePeripheralConnectHandler(BLEDevice central) 
 {
