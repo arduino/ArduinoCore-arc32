@@ -19,6 +19,10 @@
 
 #include "BLETypedCharacteristics.h"
 
+BLEBoolCharacteristic::BLEBoolCharacteristic(const char* uuid, unsigned char properties) :
+    BLETypedCharacteristic<bool>(uuid, properties) {
+}
+
 BLEByteCharacteristic::BLEByteCharacteristic(const char* uuid, unsigned char properties) :
     BLETypedCharacteristic<byte>(uuid, properties) {
 }
