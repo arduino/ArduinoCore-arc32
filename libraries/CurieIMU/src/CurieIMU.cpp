@@ -818,7 +818,7 @@ void CurieIMUClass::setTapDetectionThreshold(float threshold)
 
         case 16:
         default:
-            bmiThreshold = (threshold - 2500) / 500.0;
+            bmiThreshold = (threshold - 250) / 500.0;
             break;
     }
 
