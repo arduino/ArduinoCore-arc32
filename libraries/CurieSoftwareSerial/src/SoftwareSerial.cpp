@@ -226,9 +226,7 @@ SoftwareSerial::SoftwareSerial(uint32_t receivePin, uint32_t transmitPin, bool i
   _inverse_logic(inverse_logic)
 {
   _inverse_logic = inverse_logic;
-  setTX(transmitPin);
   _transmitPin = transmitPin;
-  setRX(receivePin);
   _receivePin = receivePin;
   _receive_buffer = (char*)dccm_malloc(_SS_MAX_RX_BUFF);
 }
@@ -272,6 +270,9 @@ uint16_t SoftwareSerial::subtract_cap(uint16_t num, uint16_t sub) {
 
 void SoftwareSerial::begin(long speed)
 {
+  setTX(_transmitPin);
+  setRX(_receivePin);
+    
   _rx_delay_centering = _rx_delay_intrabit = _rx_delay_stopbit = _tx_delay = 0;
   //pre-calculate delays
   _bit_delay = (F_CPU/speed);
