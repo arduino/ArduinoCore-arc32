@@ -98,7 +98,7 @@ tools.arduino101load.ble.fw.position=169984
 tools.arduino101load.rtos.fw.string="firmware_1.8.0_arduino101"
 tools.arduino101load.rtos.fw.position=147424
 #not ideal - should be inherited by the platform
-tools.arduino101load.version=2.1.0
+tools.arduino101load.version=2.2.0
 
 # Arc Uploader/Programmers tools
 # -------------------
