@@ -6,29 +6,29 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-CurieTimer KEYWORD1
+CurieTimer	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-initialize      KEYWORD2
-setPeriod       KEYWORD2
-start           KEYWORD2
-stop            KEYWORD2
-restart         KEYWORD2
-resume          KEYWORD2
-setPwmDuty      KEYWORD2
-pwm             KEYWORD2
-disablePwm      KEYWORD2
-attachInterrupt KEYWORD2
-detachInterrupt KEYWORD2
-kill            KEYWORD2
-readTickCount   KEYWORD2
-rdRstTickCount  KEYWORD2
-pause           KEYWORD2
-pwmStart        KEYWORD2
-pwmStop         KEYWORD2
+initialize	KEYWORD2
+setPeriod	KEYWORD2
+start	KEYWORD2
+stop	KEYWORD2
+restart	KEYWORD2
+resume	KEYWORD2
+setPwmDuty	KEYWORD2
+pwm	KEYWORD2
+disablePwm	KEYWORD2
+attachInterrupt	KEYWORD2
+detachInterrupt	KEYWORD2
+kill	KEYWORD2
+readTickCount	KEYWORD2
+rdRstTickCount	KEYWORD2
+pause	KEYWORD2
+pwmStart	KEYWORD2
+pwmStop	KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
-CurieTimerOne   KEYWORD2
+CurieTimerOne	KEYWORD2
