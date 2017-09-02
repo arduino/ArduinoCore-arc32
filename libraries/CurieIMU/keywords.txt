@@ -14,7 +14,7 @@ CurieIMUClass	KEYWORD1
 
 begin	KEYWORD1
 
-dataReady   KEYWORD1
+dataReady	KEYWORD1
 getGyroRate	KEYWORD1
 setGyroRate	KEYWORD1
 getAccelerometerRate	KEYWORD1
@@ -65,7 +65,7 @@ readAcceleration	KEYWORD1
 readRotation	KEYWORD1
 
 readAccelerometer	KEYWORD1
-readAccelerometerScaled KEYWORD1
+readAccelerometerScaled	KEYWORD1
 readGyro	KEYWORD1
 readGyroScaled	KEYWORD1
 readTemperature	KEYWORD1
@@ -85,8 +85,8 @@ CurieIMU	KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-ACCEL   LITERAL1
-GYRO    LITERAL1
+ACCEL	LITERAL1
+GYRO	LITERAL1
 
 X_AXIS	LITERAL1
 Y_AXIS	LITERAL1

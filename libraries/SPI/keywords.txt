@@ -7,7 +7,7 @@
 #######################################
 
 SPI	KEYWORD1
-SPI1    KEYWORD1
+SPI1	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

@@ -11,7 +11,7 @@
 #######################################
 sleep	KEYWORD2
 deepSleep	KEYWORD2
-idle    KEYWORD2
+idle	KEYWORD2
 doze	KEYWORD2
 wakeFromDoze	KEYWORD2
 
