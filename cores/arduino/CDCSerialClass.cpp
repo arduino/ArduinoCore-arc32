@@ -86,8 +86,13 @@ void CDCSerialClass::begin(const uint32_t dwBaudRate, const uint8_t config)
 }
 
 
-void CDCSerialClass::init(const uint32_t dwBaudRate, const uint8_t modeReg)
+void CDCSerialClass::init(uint32_t dwBaudRate, const uint8_t modeReg)
 {
+    /* Set a max internal baud rate due to the limitation of the 
+     * Inter Processor Mailbox */
+     if(dwBaudRate > 115200)
+         dwBaudRate = 115200;
+    
     /* Set a per-byte write delay approximately equal to the time it would
      * take to clock out a byte on a standard UART at this baud rate */
     _writeDelayUsec = 8000000 / dwBaudRate;

@@ -63,7 +63,7 @@ class CDCSerialClass : public HardwareSerial
     };
 
   protected:
-    void init(const uint32_t dwBaudRate, const uint8_t config);
+    void init(uint32_t dwBaudRate, const uint8_t config);
 
     uart_init_info *info;
     uint32_t _writeDelayUsec;
