@@ -20,9 +20,9 @@
 */
 const int ledPin = 13;
 
-boolean stepEventsEnabeled = true;   // whether you're polling or using events
+bool stepEventsEnabeled = true;   // whether you're polling or using events
 long lastStepCount = 0;              // step count on previous polling check
-boolean blinkState = false;          // state of the LED
+bool blinkState = false;          // state of the LED
 
 void setup() {
   Serial.begin(9600); // initialize Serial communication

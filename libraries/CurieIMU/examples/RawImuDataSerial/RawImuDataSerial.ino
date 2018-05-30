@@ -35,7 +35,7 @@ int ax, ay, az;         // accelerometer values
 int gx, gy, gz;         // gyrometer values
 
 const int ledPin = 13;      // activity LED pin
-boolean blinkState = false; // state of the LED
+bool blinkState = false; // state of the LED
 
 int calibrateOffsets = 1; // int to determine whether calibration takes place or not
 
