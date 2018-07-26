@@ -30,7 +30,7 @@ compiler.elf2bin.flags=-S -O binary -R .note -R .comment -R COMMON -R .eh_frame
 compiler.elf2bin.cmd=arc-elf32-objcopy
 compiler.ldflags=
 compiler.size.cmd=arc-elf32-size
-compiler.define=-DARDUINO=
+compiler.define=-DARDUINO= -DPLATFORM=
 compiler.strip.cmd={compiler.prefix}-strip
 
 # this can be overriden in boards.txt
@@ -66,10 +66,10 @@ build.usb_manufacturer="Unknown"
 # ---------------------
 
 ## Compile c files
-recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {compiler.c.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} -DPLATFORM="{version}" {compiler.c.extra_flags} {build.extra_flags} {compiler.c.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {compiler.cpp.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} -DPLATFORM="{version}" {compiler.cpp.extra_flags} {build.extra_flags} {compiler.cpp.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Create archives
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} {compiler.ar.sketch_flags} "{archive_file_path}" "{object_file}"
