@@ -44,7 +44,7 @@ ProductID = "PID_0ABA"
 DeviceGUID = "{d35924d6-3e16-4a9e-9782-5524a4b79bac}"
 DeviceClassGUID = "{78a1c341-4539-11d3-b88d-00c04fad5171}"
 ; Date MUST be in MM/DD/YYYY format
-Date = "10/13/2015"
+Date = "03/03/2016"
 
 ; =====================================================
 ; ========== END USER CONFIGURABLE SECTION ============

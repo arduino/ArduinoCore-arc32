@@ -10,7 +10,7 @@ Signature 			= "$WINDOWS NT$"
 Class 				= USB
 ClassGUID 			= {4D36E978-E325-11CE-BFC1-08002BE10318}
 Provider 			= %ProviderName%
-DriverVer			= 10/13/2015,1.1.0.0
+DriverVer			= 03/03/2016,1.1.0.0
 CatalogFile = intc_composite.cat
 
 [Manufacturer]
