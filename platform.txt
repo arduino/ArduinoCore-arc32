@@ -5,7 +5,7 @@
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5---3rd-party-Hardware-specification
 
 name=Intel Curie (32-bit) Boards
-version=2.0.2
+version=2.0.3
 
 # Arduino 101 compile variables
 # ----------------------
