@@ -10,7 +10,7 @@
 
 #include "CurieIMU.h"
 
-boolean blinkState = false;          // state of the LED
+bool blinkState = false;          // state of the LED
 
 void setup() {
   Serial.begin(9600); // initialize Serial communication

@@ -9,7 +9,7 @@
 */
 #include "CurieIMU.h"
 
-boolean ledState = false;          // state of the LED
+bool ledState = false;          // state of the LED
 void setup() {
   Serial.begin(9600); // initialize Serial communication
   while(!Serial) ;    // wait for serial port to connect.

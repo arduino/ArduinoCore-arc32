@@ -47,7 +47,7 @@ void setup()
   while(!Serial);
 }
 
-boolean toggle = false;          // state of the LED
+bool toggle = false;          // state of the LED
 void loop()
 {
   toggle = !toggle;

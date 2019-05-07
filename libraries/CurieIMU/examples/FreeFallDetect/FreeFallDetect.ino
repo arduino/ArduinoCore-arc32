@@ -10,7 +10,7 @@
 
 #include "CurieIMU.h"
 
-boolean blinkState = false;          // state of the LED
+bool blinkState = false;          // state of the LED
 unsigned long loopTime = 0;          // get the time since program started
 unsigned long interruptsTime = 0;    // get the time when free fall event is detected
 
