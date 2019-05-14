@@ -217,20 +217,7 @@ struct ble_dbg_req_rsp {
 	uint32_t u1;
 };
 
-/** Enable/Disable BLE stack. To be called before any BLE service related call.
- *
- * @param p_service_conn client service connection (cfw service connection)
- * @param enable 1: enable BLE stack 0: disable BLE stack
- * @param p_config configuration parameters when enabling BLE. shall be null in case of BLE disable. @ref ble_enable_config
- * @param p_priv pointer to private structure returned in a response
- *
- * @return @ref OS_ERR_TYPE
- * @note Expected notification:
- *       - Message with @ref MSG_ID_BLE_ENABLE_RSP and type @ref ble_enable_rsp.
- */
-int ble_service_enable(cfw_service_conn_t * p_service_conn, uint8_t enable,
-			const struct ble_enable_config * p_config,
-			void *p_priv);
+void ble_enable();
 
 /** @endcond */
 /** @}*/

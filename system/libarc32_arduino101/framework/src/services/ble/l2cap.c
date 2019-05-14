@@ -25,19 +25,18 @@
 
 /* #define BT_GATT_DEBUG 1 */
 
-extern void on_nble_curie_log(char *fmt, ...);
 extern void __assert_fail(void);
 #ifdef BT_GATT_DEBUG
-#define BT_DBG(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_DBG(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #else
 #define BT_DBG(fmt, ...) do {} while (0)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #endif
 

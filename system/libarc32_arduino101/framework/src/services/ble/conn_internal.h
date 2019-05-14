@@ -25,15 +25,15 @@ typedef enum {
 /* bt_conn flags: the flags defined here represent connection parameters */
 enum {
 	BT_CONN_AUTO_CONNECT,
+	BT_CONN_DIR_ADV_CONNECT,
 };
 
 struct bt_conn_le {
 	bt_addr_le_t		dst;
 
-#if 0
 	bt_addr_le_t		init_addr;
 	bt_addr_le_t		resp_addr;
-#endif
+
 	uint16_t		interval;
 	uint16_t		interval_min;
 	uint16_t		interval_max;
@@ -55,6 +55,7 @@ struct bt_conn {
 	uint16_t		handle;
 	uint8_t			type;
 	uint8_t			role;
+	atomic_t		flags[1];
 
 #if defined(CONFIG_BLUETOOTH_SMP)
 	uint8_t			encrypt;
@@ -86,6 +87,8 @@ struct bt_conn *bt_conn_add_br(const bt_addr_t *peer);
 /* Look up an existing connection by BT address */
 struct bt_conn *bt_conn_lookup_addr_br(const bt_addr_t *peer);
 #endif
+
+void bt_conn_disconnect_all(void);
 
 /* Look up an existing connection */
 struct bt_conn *bt_conn_lookup_handle(uint16_t handle);

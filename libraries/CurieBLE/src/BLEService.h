@@ -125,7 +125,7 @@ protected:
     friend class BLEServiceImp;
     friend class BLEProfileManager;
     friend uint8_t profile_service_read_rsp_process(bt_conn_t *conn, 
-                                                    int err,
+                                                    uint8_t err,
                                                     bt_gatt_read_params_t *params,
                                                     const void *data, 
                                                     uint16_t length);

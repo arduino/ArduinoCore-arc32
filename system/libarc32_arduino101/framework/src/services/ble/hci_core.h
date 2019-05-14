@@ -16,6 +16,9 @@
 
 /* State tracking for the local Bluetooth controller */
 struct bt_dev {
+	/* Local Identity Address */
+	bt_addr_le_t id_addr;
+	bt_addr_le_t random_addr;
 	atomic_t flags[1];
 };
 extern struct bt_dev bt_dev;
@@ -29,7 +32,7 @@ static inline bool bt_addr_le_is_rpa(const bt_addr_le_t *addr)
 	if (addr->type != BT_ADDR_LE_RANDOM)
 		return false;
 
-	if ((addr->val[5] & 0xc0) == 0x40)
+	if ((addr->a.val[5] & 0xc0) == 0x40)
 	       return true;
 
 	return false;
@@ -41,7 +44,7 @@ static inline bool bt_addr_le_is_identity(const bt_addr_le_t *addr)
 		return true;
 
 	/* Check for Random Static address type */
-	if ((addr->val[5] & 0xc0) == 0xc0)
+	if ((addr->a.val[5] & 0xc0) == 0xc0)
 		return true;
 
 	return false;

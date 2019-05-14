@@ -30,19 +30,18 @@
 
 /* #define BT_GATT_DEBUG 1 */
 
-extern void on_nble_curie_log(char *fmt, ...);
 extern void __assert_fail(void);
 #ifdef BT_GATT_DEBUG
-#define BT_DBG(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_DBG(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #else
 #define BT_DBG(fmt, ...) do {} while (0)
-#define BT_ERR(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_WARN(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
-#define BT_INFO(fmt, ...) on_nble_curie_log(fmt, ##__VA_ARGS__)
+#define BT_ERR(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_WARN(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
+#define BT_INFO(fmt, ...) nble_curie_log_hook(fmt, ##__VA_ARGS__)
 #define BT_ASSERT(cond) ((cond) ? (void)0 : __assert_fail())
 #endif
 
@@ -89,6 +88,23 @@ void notify_le_param_updated(struct bt_conn *conn)
 }
 
 #if defined(CONFIG_BLUETOOTH_SMP)
+void bt_conn_identity_resolved(struct bt_conn *conn)
+{
+	const bt_addr_le_t *rpa;
+	struct bt_conn_cb *cb;
+
+	if (conn->role == BT_HCI_ROLE_MASTER) {
+		rpa = &conn->le.resp_addr;
+	} else {
+		rpa = &conn->le.init_addr;
+	}
+
+	for (cb = callback_list; cb; cb = cb->_next) {
+		if (cb->identity_resolved) {
+			cb->identity_resolved(conn, rpa, &conn->le.dst);
+		}
+	}
+}
 
 void bt_conn_security_changed(struct bt_conn *conn)
 {
@@ -311,6 +327,7 @@ void bt_conn_set_state(struct bt_conn *conn, bt_conn_state_t state)
 	/* Actions needed for entering the new state */
 	switch (conn->state) {
 	case BT_CONN_CONNECTED:
+		atomic_clear_bit(conn->flags, BT_CONN_DIR_ADV_CONNECT);
 		bt_l2cap_connected(conn);
 		notify_connected(conn);
 		break;
@@ -325,6 +342,9 @@ void bt_conn_set_state(struct bt_conn *conn, bt_conn_state_t state)
 			notify_disconnected(conn);
 		} else if (old_state == BT_CONN_CONNECT) {
 			/* conn->err will be set in this case */
+			notify_connected(conn);
+		} else if (old_state == BT_CONN_CONNECT_SCAN && conn->err) {
+			/* this indicate LE Create Connection failed */
 			notify_connected(conn);
 		}
 
@@ -403,7 +423,7 @@ struct bt_conn *bt_conn_lookup_state_le(const bt_addr_le_t *peer,
 			continue;
 		}
 
-		if (bt_addr_le_cmp(peer, BT_ADDR_LE_ANY) &&
+		if (peer && bt_addr_le_cmp(peer, BT_ADDR_LE_ANY) &&
 		    bt_addr_le_cmp(peer, &conns[i].le.dst)) {
 			continue;
 		}
@@ -414,6 +434,24 @@ struct bt_conn *bt_conn_lookup_state_le(const bt_addr_le_t *peer,
 	}
 
 	return NULL;
+}
+
+void bt_conn_disconnect_all(void)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(conns); i++) {
+		struct bt_conn *conn = &conns[i];
+
+		if (!atomic_get(&conn->ref)) {
+			continue;
+		}
+
+		if (conn->state == BT_CONN_CONNECTED) {
+			bt_conn_disconnect(conn,
+					   BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+		}
+	}
 }
 
 struct bt_conn *bt_conn_ref(struct bt_conn *conn)
@@ -441,19 +479,11 @@ int bt_conn_get_info(const struct bt_conn *conn, struct bt_conn_info *info)
 	switch (conn->type) {
 	case BT_CONN_TYPE_LE:
 		if (conn->role == BT_HCI_ROLE_MASTER) {
-#if 0
 			info->le.src = &conn->le.init_addr;
 			info->le.dst = &conn->le.resp_addr;
-#else
-			info->le.dst = &conn->le.dst;
-#endif
 		} else {
-#if 0
 			info->le.src = &conn->le.resp_addr;
 			info->le.dst = &conn->le.init_addr;
-#else
-			info->le.src = &conn->le.dst;
-#endif
 		}
 		info->le.interval = conn->le.interval;
 		info->le.latency = conn->le.latency;
@@ -472,11 +502,11 @@ int bt_conn_get_info(const struct bt_conn *conn, struct bt_conn_info *info)
 
 static int bt_hci_disconnect(struct bt_conn *conn, uint8_t reason)
 {
-	struct nble_gap_disconnect_req_params ble_gap_disconnect;
+	struct nble_gap_disconnect_req params;
 
-	ble_gap_disconnect.conn_handle = conn->handle;
-	ble_gap_disconnect.reason = reason;
-	nble_gap_disconnect_req(&ble_gap_disconnect);
+	params.conn_handle = conn->handle;
+	params.reason = reason;
+	nble_gap_disconnect_req(&params);
 
 	bt_conn_set_state(conn, BT_CONN_DISCONNECT);
 	return 0;
@@ -488,9 +518,9 @@ static int bt_hci_connect_le_cancel(struct bt_conn *conn)
 	return 0;
 }
 
-void on_nble_gap_cancel_connect_rsp(const struct nble_response *params)
+void on_nble_gap_cancel_connect_rsp(const struct nble_common_rsp *par)
 {
-	struct bt_conn *conn = params->user_data;
+	struct bt_conn *conn = par->user_data;
 
 	conn->err = BT_HCI_ERR_INSUFFICIENT_RESOURCES;
 	bt_conn_set_state(conn, BT_CONN_DISCONNECTED);
@@ -513,9 +543,15 @@ int bt_conn_disconnect(struct bt_conn *conn, uint8_t reason)
 	case BT_CONN_CONNECT_SCAN:
 		conn->err = BT_HCI_ERR_INSUFFICIENT_RESOURCES;
 		bt_conn_set_state(conn, BT_CONN_DISCONNECTED);
-		/* scan update not yet implemented */
+		bt_le_scan_update(false);
 		return 0;
 	case BT_CONN_CONNECT:
+		/* Check if directed advertising was initiated */
+		if (atomic_test_and_clear_bit(conn->flags, BT_CONN_DIR_ADV_CONNECT)) {
+			conn->err = BT_HCI_ERR_REMOTE_USER_TERM_CONN;
+			bt_conn_set_state(conn, BT_CONN_DISCONNECTED);
+			return bt_le_adv_stop();
+		}
 		return bt_hci_connect_le_cancel(conn);
 	case BT_CONN_CONNECTED:
 		return bt_hci_disconnect(conn, reason);
@@ -527,30 +563,30 @@ int bt_conn_disconnect(struct bt_conn *conn, uint8_t reason)
 	}
 }
 
-static bool valid_adv_params(const struct nble_gap_adv_params *params)
+static bool valid_adv_params(const struct bt_le_adv_param *param)
 {
-	if (params->type == BT_LE_ADV_DIRECT_IND) {
-		/* If high duty, ensure interval is 0 */
-		if (params->interval_max != 0)
-			return false;
+	if (!(param->options & BT_LE_ADV_OPT_CONNECTABLE))
+		return false;
 
-		if (params->timeout != 0)
-			return false;
-	} else if (params->type == BT_LE_ADV_DIRECT_IND_LOW_DUTY) {
-		if (params->interval_min < 0x20)
-			return false;
-	} else {
+	/* In case of high duty cycle, interval is 0 */
+	if (param->interval_min == 0)
+		return true;
+
+	if (param->interval_min > param->interval_max ||
+	    param->interval_min < 0x0020 || param->interval_max > 0x4000) {
 		return false;
 	}
 
-	if (params->interval_min > params->interval_max)
-		return false;
-
-	if (params->interval_max > 0x4000)
-		return false;
-
 	return true;
 }
+
+#if defined(CONFIG_BLUETOOTH_CENTRAL)
+int bt_le_set_auto_conn(bt_addr_le_t *addr,
+			const struct bt_le_conn_param *param)
+{
+	return -EINVAL;
+}
+#endif /* CONFIG_BLUETOOTH_CENTRAL */
 
 struct bt_conn *bt_conn_create_slave_le(const bt_addr_le_t *peer,
 				  const struct bt_le_adv_param *param)
@@ -558,25 +594,21 @@ struct bt_conn *bt_conn_create_slave_le(const bt_addr_le_t *peer,
 	struct bt_conn *conn;
 	/* Timeout is handled by application timer */
 	/* forced to none currently (no whitelist support) */
-	struct nble_gap_adv_params params = {
+	struct nble_gap_set_adv_params_req params = {
 		.interval_max = param->interval_max,
 		.interval_min = param->interval_min,
-		.type = param->type,
+		.type = BT_LE_ADV_DIRECT_IND,
 		.timeout = 0,
 		.filter_policy = 0
 	};
 
-	bt_addr_le_copy(&params.peer_bda, peer);
-
-	if (!valid_adv_params(&params)) {
+	if (!valid_adv_params(param)) {
 		return NULL;
 	}
 
-	if (param->type == BT_LE_ADV_DIRECT_IND_LOW_DUTY) {
-		params.type = BT_LE_ADV_DIRECT_IND;
-	}
+	bt_addr_le_copy(&params.peer_bda, peer);
 
-	if (atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING)) {
+	if (atomic_test_bit(bt_dev.flags, BT_DEV_KEEP_ADVERTISING)) {
 		return NULL;
 	}
 
@@ -586,37 +618,20 @@ struct bt_conn *bt_conn_create_slave_le(const bt_addr_le_t *peer,
 		return NULL;
 	}
 
+	atomic_set_bit(conn->flags, BT_CONN_DIR_ADV_CONNECT);
+
 	bt_conn_set_state(conn, BT_CONN_CONNECT);
 
 	nble_gap_set_adv_params_req(&params);
-	nble_gap_start_adv_req();
+	set_advertise_enable();
+
+	atomic_set_bit(bt_dev.flags, BT_DEV_KEEP_ADVERTISING);
 
 	return conn;
 }
 
 #if defined(CONFIG_BLUETOOTH_CENTRAL)
-static int hci_le_create_conn(struct bt_conn *conn)
-{
-	struct nble_gap_connect_req_params conn_params;
-
-	conn_params.bda = conn->le.dst;
-	conn_params.conn_params.interval_min = conn->le.interval_min;
-	conn_params.conn_params.interval_max = conn->le.interval_max;
-	conn_params.conn_params.slave_latency = conn->le.latency;
-	conn_params.conn_params.link_sup_to = conn->le.timeout;
-
-	conn_params.scan_params.interval = sys_cpu_to_le16(BT_GAP_SCAN_FAST_INTERVAL);
-	conn_params.scan_params.window = conn_params.scan_params.interval;
-	conn_params.scan_params.selective = 0;
-	conn_params.scan_params.active = 1;
-	conn_params.scan_params.timeout = 0;
-
-	nble_gap_connect_req(&conn_params, conn);
-
-	return 0;
-}
-
-void on_nble_gap_connect_rsp(const struct nble_response *params)
+void on_nble_gap_connect_rsp(const struct nble_common_rsp *params)
 {
 	struct bt_conn *conn = params->user_data;
 
@@ -632,13 +647,23 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
 {
 	struct bt_conn *conn;
 
+	BT_ERR("%s %d", __FUNCTION__, __LINE__);
+	BT_ERR("%s %d: min-%d, max-%d, latency-%d, timeout-%d", __FUNCTION__, __LINE__,
+        param->interval_min, param->interval_max,
+				param->latency, param->timeout);
+
 	if (!bt_le_conn_params_valid(param->interval_min, param->interval_max,
 				param->latency, param->timeout)) {
 		return NULL;
 	}
 
-	/* if (atomic_test_bit(bt_dev.flags, BT_DEV_EXPLICIT_SCAN)) */
-	/*	return NULL; */
+	BT_ERR("%s %d", __FUNCTION__, __LINE__);
+
+	if (atomic_test_bit(bt_dev.flags, BT_DEV_EXPLICIT_SCAN)) {
+		return NULL;
+	}
+
+	BT_ERR("%s %d", __FUNCTION__, __LINE__);
 
 	conn = bt_conn_lookup_addr_le(peer);
 	if (conn) {
@@ -655,33 +680,26 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
 		}
 	}
 
+	BT_ERR("%s %d", __FUNCTION__, __LINE__);
+
 	conn = bt_conn_add_le(peer);
 	if (!conn) {
 		return NULL;
 	}
-#if 0
-	bt_conn_set_state(conn, BT_CONN_CONNECT_SCAN);
 
-	bt_le_scan_update(true);
-#endif
-
-	bt_addr_le_copy(&conn->le.dst, peer);
+	BT_ERR("%s %d", __FUNCTION__, __LINE__);
 
 	bt_conn_set_param_le(conn, param);
 
-	/* for the time being, the implementation bypassed the scan procedure */
-	if (hci_le_create_conn(conn)) {
-		goto done;
-	}
+	bt_conn_set_state(conn, BT_CONN_CONNECT_SCAN);
 
-	bt_conn_set_state(conn, BT_CONN_CONNECT);
+	bt_le_scan_update(true);
 
-done:
 	return conn;
 }
 #else
 
-void on_nble_gap_connect_rsp(const struct nble_response *params)
+void on_nble_gap_connect_rsp(const struct nble_common_rsp *params)
 {
 }
 
@@ -815,14 +833,14 @@ int bt_conn_auth_passkey_entry(struct bt_conn *conn, unsigned int passkey)
 	return -EINVAL;
 }
 
-int bt_conn_auth_passkey_confirm(struct bt_conn *conn, bool match)
+int bt_conn_auth_passkey_confirm(struct bt_conn *conn)
 {
 	if (!bt_auth) {
 		return -EINVAL;
 	};
 #if defined(CONFIG_BLUETOOTH_SMP)
 	if (conn->type == BT_CONN_TYPE_LE) {
-		return bt_smp_auth_passkey_confirm(conn, match);
+		return bt_smp_auth_passkey_confirm(conn);
 	}
 #endif /* CONFIG_BLUETOOTH_SMP */
 
@@ -848,24 +866,24 @@ int bt_conn_auth_cancel(struct bt_conn *conn)
 	return -EINVAL;
 }
 
-int bt_conn_remove_info(const bt_addr_le_t *addr)
+int bt_conn_auth_pairing_confirm(struct bt_conn *conn)
 {
-	struct bt_conn *conn;
-
-	/* TODO: implement address specific removal */
-	if (bt_addr_le_cmp(addr, BT_ADDR_LE_ANY))
+	if (!bt_auth) {
 		return -EINVAL;
+	}
 
-	do {
-		conn = bt_conn_lookup_state_le(addr, BT_CONN_CONNECTED);
-		if (conn) {
-			bt_conn_unref(conn);
-			bt_conn_disconnect(conn,
-					   BT_HCI_ERR_REMOTE_USER_TERM_CONN);
-		}
-	} while(conn);
-
-	return bt_smp_remove_info(addr);
+	switch (conn->type) {
+#if defined(CONFIG_BLUETOOTH_SMP)
+	case BT_CONN_TYPE_LE:
+		return bt_smp_auth_pairing_confirm(conn);
+#endif /* CONFIG_BLUETOOTH_SMP */
+#if defined(CONFIG_BLUETOOTH_BREDR)
+	case BT_CONN_TYPE_BR:
+		return ssp_confirm_reply(conn);
+#endif /* CONFIG_BLUETOOTH_BREDR */
+	default:
+		return -EINVAL;
+	}
 }
 #endif /* CONFIG_BLUETOOTH_SMP || CONFIG_BLUETOOTH_BREDR */
 
@@ -896,7 +914,7 @@ int bt_conn_init(void)
 int bt_conn_le_conn_update(struct bt_conn *conn,
 			   const struct bt_le_conn_param *param)
 {
-	struct nble_gap_connect_update_params ble_gap_connect_update;
+	struct nble_gap_conn_update_req params;
 #if 0
 	struct hci_cp_le_conn_update *conn_update;
 	struct net_buf *buf;
@@ -915,13 +933,13 @@ int bt_conn_le_conn_update(struct bt_conn *conn,
 	conn_update->conn_latency = sys_cpu_to_le16(param->latency);
 	conn_update->supervision_timeout = sys_cpu_to_le16(param->timeout);
 #endif
-	ble_gap_connect_update.conn_handle = conn->handle;
-	ble_gap_connect_update.params.interval_min = param->interval_min;
-	ble_gap_connect_update.params.interval_max = param->interval_max;
-	ble_gap_connect_update.params.slave_latency = param->latency;
-	ble_gap_connect_update.params.link_sup_to = param->timeout;
+	params.conn_handle = conn->handle;
+	params.params.interval_min = param->interval_min;
+	params.params.interval_max = param->interval_max;
+	params.params.slave_latency = param->latency;
+	params.params.link_sup_to = param->timeout;
 
-	nble_gap_conn_update_req(&ble_gap_connect_update);
+	nble_gap_conn_update_req(&params);
 
 	return 0;
 }

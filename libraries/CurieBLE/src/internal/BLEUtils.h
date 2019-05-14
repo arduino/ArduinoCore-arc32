@@ -32,5 +32,9 @@ namespace BLEUtils
     
     BLEDevice& getLoacalBleDevice();
     bool isLocalBLE(const BLEDevice& device);
+    inline uint64_t getElapsedMillSeconds(uint64_t startMillSecond)
+    {
+        return (millis() - startMillSecond);
+    }
 }
 

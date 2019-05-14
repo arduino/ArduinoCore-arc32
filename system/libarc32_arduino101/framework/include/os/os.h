@@ -202,4 +202,11 @@ extern OS_ERR_TYPE mutex_lock (T_MUTEX mutex, int timeout);
 
 /** @} */
 
+struct os_fifo {
+    T_QUEUE queue;
+};
+void fifo_init(struct os_fifo *fifo);
+void *fifo_get(struct os_fifo *fifo, int32_t timeout);
+void fifo_put(struct os_fifo *fifo, void *data);
+
 #endif

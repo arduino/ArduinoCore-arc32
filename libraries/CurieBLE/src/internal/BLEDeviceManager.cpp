@@ -45,7 +45,6 @@ BLEDeviceManager::BLEDeviceManager():
     _connecting(false),
     _has_service_uuid(false),
     _has_service_solicit_uuid(false),
-    _appearance(0),
     _manufacturer_data_length(0),
     _service_data_length(0),
     _adv_type(0),
@@ -66,8 +65,7 @@ BLEDeviceManager::BLEDeviceManager():
     
     ble_client_get_factory_config(&_local_bda, _device_name);
     
-    _adv_param.type = BT_LE_ADV_IND;
-    _adv_param.addr_type = _local_bda.type;
+    setConnectable(true);
     _adv_param.interval_min = 0xA0;
     _adv_param.interval_max = 0xF0;
     
@@ -81,7 +79,7 @@ BLEDeviceManager::BLEDeviceManager():
     memset(_peer_adv_data, 0, sizeof(_peer_adv_data));
     memset(_peer_adv_data_len, 0, sizeof(_peer_adv_data_len));
     memset(_peer_scan_rsp_data, 0, sizeof(_peer_scan_rsp_data));
-    memset(_peer_scan_rsp_data_len, -1, sizeof(_peer_scan_rsp_data_len));
+    memset(_peer_scan_rsp_data_len, 0, sizeof(_peer_scan_rsp_data_len));
     memset(_peer_adv_rssi, 0, sizeof(_peer_adv_rssi));
     
     memset(_peer_adv_connectable, 0, sizeof(_peer_adv_connectable));
@@ -132,6 +130,11 @@ bool BLEDeviceManager::begin(BLEDevice *device)
 {
     if (NULL == _local_ble)
     {
+        // TODO: Olny allow call one time
+        ble_client_init (bleConnectEventHandler, this,
+                         bleDisconnectEventHandler, this,
+                         bleParamUpdatedEventHandler, this);
+        
         _local_ble = device;
         bt_le_set_mac_address(_local_bda);
         
@@ -139,10 +142,6 @@ bool BLEDeviceManager::begin(BLEDevice *device)
         setDeviceName();
         _state = BLE_PERIPH_STATE_READY;
         delay(4);
-        // TODO: Olny allow call one time
-        ble_client_init (bleConnectEventHandler, this,
-                         bleDisconnectEventHandler, this,
-                         bleParamUpdatedEventHandler, this);
         return true;
     }
     else
@@ -247,13 +246,14 @@ void BLEDeviceManager::setAdvertisedServiceData(const bt_uuid_t* serviceDataUuid
                                                 const uint8_t* serviceData,
                                                 uint8_t serviceDataLength)
 {
+    // GL. KW warning acknowldged
     memcpy(&_service_data_uuid, serviceDataUuid, sizeof(_service_data_uuid));
     if (serviceDataLength > BLE_MAX_ADV_SIZE)
     {
         serviceDataLength = BLE_MAX_ADV_SIZE;
     }
     
-    memcpy(_service_data, serviceData, serviceDataLength);
+    memcpy(_service_data, serviceData, serviceDataLength);// GL. KW warning acknowldged
     _service_data_length = serviceDataLength;
 }
 
@@ -271,7 +271,7 @@ void BLEDeviceManager::setManufacturerData(const unsigned char manufacturerData[
         manufacturerDataLength = BLE_MAX_ADV_SIZE;
     }
     _manufacturer_data_length = manufacturerDataLength;
-    memcpy(_manufacturer_data, manufacturerData, manufacturerDataLength);
+    memcpy(_manufacturer_data, manufacturerData, manufacturerDataLength);// GL. KW warning acknowldged
 }
 
 void BLEDeviceManager::setLocalName(const char *localName)
@@ -322,12 +322,14 @@ bool BLEDeviceManager::setTxPower(int txPower)
 
 void BLEDeviceManager::setConnectable(bool connectable)
 {
-    uint8_t type = BT_LE_ADV_IND;
     if (connectable == false)
     {
-        type = BT_LE_ADV_NONCONN_IND;
+        _adv_param.options = 0;
     }
-    _adv_param.type = type;
+    else
+    {
+        _adv_param.options = BT_LE_ADV_OPT_CONNECTABLE;
+    }
 }
 
 void BLEDeviceManager::setDeviceName(const char* deviceName)
@@ -338,7 +340,7 @@ void BLEDeviceManager::setDeviceName(const char* deviceName)
         int len = strlen(deviceName);
         if (len > BLE_MAX_DEVICE_NAME)
             len = BLE_MAX_DEVICE_NAME;
-        memcpy(_device_name, deviceName, len);
+        memcpy(_device_name, deviceName, len);// GL. KW warning acknowldged
         if (NULL != _local_ble)
         {
             setDeviceName();
@@ -355,7 +357,7 @@ BLEDeviceManager::setDeviceName()
 
 void BLEDeviceManager::setAppearance(unsigned short appearance)
 {
-    _appearance = appearance;
+    BLEProfileManager::instance()->setAppearance(appearance);
 }
 
 BLE_STATUS_T
@@ -407,19 +409,10 @@ BLEDeviceManager::setAdvertiseData(uint8_t type, const uint8_t* data, uint8_t le
 }
 
 BLE_STATUS_T
-BLEDeviceManager::_advDataInit(void)
+BLEDeviceManager::setAdvertiseSolicitService()
 {
     BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
-    // Clear the indexs
-    _adv_data_idx = 0;
-    _scan_rsp_data_idx = 0;
-    
-    /* Add flags */
-    _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
-    ret = setAdvertiseData (BT_DATA_FLAGS, &_adv_type, sizeof(_adv_type));
-    
-    if (_has_service_solicit_uuid && 
-        (BLE_STATUS_SUCCESS == ret)) 
+    if (_has_service_solicit_uuid)
     {
         uint8_t type;
         uint8_t length;
@@ -441,9 +434,14 @@ BLEDeviceManager::_advDataInit(void)
         
         ret = setAdvertiseData(type, data, length);
     }
-    
-    if (_has_service_uuid && 
-        (BLE_STATUS_SUCCESS == ret)) 
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseService()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_has_service_uuid) 
     {
         uint8_t type;
         uint8_t length;
@@ -464,17 +462,28 @@ BLEDeviceManager::_advDataInit(void)
         }
         ret = setAdvertiseData(type, data, length);
     }
-    
-    if (_manufacturer_data_length > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseManufacturerData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+
+    if (_manufacturer_data_length > 0)
     {
         ret = setAdvertiseData (BT_DATA_MANUFACTURER_DATA, 
                                 _manufacturer_data, 
                                 _manufacturer_data_length);
     }
+    return ret;
+}
 
-    if (_local_name.length() > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseLocalName()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_local_name.length() > 0)
     {
         uint8_t length = _local_name.length();
         ret = setAdvertiseData (BT_DATA_NAME_COMPLETE, 
@@ -482,8 +491,14 @@ BLEDeviceManager::_advDataInit(void)
                                 length);
     }
     
-    if (_service_data_length > 0  && 
-        (BLE_STATUS_SUCCESS == ret))
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseServiceData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    if (_service_data_length > 0)
     {
         /* Add Service Data (if it will fit) */
 
@@ -506,12 +521,73 @@ BLEDeviceManager::_advDataInit(void)
                                 block_len);
 
         uint8_t *adv_tmp = _service_data_buf;
-
+        
+        // GL. KW warning acknowldged
         memcpy(adv_tmp, &((bt_uuid_16_t*)&_service_data_uuid)->val, sizeof(uint16_t));
         adv_tmp += 2;
         memcpy(adv_tmp, _service_data, _service_data_length);
     }
+    return ret;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::setAdvertiseFlagData()
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
+    /* Add flags */
+    _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
+    ret = setAdvertiseData (BT_DATA_FLAGS, &_adv_type, sizeof(_adv_type));
+    return ret;
+}
+
+void BLEDeviceManager::clearPeripheralAdvertiseData()
+{
+    // Clear the indexs
+    _adv_data_idx = 0;
+    _scan_rsp_data_idx = 0;
+}
+
+BLE_STATUS_T
+BLEDeviceManager::_advDataInit(void)
+{
+    BLE_STATUS_T ret = BLE_STATUS_SUCCESS;
     
+    clearPeripheralAdvertiseData();
+    
+    ret = setAdvertiseFlagData();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseSolicitService();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseService();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseManufacturerData();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseLocalName();
+    if (BLE_STATUS_SUCCESS != ret)
+    {
+        return ret;
+    }
+    
+    ret = setAdvertiseServiceData();
+    
+    pr_debug(LOG_MODULE_BLE, "%s-ad_len:%d, scanrsp_len:%d", 
+             __FUNCTION__, _adv_data_idx, _scan_rsp_data_idx);
     return ret;
 }
 
@@ -519,19 +595,25 @@ BLE_STATUS_T BLEDeviceManager::startAdvertising()
 {
     int ret;
     BLE_STATUS_T status;
+    bt_data_t* scan_rsp_data = NULL;
     status = _advDataInit();
     if (BLE_STATUS_SUCCESS != status)
     {
         return status;
     }
 
-    pr_info(LOG_MODULE_BLE, "%s-ad_len%d", __FUNCTION__, _adv_data_idx);
     if (_state != BLE_PERIPH_STATE_READY)
         return BLE_STATUS_WRONG_STATE;
     
+    // The V4.2 stack used the pointer to set the ADV type
+    if (_scan_rsp_data_idx > 0)
+    {
+        scan_rsp_data = _scan_rsp_data;
+    }
+    
     ret = bt_le_adv_start(&_adv_param, 
                           _adv_data, _adv_data_idx, 
-                          _scan_rsp_data, _scan_rsp_data_idx);
+                          scan_rsp_data, _scan_rsp_data_idx);
     if (0 != ret)
     {
         pr_error(LOG_MODULE_APP, "[ADV] Start failed. Error: %d", ret);
@@ -611,11 +693,9 @@ void BLEDeviceManager::_clearAdvertiseBuffer()
     
 }
 
-bool BLEDeviceManager::startScanningWithDuplicates()
+bool BLEDeviceManager::startScaning()
 {
-    _adv_duplicate_filter_enabled = false;
     _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
-
     _clearAdvertiseBuffer();
     
     int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
@@ -627,29 +707,27 @@ bool BLEDeviceManager::startScanningWithDuplicates()
     return true;
 }
 
+bool BLEDeviceManager::startScanningWithDuplicates()
+{
+    _adv_duplicate_filter_enabled = false;
+    return startScaning();
+}
+
 bool BLEDeviceManager::startScanningNewPeripherals()
 {
+    // Clear the filter old buffer
     _adv_duplicate_filter_enabled = true;
-    memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
     _duplicate_filter_header = _duplicate_filter_tail = 0;
+    memset(_peer_duplicate_address_buffer, 0, sizeof(_peer_duplicate_address_buffer));
 
-    _clearAdvertiseBuffer();
-    
-    _scan_param.filter_dup   = BT_HCI_LE_SCAN_FILTER_DUP_ENABLE;
-    int err = bt_le_scan_start(&_scan_param, ble_central_device_found);
-    if (err)
-    {
-        pr_info(LOG_MODULE_BLE, "Scanning failed to start (err %d)\n", err);
-        return false;
-    }
-    return true;
+    return startScaning();
 }
 
 bool BLEDeviceManager::stopScanning()
 {
     int err = bt_le_scan_stop();
 
-    if (err)  // Sid. TODO: KW detected bt_le_scan_stop return only 0.
+    if (err)
     {
         pr_info(LOG_MODULE_BLE, "Stop LE scan failed (err %d)\n", err);
         return false;
@@ -765,17 +843,21 @@ bool BLEDeviceManager::hasLocalName(const BLEDevice* device) const
     
     const uint8_t* local_name = NULL;
     uint8_t local_name_len = 0;
+    
+    // Get local name
     bool retval = getDataFromAdvertiseByType(device, 
                                              BT_DATA_NAME_COMPLETE,
                                              local_name, 
                                              local_name_len);
-    if (false == retval)
+    if (true == retval)
     {
-        retval = getDataFromAdvertiseByType(device, 
-                                            BT_DATA_NAME_SHORTENED,
-                                            local_name, 
-                                            local_name_len);
+        return true;
     }
+    // Get shorten name
+    retval = getDataFromAdvertiseByType(device, 
+                                        BT_DATA_NAME_SHORTENED,
+                                        local_name, 
+                                        local_name_len);
     return retval;
 }
 
@@ -811,6 +893,7 @@ bool BLEDeviceManager::getManufacturerData (const BLEDevice* device,
                                               manufactgurer_data_len);
     if (retval)
     {
+        // GL. KW warning acknowldged
         memcpy (manu_data, manufactgurer_data, manufactgurer_data_len);
         manu_data_len = manufactgurer_data_len;
     }
@@ -936,13 +1019,13 @@ int BLEDeviceManager::advertisedServiceUuidCount(const BLEDevice* device) const
             return service_cnt;
         }
 
-	/* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
-	   BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
-	   Practically, these types are same as ALL. */
+    /* Sid, 2/15/2017.  Sandeep reported that Apple devices may use
+       BT_DATA_UUID16_SOME and BT_DATA_UUID128_SOME in addition to ALL.
+       Practically, these types are same as ALL. */
         if (type == BT_DATA_UUID16_ALL ||
             type == BT_DATA_UUID128_ALL ||
-	    type == BT_DATA_UUID16_SOME ||
-	    type == BT_DATA_UUID128_SOME)
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
@@ -959,7 +1042,7 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
     {
         return _local_name;
     }
-
+    
     const uint8_t* local_name = NULL;
     uint8_t local_name_len = 0;
     String temp("");
@@ -982,7 +1065,7 @@ String BLEDeviceManager::localName(const BLEDevice* device) const
         {
             local_name_len = BLE_MAX_ADV_SIZE - 1;
         }
-        memcpy(local_name_buff, local_name, local_name_len);
+        memcpy(local_name_buff, local_name, local_name_len);// GL. KW warning acknowldged
         local_name_buff[local_name_len] = '\0';
         temp = local_name_buff;
     }
@@ -1037,8 +1120,8 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
 
         if (type == BT_DATA_UUID16_ALL ||
             type == BT_DATA_UUID128_ALL ||
-	    type == BT_DATA_UUID16_SOME ||
-	    type == BT_DATA_UUID128_SOME)
+            type == BT_DATA_UUID16_SOME ||
+            type == BT_DATA_UUID128_SOME)
         {
             service_cnt++;
         }
@@ -1046,15 +1129,15 @@ String BLEDeviceManager::advertisedServiceUuid(const BLEDevice* device, int inde
         if (index < service_cnt)
         {
             if (type == BT_DATA_UUID16_ALL ||
-		type == BT_DATA_UUID16_SOME)
+                type == BT_DATA_UUID16_SOME)
             {
                 service_uuid.uuid.type = BT_UUID_TYPE_16;
-                memcpy(&BT_UUID_16(&service_uuid.uuid)->val, &adv_data[2], 2);
+                memcpy(&BT_UUID_16(&service_uuid.uuid)->val, &adv_data[2], 2);// GL. KW warning acknowldged
             }
             else
             {
                 service_uuid.uuid.type = BT_UUID_TYPE_128;
-                memcpy(service_uuid.val, &adv_data[2], 16);
+                memcpy(service_uuid.val, &adv_data[2], 16);// GL. KW warning acknowldged
             }
             
             BLEUtils::uuidBT2String(&service_uuid.uuid, uuid_string);
@@ -1109,6 +1192,7 @@ bool BLEDeviceManager::connect(BLEDevice &device)
     
     bt_addr_le_copy(&_wait_for_connect_peripheral, device.bt_le_address());
     // Buffer the ADV data
+    // GL. KW warning acknowldged
     memcpy(_wait_for_connect_peripheral_adv_data, _available_for_connect_peripheral_adv_data, BLE_MAX_ADV_SIZE);
     memcpy(_wait_for_connect_peripheral_scan_rsp_data, _available_for_connect_peripheral_scan_rsp_data, BLE_MAX_ADV_SIZE);
     _wait_for_connect_peripheral_adv_data_len = _available_for_connect_peripheral_adv_data_len;
@@ -1155,7 +1239,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
     bool link_existed = false;
     bool retval = false;
     
-    pr_debug(LOG_MODULE_BLE, "%s-%d-1", __FUNCTION__, __LINE__);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d-1", __FUNCTION__, __LINE__);
     
     // Find free peripheral Items
     for (int i = 0; i < BLE_MAX_CONN_CFG; i++)
@@ -1177,6 +1261,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
             {
                 unused = temp;
                 // Buffer the ADV data
+                // GL. KW warning acknowldged
                 memcpy(_peer_peripheral_adv_data[i], 
                        _wait_for_connect_peripheral_adv_data, 
                        BLE_MAX_ADV_SIZE);
@@ -1189,7 +1274,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
             }
         }
     }
-    pr_debug(LOG_MODULE_BLE, "%s-%d:link_existed-%d unused-%p", __FUNCTION__, __LINE__, link_existed, unused);
+    //pr_debug(LOG_MODULE_BLE, "%s-%d:link_existed-%d unused-%p", __FUNCTION__, __LINE__, link_existed, unused);
     
     if (!link_existed && NULL != unused)
     {
@@ -1198,6 +1283,7 @@ bool BLEDeviceManager::connectToDevice(BLEDevice &device)
         bt_conn_t* conn = bt_conn_create_le(device.bt_le_address(), device.bt_conn_param());
         if (NULL != conn)
         {
+            // GL. KW warning acknowldged
             memcpy(unused, device.bt_le_address(), sizeof(bt_addr_le_t));
             retval = true;
             _connecting = true;
@@ -1213,12 +1299,12 @@ String BLEDeviceManager::deviceName(const BLEDevice* device)
     {
         return _device_name;
     }
-    return String("");
+    return BLEProfileManager::instance()->getDeviceName(device);
 }
 
 int BLEDeviceManager::appearance()
 {
-    return _appearance;
+    return BLEProfileManager::instance()->getAppearance();
 }
 
 BLEDeviceManager* BLEDeviceManager::instance()
@@ -1246,6 +1332,7 @@ void BLEDeviceManager::handleConnectEvent(bt_conn_t *conn, uint8_t err)
     if (BT_CONN_ROLE_SLAVE == role_info.role)
     {
         // Central has established the connection with this peripheral device
+        // GL. KW warning acknowldged
         memcpy(&_peer_central, bt_conn_get_dst(conn), sizeof (bt_addr_le_t));
     }
     else
@@ -1319,12 +1406,6 @@ bool BLEDeviceManager::advertiseDataProc(uint8_t type,
                                          const uint8_t *dataPtr, 
                                          uint8_t data_len)
 {
-    //Serial1.print("[AD]:");
-    //Serial1.print(type);
-    //Serial1.print(" data_len ");
-    //Serial1.println(data_len);
-    
-    //const bt_data_t zero = {0, 0,0};
     if (_adv_accept_critical.type == 0 && 
         _adv_accept_critical.data_len == 0 &&
         _adv_accept_critical.data == NULL)
@@ -1332,6 +1413,7 @@ bool BLEDeviceManager::advertiseDataProc(uint8_t type,
         // Not set the critical. Accept all.
         return true;
     }
+    
     if (type == _adv_accept_critical.type &&
         data_len == _adv_accept_critical.data_len &&
         0 == memcmp(dataPtr, _adv_accept_critical.data, data_len))
@@ -1388,7 +1470,9 @@ BLEDevice BLEDeviceManager::available()
     {
         uint64_t timestamp_delta = timestamp - _peer_adv_mill[i];
         temp = &_peer_adv_buffer[i];
-        if ((timestamp_delta <= 2000) && (max_delta < timestamp_delta) && (_peer_scan_rsp_data_len[i] >= 0 || !_peer_adv_connectable[i]))
+        if ((timestamp_delta >= 800 || _peer_scan_rsp_data_len[i] >= 0) && // Wait scan response coming 
+            (timestamp_delta <= 2000) && // Check timeout
+            (max_delta < timestamp_delta))
         {
             // Eable the duplicate filter
             if (_adv_duplicate_filter_enabled && 
@@ -1410,6 +1494,7 @@ BLEDevice BLEDeviceManager::available()
         {
             tempdevice.setAddress(*temp);
             bt_addr_le_copy(&_available_for_connect_peripheral, temp);
+            // GL. KW warning acknowldged
             memcpy(_available_for_connect_peripheral_adv_data, _peer_adv_data[index], BLE_MAX_ADV_SIZE);
             memcpy(_available_for_connect_peripheral_scan_rsp_data, _peer_scan_rsp_data[index], BLE_MAX_ADV_SIZE);
             _available_for_connect_peripheral_scan_rsp_data_len = _peer_scan_rsp_data_len[index];
@@ -1450,7 +1535,7 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
             if (max_delta > 2000) // expired
             {
                 index = i;
-                _peer_scan_rsp_data_len[index] = -1; // Invalid the scan response
+                _peer_scan_rsp_data_len[index] = 0; // Invalid the scan response
             }
         }
         
@@ -1469,17 +1554,19 @@ bool BLEDeviceManager::setAdvertiseBuffer(const bt_addr_le_t* bt_addr,
         temp = &_peer_adv_buffer[index];
         if (i >= BLE_MAX_ADV_BUFFER_CFG)
         {
+            // GL. KW warning acknowldged
             memcpy(temp, bt_addr, sizeof (bt_addr_le_t));
         }
         if (data_len > BLE_MAX_ADV_SIZE)
         {
             data_len = BLE_MAX_ADV_SIZE;
         }
-        memcpy(_peer_adv_data[index], ad, data_len);
+        memcpy(_peer_adv_data[index], ad, data_len);// GL. KW warning acknowldged
         _peer_adv_data_len[index] = data_len;
         _peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
         _peer_adv_connectable[index] = connectable;
         retval = true;
     }
@@ -1517,11 +1604,13 @@ bool BLEDeviceManager::setScanRespBuffer(const bt_addr_le_t* bt_addr,
         {
             data_len = BLE_MAX_ADV_SIZE;
         }
+        // GL. KW warning acknowldged
         memcpy(_peer_scan_rsp_data[index], ad, data_len);
         _peer_scan_rsp_data_len[index] = data_len;
         //_peer_adv_rssi[index] = rssi;
         // Update the timestamp
-        _peer_adv_mill[index] = timestamp;
+        if (timestamp - _peer_adv_mill[index] > 1000)
+            _peer_adv_mill[index] = timestamp;
         retval = true;
     }
     
@@ -1562,13 +1651,13 @@ void BLEDeviceManager::setTempAdvertiseBuffer(const bt_addr_le_t* bt_addr,
     }
     
     temp = &_peer_temp_adv_buffer[i];
-    memcpy(temp, bt_addr, sizeof (bt_addr_le_t));
+    memcpy(temp, bt_addr, sizeof (bt_addr_le_t));// GL. KW warning acknowldged
     if (data_len > BLE_MAX_ADV_SIZE)
     {
         data_len = BLE_MAX_ADV_SIZE;
     }
     
-    memcpy(_peer_temp_adv_data[i], ad, data_len);
+    memcpy(_peer_temp_adv_data[i], ad, data_len);// GL. KW warning acknowldged
     _peer_temp_adv_data_len[i] = data_len;
     _peer_temp_adv_connectable[i] = connectable;
     
@@ -1650,7 +1739,7 @@ void BLEDeviceManager::handleDeviceFound(const bt_addr_le_t *addr,
     //pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     // Filter address
     if (BLEUtils::macAddressValid(_adv_accept_device) == true && 
-       (memcmp(addr->val, _adv_accept_device.val, sizeof (addr->val)) != 0))
+       (memcmp(addr->a.val, _adv_accept_device.a.val, sizeof (addr->a.val)) != 0))
     {
         pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
         return;

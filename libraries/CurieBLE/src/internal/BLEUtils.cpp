@@ -26,8 +26,8 @@ String BLEUtils::macAddressBT2String(const bt_addr_le_t &bd_addr)
 {
     char mac_string[BT_ADDR_STR_LEN];
     snprintf(mac_string, BT_ADDR_STR_LEN, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
-            bd_addr.val[5], bd_addr.val[4], bd_addr.val[3],
-            bd_addr.val[2], bd_addr.val[1], bd_addr.val[0]);
+            bd_addr.a.val[5], bd_addr.a.val[4], bd_addr.a.val[3],
+            bd_addr.a.val[2], bd_addr.a.val[1], bd_addr.a.val[0]);
     String temp(mac_string);
     return temp;
 }
@@ -51,7 +51,7 @@ void BLEUtils::macAddressString2BT(const char* mac_str, bt_addr_le_t &bd_addr)
         temp[0] = mac_str[i - 1];
         temp[1] = mac_str[i];
 
-        bd_addr.val[length] = strtoul(temp, NULL, 16);
+        bd_addr.a.val[length] = strtoul(temp, NULL, 16);
 
         length++;
     }
@@ -65,7 +65,7 @@ bool BLEUtils::macAddressSame(const bt_addr_le_t &bd_addr1,
     #if 1
     for (int i = 0; i < 6; i++)
     {
-        if (bd_addr1.val[i] != bd_addr2.val[i])
+        if (bd_addr1.a.val[i] != bd_addr2.a.val[i])
         {
             temp = false;
             break;
@@ -85,7 +85,7 @@ bool BLEUtils::macAddressValid(const bt_addr_le_t &bd_addr)
 #else
     for (int i = 0; i < 6; i++)
     {
-        if (bd_addr.val[i] != 0)
+        if (bd_addr.a.val[i] != 0)
         {      
 //pr_info(LOG_MODULE_BLE, "%s-idx %d-%.2x:%.2x", __FUNCTION__, i ,bd_addr.val[i], zero.val[i]);
 //pr_info(LOG_MODULE_BLE,"%s",BLEUtils::macAddressBT2String(zero).c_str());
@@ -100,7 +100,7 @@ bool BLEUtils::macAddressValid(const bt_addr_le_t &bd_addr)
 
 bt_addr_le_t* BLEUtils::bleGetLoalAddress()
 {
-    static bt_addr_le_t board_addr;
+    static bt_addr_le_t board_addr = {0, {0, 0, 0, 0, 0, 0}};
     if (false == macAddressValid(board_addr))
         ble_client_get_mac_address(&board_addr);
     return &board_addr;

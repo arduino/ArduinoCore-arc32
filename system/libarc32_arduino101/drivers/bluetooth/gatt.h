@@ -20,6 +20,13 @@
 #ifndef __BT_GATT_H
 #define __BT_GATT_H
 
+/**
+ * @brief Generic Attribute Profile (GATT)
+ * @defgroup bt_gatt Generic Attribute Profile (GATT)
+ * @ingroup bluetooth
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +35,7 @@ extern "C" {
 #include <stddef.h>
 #include <sys/types.h>
 #include <misc/util.h>
+#include <misc/slist.h>
 #include <bluetooth/conn.h>
 #include <bluetooth/uuid.h>
 #include <bluetooth/att.h>
@@ -66,18 +74,13 @@ extern "C" {
  *  If set, requires encryption using authenticated link-key for write access.
  */
 #define BT_GATT_PERM_WRITE_AUTHEN		0x20
-/** @def BT_GATT_PERM_READ_AUTHOR
- *  @brief Attribute read permission with authorization.
+/** @def BT_GATT_PERM_PREPARE_WRITE
+ *  @brief Attribute prepare write permission.
  *
- *  If set, requires authorization for read access.
+ *  If set, allows prepare writes with use of BT_GATT_WRITE_FLAG_PREPARE
+ *  passed to write callback.
  */
-#define BT_GATT_PERM_READ_AUTHOR		0x40
-/** @def BT_GATT_PERM_WRITE_AUTHOR
- *  @brief Attribute write permission with authorization.
- *
- *  If set, requires authorization for write access.
- */
-#define BT_GATT_PERM_WRITE_AUTHOR		0x80
+#define BT_GATT_PERM_PREPARE_WRITE		0x40
 
 /* GATT attribute flush flags */
 /** @def BT_GATT_FLUSH_DISCARD
@@ -99,6 +102,14 @@ extern "C" {
   *
   */
 #define BT_GATT_ERR(_att_err)                  (-(_att_err))
+
+/** @def BT_GATT_WRITE_FLAG_PREPARE
+ *  @brif Attribute prepare write flag
+ *
+ *  If set, write callback should only check if the device is
+ *  authorized but no data shall be written.
+ */
+#define BT_GATT_WRITE_FLAG_PREPARE		0x01
 
 /** @brief GATT Attribute structure. */
 struct bt_gatt_attr {
@@ -135,7 +146,7 @@ struct bt_gatt_attr {
 	ssize_t			(*write)(struct bt_conn *conn,
 					 const struct bt_gatt_attr *attr,
 					 const void *buf, uint16_t len,
-					 uint16_t offset);
+					 uint16_t offset, uint8_t flags);
 
 	/** Attribute flush callback
 	 *
@@ -151,9 +162,11 @@ struct bt_gatt_attr {
 	 *  @return Number of bytes flushed, or in case of an error
 	 *          BT_GATT_ERR() with a specific ATT error code.
 	 */
+#ifdef CONFIG_BLUETOOTH_STACK_HCI
 	ssize_t			(*flush)(struct bt_conn *conn,
 					 const struct bt_gatt_attr *attr,
 					 uint8_t flags);
+#endif
 
 	/** Attribute user data */
 	void			*user_data;
@@ -450,16 +463,16 @@ ssize_t bt_gatt_attr_read_included(struct bt_conn *conn,
 /** @def BT_GATT_INCLUDE_SERVICE
  *  @brief Include Service Declaration Macro.
  *
- *  Helper macro to declare a include service attribute.
+ *  Helper macro to declare database internal include service attribute.
  *
- *  @param _service Service attribute value.
+ *  @param _service_incl, the first service attribute of service to include
  */
-#define BT_GATT_INCLUDE_SERVICE(_service)				\
+#define BT_GATT_INCLUDE_SERVICE(_service_incl)				\
 {									\
 	.uuid = BT_UUID_GATT_INCLUDE,					\
 	.perm = BT_GATT_PERM_READ,					\
 	.read = bt_gatt_attr_read_included,				\
-	.user_data = _service,						\
+	.user_data = _service_incl,					\
 }
 
 /** @brief Read Characteristic Attribute helper.
@@ -513,7 +526,8 @@ struct _bt_gatt_ccc {
 	struct bt_gatt_ccc_cfg	*cfg;
 	size_t			cfg_len;
 	uint16_t		value;
-	void			(*cfg_changed)(uint16_t value);
+    void            *user_data;
+	void			(*cfg_changed)(void *user_data, uint16_t value);
 };
 
 /** @brief Read Client Characteristic Configuration Attribute helper.
@@ -551,7 +565,7 @@ ssize_t bt_gatt_attr_read_ccc(struct bt_conn *conn,
  */
 ssize_t bt_gatt_attr_write_ccc(struct bt_conn *conn,
 			       const struct bt_gatt_attr *attr, const void *buf,
-			       uint16_t len, uint16_t offset);
+			       uint16_t len, uint16_t offset, uint8_t flags);
 
 /** @def BT_GATT_CCC
  *  @brief Client Characteristic Configuration Declaration Macro.
@@ -751,11 +765,11 @@ int bt_gatt_notify(struct bt_conn *conn, const struct bt_gatt_attr *attr,
  *
  *  @param conn Connection object.
  *  @param attr Attribute object.
- *  @param err: 0 success, error in the other case
+ *  @param err ATT error code
  */
 typedef void (*bt_gatt_indicate_func_t)(struct bt_conn *conn,
 					const struct bt_gatt_attr *attr,
-					int err);
+					uint8_t err);
 
 /** @brief GATT Indicate Value parameters */
 struct bt_gatt_indicate_params {
@@ -792,9 +806,10 @@ int bt_gatt_indicate(struct bt_conn *conn,
 /** @brief Response callback function
  *
  *  @param conn Connection object.
- *  @param err Error code.
+ *  @param err ATT error code.
  */
-typedef void (*bt_gatt_rsp_func_t)(struct bt_conn *conn, uint8_t err);
+typedef void (*bt_gatt_rsp_func_t)(struct bt_conn *conn, uint8_t err,
+	const void *data);
 
 /** @brief Exchange MTU
  *
@@ -881,12 +896,12 @@ struct bt_gatt_read_params;
 /** @brief Read callback function
  *
  *  @param conn Connection object.
- *  @param err Error code.
+ *  @param err ATT error code.
  *  @param params Read parameters used.
  *  @param data Attribute value data. NULL means read has completed.
  *  @param length Attribute value length.
  */
-typedef uint8_t (*bt_gatt_read_func_t)(struct bt_conn *conn, int err,
+typedef uint8_t (*bt_gatt_read_func_t)(struct bt_conn *conn, uint8_t err,
 				       struct bt_gatt_read_params *params,
 				       const void *data, uint16_t length);
 
@@ -926,30 +941,35 @@ struct bt_gatt_read_params {
  */
 int bt_gatt_read(struct bt_conn *conn, struct bt_gatt_read_params *params);
 
-/** @brief Write Response callback function
- *
- *  @param conn Connection object.
- *  @param err  Error code.
- *  @param data Data pointer in the write request.
- */
-typedef void (*bt_gatt_write_rsp_func_t)(struct bt_conn *conn, uint8_t err, const void *data);
+
+/** @brief GATT Write parameters */
+struct bt_gatt_write_params {
+	/** Response callback */
+	bt_gatt_rsp_func_t func;
+	/** Attribute handle */
+	uint16_t handle;
+	/** Attribute data offset */
+	uint16_t offset;
+	/** Data to be written */
+	const void *data;
+	/** Length of the data */
+	uint16_t length;
+};
 
 /** @brief Write Attribute Value by handle
  *
  * This procedure write the attribute value and return the result in the
  * callback.
  *
+ * Note: This procedure is asynchronous therefore the parameters need to
+ *  remains valid while it is active.
+ *
  * @param conn Connection object.
- * @param handle Attribute handle.
- * @param offset Attribute data offset.
- * @param data Data to be written.
- * @param length Data length.
- * @param func Callback function.
+ * @param params Write parameters.
  *
  * @return 0 in case of success or negative value in case of error.
  */
-int bt_gatt_write(struct bt_conn *conn, uint16_t handle, uint16_t offset,
-		  const void *data, uint16_t length, bt_gatt_write_rsp_func_t func);
+int bt_gatt_write(struct bt_conn *conn, struct bt_gatt_write_params *params);
 
 /** @brief Write Attribute Value by handle without response
  *
@@ -1041,5 +1061,9 @@ void bt_gatt_cancel(struct bt_conn *conn);
 #ifdef __cplusplus
 }
 #endif
+
+/**
+ * @}
+ */
 
 #endif /* __BT_GATT_H */

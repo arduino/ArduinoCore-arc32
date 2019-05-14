@@ -69,10 +69,9 @@ void bt_smp_pkey_ready(void);
 int bt_smp_init(void);
 
 int bt_smp_auth_passkey_entry(struct bt_conn *conn, unsigned int passkey);
-int bt_smp_auth_passkey_confirm(struct bt_conn *conn, bool match);
+int bt_smp_auth_passkey_confirm(struct bt_conn *conn);
+int bt_smp_auth_pairing_confirm(struct bt_conn *conn);
 int bt_smp_auth_cancel(struct bt_conn *conn);
-
-int bt_smp_remove_info(const bt_addr_le_t *addr);
 
 #ifdef CONFIG_BLUETOOTH_SMP
 void bt_smp_connected(struct bt_conn *conn);

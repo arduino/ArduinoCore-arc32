@@ -20,11 +20,6 @@
 #ifndef _BLE_CHARACTERISTICIMP_H_INCLUDED
 #define _BLE_CHARACTERISTICIMP_H_INCLUDED
 
-//#include "BLECommon.h"
-
-//#include "BLEDevice.h"
-//#include "BLEDescriptor.h"
-
 #include "CurieBLE.h"
 #include "BLEDescriptorImp.h"
 
@@ -83,6 +78,9 @@ public:
      * @return bool true set value success, false on error
      */
     bool setValue(const unsigned char value[], unsigned short length);
+    bool setValue (const unsigned char value[], 
+                   uint16_t length, 
+                   uint16_t offset);
 
     /**
      * Get the property mask of the Characteristic
@@ -172,7 +170,7 @@ public:
     static void writeResponseReceived(struct bt_conn *conn, 
                                       uint8_t err,
                                       const void *data);
-
+    void cccdValueChanged();
     int descriptorCount() const;
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
@@ -208,7 +206,8 @@ protected:
     friend ssize_t profile_longwrite_process(struct bt_conn *conn,
                                      const struct bt_gatt_attr *attr,
                                      const void *buf, uint16_t len,
-                                     uint16_t offset);
+                                     uint16_t offset,
+                                     uint8_t flags);
     
     int updateProfile(bt_gatt_attr_t *attr_start, int& index);
     
@@ -216,11 +215,13 @@ protected:
     
     bool longCharacteristic();
     
+#ifdef TD_V3
     void setBuffer(const uint8_t value[], 
                    uint16_t length, 
                    uint16_t offset);
     void discardBuffer();
     void syncupBuffer2Value();
+#endif
     
     /**
      * @brief   Get the characteristic value handle
@@ -299,11 +300,17 @@ protected:
 
 private:
     
+    void resetEventHanler();
+    void resetDescriptorList();
+    void initProfileParameter(unsigned char properties);
+    void initVauleFromCharacteristic(const BLECharacteristic& characteristic);
+    
     void setCCCDHandle(uint16_t handle);
     void setHandle(uint16_t handle);
     void _setValue(const uint8_t value[], uint16_t length, uint16_t offset);
     bool isClientCharacteristicConfigurationDescriptor(const bt_uuid_t* uuid);
-
+    void triggerValueUpdatedEvent();
+    
 private:
     // Those 2 UUIDs are used for define the characteristic.
     static bt_uuid_16_t _gatt_chrc_uuid;    // Characteristic UUID
@@ -312,7 +319,9 @@ private:
     unsigned short _value_size;
     unsigned short _value_length;
     unsigned char* _value;
+#ifdef TD_V3
     unsigned char* _value_buffer;
+#endif
     bool _value_updated;
 
     uint16_t            _value_handle; // GATT client only
@@ -331,7 +340,10 @@ private:
     bool        _subscribed;
     
     volatile bool _reading;
+    volatile bool _gattc_read_result;
+    
     static volatile bool _gattc_writing;
+    static volatile bool _gattc_write_result;
     bt_gatt_read_params_t _read_params; // GATT read parameter
     
     typedef LinkNode<BLEDescriptorImp *>  BLEDescriptorLinkNodeHeader;

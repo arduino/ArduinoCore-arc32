@@ -340,6 +340,13 @@ private:
     BLE_STATUS_T setAdvertiseData (uint8_t type, 
                                    const uint8_t* data, 
                                    uint8_t length);
+    BLE_STATUS_T setAdvertiseSolicitService();
+    BLE_STATUS_T setAdvertiseService();
+    BLE_STATUS_T setAdvertiseManufacturerData();
+    BLE_STATUS_T setAdvertiseLocalName();
+    BLE_STATUS_T setAdvertiseServiceData();
+    BLE_STATUS_T setAdvertiseFlagData();
+    void clearPeripheralAdvertiseData();
     BLE_STATUS_T _advDataInit(void);
     void _clearAdvertiseBuffer();
     bool advertiseDataProc(uint8_t type, 
@@ -378,6 +385,7 @@ private:
                                 uint8_t data_len,
                                 bool connectable);
     uint8_t getTempAdvertiseIndexFromBuffer(const bt_addr_le_t* bt_addr);
+    bool startScaning();
 
 private:
     uint16_t   _min_conn_interval;
@@ -392,7 +400,7 @@ private:
     uint8_t    _peer_adv_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
     uint8_t    _peer_adv_data_len[BLE_MAX_ADV_BUFFER_CFG];
     uint8_t    _peer_scan_rsp_data[BLE_MAX_ADV_BUFFER_CFG][BLE_MAX_ADV_SIZE];
-    int8_t     _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
+    uint8_t    _peer_scan_rsp_data_len[BLE_MAX_ADV_BUFFER_CFG];
     int8_t     _peer_adv_rssi[BLE_MAX_ADV_BUFFER_CFG];
     bool       _peer_adv_connectable[BLE_MAX_ADV_BUFFER_CFG];
     
@@ -431,7 +439,6 @@ private:
     bt_uuid_128_t _service_uuid;
     bool _has_service_solicit_uuid;
     bt_uuid_128_t _service_solicit_uuid;
-    uint16_t   _appearance;
     uint8_t    _manufacturer_data[BLE_MAX_ADV_SIZE];
     uint8_t    _manufacturer_data_length;
     bt_uuid_128_t _service_data_uuid;

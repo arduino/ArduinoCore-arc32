@@ -20,6 +20,13 @@
 #ifndef __BT_CONN_H
 #define __BT_CONN_H
 
+/**
+ * @brief Connection management
+ * @defgroup bt_conn Connection management
+ * @ingroup bluetooth
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -246,7 +253,7 @@ typedef enum __packed {
 			     */
 } bt_security_t;
 
-#if defined(CONFIG_BLUETOOTH_SMP)
+#if defined(CONFIG_BLUETOOTH_SMP) || defined(CONFIG_BLUETOOTH_BREDR)
 /** @brief Set security level for a connection.
  *
  *  This function enable security (encryption) for a connection. If device is
@@ -279,20 +286,7 @@ int bt_conn_security(struct bt_conn *conn, bt_security_t sec);
  *  @return Encryption key size.
  */
 uint8_t bt_conn_enc_key_size(struct bt_conn *conn);
-
-/** @brief Clear device information (bonding, keys).
- *
- *  Clears all a bonding information (keys, etc). A bonded connection is
- *  disconnected.
- *  BT_ADDR_LE_ANY removes the of all bonded devices
- *
- *  @param addr identity address of a bonded device
- *
- *  @return 0 in success, error code otherwise
- *
- */
-int bt_conn_remove_info(const bt_addr_le_t *addr);
-#endif /* CONFIG_BLUETOOTH_SMP */
+#endif /* CONFIG_BLUETOOTH_SMP || CONFIG_BLUETOOTH_BREDR */
 
 /** Connection callback structure */
 struct bt_conn_cb {
@@ -304,8 +298,10 @@ struct bt_conn_cb {
 	void (*identity_resolved)(struct bt_conn *conn,
 				  const bt_addr_le_t *rpa,
 				  const bt_addr_le_t *identity);
+#endif /* CONFIG_BLUETOOTH_SMP */
+#if defined(CONFIG_BLUETOOTH_SMP) || defined(CONFIG_BLUETOOTH_BREDR)
 	void (*security_changed)(struct bt_conn *conn, bt_security_t level);
-#endif
+#endif /* defined(CONFIG_BLUETOOTH_SMP) || defined(CONFIG_BLUETOOTH_BREDR) */
 	struct bt_conn_cb *_next;
 };
 
@@ -326,6 +322,7 @@ struct bt_conn_auth_cb {
 	void (*passkey_entry)(struct bt_conn *conn);
 	void (*passkey_confirm)(struct bt_conn *conn, unsigned int passkey);
 	void (*cancel)(struct bt_conn *conn);
+	void (*pairing_confirm)(struct bt_conn *conn);
 #if defined(CONFIG_BLUETOOTH_BREDR)
 	void (*pincode_entry)(struct bt_conn *conn, bool highsec);
 #endif
@@ -364,18 +361,27 @@ int bt_conn_auth_passkey_entry(struct bt_conn *conn, unsigned int passkey);
  */
 int bt_conn_auth_cancel(struct bt_conn *conn);
 
-/** @brief Reply if passkey was confirmed by user.
+/** @brief Reply if passkey was confirmed to match by user.
  *
  *  This function should be called only after passkey_confirm callback from
- *  bt_conn_auth_cb structure was called. If passkey is confirmed to match
- *  then match should be true. Otherwise match should be false.
+ *  bt_conn_auth_cb structure was called.
  *
  *  @param conn Connection object.
- *  @param match True if passkey was confirmed to match, false otherwise.
  *
  *  @return Zero on success or negative error code otherwise
  */
-int bt_conn_auth_passkey_confirm(struct bt_conn *conn, bool match);
+int bt_conn_auth_passkey_confirm(struct bt_conn *conn);
+
+/** @brief Reply if incoming pairing was confirmed by user.
+ *
+ *  This function should be called only after pairing_confirm callback from
+ *  bt_conn_auth_cb structure was called if user confirmed incoming pairing.
+ *
+ *  @param conn Connection object.
+ *
+ *  @return Zero on success or negative error code otherwise
+ */
+int bt_conn_auth_pairing_confirm(struct bt_conn *conn);
 
 #if defined(CONFIG_BLUETOOTH_BREDR)
 /** @brief Reply with entered PIN code.
@@ -392,8 +398,47 @@ int bt_conn_auth_pincode_entry(struct bt_conn *conn, const char *pin);
 #endif /* CONFIG_BLUETOOTH_BREDR */
 #endif /* CONFIG_BLUETOOTH_SMP || CONFIG_BLUETOOTH_BREDR */
 
+#if defined(CONFIG_BLUETOOTH_BREDR)
+/** Connection parameters for BR/EDR connections */
+struct bt_br_conn_param {
+	bool allow_role_switch;
+};
+
+/** Helper to declare BR/EDR connection parameters inline
+  *
+  * @param role_switch True if role switch is allowed
+  */
+#define BT_BR_CONN_PARAM(role_switch) \
+	(&(struct bt_br_conn_param) { \
+		.allow_role_switch = (role_switch), \
+	 })
+
+/** Default BR/EDR connection parameters:
+  *   Role switch allowed
+  */
+#define BT_BR_CONN_PARAM_DEFAULT BT_BR_CONN_PARAM(true)
+
+
+/** @brief Initiate an BR/EDR connection to a remote device.
+ *
+ *  Allows initiate new BR/EDR link to remote peer using its address.
+ *  Returns a new reference that the the caller is responsible for managing.
+ *
+ *  @param peer  Remote address.
+ *  @param param Initial connection parameters.
+ *
+ *  @return Valid connection object on success or NULL otherwise.
+ */
+struct bt_conn *bt_conn_create_br(const bt_addr_t *peer,
+				  const struct bt_br_conn_param *param);
+#endif /* CONFIG_BLUETOOTH_BREDR */
+
 #ifdef __cplusplus
 }
 #endif
+
+/**
+ * @}
+ */
 
 #endif /* __BT_CONN_H */

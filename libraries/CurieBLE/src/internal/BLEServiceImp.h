@@ -69,7 +69,8 @@ public:
     inline uint16_t endHandle(){return _end_handle;}
     inline uint16_t startHandle(){return _start_handle;}
     
-    bool discoverAttributes(BLEDevice* device);
+    bool discoverAttributes(BLEDevice* device,
+                            bool discoverGapGatt);
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,
                                  bt_gatt_discover_params_t *params);
@@ -95,7 +96,9 @@ private:
     bool readCharacteristic(const BLEDevice &bledevice, uint16_t handle);
     bool discoverAttributes(BLEDevice* device, 
                             uint16_t start_handle, 
-                            uint16_t end_handle);
+                            uint16_t end_handle,
+                            bool discoverGapGatt);
+    void setDiscovering(bool enable);
 private:
     typedef LinkNode<BLECharacteristicImp *>  BLECharacteristicLinkNodeHeader;
     typedef LinkNode<BLECharacteristicImp *>* BLECharacteristicNodePtr;
@@ -114,6 +117,7 @@ private:
     bt_gatt_discover_params_t _discover_params;
     
     BLECharacteristicLinkNodeHeader _characteristics_header; // The characteristic link list
+    bool _discovering;
 };
 
 #endif // _BLE_SERVICE_H_INCLUDED

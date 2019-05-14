@@ -42,6 +42,7 @@
 #include "infra/version.h"
 #include "curie_factory_data.h"
 #include "portable.h"
+#include "services/ble/ble_service.h"
 
 #include "uart.h"
 #include "ipc_uart_ns16550.h"
@@ -112,10 +113,16 @@ static struct bt_conn_cb conn_callbacks = {
     .le_param_updated = on_le_param_updated
 };
 
+static void ble_fill_le_address_from_oem(bt_addr_le_t *bda, 
+                                         const struct curie_oem_data *oem)
+{
+    bda->type = oem->bt_mac_address_type;
+    memcpy(&bda->a, oem->bt_address, sizeof(bda->a)); // GL. KW warning acknowldged
+}
+
 void ble_client_get_mac_address(bt_addr_le_t *bda)
 {
     struct curie_oem_data *p_oem = NULL;
-    unsigned i;
 
     /* Set the MAC address defined in Factory Data (if provided)
      * Otherwise, the device will default to a static random address */
@@ -124,9 +131,7 @@ void ble_client_get_mac_address(bt_addr_le_t *bda)
         if (!strncmp((char*)global_factory_data->oem_data.magic, FACTORY_DATA_MAGIC, 4)) {
             p_oem = (struct curie_oem_data *) &global_factory_data->oem_data.project_data;
             if (p_oem->bt_mac_address_type < 2) {
-                bda->type = p_oem->bt_mac_address_type;
-                for (i = 0; i < BLE_ADDR_LEN; i++)
-                    bda->val[i] = p_oem->bt_address[BLE_ADDR_LEN - 1 - i];
+                ble_fill_le_address_from_oem(bda, p_oem);
             }
         }
     }
@@ -189,7 +194,9 @@ void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_par
                      ble_client_disconnect_event_cb_t disconnect_cb, void* disconnect_param,
                      ble_client_update_param_event_cb_t update_param_cb, void* update_param_param)
 {
-    //uint32_t delay_until;
+    // Enable the HW
+    ble_enable();
+    
     pr_info(LOG_MODULE_BLE, "%s", __FUNCTION__);
     ble_client_connect_event_cb = connect_cb;
     ble_client_connect_event_param = connect_param;
