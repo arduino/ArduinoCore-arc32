@@ -1,4 +1,4 @@
-# Enable debug interface on Serail1
+# Enable debug interface on Serial1
 
 * Default disable the debug interface.
 
