@@ -40,6 +40,7 @@ extern "C" {
 
 void    cfw_platform_init(void);
 T_QUEUE cfw_get_service_queue(void);
+void ble_cfw_service_init(int service_id, T_QUEUE queue);
 
 #ifdef __cplusplus
 }

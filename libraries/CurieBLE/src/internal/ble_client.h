@@ -102,6 +102,7 @@ typedef void (*ble_client_update_param_event_cb_t)(struct bt_conn *conn,
 extern "C" {
 #endif
 
+void ble_cfw_init();
 void ble_client_init(ble_client_connect_event_cb_t connect_cb, void* connect_param,
                      ble_client_disconnect_event_cb_t disconnect_cb, void* disconnect_param,
                      ble_client_update_param_event_cb_t update_param_cb, void* update_param_param);

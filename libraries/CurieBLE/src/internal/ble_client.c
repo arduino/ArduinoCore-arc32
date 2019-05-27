@@ -77,6 +77,15 @@ static void *ble_client_update_param_event_param;
 extern "C" {
 #endif
 
+static bool initialized = false;
+
+inline void ble_cfw_init() {
+    if (!initialized) {
+        ble_cfw_service_init(BLE_SERVICE_ID, cfw_get_service_queue());
+        initialized = true;
+    }
+}
+
 static void on_connected(bt_conn_t *conn, uint8_t err)
 {
     if (ble_client_connect_event_cb)
