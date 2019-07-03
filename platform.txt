@@ -30,7 +30,7 @@ compiler.elf2bin.flags=-S -O binary -R .note -R .comment -R COMMON -R .eh_frame
 compiler.elf2bin.cmd=arc-elf32-objcopy
 compiler.ldflags=
 compiler.size.cmd=arc-elf32-size
-compiler.define=-DARDUINO=
+compiler.define=-DARDUINO= -DPLATFORM=
 compiler.strip.cmd={compiler.prefix}-strip
 
 # this can be overriden in boards.txt
@@ -43,6 +43,13 @@ compiler.cpp.extra_flags=-D__CPU_ARC__ -DCLOCK_SPEED=32 -DCONFIG_SOC_GPIO_32 -DC
 compiler.ar.extra_flags=
 compiler.elf2hex.extra_flags=
 
+# These can be overridden in platform.sketch.txt
+build.sketch_flags=
+compiler.c.sketch_flags=
+compiler.c.elf.sketch_flags=
+compiler.cpp.sketch_flags=
+compiler.ar.sketch_flags=
+compiler.elf2hex.sketch_flags=
 
 #compiler.libsam.c.flags="-I{build.system.path}/libsam" "-I{build.system.path}/CMSIS/CMSIS/Include/" "-I{build.system.path}/CMSIS/Device/ATMEL/"
 
@@ -59,28 +66,28 @@ build.usb_manufacturer="Unknown"
 # ---------------------
 
 ## Compile c files
-recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_BOARD="{build.board}" -DARDUINO_ARCH_{build.arch} -DARDUINO_ARCH="{build.arch}" -DPLATFORM="{version}" {compiler.c.extra_flags} {build.extra_flags} {compiler.c.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_BOARD="{build.board}" -DARDUINO_ARCH_{build.arch} -DARDUINO_ARCH="{build.arch}" -DPLATFORM="{version}" {compiler.cpp.extra_flags} {build.extra_flags} {compiler.cpp.sketch_flags} {build.sketch_flags} {includes} "{source_file}" -o "{object_file}"
 
 ## Create archives
-recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} {compiler.ar.sketch_flags} "{archive_file_path}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lnsim -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {compiler.c.elf.extra_flags} {compiler.c.elf.sketch_flags} -o "{build.path}/{build.project_name}.elf" "-L{build.path}" "-L{build.variant.path}" -Wl,--whole-archive "-l{build.variant_system_lib}" -Wl,--no-whole-archive -Wl,--start-group "-l{build.variant_system_lib}" -lnsim -lc -lm -lgcc {object_files} "{build.path}/{archive_file}"
 
 ## Save output with debug symbols (.debug.elf file). Uncomment if you wish to use OpenOCD to debug.
 recipe.hooks.objcopy.preobjcopy.1.pattern="{runtime.tools.arduino101load.path}/arduino101load" -c -from="{build.path}/{build.project_name}.elf" -to="{build.path}/../arduino101_sketch.debug.elf"
 
 ## Create output (.bin file)
-recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2hex.extra_flags} {compiler.elf2hex.sketch_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 
 ## Create output (.elf file)
 recipe.objcopy.eep.pattern="{compiler.path}{compiler.strip.cmd}" "{build.path}/{build.project_name}.elf"
 
 ## Create output (.hex file)
-recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} {compiler.elf2hex.sketch_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
 
 ## Save hex
 recipe.output.tmp_file={build.project_name}.hex
