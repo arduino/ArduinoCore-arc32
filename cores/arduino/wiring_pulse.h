@@ -30,7 +30,10 @@
  * before the start of the pulse. The pulseIn() function is not designed to detect
  * high frequencies. The consequences of using this function to detect frequencies
  * such as a 100KHz PWM signal could possibly cause a sketch to hang at the
- * pulseIn() function call.
+ * pulseIn() function call. There is the chance a pin using pulseIn() could get
+ * into a floating voltage state causing the hanging issue. This should be prevented
+ * by using a pullup or pulldown resistor. pinMode(pin, INPUT_PULLUP) could also
+ * be used to keep this from happening.
  */
 extern uint32_t pulseIn( uint32_t ulPin, uint32_t ulState, uint32_t ulTimeout = 1000000UL ) ;
 
