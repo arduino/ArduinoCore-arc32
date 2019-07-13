@@ -20,11 +20,6 @@
 #ifndef _BLE_CHARACTERISTICIMP_H_INCLUDED
 #define _BLE_CHARACTERISTICIMP_H_INCLUDED
 
-//#include "BLECommon.h"
-
-//#include "BLEDevice.h"
-//#include "BLEDescriptor.h"
-
 #include "CurieBLE.h"
 #include "BLEDescriptorImp.h"
 
@@ -172,7 +167,7 @@ public:
     static void writeResponseReceived(struct bt_conn *conn, 
                                       uint8_t err,
                                       const void *data);
-
+    void cccdValueChanged();
     int descriptorCount() const;
     uint8_t discoverResponseProc(bt_conn_t *conn,
                                  const bt_gatt_attr_t *attr,

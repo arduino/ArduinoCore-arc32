@@ -71,6 +71,10 @@ BLECharacteristicImp::BLECharacteristicImp(const bt_uuid_t* uuid,
     
     _ccc_value.cfg = &_ccc_cfg;
     _ccc_value.cfg_len = 1;
+    _ccc_value.user_data = (void *)this;
+    _ccc_value.cfg_changed = prfile_cccd_cfg_changed;
+    _ccc_value.value = 0;
+    
     if (BLERead & properties)
     {
         _gatt_chrc.properties |= BT_GATT_CHRC_READ;
@@ -139,6 +143,10 @@ BLECharacteristicImp::BLECharacteristicImp(BLECharacteristic& characteristic,
     
     _ccc_value.cfg = &_ccc_cfg;
     _ccc_value.cfg_len = 1;
+    _ccc_value.user_data = (void *)this;
+    _ccc_value.cfg_changed = prfile_cccd_cfg_changed;
+    _ccc_value.value = 0;
+    
     if (BLERead & properties)
     {
         _gatt_chrc.properties |= BT_GATT_CHRC_READ;
@@ -433,11 +441,13 @@ bool BLECharacteristicImp::unsubscribe(void)
     // Enable CCCD to allow peripheral send Notification/Indication
     retval = bt_gatt_unsubscribe(conn, &_sub_params);
     bt_conn_unref(conn);
-    if (0 == retval)
+    if (0 != retval)
     {
-        _subscribed = false;
+        return false;
     }
-    return _subscribed;
+    
+    _subscribed = false;
+    return true;
 }
 
 bool BLECharacteristicImp::subscribe(void)
@@ -1070,4 +1080,26 @@ uint8_t BLECharacteristicImp::discoverResponseProc(bt_conn_t *conn,
     return retVal;
 }
 
+void BLECharacteristicImp::cccdValueChanged()
+{
+    
+    enum BLECharacteristicEvent event = BLEUnsubscribed;
+    if (subscribed())
+    {
+        event = BLESubscribed;
+    }
+
+    if (_event_handlers[event]) 
+    {
+        BLECharacteristic chrcTmp(this, &_ble_device);
+        _event_handlers[event](_ble_device, chrcTmp);
+    }
+
+    if (_oldevent_handlers[event]) 
+    {
+        BLECharacteristic chrcTmp(this, &_ble_device);
+        BLECentral central(_ble_device);
+        _oldevent_handlers[event](central, chrcTmp);
+    }
+}
 

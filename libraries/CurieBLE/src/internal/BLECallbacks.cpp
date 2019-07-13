@@ -27,6 +27,11 @@
 #include "BLEDeviceManager.h"
 #include "BLEProfileManager.h"
 
+#include "BLECallbacks.h"
+
+#include <atomic.h>
+#include "../src/services/ble/conn_internal.h"
+
 // GATT Server Only
 ssize_t profile_read_process(bt_conn_t *conn,
                              const bt_gatt_attr_t *attr,
@@ -123,8 +128,6 @@ uint8_t profile_notify_process (bt_conn_t *conn,
                                 bt_gatt_subscribe_params_t *params,
                                 const void *data, uint16_t length)
 {
-    //BLEPeripheralHelper* peripheral = BLECentralRole::instance()->peripheral(conn);// Find peripheral by bt_conn
-    //BLEAttribute* notifyatt = peripheral->attribute(params); // Find attribute by params
     BLECharacteristicImp* chrc = NULL;
     BLEDevice bleDevice(bt_conn_get_dst(conn));
     chrc = BLEProfileManager::instance()->characteristic(bleDevice, params->value_handle);
@@ -146,7 +149,6 @@ uint8_t profile_discover_process(bt_conn_t *conn,
     uint8_t ret = BT_GATT_ITER_STOP;
     pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     ret = BLEProfileManager::instance()->discoverResponseProc(conn, attr, params);
-    pr_debug(LOG_MODULE_BLE, "%s-%d", __FUNCTION__, __LINE__);
     return ret;
 }
 
@@ -237,7 +239,6 @@ void bleConnectEventHandler(bt_conn_t *conn,
     p->handleConnectEvent(conn, err);
 }
 
-
 void bleDisconnectEventHandler(bt_conn_t *conn, 
                                 uint8_t reason, 
                                 void *param)
@@ -282,4 +283,15 @@ void ble_on_write_no_rsp_complete(struct bt_conn *conn, uint8_t err,
 {
     BLECharacteristicImp::writeResponseReceived(conn, err, data);
 }
+
+void prfile_cccd_cfg_changed(void *user_data, uint16_t value)
+{
+    if (NULL == user_data)
+        return;
+    pr_debug(LOG_MODULE_BLE, "%s-%d: ccc userdata %p", __FUNCTION__, __LINE__, user_data);
+
+    BLECharacteristicImp *blecharacteritic = (BLECharacteristicImp *)user_data;
+    blecharacteritic->cccdValueChanged();
+}
+
 
