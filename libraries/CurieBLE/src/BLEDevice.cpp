@@ -229,7 +229,11 @@ void BLEDevice::setDeviceName(const char* deviceName)
 
 void BLEDevice::setAppearance(unsigned short appearance)
 {
-    BLEDeviceManager::instance()->setAppearance(appearance);
+    if (BLEUtils::isLocalBLE(*this))
+    {
+        // Only local device can set the appearance
+        BLEDeviceManager::instance()->setAppearance(appearance);
+    }
 }
 
 int BLEDevice::addService(BLEService& attribute)

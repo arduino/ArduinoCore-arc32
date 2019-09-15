@@ -117,6 +117,20 @@ public:
                                bt_gatt_read_params_t *params,
                                const void *data, 
                                uint16_t length);
+    /**
+     * @brief   Set the appearance type for the BLE Peripheral Device
+     *
+     * See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
+     * for available options.
+     *
+     * @param[in] appearance Appearance category identifier as defined by BLE Standard
+     *
+     * @return BleStatus indicating success or error
+     *
+     * @note This method must be called before the begin method
+     */
+    void setAppearance(unsigned short appearance);
+    unsigned short getAppearance();
 protected:
     friend ssize_t profile_write_process(bt_conn_t *conn,
                                      const bt_gatt_attr_t *attr,
