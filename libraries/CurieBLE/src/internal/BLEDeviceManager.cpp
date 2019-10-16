@@ -373,17 +373,16 @@ BLEDeviceManager::setAdvertiseData(uint8_t type, const uint8_t* data, uint8_t le
     
     for (uint8_t i = 0; i < _scan_rsp_data_idx; i++)
     {
-        lengthOfAdv += _scan_rsp_data[i].data_len + 2;
-    }
+        lengthOfScanRsp += _scan_rsp_data[i].data_len + 2;
+    }   
         
-        
-    if (((length + lengthOfAdv) < BLE_MAX_ADV_SIZE) && 
+    if (((length + 2 + lengthOfAdv) <= BLE_MAX_ADV_SIZE) && 
         (_adv_data_idx < ARRAY_SIZE(_adv_data)))
     {
         fill_area = &_adv_data[_adv_data_idx];
         _adv_data_idx++;
     }
-    else if ((length + lengthOfScanRsp) < BLE_MAX_ADV_SIZE && 
+    else if ((length + 2 + lengthOfScanRsp) <= BLE_MAX_ADV_SIZE && 
              (_scan_rsp_data_idx < ARRAY_SIZE(_scan_rsp_data)))
     {
         fill_area = &_scan_rsp_data[_scan_rsp_data_idx];
