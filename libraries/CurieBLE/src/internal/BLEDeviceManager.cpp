@@ -417,6 +417,13 @@ BLEDeviceManager::_advDataInit(void)
     /* Add flags */
     _adv_type = (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR);
     ret = setAdvertiseData (BT_DATA_FLAGS, &_adv_type, sizeof(_adv_type));
+
+    /* Add appearance */
+    if (_appearance > 0 && 
+        (BLE_STATUS_SUCCESS == ret))
+    {
+        ret = setAdvertiseData ((uint8_t)BT_DATA_GAP_APPEARANCE,(const uint8_t*)&_appearance,(uint8_t)sizeof(_appearance));
+    }
     
     if (_has_service_solicit_uuid && 
         (BLE_STATUS_SUCCESS == ret)) 
