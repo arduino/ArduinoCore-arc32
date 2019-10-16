@@ -241,8 +241,6 @@ int BLEProfileManager::serviceCount(const BLEDevice &bledevice) const
 
 int BLEProfileManager::registerProfile(BLEDevice &bledevice)
 {
-    int ret = 0;
-    
     bt_gatt_attr_t *start;
     BleStatus err_code = BLE_STATUS_SUCCESS;
     
@@ -288,35 +286,20 @@ int BLEProfileManager::registerProfile(BLEDevice &bledevice)
     {
         BLEServiceImp *service = node->value;
         start = _attr_base + _attr_index;
-        service->updateProfile(start, _attr_index);
+        err_code = service->updateProfile(start, _attr_index);
+        if (BLE_STATUS_SUCCESS != err_code)
+        {
+            break;
+        }
         node = node->next;
     }
     
-#if 0
-    // Start debug
-    int i;
-
-    for (i = 0; i < _attr_index; i++) {
-        {
-            pr_info(LOG_MODULE_APP, "gatt-: i %d, type %d, u16 0x%x",
-                   i, 
-                   _attr_base[i].uuid->type,
-                   BT_UUID_16(_attr_base[i].uuid)->val);
-        }
-    }
-    
-    delay(1000);
-    // End for debug
-#endif
-    
-    ret = bt_gatt_register(_attr_base,
-                            _attr_index);
-    pr_debug(LOG_MODULE_APP, "%s: ret, %d,_attr_index-%d", __FUNCTION__, ret, _attr_index);
-    if (0 == ret)
+    // Will not regiter the profile if ARC registered any profile
+    if (_attr_index > 0)
     {
         _profile_registered = true;
     }
-    return ret;
+    return err_code;
 }
 
 void BLEProfileManager::clearProfile(BLEServiceLinkNodeHeader* serviceHeader)

@@ -65,7 +65,7 @@ public:
      *
      * @param[in]   bledevice       The BLE Device
      *
-     * @return  int     std C errno
+     * @return  int     BLE errno @BleStatus
      *
      * @note  none
      */
